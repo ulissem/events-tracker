@@ -67,7 +67,9 @@ header .spacer{flex:1}
 main{display:grid;grid-template-columns:380px 1fr;min-height:calc(100vh - 54px)}
 main.full{grid-template-columns:1fr}
 #list{border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;position:sticky;top:var(--hh,54px);align-self:start;height:calc(100vh - var(--hh,54px))}
-#detail{padding:26px 32px 60px;max-width:940px;min-width:0}
+#detail{padding:26px 32px 60px;max-width:1600px;min-width:0}
+.evgrid{max-width:980px}
+@media (min-width:1480px){ .evgrid{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,400px);gap:0 32px;align-items:start} .evside{position:sticky;top:calc(var(--hh,54px) + 12px);max-height:calc(100vh - var(--hh,54px) - 24px);overflow-y:auto;padding-right:4px} .evside > h3:first-child{margin-top:0} }
 main.full #list{display:none}
 main.full #detail{max-width:1100px}
 
@@ -137,6 +139,30 @@ table.t tr.closed td{color:var(--ink-2)}
 .race.open .racehead{border-bottom:1px solid var(--line);border-radius:10px 10px 0 0}
 .race.open .chev svg{transform:rotate(90deg)}
 .racebody{padding:14px 16px 16px}
+.dayro{padding:7px 0;color:var(--ink-2)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:none;padding:4px 12px 4px 6px;display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-2)}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink);font-weight:500}
+.hwimg{width:30px;height:30px;border-radius:6px;background:#eef1f4;object-fit:contain;padding:2px;flex:none}
+.seg .hwimg{width:28px;height:28px}
+.hwcell{display:flex;align-items:center;gap:6px}
+.hwcell select{flex:1;min-width:0}
+table.t td.gr{width:44px;white-space:nowrap}
+table.t td.gr > *{vertical-align:middle;display:inline-flex}
+@media (min-width:861px){
+  table.t.tps{table-layout:fixed}
+  table.t.tps th:nth-child(1){width:52px} table.t.tps th:nth-child(2){width:17%} table.t.tps th:nth-child(3){width:190px}
+  table.t.tps th:nth-child(4),table.t.tps th:nth-child(5){width:58px} table.t.tps th:nth-child(6){width:108px}
+  table.t.tps th:nth-child(7){width:16%} table.t.tps th:nth-child(9){width:34px}
+}
+table.t tr.dup select.idsel{border-color:var(--danger)!important;color:var(--danger)}
+.link{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;background:var(--accent-soft);color:var(--accent);margin-top:3px;white-space:nowrap}
+.link.bad{background:none;border:1px solid var(--warn);color:var(--warn)}
+.alerts{margin:8px 0 0;padding:8px 12px;border:1px solid var(--danger);border-radius:8px;color:var(--danger);font-size:13px}
+.check li.auto label{cursor:default}
+.check .tag{margin-left:6px;font-size:11px}
+.check .grp{font-size:12px;color:var(--ink-2);font-weight:500;margin:10px 0 2px;break-after:avoid}
 table.t td.n{width:26px;color:var(--ink-2);font-size:12px;text-align:right}
 table.t td.sw{width:38px}
 input.swatch{width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;cursor:pointer}
@@ -149,18 +175,22 @@ table.t td.sm{width:64px}
 a.plain{color:var(--accent);text-decoration:none;padding:7px 0;display:inline-block}
 .sub{font-size:12px;color:var(--ink-2);margin:12px 0 5px;font-weight:500}
 
-/* checkable lists: name · [url] · note · actions, with one level of sub-items */
+.grip{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--ink-2);opacity:.45;display:flex;align-items:center;justify-content:center;width:16px;height:28px;border-radius:4px}
+.grip svg{width:10px;height:16px}
+.grip:hover{opacity:1;background:var(--panel-2)}
+.dragging{opacity:.75;background:var(--accent-soft)!important;border-radius:6px}
+body.sorting,body.sorting *{cursor:grabbing!important;user-select:none}
+/* checkable lists: grip · check · name · [url · open] · note · + · × — one level of sub-items */
 .tasks{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--panel);margin-bottom:12px}
 .tasks > .f{margin:2px 2px 4px}
-.task{display:grid;grid-template-columns:22px minmax(0,1fr) minmax(0,1.3fr) 30px 30px;gap:4px;align-items:center;min-height:34px}
-.tasks.wurl .task{grid-template-columns:22px minmax(0,1fr) minmax(0,1fr) 52px minmax(0,1.2fr) 30px 30px}
-.task.child{margin-left:26px}
-.task.add{grid-template-columns:22px minmax(0,1fr)!important}
+.task{display:grid;grid-template-columns:16px 22px minmax(0,1fr) minmax(0,1.3fr) 30px 30px;gap:4px;align-items:center;min-height:34px}
+.tasks.wurl .task{grid-template-columns:16px 22px minmax(0,1fr) minmax(0,1fr) 52px minmax(0,1.2fr) 30px 30px}
+.tkids .task{margin-left:26px}
+.task.add{grid-template-columns:16px 22px minmax(0,1fr)!important}
 .task .tn{color:var(--ink-2);font-size:13px}
 .task .tn:not(:placeholder-shown){color:var(--ink)}
-.task .btn.icon{width:28px;height:28px;padding:4px}
 .task a.btn{justify-content:center}
-.task input[type=checkbox]{width:16px;height:16px;margin:0 0 0 2px;accent-color:var(--ok)}
+.task input[type=checkbox],.check input{width:16px;height:16px;margin:0 0 0 2px;accent-color:var(--ok)}
 .task .tt{border:1px solid transparent;border-radius:5px;padding:4px 6px;background:none;min-width:0;width:100%}
 .task .tt:hover,.task .tt:focus{border-color:var(--line)}
 .task.done .tt{text-decoration:line-through;color:var(--ink-2)}
@@ -180,7 +210,8 @@ a.plain{color:var(--accent);text-decoration:none;padding:7px 0;display:inline-bl
 .q .qc{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
 .q label{font-size:13px;display:flex;gap:5px;align-items:center;color:var(--ink-2);white-space:nowrap}
 
-.check{list-style:none;margin:0;padding:0;columns:2;column-gap:28px}
+.check{list-style:none;margin:0 0 12px;padding:0;columns:2;column-gap:28px}
+.evside .check{columns:1}
 .check li{break-inside:avoid;padding:4px 0}
 .check label{display:flex;gap:9px;align-items:flex-start;cursor:pointer}
 .check input{margin:4px 0 0;width:15px;height:15px;flex:none}
@@ -232,6 +263,9 @@ details.adv summary{cursor:pointer;margin-bottom:10px}
 .sheet .qs .a{color:#5a6670;font-size:13px}
 .sheet .prog{height:6px;background:#d7dce1;border-radius:3px;overflow:hidden;width:200px;display:inline-block;vertical-align:middle;margin-right:8px}
 .sheet .prog i{display:block;height:100%;background:#2d8a4e}
+.sheet .hw{width:26px;height:26px;border-radius:5px;background:#eef1f4;object-fit:contain;padding:1px;vertical-align:middle}
+.sheet .rep{font-size:12px;color:#1f4e79}
+.sheet .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:0}
 .sheet .footer{margin-top:26px;font-size:12px;color:#8a949d;display:flex;justify-content:space-between}
 #printarea{display:none}
 
@@ -251,27 +285,28 @@ details.adv summary{cursor:pointer;margin-bottom:10px}
   .q{grid-template-columns:32px 1fr}
   .q .qc{grid-column:2;flex-direction:row;justify-content:space-between}
   .task .btn{opacity:1}
-  .task,.tasks.wurl .task{grid-template-columns:22px minmax(0,1fr) 30px 30px;grid-template-areas:"c t s x" ". u o o" ". n n n"}
-  .task > :nth-child(1){grid-area:c} .task > .tt:not(.tu):not(.tn){grid-area:t} .task .tu{grid-area:u} .task > a.btn{grid-area:o;justify-self:start}
+  .task,.tasks.wurl .task{grid-template-columns:16px 22px minmax(0,1fr) 30px 30px;grid-template-areas:"g c t s x" ". . u o o" ". . n n n"}
+  .task > .grip{grid-area:g} .task > .tc{grid-area:c} .task > .tx{grid-area:t} .task .tu{grid-area:u} .task > a.btn{grid-area:o;justify-self:start}
   .task .tn{grid-area:n} .task .addsub{grid-area:s} .task .del{grid-area:x}
-  .task.child{margin-left:14px}
+  .tkids .task{margin-left:14px}
   .task.add{grid-template-areas:none}
   .task.add > *{grid-area:auto!important}
   table.t.resp thead{display:none}
   table.t.resp tr{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);padding:6px 0}
   table.t.resp td{border:0}
   table.t.resp td.sm,table.t.resp td.x,table.t.resp td.n{width:auto}
-  table.t.tps tr{grid-template-columns:38px 1fr 72px 110px;grid-template-areas:"a b b h" "a c d e" "a f f f" "a g g g"}
-  table.t.splits tr{grid-template-columns:22px 1fr 80px 34px 34px;grid-template-areas:"a b b b b" "a c c c c" "a d e f g"}
+  table.t.tps tr{grid-template-columns:48px 70px 70px minmax(0,1fr) 34px;grid-template-areas:"a b b b i" "a c c c c" "a d e f f" "a g g g g" "a h h h h"}
+  table.t.splits tr{grid-template-columns:44px minmax(0,1fr) 80px 34px;grid-template-areas:"a b b f" "a c c c" "a d e e"}
   table.t.tps td:nth-child(1),table.t.splits td:nth-child(1){grid-area:a}
   table.t.tps td:nth-child(2),table.t.splits td:nth-child(2){grid-area:b}
   table.t.tps td:nth-child(3),table.t.splits td:nth-child(3){grid-area:c}
   table.t.tps td:nth-child(4),table.t.splits td:nth-child(4){grid-area:d}
   table.t.tps td:nth-child(5),table.t.splits td:nth-child(5){grid-area:e}
   table.t.tps td:nth-child(6),table.t.splits td:nth-child(6){grid-area:f}
-  table.t.tps td:nth-child(7),table.t.splits td:nth-child(7){grid-area:g}
+  table.t.tps td:nth-child(7){grid-area:g}
   table.t.tps td:nth-child(8){grid-area:h}
-  table.t.splits td.n{padding-top:12px}
+  table.t.tps td:nth-child(9){grid-area:i}
+  table.t.splits td.gr{padding-top:10px}
 }
 @media print{
   body.printing > *:not(#printarea){display:none!important}
@@ -420,27 +455,40 @@ function liftRaceLists(e){
   }
 }
 function normalize(){
+  normalizeConfig();
   for(const e of S.events){
     for(const k of ['links','timingPoints','contests','questions']) e[k]=e[k]||[];
     e.checklist=e.checklist||{}; for(const [k] of EVENT_LISTS) e[k]=toTasks(e[k]);
     if(LEGACY[e.status]) e.status=LEGACY[e.status];
     if(e.myrrUrl!==undefined&&(!e.myrrUrl||e.myrrUrl===myrrUrl(e))) delete e.myrrUrl; // now derived from EventID
-    e.technology=e.technology||'';
+    e.technology=e.technology||''; e.checklistExtra=toTasks(e.checklistExtra);
     for(const t of e.timingPoints){ t.hardware=t.hardware||''; t.ch=t.ch||''; t.loop=t.loop||''; t.mode=t.mode||''; if(!t.color) t.color=nextColor(e); }
     for(const c of e.contests){ c.splits=(c.splits||[]).map(x=>({id:x.id||uid('s'),name:x.name||'',label:x.label||'',tp:x.tp||'',km:x.km??''}));
-      if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; c.startType=c.startType||'mass'; c.timeBasis=c.timeBasis||'';
+      if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; c.startType=c.startType||'mass'; c.timeBasis=c.timeBasis||''; c.date=c.date||'';
       if(c.myrrUrl){ const t=mkTask(c.name||'Race page'); t.url=c.myrrUrl; e.myrrTabs.push(t); } delete c.myrrUrl; } // per-race my.rr link → event my.rr tabs
     liftRaceLists(e);
   }
 }
 /* Timing hardware. tech = timing technologies it can be used with; ch/loop = allowed ID ranges (active only). */
 const HW={
-  'Decoder':{tech:['active','passive'],ch:[1,8],loop:[1,8]},
-  'Loop Box':{tech:['active'],ch:[1,8],loop:[2,8]},
-  'Track Box Passive':{tech:['passive']},
-  'Track Box Active':{tech:['active'],ch:[1,8]},
-  'Management Box':{tech:['active'],ch:[1,8],modes:['Tracking START','Tracking STOP','Kiosk'],notTP:true},
+  'Decoder':{tech:['active','passive'],ch:[1,8],loop:[1,8],img:'decoder'},
+  'Loop Box':{tech:['active'],ch:[1,8],loop:[2,8],modes:['store','repeat'],img:'loop-box'},
+  'Track Box Passive':{tech:['passive'],img:'trackbox-passive'},
+  'Track Box Active':{tech:['active'],ch:[1,8],img:'trackbox-active'},
+  'Management Box':{tech:['active'],ch:[1,8],modes:['Tracking START','Tracking STOP','Kiosk'],notTP:true,img:'management-box'},
 };
+const hwImg=h=>HW[h]?.img?`img/${HW[h].img}.png`:'';
+const TECH={active:{label:'Active',img:'img/active.png'},passive:{label:'Passive',img:'img/passive.png'}};
+/* Ch./L. identity of a device (active only). Loop-capable devices need both, channel-only ones just Ch. */
+function idKey(e,t){ const hw=HW[t.hardware]; if(e.technology==='passive'||!hw?.ch||!t.ch) return null; if(hw.loop) return t.loop?`${t.ch}/${t.loop}`:null; return `${t.ch}/–`; }
+function duplicates(e){ const m={}; for(const t of e.timingPoints){ const k=idKey(e,t); if(k)(m[k]=m[k]||[]).push(t); } return Object.entries(m).filter(([,v])=>v.length>1); }
+/* A Loop Box in repeat sends its reads over WiFi to the Decoder with the same Ch. and L. 1 */
+const repeatTarget=(e,t)=>t.hardware==='Loop Box'&&t.mode==='repeat'?e.timingPoints.find(d=>d.hardware==='Decoder'&&String(d.ch)===String(t.ch)&&String(d.loop)==='1')||null:undefined;
+const repeaters=(e,d)=>d.hardware==='Decoder'&&String(d.loop)==='1'?e.timingPoints.filter(t=>t.hardware==='Loop Box'&&t.mode==='repeat'&&String(t.ch)===String(d.ch)):[];
+/* Race day: the event date for single-day events, otherwise one of the event's days */
+function eventDays(e){ if(!e.dateStart||!e.dateEnd||e.dateEnd<=e.dateStart) return []; const out=[]; for(let d=new Date(e.dateStart+'T12:00');out.length<31;d.setDate(d.getDate()+1)){ const iso=d.toISOString().slice(0,10); if(iso>e.dateEnd) break; out.push(iso); } return out; }
+const raceDate=(e,c)=>{ const days=eventDays(e); return days.length?(days.includes(c.date)?c.date:''):e.dateStart||''; };
+const dayLabel=(e,iso)=>{ const i=eventDays(e).indexOf(iso); return i<0?'':`Day ${i+1} · ${fmtLong(iso)}`; };
 const PASTEL=['#a9c9e8','#c3b5e8','#f7c9a3','#f2e198','#9fd6d6','#ebb0cc','#f2a9a4','#b9dfb0','#d9c7a7','#b3d4f0','#e3c1f0','#c8e6a0'];
 const nextColor=e=>PASTEL.find(c=>!e.timingPoints.some(t=>t.color===c))||PASTEL[e.timingPoints.length%PASTEL.length];
 const myrrUrl=e=>/^\d+$/.test(String(e.rr14EventId||'').trim())?`https://my.raceresult.com/${String(e.rr14EventId).trim()}/`:'';
@@ -556,7 +604,34 @@ const slug=n=>n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[
 const clientOf=id=>S.clients.find(c=>c.id===id);
 const clientName=id=>clientOf(id)?.name||'— no client —';
 const statusColor=s=>(S.config.statuses.find(x=>x.name===s)||{}).color||'#8a949d';
-const progress=e=>{ const t=S.config.checklistTemplate; return t.length?t.filter(k=>e.checklist?.[k]).length/t.length:0; };
+/* Checklist = items derived from what the event contains (auto: computed; manual: you tick) + your fixed items + extras. */
+function checklistItems(e){
+  const it=[], A=(key,label,done,group)=>it.push({key,label,done:!!done,auto:true,group}), M=(key,label,group)=>it.push({key,label,done:!!e.checklist[key],auto:false,group});
+  const G1='Setup', G2='Races', G3='Outputs';
+  M('RR14 file created','RR14 file created',G1);
+  A('auto:eventid','EventID set',e.rr14EventId,G1);
+  A('auto:tech','Timing technology chosen',e.technology,G1);
+  if(e.timingPoints.length){
+    A('auto:hw','Hardware on every timing point',e.timingPoints.every(t=>t.hardware),G1);
+    if(e.technology==='active'&&e.timingPoints.some(t=>HW[t.hardware]?.ch)) A('auto:ids','Ch. / L. set, no duplicates',e.timingPoints.every(t=>!HW[t.hardware]?.ch||idKey(e,t))&&!duplicates(e).length,G1);
+    if(e.timingPoints.some(t=>repeatTarget(e,t)!==undefined)) A('auto:repeat','Repeat Loop Boxes have a Decoder on L. 1',e.timingPoints.every(t=>repeatTarget(e,t)!==null),G1);
+    M('tp:imported','Timing points imported in RR14',G1);
+  }
+  for(const c of e.contests){ const n=c.name||'untitled race';
+    M(`race:${c.id}:setup`,`${n}: contest and splits in RR14`,G2);
+    A(`race:${c.id}:basis`,`${n}: rankings by gun / chip chosen`,c.timeBasis,G2);
+    if(c.startType&&c.startType!=='mass') M(`race:${c.id}:start`,`${n}: ${c.startType} start times`,G2);
+    if(c.relay) M(`race:${c.id}:relay`,`${n}: relay set up`,G2);
+  }
+  for(const [k,l] of EVENT_LISTS){ const [tot,done]=countTasks(e[k]); if(tot) A(`auto:${k}`,`${l} · ${done}/${tot}`,done===tot,G3); }
+  if(e.questions.length) A('auto:questions','All client questions answered',!openQ(e).length,G3);
+  for(const k of S.config.checklistTemplate) if(k!=='RR14 file created') M(k,k,G3);
+  return it;
+}
+const progress=e=>{ const it=checklistItems(e), [xt,xd]=countTasks(e.checklistExtra||[]); const tot=it.length+xt; return tot?(it.filter(x=>x.done).length+xd)/tot:0; };
+/* Template items that are now computed from the event itself */
+const AUTO_NOW=['EventID noted','Contests defined','Splits / timing points','Rankings','Lists (speaker, results, statistics)','Presenter','my.raceresult.com page'];
+function normalizeConfig(){ if(S.config.checklistV2) return; S.config.checklistTemplate=S.config.checklistTemplate.filter(k=>!AUTO_NOW.includes(k)); S.config.checklistV2=true; }
 const openQ=e=>(e.questions||[]).filter(q=>!q.resolved);
 const entriesOf=f=>S.hours.entries.filter(f);
 const sumH=a=>a.reduce((s,h)=>s+num(h.hours),0);
@@ -582,21 +657,46 @@ function Sel(o,k,label,opts,{cls='',r=''}={}){
   return `<div class="fld ${cls}"><label class="f" for="${id}">${label}</label><select id="${id}" data-o="${ref(o)}" data-k="${k}" ${r?`data-r="${r}"`:''}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${String(o[k]??'')===String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select></div>`;
 }
 const cell=(o,k,{ph='',type='text',t='',label=''}={})=>`<input type="${type}" data-o="${ref(o)}" data-k="${k}" ${t?`data-t="${t}" inputmode="decimal"`:''} value="${esc(o[k])}" placeholder="${esc(ph)}" aria-label="${esc(label||ph)}">`;
-/* Checkable list with notes, optional URL and one level of sub-items. lk = stable key to refocus after re-render. */
+const GRIP='<span class="grip" aria-hidden="true" title="Drag to reorder"><svg viewBox="0 0 10 16" fill="currentColor"><circle cx="2.5" cy="3" r="1.4"/><circle cx="7.5" cy="3" r="1.4"/><circle cx="2.5" cy="8" r="1.4"/><circle cx="7.5" cy="8" r="1.4"/><circle cx="2.5" cy="13" r="1.4"/><circle cx="7.5" cy="13" r="1.4"/></svg></span>';
+/* Checkable list with notes, optional URL and one level of sub-items; rows drag to reorder. lk = stable key to refocus after re-render. */
 function Tasks(o,k,label,ph,lk,withUrl){
   o[k]=toTasks(o[k]); const arr=o[k], [tot,done]=countTasks(arr);
-  const row=(it,list,i,child,pos)=>`<div class="task ${it.done?'done':''} ${child?'child':''}">
-      <input type="checkbox" data-o="${ref(it)}" data-k="done" data-r="detail" ${it.done?'checked':''} aria-label="Done: ${esc(it.text)}">
-      <input class="tt" data-o="${ref(it)}" data-k="text" value="${esc(it.text)}" data-lk="${esc(lk)}:${pos}" aria-label="${esc(label)} ${pos}">
+  const row=(it,list,i,child,pos)=>`<div class="task ${it.done?'done':''}" ${child?`data-si="${i}"`:''}>
+      ${GRIP}
+      <input type="checkbox" class="tc" data-o="${ref(it)}" data-k="done" data-r="detail" ${it.done?'checked':''} aria-label="Done: ${esc(it.text)}">
+      <input class="tt tx" data-o="${ref(it)}" data-k="text" value="${esc(it.text)}" data-lk="${esc(lk)}:${pos}" aria-label="${esc(label)} ${pos}">
       ${withUrl?`<input class="tt tu" type="url" data-o="${ref(it)}" data-k="url" data-r="blur" value="${esc(it.url)}" placeholder="https://…" aria-label="URL ${esc(it.text)}">${linkBtn(it.url)}`:''}
       <input class="tt tn" data-o="${ref(it)}" data-k="note" value="${esc(it.note)}" placeholder="Note" aria-label="Note ${esc(it.text)}">
       ${child?'<span class="addsub"></span>':`<button class="btn sm ghost addsub" data-addsub="${ref(it.children)}" data-lk="${esc(lk)}:${pos}" type="button" title="Add sub-item" aria-label="Add sub-item to ${esc(it.text)}">+</button>`}
       <button class="btn sm ghost danger del" data-delitem="${ref(list)}:${i}" type="button" aria-label="Remove ${esc(it.text)}">×</button>
     </div>`;
-  return `<div class="tasks ${withUrl?'wurl':''}"><span class="f">${label}${tot?`<span class="taskcount">· ${done}/${tot} done</span>`:''}</span>
-    ${arr.map((it,i)=>row(it,arr,i,false,`${i+1}`)+it.children.map((c,j)=>row(c,it.children,j,true,`${i+1}.${j+1}`)).join('')).join('')}
-    <div class="task add"><span class="plus" aria-hidden="true">+</span><input class="tt" data-addto="${ref(arr)}" data-lk="${esc(lk)}" placeholder="${esc(ph)}" aria-label="Add to ${esc(label)}"></div>
+  return `<div class="tasks ${withUrl?'wurl':''}" data-sort="${ref(arr)}"><span class="f">${label}${tot?`<span class="taskcount">· ${done}/${tot} done</span>`:''}</span>
+    ${arr.map((it,i)=>`<div class="tgroup" data-si="${i}">${row(it,arr,i,false,`${i+1}`)}<div class="tkids" data-sort="${ref(it.children)}">${it.children.map((c,j)=>row(c,it.children,j,true,`${i+1}.${j+1}`)).join('')}</div></div>`).join('')}
+    <div class="task add"><span></span><span class="plus" aria-hidden="true">+</span><input class="tt" data-addto="${ref(arr)}" data-lk="${esc(lk)}" placeholder="${esc(ph)}" aria-label="Add to ${esc(label)}"></div>
   </div>`;
+}
+/* Drag to reorder with mouse or finger: grab a .grip, the row moves live among its siblings ([data-si] children of a [data-sort] box). */
+function sortable(root){
+  root.querySelectorAll('.grip').forEach(g=>g.addEventListener('pointerdown',ev=>{
+    const item=g.closest('[data-si]'), box=item?.parentElement; if(!box?.dataset.sort) return;
+    ev.preventDefault(); g.setPointerCapture(ev.pointerId); item.classList.add('dragging'); document.body.classList.add('sorting');
+    const before=[...box.children].filter(x=>x.dataset.si!==undefined).map(x=>x.dataset.si).join();
+    let timer=null;
+    const move=e=>{
+      const y=e.clientY, sibs=[...box.children].filter(x=>x!==item&&x.dataset.si!==undefined);
+      const next=sibs.find(x=>{ const r=x.getBoundingClientRect(); return y<r.top+r.height/2; });
+      if(next){ if(item.nextElementSibling!==next) box.insertBefore(item,next); } else if(sibs.length&&sibs[sibs.length-1].nextElementSibling!==item) sibs[sibs.length-1].after(item);
+      clearInterval(timer); const edge=y<80?-12:y>innerHeight-60?12:0; if(edge) timer=setInterval(()=>scrollBy(0,edge),16);
+    };
+    const up=()=>{
+      clearInterval(timer); g.removeEventListener('pointermove',move); g.removeEventListener('pointerup',up); g.removeEventListener('pointercancel',up);
+      item.classList.remove('dragging'); document.body.classList.remove('sorting');
+      const order=[...box.children].filter(x=>x.dataset.si!==undefined).map(x=>+x.dataset.si);
+      if(order.join()!==before){ const arr=OBJ[+box.dataset.sort], copy=order.map(i=>arr[i]); arr.splice(0,arr.length,...copy); touch(); }
+      renderDetail();
+    };
+    g.addEventListener('pointermove',move); g.addEventListener('pointerup',up); g.addEventListener('pointercancel',up);
+  }));
 }
 function bind(root){
   root.querySelectorAll('[data-o]').forEach(el=>{
@@ -694,7 +794,7 @@ function renderDetail(){
   OBJ=[];
   const D=$('#detail');
   if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else renderHours(D);
-  bind(D);
+  bind(D); sortable(D);
   D.querySelector('#closebtn')?.addEventListener('click',()=>go(route.view));
 }
 const closeBtn=what=>`<button class="btn icon ghost" id="closebtn" type="button" title="Close ${what}" aria-label="Close ${what}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
@@ -706,13 +806,15 @@ function renderEvent(D){
   const tpOpts=[['','— point —'],...e.timingPoints.map(t=>[t.id,t.name||'(untitled)'])];
   const evHours=entriesOf(h=>h.eventId===e.id).sort((a,b)=>a.date.localeCompare(b.date));
   const oq=openQ(e).length, pct=Math.round(progress(e)*100);
+  const dups=duplicates(e), ckItems=checklistItems(e);
   D.innerHTML=`
   <div class="title"><input class="name" data-o="${ref(e)}" data-k="name" value="${esc(e.name)}" placeholder="Event name" aria-label="Event name">
     <button class="btn" id="sumbtn" type="button">Summary</button>${closeBtn('event')}</div>
+  <div class="evgrid"><div class="evmain">
   <div class="grid">
     ${Sel(e,'clientId','Client',[['','— no client —'],...S.clients.map(c=>[c.id,c.name])],{r:'detail'})}
     ${Sel(e,'status','Status',S.config.statuses.map(s=>[s.name,s.name]))}
-    ${F(e,'dateStart','Start date',{type:'date'})}${F(e,'dateEnd','End date (if multi-day)',{type:'date'})}
+    ${F(e,'dateStart','Start date',{type:'date'}).replace('<input ','<input data-r="blur" ')}${F(e,'dateEnd','End date (if multi-day)',{type:'date'}).replace('<input ','<input data-r="blur" ')}
     ${F(e,'location','Location')}${F(e,'type','Type',{list:'dl-types',ph:'Trail, cycling…'})}
     ${F(e,'website','Event website',{type:'url',ph:'https://…',cls:'wide'})}
   </div>
@@ -722,14 +824,15 @@ function renderEvent(D){
   <div class="grid">
     <div class="fld"><label class="f" for="f-rrid">EventID</label><div class="inline"><input id="f-rrid" data-o="${ref(e)}" data-k="rr14EventId" data-r="blur" value="${esc(e.rr14EventId)}" inputmode="numeric"><button class="btn sm" id="cpid" type="button" ${e.rr14EventId?'':'disabled'}>Copy</button></div></div>
     <div class="fld"><span class="f">my.raceresult.com page</span>${myrrUrl(e)?`<a class="plain" href="${esc(myrrUrl(e))}" target="_blank" rel="noopener noreferrer">${esc(myrrUrl(e).replace('https://',''))} ↗</a>`:'<span class="hint" style="display:inline-block;padding:7px 0">Set the EventID</span>'}</div>
-    ${Sel(e,'technology','Timing technology',[['','—'],['active','Active'],['passive','Passive']],{r:'detail'})}
+    <div class="fld"><span class="f">Timing technology</span><div class="seg" role="group" aria-label="Timing technology">${Object.entries(TECH).map(([k,v])=>`<button type="button" data-tech="${k}" aria-pressed="${e.technology===k}"><img class="hwimg" src="${v.img}" alt="">${v.label}</button>`).join('')}</div></div>
   </div>
 
   <h3>Links and documents <span class="sp"></span><button class="btn sm" id="addlink" type="button">+ Link</button></h3>
   ${e.links.length?`<table class="t"><tbody>${e.links.map((l,i)=>`<tr><td style="width:34%">${cell(l,'label',{ph:'Regulations, GPX, branding…'})}</td><td>${cell(l,'url',{ph:'https://…',type:'url',label:'Address'})}</td><td class="x">${linkBtn(l.url)}</td><td class="x"><button class="btn sm ghost danger" data-dellink="${i}" type="button" aria-label="Remove link">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Regulations, GPX, branding, shared folder…</p>'}
 
   <h3>Timing points · ${e.timingPoints.length} <span class="sp"></span><button class="btn sm" id="addtp" type="button">+ Point</button></h3>
-  ${e.timingPoints.length?`<table class="t resp tps"><thead><tr><th></th><th>Name</th><th>Hardware</th><th>Ch.</th><th>L. / mode</th><th>Position (lat, lon)</th><th>Notes</th><th></th></tr></thead><tbody>${e.timingPoints.map((t,i)=>tpRow(e,t,i)).join('')}</tbody></table>
+  ${e.timingPoints.length?`<table class="t resp tps"><thead><tr><th></th><th>Name</th><th>Hardware</th><th>Ch.</th><th>L.</th><th>Mode</th><th>Position (lat, lon)</th><th>Notes</th><th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${e.timingPoints.map((t,i)=>tpRow(e,t,i,dups)).join('')}</tbody></table>
+  ${dups.length?`<div class="alerts">${dups.map(([k,v])=>`Ch. ${esc(k.split('/')[0])}${k.endsWith('–')?'':` / L. ${esc(k.split('/')[1])}`} is used ${v.length} times: ${v.map(t=>esc(t.name||'untitled')).join(', ')}`).join('<br>')}</div>`:''}
   <div class="toolbar"><button class="btn sm" id="tpcolors" type="button">Auto colours</button><button class="btn sm" id="tpexport" type="button">Export Timing Points.lvs</button></div>`:'<p class="hint">The hardware on the course: start, finish, intermediate points. Races use them in their splits.</p>'}
 
   <h3>Races · ${e.contests.length} <span class="sp"></span>${e.contests.length>1?`<button class="btn sm ghost" id="ctall" type="button">${e.contests.every(c=>openRaces.has(c.id))?'Collapse all':'Expand all'}</button>`:''}<button class="btn sm" id="addct" type="button">+ Race</button></h3>
@@ -741,6 +844,7 @@ function renderEvent(D){
   <h3>Outputs</h3>
   ${OUTPUT_LISTS.map(([k,l,ph,u])=>Tasks(e,k,l,ph,`${k}-${e.id}`,u)).join('')}
 
+  </div><aside class="evside">
   <h3>Questions for the client · ${oq} open <span class="sp"></span><button class="btn sm" id="addq" type="button">+ Question</button></h3>
   ${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}">
      <span class="qn">Q${q.n}</span>
@@ -750,7 +854,8 @@ function renderEvent(D){
    </div>`).join('')||'<p class="hint">Open questions go into the summary, numbered.</p>'}
 
   <h3>Checklist · ${pct}%</h3>
-  <ul class="check">${S.config.checklistTemplate.map(k=>`<li><label><input type="checkbox" data-ck="${esc(k)}" ${e.checklist[k]?'checked':''}><span class="${e.checklist[k]?'done':''}">${esc(k)}</span></label></li>`).join('')}</ul>
+  <ul class="check">${ckItems.map((x,i)=>`${x.group!==ckItems[i-1]?.group?`<li class="grp">${esc(x.group)}</li>`:''}<li class="${x.auto?'auto':''}"><label><input type="checkbox" ${x.auto?'disabled':`data-ck="${esc(x.key)}"`} ${x.done?'checked':''}><span class="${x.done?'done':''}">${esc(x.label)}</span>${x.auto?'<span class="tag" title="Ticked automatically from the event data">auto</span>':''}</label></li>`).join('')}</ul>
+  ${Tasks(e,'checklistExtra','Extra items','Add an item…',`ck-${e.id}`,false)}
 
   <h3>Hours · ${fmtN(sumH(evHours))} h <span class="sp"></span><span class="hint">${fmtN(sumH(evHours.filter(isOpen)))} h open</span></h3>
   ${hoursTable(evHours,{showEvent:false,showClient:false})}
@@ -759,9 +864,11 @@ function renderEvent(D){
   <h3>Notes</h3>
   ${T(e,'notes','Internal notes (never in the summary)')}
 
+  </aside></div>
   <div class="foot"><span>id: ${esc(e.id)}</span><button class="btn sm danger" id="delev" type="button">Delete event</button></div>`;
 
   /* event actions */
+  on(D,'[data-tech]',b=>{ e.technology=e.technology===b.dataset.tech?'':b.dataset.tech; touch(); renderDetail(); });
   $('#sumbtn').onclick=()=>openSummary(e);
   $('#cpid').onclick=()=>navigator.clipboard?.writeText(e.rr14EventId);
   D.querySelector('[data-k=clientId]').addEventListener('change',ev=>{ for(const h of evHours) if(isOpen(h)) h.clientId=ev.target.value; });
@@ -770,7 +877,6 @@ function renderEvent(D){
   $('#addtp').onclick=()=>{ e.timingPoints.push({id:uid('tp'),name:'',hardware:'',ch:'',loop:'',mode:'',color:nextColor(e),position:'',notes:''}); touch(); renderDetail(); };
   $('#tpcolors')?.addEventListener('click',()=>{ e.timingPoints.forEach((t,i)=>t.color=PASTEL[i%PASTEL.length]); touch(); renderDetail(); });
   $('#tpexport')?.addEventListener('click',()=>exportTimingPoints(e));
-  on(D,'[data-upsp]',b=>{ const [ci,si]=b.dataset.upsp.split(':').map(Number), a=e.contests[ci].splits; if(si>0){ [a[si-1],a[si]]=[a[si],a[si-1]]; touch(); renderDetail(); } });
   on(D,'[data-deltp]',b=>{ const t=e.timingPoints[+b.dataset.deltp]; const used=e.contests.filter(c=>c.splits.some(s=>s.tp===t.id));
     if(used.length&&!confirm(`«${t.name}» is used by ${used.map(c=>c.name).join(', ')}. Remove it from those sequences too?`)) return;
     for(const c of used) c.splits=c.splits.filter(s=>s.tp!==t.id); e.timingPoints.splice(+b.dataset.deltp,1); touch(); renderDetail(); });
@@ -792,17 +898,22 @@ function renderEvent(D){
     if(evHours.length){ alert(`This event has ${plural(evHours.length,'hours entry','hours entries')}. Delete or move them first (Hours section).`); return; }
     if(confirm(`Delete «${e.name}»? It stays in the commit history.`)){ S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
 }
-function tpRow(e,t,i){
+function tpRow(e,t,i,dups){
   const tech=e.technology, avail=Object.keys(HW).filter(h=>!tech||HW[h].tech.includes(tech));
   const opts=[['','—'],...avail.map(h=>[h,h]),...(t.hardware&&!avail.includes(t.hardware)?[[t.hardware,`${t.hardware} (not ${tech})`]]:[])];
-  const hw=HW[t.hardware], ids=tech!=='passive'&&hw;
-  const range=(k,[a,b])=>`<select data-o="${ref(t)}" data-k="${k}" aria-label="${k==='ch'?'Channel ID':'Loop ID'} ${esc(t.name)}"><option value=""></option>${Array.from({length:b-a+1},(_,j)=>a+j).map(n=>`<option ${String(t[k])===String(n)?'selected':''}>${n}</option>`).join('')}</select>`;
-  return `<tr>
-    <td class="sw"><input type="color" class="swatch" data-o="${ref(t)}" data-k="color" value="${esc(t.color||'#cccccc')}" aria-label="Colour ${esc(t.name)}"></td>
-    <td>${cell(t,'name',{ph:'Name'})}</td>
-    <td><select data-o="${ref(t)}" data-k="hardware" data-r="detail" aria-label="Hardware ${esc(t.name)}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${t.hardware===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${t.hardware&&!avail.includes(t.hardware)?'<span class="warn" title="Not available with this technology"> ⚠</span>':''}</td>
+  const hw=HW[t.hardware], ids=tech!=='passive'&&hw, dup=dups.some(([,v])=>v.includes(t));
+  // loops already taken on this channel by other loop devices
+  const taken=new Set(e.timingPoints.filter(x=>x!==t&&HW[x.hardware]?.loop&&String(x.ch)===String(t.ch)&&x.ch).map(x=>String(x.loop)));
+  const range=(k,[a,b])=>`<select class="idsel" data-o="${ref(t)}" data-k="${k}" data-r="detail" aria-label="${k==='ch'?'Channel ID':'Loop ID'} ${esc(t.name)}"><option value=""></option>${Array.from({length:b-a+1},(_,j)=>a+j).map(n=>`<option ${String(t[k])===String(n)?'selected':''} ${k==='loop'&&taken.has(String(n))&&String(t.loop)!==String(n)?'disabled':''}>${n}</option>`).join('')}</select>`;
+  const rt=repeatTarget(e,t), rs=repeaters(e,t);
+  const link=rt===null?`<span class="link bad">repeat: no Decoder on Ch. ${esc(t.ch||'?')} / L. 1</span>`:rt?`<span class="link" title="Sends reads over WiFi">⇢ repeats to ${esc(rt.name||'Decoder')}</span>`:rs.length?`<span class="link" title="Receives reads over WiFi">⇠ ${rs.map(x=>esc(x.name||'Loop Box')).join(', ')}</span>`:'';
+  return `<tr data-si="${i}" class="${dup?'dup':''}">
+    <td class="gr">${GRIP}<input type="color" class="swatch" data-o="${ref(t)}" data-k="color" value="${esc(t.color||'#cccccc')}" aria-label="Colour ${esc(t.name)}"></td>
+    <td>${cell(t,'name',{ph:'Name'})}${link?`<div>${link}</div>`:''}</td>
+    <td><div class="hwcell">${hwImg(t.hardware)?`<img class="hwimg" src="${hwImg(t.hardware)}" alt="">`:''}<select data-o="${ref(t)}" data-k="hardware" data-r="detail" aria-label="Hardware ${esc(t.name)}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${t.hardware===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${t.hardware&&!avail.includes(t.hardware)?'<span class="warn" title="Not available with this technology">⚠</span>':''}</div></td>
     <td class="sm">${ids&&hw.ch?range('ch',hw.ch):''}</td>
-    <td>${ids&&hw.loop?range('loop',hw.loop):ids&&hw.modes?`<select data-o="${ref(t)}" data-k="mode" aria-label="Mode ${esc(t.name)}"><option value=""></option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
+    <td class="sm">${ids&&hw.loop?range('loop',hw.loop):''}</td>
+    <td>${ids&&hw.modes?`<select data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value=""></option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
     <td>${cell(t,'position',{ph:'43.7243, 7.4106',label:'Position'})}</td>
     <td>${cell(t,'notes',{ph:'—',label:'Notes'})}</td>
     <td class="x"><button class="btn sm ghost danger" data-deltp="${i}" type="button" aria-label="Remove point">×</button></td></tr>`;
@@ -823,7 +934,8 @@ const openRaces=new Set((()=>{ try{ return JSON.parse(localStorage.getItem('even
 function saveOpen(){ try{ localStorage.setItem('events-tracker-open',JSON.stringify([...openRaces].slice(-200))) }catch{} }
 function contestCard(e,c,ci,tpOpts){
   const open=openRaces.has(c.id);
-  const meta=[c.date&&fmtLong(c.date),c.startTime,c.distance&&`${c.distance} km`,c.startType&&`${c.startType} start`,c.timeBasis&&TIME_BASIS[c.timeBasis],c.splits.length&&plural(c.splits.length,'split','splits')].filter(Boolean).map(esc).join(' · ');
+  const days=eventDays(e), rd=raceDate(e,c);
+  const meta=[days.length?(rd?dayLabel(e,rd):'day not set'):rd&&fmtLong(rd),c.startTime,c.distance&&`${c.distance} km`,c.startType&&`${c.startType} start`,c.timeBasis&&TIME_BASIS[c.timeBasis],c.splits.length&&plural(c.splits.length,'split','splits')].filter(Boolean).map(esc).join(' · ');
   return `<div class="card race ${open?'open':''}">
     <div class="racehead" data-toggle="${esc(c.id)}">
       <button class="btn icon ghost chev" type="button" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} ${esc(c.name||'race')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
@@ -833,7 +945,7 @@ function contestCard(e,c,ci,tpOpts){
     ${open?`<div class="racebody">
     <div class="grid">
       ${F(c,'name','Race name',{cls:'wide'}).replace('<input ',`<input data-racename="${esc(c.id)}" `)}
-      ${F(c,'date','Day',{type:'date'})}${F(c,'startTime','Start time',{type:'time'})}
+      ${days.length?Sel(c,'date','Day',[['','—'],...days.map(d=>[d,dayLabel(e,d)])],{r:'detail'}):`<div class="fld"><span class="f">Day</span><div class="dayro">${rd?esc(fmtLong(rd)):'Set the event date'}</div></div>`}${F(c,'startTime','Start time',{type:'time'})}
       ${F(c,'distance','Distance (km)',{ph:'21.1'})}${F(c,'elevation','Elevation gain (m)',{ph:'—'})}
       ${Sel(c,'startType','Start type',S.config.startTypes.map(s=>[s,s]))}
       ${Sel(c,'timeBasis','Rankings by',[['','—'],...Object.entries(TIME_BASIS)])}
@@ -841,13 +953,12 @@ function contestCard(e,c,ci,tpOpts){
       ${F(c,'eligibility','Eligibility / requirements',{ph:'e.g. born 2010 or earlier',cls:'wide'})}
     </div>
     <div class="sub">Splits</div>
-    <div class="seq">${c.splits.length?`<table class="t resp splits"><thead><tr><th></th><th>Name</th><th>Label</th><th>Timing point</th><th>km</th><th></th><th></th></tr></thead><tbody>
-      ${c.splits.map((s,si)=>`<tr><td class="n">${si+1}</td>
+    <div class="seq">${c.splits.length?`<table class="t resp splits"><thead><tr><th></th><th>Name</th><th>Label</th><th>Timing point</th><th>km</th><th></th></tr></thead><tbody data-sort="${ref(c.splits)}">
+      ${c.splits.map((s,si)=>`<tr data-si="${si}"><td class="gr">${GRIP}<span class="hint">${si+1}</span></td>
         <td>${cell(s,'name',{ph:splitName({splits:c.splits.map((x,j)=>j===si?{...x,name:''}:x)},si),label:`Split ${si+1} name`})}</td>
         <td>${cell(s,'label',{ph:splitLabel(e,c,si)||'Label',label:`Split ${si+1} label`})}</td>
         <td><select data-o="${ref(s)}" data-k="tp" data-r="detail" aria-label="Split ${si+1} timing point">${tpOpts.map(([v,l])=>`<option value="${esc(v)}" ${s.tp===v?'selected':''}>${esc(l)}</option>`).join('')}</select></td>
         <td class="sm">${cell(s,'km',{ph:'km',label:`Split ${si+1} km`})}</td>
-        <td class="x">${si?`<button class="btn sm ghost" data-upsp="${ci}:${si}" type="button" aria-label="Move up">↑</button>`:''}</td>
         <td class="x"><button class="btn sm ghost danger" data-delsp="${ci}:${si}" type="button" aria-label="Remove split">×</button></td></tr>`).join('')}
       </tbody></table>`:''}
       <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" ${e.timingPoints.length?'':'disabled title="Add timing points first"'}>+ Split</button></div></div>
@@ -979,7 +1090,7 @@ let sumEvent=null;
 function summaryHTML(e,withResolved){
   const tpName=id=>(e.timingPoints.find(t=>t.id===id)||{}).name||'?';
   const pct=Math.round(progress(e)*100), oq=openQ(e), rq=e.questions.filter(q=>q.resolved);
-  const anyDate=e.contests.some(c=>c.date), anyTime=e.contests.some(c=>c.startTime), anyEl=e.contests.some(c=>c.elevation), anyElig=e.contests.some(c=>c.eligibility);
+  const multi=eventDays(e).length>0, anyDate=multi&&e.contests.some(c=>raceDate(e,c)), anyTime=e.contests.some(c=>c.startTime), anyEl=e.contests.some(c=>c.elevation), anyElig=e.contests.some(c=>c.eligibility);
   const sub=c=>[c.route,c.startType&&`${c.startType} start`,c.relay&&`Relay: ${c.relay}`].filter(Boolean).map(esc).join(' · ');
   const item=(t,pre='')=>`${pre}${esc(t.text)}${t.note?` <span style="color:#5a6670">— ${esc(t.note)}</span>`:''}${t.children.length?`<div style="margin:2px 0 4px 14px;font-size:13px">${t.children.map(c=>'· '+esc(c.text)+(c.note?` <span style="color:#5a6670">— ${esc(c.note)}</span>`:'')).join('<br>')}</div>`:''}`;
   const anyBasis=e.contests.some(c=>c.timeBasis);
@@ -989,9 +1100,10 @@ function summaryHTML(e,withResolved){
     <div><span class="pill" style="background:${esc(statusColor(e.status))}">${esc(e.status)}</span><span class="prog"><i style="width:${pct}%"></i></span>${pct}% prepared${oq.length?` · <b style="color:#d9730d">${plural(oq.length,'open question','open questions')}</b>`:''}</div>
     ${oq.length?`<h2>Open questions</h2><ul class="qs">${oq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}</span></li>`).join('')}</ul>`:''}
     ${e.contests.length?`<h2>Races</h2><table><thead><tr><th>Race</th>${anyDate?'<th>Day</th>':''}${anyTime?'<th>Start</th>':''}<th>Distance</th>${anyEl?'<th>Elev. gain</th>':''}${anyElig?'<th>Eligibility</th>':''}${anyBasis?'<th>Rankings by</th>':''}</tr></thead><tbody>
-      ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="route">${sub(c)}</div>`:''}</td>${anyDate?`<td>${esc(fmtLong(c.date))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}${anyBasis?`<td>${esc(TIME_BASIS[c.timeBasis]||'')}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
+      ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="route">${sub(c)}</div>`:''}</td>${anyDate?`<td>${esc(dayLabel(e,raceDate(e,c)))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}${anyBasis?`<td>${esc(TIME_BASIS[c.timeBasis]||'')}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
     ${e.contests.some(c=>c.splits.length)?`<h2>Timing points per race</h2>${e.contests.filter(c=>c.splits.length).map(c=>`<div><b>${esc(c.name)}</b><div class="seqline">${c.splits.map((s,i)=>`${esc(s.label||tpName(s.tp))}${!s.label&&s.km!==''&&s.km!=null?` <span style="color:#5a6670">(${esc(s.km)} km)</span>`:''}`).join(' → ')}</div></div>`).join('')}`:''}
-    ${e.timingPoints.some(t=>t.position)?`<h2>Locations</h2><table><tbody>${e.timingPoints.filter(t=>t.position).map(t=>`<tr><td style="width:40%">${esc(t.name)}</td><td>${esc(t.position)}</td></tr>`).join('')}</tbody></table>`:''}
+    ${e.timingPoints.length?`<h2>Timing points${e.technology?` · ${esc(TECH[e.technology].label)} timing <img class="hw" src="${TECH[e.technology].img}" alt="">`:''}</h2><table><thead><tr><th></th><th>Timing point</th><th>Hardware</th><th>Ch. / L.</th><th>Position</th></tr></thead><tbody>${e.timingPoints.map(t=>{ const rt=repeatTarget(e,t), rs=repeaters(e,t);
+      return `<tr><td style="width:34px">${hwImg(t.hardware)?`<img class="hw" src="${hwImg(t.hardware)}" alt="">`:''}</td><td><span class="sw" style="background:${esc(t.color||'#ccc')}"></span>${esc(t.name)}${rt?`<div class="rep">⇢ repeats to ${esc(rt.name)} (WiFi)</div>`:''}${rs.length?`<div class="rep">⇠ receives from ${rs.map(x=>esc(x.name)).join(', ')}</div>`:''}</td><td>${esc(t.hardware||'—')}${t.mode?` · ${esc(t.mode)}`:''}</td><td>${idKey(e,t)?esc((t.ch?'Ch. '+t.ch:'')+(t.loop&&HW[t.hardware]?.loop?' / L. '+t.loop:'')):''}</td><td>${esc(t.position)}</td></tr>`; }).join('')}</tbody></table>`:''}
     ${e.rankings.length?`<h2>Rankings</h2><div>${e.rankings.map(r=>item(r)).join('<br>')}</div>`:''}
     ${e.teamScores.length?`<h2>Team scores</h2><div>${e.teamScores.map(r=>item(r)).join('<br>')}</div>`:''}
     ${withResolved&&rq.length?`<h2>Resolved questions</h2><ul class="qs done">${rq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}${q.answer?`<div class="a">→ ${esc(q.answer)}</div>`:''}</span></li>`).join('')}</ul>`:''}
@@ -1029,7 +1141,7 @@ $('#newbtn').onclick=()=>{
   if(!S) return;
   if(route.view==='c'){ const c={id:uid('cl'),name:'',contact:'',email:'',phone:'',coefficient:1,notes:''}; S.clients.push(c); touch(); go('c',c.id); setTimeout(()=>$('#detail .name')?.focus(),0); return; }
   if(route.view==='h'){ $('#a-hours')?.focus(); return; }
-  const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],lists:[],myrrTabs:[],participantViews:[],presenter:[],questions:[],checklist:{},notes:''};
+  const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],rankings:[],teamScores:[],lists:[],myrrTabs:[],participantViews:[],presenter:[],questions:[],checklist:{},checklistExtra:[],notes:''};
   S.events.push(e); touch(); go('e',e.id); setTimeout(()=>$('#detail .name')?.focus(),0);
 };
 $('#savebtn').onclick=()=>{ document.activeElement?.blur?.(); save(); };
