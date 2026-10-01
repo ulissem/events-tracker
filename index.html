@@ -239,7 +239,7 @@ details.adv summary{cursor:pointer;margin-bottom:10px}
   table.t.resp td{border:0}
   table.t.resp td.sm,table.t.resp td.x,table.t.resp td.n{width:auto}
   table.t.tps tr{grid-template-columns:38px 1fr 72px 110px;grid-template-areas:"a b b h" "a c d e" "a f f f" "a g g g"}
-  table.t.splits tr{grid-template-columns:22px 1fr 72px 82px;grid-template-areas:"a b b b" "a c c c" "a d e f" "a g h i"}
+  table.t.splits tr{grid-template-columns:22px 1fr 80px 34px 34px;grid-template-areas:"a b b b b" "a c c c c" "a d e f g"}
   table.t.tps td:nth-child(1),table.t.splits td:nth-child(1){grid-area:a}
   table.t.tps td:nth-child(2),table.t.splits td:nth-child(2){grid-area:b}
   table.t.tps td:nth-child(3),table.t.splits td:nth-child(3){grid-area:c}
@@ -247,8 +247,7 @@ details.adv summary{cursor:pointer;margin-bottom:10px}
   table.t.tps td:nth-child(5),table.t.splits td:nth-child(5){grid-area:e}
   table.t.tps td:nth-child(6),table.t.splits td:nth-child(6){grid-area:f}
   table.t.tps td:nth-child(7),table.t.splits td:nth-child(7){grid-area:g}
-  table.t.tps td:nth-child(8),table.t.splits td:nth-child(8){grid-area:h}
-  table.t.splits td:nth-child(9){grid-area:i}
+  table.t.tps td:nth-child(8){grid-area:h}
   table.t.splits td.n{padding-top:12px}
 }
 @media print{
@@ -386,7 +385,7 @@ function normalize(){
     if(e.myrrUrl!==undefined&&(!e.myrrUrl||e.myrrUrl===myrrUrl(e))) delete e.myrrUrl; // now derived from EventID
     e.technology=e.technology||'';
     for(const t of e.timingPoints){ t.hardware=t.hardware||''; t.ch=t.ch||''; t.loop=t.loop||''; t.mode=t.mode||''; if(!t.color) t.color=nextColor(e); }
-    for(const c of e.contests){ c.splits=(c.splits||[]).map(x=>({id:x.id||uid('s'),name:x.name||'',label:x.label||'',tp:x.tp||'',km:x.km??'',from:x.from||'start',sport:x.sport||defaultSport(e)}));
+    for(const c of e.contests){ c.splits=(c.splits||[]).map(x=>({id:x.id||uid('s'),name:x.name||'',label:x.label||'',tp:x.tp||'',km:x.km??''}));
       c.rankings=toTasks(c.rankings); c.teamScores=toTasks(c.teamScores); if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; }
   }
 }
@@ -398,17 +397,9 @@ const HW={
   'Track Box Active':{tech:['active'],ch:[1,8]},
   'Management Box':{tech:['active'],ch:[1,8],modes:['Tracking START','Tracking STOP','Kiosk'],notTP:true},
 };
-/* RR14 split sport types — codes, default time mode and min/max as in an RR14 splits export. */
-const SPORTS={
-  run:{label:'Run',code:100,mode:-3,min:150,max:1200},
-  bike:{label:'Bike',code:11,mode:-6,min:5,max:60},
-  swim:{label:'Swim',code:4,mode:-5,min:60,max:300},
-  transition:{label:'Transition',code:250,mode:-2,min:10,max:900},
-};
 const PASTEL=['#a9c9e8','#c3b5e8','#f7c9a3','#f2e198','#9fd6d6','#ebb0cc','#f2a9a4','#b9dfb0','#d9c7a7','#b3d4f0','#e3c1f0','#c8e6a0'];
 const nextColor=e=>PASTEL.find(c=>!e.timingPoints.some(t=>t.color===c))||PASTEL[e.timingPoints.length%PASTEL.length];
 const myrrUrl=e=>/^\d+$/.test(String(e.rr14EventId||'').trim())?`https://my.raceresult.com/${String(e.rr14EventId).trim()}/`:'';
-const defaultSport=e=>/cycl|bike|vélo|velo/i.test(e.type||'')?'bike':'run';
 /* RR14 identifier: upper case, letters/digits/underscore ("Start Patrimonio" → START_PATRIMONIO) */
 const rrName=n=>String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'');
 const splitName=(c,i)=>c.splits[i].name||(i===c.splits.length-1?'Finish':`Split${i+1}`);
@@ -722,7 +713,6 @@ function renderEvent(D){
   $('#addtp').onclick=()=>{ e.timingPoints.push({id:uid('tp'),name:'',hardware:'',ch:'',loop:'',mode:'',color:nextColor(e),position:'',notes:''}); touch(); renderDetail(); };
   $('#tpcolors')?.addEventListener('click',()=>{ e.timingPoints.forEach((t,i)=>t.color=PASTEL[i%PASTEL.length]); touch(); renderDetail(); });
   $('#tpexport')?.addEventListener('click',()=>exportTimingPoints(e));
-  on(D,'[data-spexport]',b=>exportSplits(e,e.contests[+b.dataset.spexport]));
   on(D,'[data-upsp]',b=>{ const [ci,si]=b.dataset.upsp.split(':').map(Number), a=e.contests[ci].splits; if(si>0){ [a[si-1],a[si]]=[a[si],a[si-1]]; touch(); renderDetail(); } });
   on(D,'[data-deltp]',b=>{ const t=e.timingPoints[+b.dataset.deltp]; const used=e.contests.filter(c=>c.splits.some(s=>s.tp===t.id));
     if(used.length&&!confirm(`«${t.name}» is used by ${used.map(c=>c.name).join(', ')}. Remove it from those sequences too?`)) return;
@@ -730,8 +720,7 @@ function renderEvent(D){
   $('#addct').onclick=()=>{ e.contests.push({id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'',route:'',eligibility:'',splits:[],rankings:[],teamScores:[],relay:'',myrrUrl:'',notes:''}); touch(); renderDetail(); };
   on(D,'[data-delct]',b=>{ const c=e.contests[+b.dataset.delct]; if(confirm(`Delete the race «${c.name||'untitled'}»?`)){ e.contests.splice(+b.dataset.delct,1); touch(); renderDetail(); } });
   on(D,'[data-upct]',b=>{ const i=+b.dataset.upct; if(i>0){ [e.contests[i-1],e.contests[i]]=[e.contests[i],e.contests[i-1]]; touch(); renderDetail(); } });
-  on(D,'[data-addsp]',b=>{ const c=e.contests[+b.dataset.addsp], last=c.splits[c.splits.length-1];
-    c.splits.push({id:uid('s'),name:'',label:'',tp:'',km:'',from:last?.from||'start',sport:last?.sport||defaultSport(e)}); touch(); renderDetail(); });
+  on(D,'[data-addsp]',b=>{ e.contests[+b.dataset.addsp].splits.push({id:uid('s'),name:'',label:'',tp:'',km:''}); touch(); renderDetail(); });
   on(D,'[data-delsp]',b=>{ const [ci,si]=b.dataset.delsp.split(':').map(Number); e.contests[ci].splits.splice(si,1); touch(); renderDetail(); });
   $('#addq').onclick=()=>{ const n=Math.max(0,...e.questions.map(q=>q.n||0))+1; e.questions.push({id:uid('q'),n,text:'',answer:'',resolved:false}); touch(); renderDetail(); D.querySelector(`[aria-label="Question Q${n}"]`)?.focus(); };
   on(D,'[data-delq]',b=>{ e.questions.splice(+b.dataset.delq,1); touch(); renderDetail(); });
@@ -769,17 +758,6 @@ function exportTimingPoints(e){
   download('Timing Points.lvs',tps.map(t=>[rrName(t.name),9,30,t.color||'',latlon(t.position),0,0,0,0,0].join(';')).join('\n')+'\n');
   if(skipped) setTimeout(()=>alert(`${plural(skipped,'Management Box was','Management Boxes were')} left out: not a timing point in RR14.`),300);
 }
-/* RR14 splits import (.lvs JSON). Distance from: 0 = start, -1 = previous split. */
-function exportSplits(e,c){
-  const miss=c.splits.findIndex(s=>!e.timingPoints.find(t=>t.id===s.tp));
-  if(miss>=0){ alert(`Split ${miss+1} has no timing point.`); return; }
-  const out={TimeMode:{TimingMode:0,TimingModeFilter:''},
-    Splits:c.splits.map((s,i)=>{ const sp=SPORTS[s.sport]||SPORTS.run, t=e.timingPoints.find(x=>x.id===s.tp);
-      return {ID:i+1,Name:splitName(c,i),Label:splitLabel(e,c,i),TimingPoint:rrName(t.name),Backup:'',BackupOffset:0,TypeOfSport:sp.code,
-        Distance:Math.round(num(s.km)*1000),DistanceFrom:s.from==='previous'&&i?-1:0,DistanceUnit:'m',TimeMin:sp.min,TimeMax:sp.max,TimeMode:sp.mode,Color:'',SpeedOrPace:''}; }),
-    Legs:[]};
-  download(`Splits ${slug(c.name||'race')}.lvs`,JSON.stringify(out,null,2),'application/json');
-}
 function linkBtn(url){ return `<a class="btn sm" href="${esc(url||'#')}" target="_blank" rel="noopener noreferrer" ${/^https?:\/\//.test(url||'')?'':'aria-disabled="true" tabindex="-1"'}>Open</a>`; }
 function contestCard(e,c,ci,tpOpts){
   return `<div class="card">
@@ -794,18 +772,16 @@ function contestCard(e,c,ci,tpOpts){
       ${F(c,'eligibility','Eligibility / requirements',{ph:'e.g. born 2010 or earlier',cls:'wide'})}
     </div>
     <div class="sub">Splits</div>
-    <div class="seq">${c.splits.length?`<table class="t resp splits"><thead><tr><th></th><th>Name</th><th>Label</th><th>Timing point</th><th>km</th><th>from</th><th>Sport</th><th></th><th></th></tr></thead><tbody>
+    <div class="seq">${c.splits.length?`<table class="t resp splits"><thead><tr><th></th><th>Name</th><th>Label</th><th>Timing point</th><th>km</th><th></th><th></th></tr></thead><tbody>
       ${c.splits.map((s,si)=>`<tr><td class="n">${si+1}</td>
         <td>${cell(s,'name',{ph:splitName({splits:c.splits.map((x,j)=>j===si?{...x,name:''}:x)},si),label:`Split ${si+1} name`})}</td>
         <td>${cell(s,'label',{ph:splitLabel(e,c,si)||'Label',label:`Split ${si+1} label`})}</td>
         <td><select data-o="${ref(s)}" data-k="tp" data-r="detail" aria-label="Split ${si+1} timing point">${tpOpts.map(([v,l])=>`<option value="${esc(v)}" ${s.tp===v?'selected':''}>${esc(l)}</option>`).join('')}</select></td>
         <td class="sm">${cell(s,'km',{ph:'km',label:`Split ${si+1} km`})}</td>
-        <td class="sm"><select data-o="${ref(s)}" data-k="from" aria-label="Split ${si+1} distance from"><option value="start" ${s.from==='start'?'selected':''}>start</option><option value="previous" ${s.from==='previous'?'selected':''}>previous</option></select></td>
-        <td><select data-o="${ref(s)}" data-k="sport" aria-label="Split ${si+1} sport">${Object.entries(SPORTS).map(([k,v])=>`<option value="${k}" ${s.sport===k?'selected':''}>${v.label}</option>`).join('')}</select></td>
         <td class="x">${si?`<button class="btn sm ghost" data-upsp="${ci}:${si}" type="button" aria-label="Move up">↑</button>`:''}</td>
         <td class="x"><button class="btn sm ghost danger" data-delsp="${ci}:${si}" type="button" aria-label="Remove split">×</button></td></tr>`).join('')}
       </tbody></table>`:''}
-      <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" ${e.timingPoints.length?'':'disabled title="Add timing points first"'}>+ Split</button>${c.splits.length?`<button class="btn sm" data-spexport="${ci}" type="button">Export Splits.lvs</button>`:''}</div></div>
+      <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" ${e.timingPoints.length?'':'disabled title="Add timing points first"'}>+ Split</button></div></div>
     <div class="two">
       ${Tasks(c,'rankings','Rankings','Add a ranking…',`r-${c.id}`)}
       ${Tasks(c,'teamScores','Team scores','Add a team score…',`t-${c.id}`)}
