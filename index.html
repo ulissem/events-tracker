@@ -126,10 +126,17 @@ table.t tr.closed td{color:var(--ink-2)}
 .cardhead{display:flex;gap:8px;align-items:center;margin-bottom:10px}
 .cardhead input{flex:1;font-size:17px;font-weight:600;border:0;border-bottom:1px solid transparent;background:none;padding:2px 0;min-width:0}
 .cardhead input:hover,.cardhead input:focus{border-bottom-color:var(--line);outline:0}
-.seq{counter-reset:s;margin:4px 0 12px}
-.seq .srow{display:grid;grid-template-columns:24px 1fr 90px 34px;gap:6px;align-items:center;margin-bottom:5px}
-.seq .srow::before{counter-increment:s;content:counter(s);font-size:12px;color:var(--ink-2);text-align:right}
-.seq select,.seq input{border:1px solid var(--line);border-radius:6px;padding:5px 7px;background:var(--panel);min-width:0}
+.seq{margin:4px 0 12px}
+table.t td.n{width:26px;color:var(--ink-2);font-size:12px;text-align:right}
+table.t td.sw{width:38px}
+input.swatch{width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;cursor:pointer}
+input.swatch::-webkit-color-swatch-wrapper{padding:2px}
+input.swatch::-webkit-color-swatch{border:0;border-radius:4px}
+table.t td.sm{width:64px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--ink-2)}
+.warn{color:var(--warn)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+a.plain{color:var(--accent);text-decoration:none;padding:7px 0;display:inline-block}
 .sub{font-size:12px;color:var(--ink-2);margin:12px 0 5px;font-weight:500}
 
 /* checkable lists (rankings, team scores, presenter) */
@@ -230,6 +237,19 @@ details.adv summary{cursor:pointer;margin-bottom:10px}
   table.t.resp thead{display:none}
   table.t.resp tr{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);padding:6px 0}
   table.t.resp td{border:0}
+  table.t.resp td.sm,table.t.resp td.x,table.t.resp td.n{width:auto}
+  table.t.tps tr{grid-template-columns:38px 1fr 72px 110px;grid-template-areas:"a b b h" "a c d e" "a f f f" "a g g g"}
+  table.t.splits tr{grid-template-columns:22px 1fr 72px 82px;grid-template-areas:"a b b b" "a c c c" "a d e f" "a g h i"}
+  table.t.tps td:nth-child(1),table.t.splits td:nth-child(1){grid-area:a}
+  table.t.tps td:nth-child(2),table.t.splits td:nth-child(2){grid-area:b}
+  table.t.tps td:nth-child(3),table.t.splits td:nth-child(3){grid-area:c}
+  table.t.tps td:nth-child(4),table.t.splits td:nth-child(4){grid-area:d}
+  table.t.tps td:nth-child(5),table.t.splits td:nth-child(5){grid-area:e}
+  table.t.tps td:nth-child(6),table.t.splits td:nth-child(6){grid-area:f}
+  table.t.tps td:nth-child(7),table.t.splits td:nth-child(7){grid-area:g}
+  table.t.tps td:nth-child(8),table.t.splits td:nth-child(8){grid-area:h}
+  table.t.splits td:nth-child(9){grid-area:i}
+  table.t.splits td.n{padding-top:12px}
 }
 @media print{
   body.printing > *:not(#printarea){display:none!important}
@@ -363,9 +383,37 @@ function normalize(){
     for(const k of ['links','timingPoints','contests','questions']) e[k]=e[k]||[];
     e.checklist=e.checklist||{}; e.presenter=toTasks(e.presenter);
     if(LEGACY[e.status]) e.status=LEGACY[e.status];
-    for(const c of e.contests){ c.splits=c.splits||[]; c.rankings=toTasks(c.rankings); c.teamScores=toTasks(c.teamScores); if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; }
+    if(e.myrrUrl!==undefined&&(!e.myrrUrl||e.myrrUrl===myrrUrl(e))) delete e.myrrUrl; // now derived from EventID
+    e.technology=e.technology||'';
+    for(const t of e.timingPoints){ t.hardware=t.hardware||''; t.ch=t.ch||''; t.loop=t.loop||''; t.mode=t.mode||''; if(!t.color) t.color=nextColor(e); }
+    for(const c of e.contests){ c.splits=(c.splits||[]).map(x=>({id:x.id||uid('s'),name:x.name||'',label:x.label||'',tp:x.tp||'',km:x.km??'',from:x.from||'start',sport:x.sport||defaultSport(e)}));
+      c.rankings=toTasks(c.rankings); c.teamScores=toTasks(c.teamScores); if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; }
   }
 }
+/* Timing hardware. tech = timing technologies it can be used with; ch/loop = allowed ID ranges (active only). */
+const HW={
+  'Decoder':{tech:['active','passive'],ch:[1,8],loop:[1,8]},
+  'Loop Box':{tech:['active'],ch:[1,8],loop:[2,8]},
+  'Track Box Passive':{tech:['passive']},
+  'Track Box Active':{tech:['active'],ch:[1,8]},
+  'Management Box':{tech:['active'],ch:[1,8],modes:['Tracking START','Tracking STOP','Kiosk'],notTP:true},
+};
+/* RR14 split sport types — codes, default time mode and min/max as in an RR14 splits export. */
+const SPORTS={
+  run:{label:'Run',code:100,mode:-3,min:150,max:1200},
+  bike:{label:'Bike',code:11,mode:-6,min:5,max:60},
+  swim:{label:'Swim',code:4,mode:-5,min:60,max:300},
+  transition:{label:'Transition',code:250,mode:-2,min:10,max:900},
+};
+const PASTEL=['#a9c9e8','#c3b5e8','#f7c9a3','#f2e198','#9fd6d6','#ebb0cc','#f2a9a4','#b9dfb0','#d9c7a7','#b3d4f0','#e3c1f0','#c8e6a0'];
+const nextColor=e=>PASTEL.find(c=>!e.timingPoints.some(t=>t.color===c))||PASTEL[e.timingPoints.length%PASTEL.length];
+const myrrUrl=e=>/^\d+$/.test(String(e.rr14EventId||'').trim())?`https://my.raceresult.com/${String(e.rr14EventId).trim()}/`:'';
+const defaultSport=e=>/cycl|bike|vélo|velo/i.test(e.type||'')?'bike':'run';
+/* RR14 identifier: upper case, letters/digits/underscore ("Start Patrimonio" → START_PATRIMONIO) */
+const rrName=n=>String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'');
+const splitName=(c,i)=>c.splits[i].name||(i===c.splits.length-1?'Finish':`Split${i+1}`);
+const splitLabel=(e,c,i)=>{ const s=c.splits[i], t=e.timingPoints.find(x=>x.id===s.tp); return s.label||[t?.name,s.km!==''&&s.km!=null?`${s.km} km`:''].filter(Boolean).join(' · '); };
+
 let S=null;              // {config, clients[], events[], hours:{entries[],closures[]}}
 let saved={};            // file name -> last saved text
 let savedItems={};       // 'e:<id>' / 'c:<id>' -> last saved JSON, for commit messages
@@ -517,6 +565,7 @@ function bind(root){
       o[k]=v;
       if(el.dataset.r==='detail'){ touch(); renderDetail(); } else touch();
     });
+    if(el.dataset.r==='blur') el.addEventListener('change',()=>renderDetail());
   });
   root.querySelectorAll('[data-addto]').forEach(el=>{
     const add=refocus=>{ const v=el.value.trim(); if(!v) return; el.value='';
@@ -626,15 +675,17 @@ function renderEvent(D){
 
   <h3>RR14 and my.raceresult</h3>
   <div class="grid">
-    <div class="fld"><label class="f" for="f-rrid">EventID</label><div class="inline"><input id="f-rrid" data-o="${ref(e)}" data-k="rr14EventId" value="${esc(e.rr14EventId)}" inputmode="numeric"><button class="btn sm" id="cpid" type="button" ${e.rr14EventId?'':'disabled'}>Copy</button></div></div>
-    <div class="fld"><label class="f" for="f-myrr">my.raceresult.com page</label><div class="inline"><input id="f-myrr" type="url" data-o="${ref(e)}" data-k="myrrUrl" value="${esc(e.myrrUrl)}" placeholder="https://my.raceresult.com/…">${linkBtn(e.myrrUrl)}</div></div>
+    <div class="fld"><label class="f" for="f-rrid">EventID</label><div class="inline"><input id="f-rrid" data-o="${ref(e)}" data-k="rr14EventId" data-r="blur" value="${esc(e.rr14EventId)}" inputmode="numeric"><button class="btn sm" id="cpid" type="button" ${e.rr14EventId?'':'disabled'}>Copy</button></div></div>
+    <div class="fld"><span class="f">my.raceresult.com page</span>${myrrUrl(e)?`<a class="plain" href="${esc(myrrUrl(e))}" target="_blank" rel="noopener noreferrer">${esc(myrrUrl(e).replace('https://',''))} ↗</a>`:'<span class="hint" style="display:inline-block;padding:7px 0">Set the EventID</span>'}</div>
+    ${Sel(e,'technology','Timing technology',[['','—'],['active','Active'],['passive','Passive']],{r:'detail'})}
   </div>
 
   <h3>Links and documents <span class="sp"></span><button class="btn sm" id="addlink" type="button">+ Link</button></h3>
   ${e.links.length?`<table class="t"><tbody>${e.links.map((l,i)=>`<tr><td style="width:34%">${cell(l,'label',{ph:'Regulations, GPX, branding…'})}</td><td>${cell(l,'url',{ph:'https://…',type:'url',label:'Address'})}</td><td class="x">${linkBtn(l.url)}</td><td class="x"><button class="btn sm ghost danger" data-dellink="${i}" type="button" aria-label="Remove link">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Regulations, GPX, branding, shared folder…</p>'}
 
   <h3>Timing points · ${e.timingPoints.length} <span class="sp"></span><button class="btn sm" id="addtp" type="button">+ Point</button></h3>
-  ${e.timingPoints.length?`<table class="t resp"><thead><tr><th>Name</th><th>Position</th><th>Notes / hardware</th><th></th></tr></thead><tbody>${e.timingPoints.map((t,i)=>`<tr><td>${cell(t,'name',{ph:'Name'})}</td><td>${cell(t,'position',{ph:'lat, lon or description',label:'Position'})}</td><td>${cell(t,'notes',{ph:'—',label:'Notes'})}</td><td class="x"><button class="btn sm ghost danger" data-deltp="${i}" type="button" aria-label="Remove point">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Start, finish, intermediate points. Races use them in sequence.</p>'}
+  ${e.timingPoints.length?`<table class="t resp tps"><thead><tr><th></th><th>Name</th><th>Hardware</th><th>Ch.</th><th>L. / mode</th><th>Position (lat, lon)</th><th>Notes</th><th></th></tr></thead><tbody>${e.timingPoints.map((t,i)=>tpRow(e,t,i)).join('')}</tbody></table>
+  <div class="toolbar"><button class="btn sm" id="tpcolors" type="button">Auto colours</button><button class="btn sm" id="tpexport" type="button">Export Timing Points.lvs</button></div>`:'<p class="hint">The hardware on the course: start, finish, intermediate points. Races use them in their splits.</p>'}
 
   <h3>Races · ${e.contests.length} <span class="sp"></span><button class="btn sm" id="addct" type="button">+ Race</button></h3>
   ${e.contests.map((c,ci)=>contestCard(e,c,ci,tpOpts)).join('')||'<p class="hint">No races yet.</p>'}
@@ -668,14 +719,19 @@ function renderEvent(D){
   D.querySelector('[data-k=clientId]').addEventListener('change',ev=>{ for(const h of evHours) if(isOpen(h)) h.clientId=ev.target.value; });
   $('#addlink').onclick=()=>{ e.links.push({label:'',url:''}); touch(); renderDetail(); };
   on(D,'[data-dellink]',b=>{ e.links.splice(+b.dataset.dellink,1); touch(); renderDetail(); });
-  $('#addtp').onclick=()=>{ e.timingPoints.push({id:uid('tp'),name:'',position:'',notes:''}); touch(); renderDetail(); };
+  $('#addtp').onclick=()=>{ e.timingPoints.push({id:uid('tp'),name:'',hardware:'',ch:'',loop:'',mode:'',color:nextColor(e),position:'',notes:''}); touch(); renderDetail(); };
+  $('#tpcolors')?.addEventListener('click',()=>{ e.timingPoints.forEach((t,i)=>t.color=PASTEL[i%PASTEL.length]); touch(); renderDetail(); });
+  $('#tpexport')?.addEventListener('click',()=>exportTimingPoints(e));
+  on(D,'[data-spexport]',b=>exportSplits(e,e.contests[+b.dataset.spexport]));
+  on(D,'[data-upsp]',b=>{ const [ci,si]=b.dataset.upsp.split(':').map(Number), a=e.contests[ci].splits; if(si>0){ [a[si-1],a[si]]=[a[si],a[si-1]]; touch(); renderDetail(); } });
   on(D,'[data-deltp]',b=>{ const t=e.timingPoints[+b.dataset.deltp]; const used=e.contests.filter(c=>c.splits.some(s=>s.tp===t.id));
     if(used.length&&!confirm(`«${t.name}» is used by ${used.map(c=>c.name).join(', ')}. Remove it from those sequences too?`)) return;
     for(const c of used) c.splits=c.splits.filter(s=>s.tp!==t.id); e.timingPoints.splice(+b.dataset.deltp,1); touch(); renderDetail(); });
   $('#addct').onclick=()=>{ e.contests.push({id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'',route:'',eligibility:'',splits:[],rankings:[],teamScores:[],relay:'',myrrUrl:'',notes:''}); touch(); renderDetail(); };
   on(D,'[data-delct]',b=>{ const c=e.contests[+b.dataset.delct]; if(confirm(`Delete the race «${c.name||'untitled'}»?`)){ e.contests.splice(+b.dataset.delct,1); touch(); renderDetail(); } });
   on(D,'[data-upct]',b=>{ const i=+b.dataset.upct; if(i>0){ [e.contests[i-1],e.contests[i]]=[e.contests[i],e.contests[i-1]]; touch(); renderDetail(); } });
-  on(D,'[data-addsp]',b=>{ e.contests[+b.dataset.addsp].splits.push({tp:'',km:''}); touch(); renderDetail(); });
+  on(D,'[data-addsp]',b=>{ const c=e.contests[+b.dataset.addsp], last=c.splits[c.splits.length-1];
+    c.splits.push({id:uid('s'),name:'',label:'',tp:'',km:'',from:last?.from||'start',sport:last?.sport||defaultSport(e)}); touch(); renderDetail(); });
   on(D,'[data-delsp]',b=>{ const [ci,si]=b.dataset.delsp.split(':').map(Number); e.contests[ci].splits.splice(si,1); touch(); renderDetail(); });
   $('#addq').onclick=()=>{ const n=Math.max(0,...e.questions.map(q=>q.n||0))+1; e.questions.push({id:uid('q'),n,text:'',answer:'',resolved:false}); touch(); renderDetail(); D.querySelector(`[aria-label="Question Q${n}"]`)?.focus(); };
   on(D,'[data-delq]',b=>{ e.questions.splice(+b.dataset.delq,1); touch(); renderDetail(); });
@@ -687,6 +743,42 @@ function renderEvent(D){
   $('#delev').onclick=()=>{
     if(evHours.length){ alert(`This event has ${plural(evHours.length,'hours entry','hours entries')}. Delete or move them first (Hours section).`); return; }
     if(confirm(`Delete «${e.name}»? It stays in the commit history.`)){ S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
+}
+function tpRow(e,t,i){
+  const tech=e.technology, avail=Object.keys(HW).filter(h=>!tech||HW[h].tech.includes(tech));
+  const opts=[['','—'],...avail.map(h=>[h,h]),...(t.hardware&&!avail.includes(t.hardware)?[[t.hardware,`${t.hardware} (not ${tech})`]]:[])];
+  const hw=HW[t.hardware], ids=tech!=='passive'&&hw;
+  const range=(k,[a,b])=>`<select data-o="${ref(t)}" data-k="${k}" aria-label="${k==='ch'?'Channel ID':'Loop ID'} ${esc(t.name)}"><option value=""></option>${Array.from({length:b-a+1},(_,j)=>a+j).map(n=>`<option ${String(t[k])===String(n)?'selected':''}>${n}</option>`).join('')}</select>`;
+  return `<tr>
+    <td class="sw"><input type="color" class="swatch" data-o="${ref(t)}" data-k="color" value="${esc(t.color||'#cccccc')}" aria-label="Colour ${esc(t.name)}"></td>
+    <td>${cell(t,'name',{ph:'Name'})}</td>
+    <td><select data-o="${ref(t)}" data-k="hardware" data-r="detail" aria-label="Hardware ${esc(t.name)}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${t.hardware===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${t.hardware&&!avail.includes(t.hardware)?'<span class="warn" title="Not available with this technology"> ⚠</span>':''}</td>
+    <td class="sm">${ids&&hw.ch?range('ch',hw.ch):''}</td>
+    <td>${ids&&hw.loop?range('loop',hw.loop):ids&&hw.modes?`<select data-o="${ref(t)}" data-k="mode" aria-label="Mode ${esc(t.name)}"><option value=""></option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
+    <td>${cell(t,'position',{ph:'43.7243, 7.4106',label:'Position'})}</td>
+    <td>${cell(t,'notes',{ph:'—',label:'Notes'})}</td>
+    <td class="x"><button class="btn sm ghost danger" data-deltp="${i}" type="button" aria-label="Remove point">×</button></td></tr>`;
+}
+function download(name,text,type='text/plain'){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+const latlon=p=>{ const m=String(p||'').match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/); return m?`${m[1]},${m[2]}`:''; };
+/* Same line layout as an RR14 Timing Points export: NAME;9;30;#color;lat,lon;0;0;0;0;0 */
+function exportTimingPoints(e){
+  const tps=e.timingPoints.filter(t=>!HW[t.hardware]?.notTP), bad=tps.filter(t=>!rrName(t.name));
+  if(bad.length){ alert('Every timing point needs a name.'); return; }
+  const skipped=e.timingPoints.length-tps.length;
+  download('Timing Points.lvs',tps.map(t=>[rrName(t.name),9,30,t.color||'',latlon(t.position),0,0,0,0,0].join(';')).join('\n')+'\n');
+  if(skipped) setTimeout(()=>alert(`${plural(skipped,'Management Box was','Management Boxes were')} left out: not a timing point in RR14.`),300);
+}
+/* RR14 splits import (.lvs JSON). Distance from: 0 = start, -1 = previous split. */
+function exportSplits(e,c){
+  const miss=c.splits.findIndex(s=>!e.timingPoints.find(t=>t.id===s.tp));
+  if(miss>=0){ alert(`Split ${miss+1} has no timing point.`); return; }
+  const out={TimeMode:{TimingMode:0,TimingModeFilter:''},
+    Splits:c.splits.map((s,i)=>{ const sp=SPORTS[s.sport]||SPORTS.run, t=e.timingPoints.find(x=>x.id===s.tp);
+      return {ID:i+1,Name:splitName(c,i),Label:splitLabel(e,c,i),TimingPoint:rrName(t.name),Backup:'',BackupOffset:0,TypeOfSport:sp.code,
+        Distance:Math.round(num(s.km)*1000),DistanceFrom:s.from==='previous'&&i?-1:0,DistanceUnit:'m',TimeMin:sp.min,TimeMax:sp.max,TimeMode:sp.mode,Color:'',SpeedOrPace:''}; }),
+    Legs:[]};
+  download(`Splits ${slug(c.name||'race')}.lvs`,JSON.stringify(out,null,2),'application/json');
 }
 function linkBtn(url){ return `<a class="btn sm" href="${esc(url||'#')}" target="_blank" rel="noopener noreferrer" ${/^https?:\/\//.test(url||'')?'':'aria-disabled="true" tabindex="-1"'}>Open</a>`; }
 function contestCard(e,c,ci,tpOpts){
@@ -701,9 +793,19 @@ function contestCard(e,c,ci,tpOpts){
       ${F(c,'route','Route',{ph:'Start → Finish'})}
       ${F(c,'eligibility','Eligibility / requirements',{ph:'e.g. born 2010 or earlier',cls:'wide'})}
     </div>
-    <div class="sub">Timing point sequence</div>
-    <div class="seq">${c.splits.map((s,si)=>`<div class="srow"><select data-o="${ref(s)}" data-k="tp" aria-label="Point ${si+1}">${tpOpts.map(([v,l])=>`<option value="${esc(v)}" ${s.tp===v?'selected':''}>${esc(l)}</option>`).join('')}</select><input data-o="${ref(s)}" data-k="km" value="${esc(s.km)}" placeholder="km" aria-label="km of point ${si+1}"><button class="btn sm ghost danger" data-delsp="${ci}:${si}" type="button" aria-label="Remove">×</button></div>`).join('')}
-      <button class="btn sm" data-addsp="${ci}" type="button" ${e.timingPoints.length?'':'disabled title="Add timing points first"'}>+ Point in sequence</button></div>
+    <div class="sub">Splits</div>
+    <div class="seq">${c.splits.length?`<table class="t resp splits"><thead><tr><th></th><th>Name</th><th>Label</th><th>Timing point</th><th>km</th><th>from</th><th>Sport</th><th></th><th></th></tr></thead><tbody>
+      ${c.splits.map((s,si)=>`<tr><td class="n">${si+1}</td>
+        <td>${cell(s,'name',{ph:splitName({splits:c.splits.map((x,j)=>j===si?{...x,name:''}:x)},si),label:`Split ${si+1} name`})}</td>
+        <td>${cell(s,'label',{ph:splitLabel(e,c,si)||'Label',label:`Split ${si+1} label`})}</td>
+        <td><select data-o="${ref(s)}" data-k="tp" data-r="detail" aria-label="Split ${si+1} timing point">${tpOpts.map(([v,l])=>`<option value="${esc(v)}" ${s.tp===v?'selected':''}>${esc(l)}</option>`).join('')}</select></td>
+        <td class="sm">${cell(s,'km',{ph:'km',label:`Split ${si+1} km`})}</td>
+        <td class="sm"><select data-o="${ref(s)}" data-k="from" aria-label="Split ${si+1} distance from"><option value="start" ${s.from==='start'?'selected':''}>start</option><option value="previous" ${s.from==='previous'?'selected':''}>previous</option></select></td>
+        <td><select data-o="${ref(s)}" data-k="sport" aria-label="Split ${si+1} sport">${Object.entries(SPORTS).map(([k,v])=>`<option value="${k}" ${s.sport===k?'selected':''}>${v.label}</option>`).join('')}</select></td>
+        <td class="x">${si?`<button class="btn sm ghost" data-upsp="${ci}:${si}" type="button" aria-label="Move up">↑</button>`:''}</td>
+        <td class="x"><button class="btn sm ghost danger" data-delsp="${ci}:${si}" type="button" aria-label="Remove split">×</button></td></tr>`).join('')}
+      </tbody></table>`:''}
+      <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" ${e.timingPoints.length?'':'disabled title="Add timing points first"'}>+ Split</button>${c.splits.length?`<button class="btn sm" data-spexport="${ci}" type="button">Export Splits.lvs</button>`:''}</div></div>
     <div class="two">
       ${Tasks(c,'rankings','Rankings','Add a ranking…',`r-${c.id}`)}
       ${Tasks(c,'teamScores','Team scores','Add a team score…',`t-${c.id}`)}
@@ -844,11 +946,11 @@ function summaryHTML(e,withResolved){
     ${oq.length?`<h2>Open questions</h2><ul class="qs">${oq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}</span></li>`).join('')}</ul>`:''}
     ${e.contests.length?`<h2>Races</h2><table><thead><tr><th>Race</th>${anyDate?'<th>Day</th>':''}${anyTime?'<th>Start</th>':''}<th>Distance</th>${anyEl?'<th>Elev. gain</th>':''}${anyElig?'<th>Eligibility</th>':''}</tr></thead><tbody>
       ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="route">${sub(c)}</div>`:''}</td>${anyDate?`<td>${esc(fmtLong(c.date))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
-    ${e.contests.some(c=>c.splits.length)?`<h2>Timing points per race</h2>${e.contests.filter(c=>c.splits.length).map(c=>`<div><b>${esc(c.name)}</b><div class="seqline">${c.splits.map(s=>`${esc(tpName(s.tp))}${s.km!==''&&s.km!=null?` <span style="color:#5a6670">(${esc(s.km)} km)</span>`:''}`).join(' → ')}</div></div>`).join('')}`:''}
+    ${e.contests.some(c=>c.splits.length)?`<h2>Timing points per race</h2>${e.contests.filter(c=>c.splits.length).map(c=>`<div><b>${esc(c.name)}</b><div class="seqline">${c.splits.map((s,i)=>`${esc(s.label||tpName(s.tp))}${!s.label&&s.km!==''&&s.km!=null?` <span style="color:#5a6670">(${esc(s.km)} km)</span>`:''}`).join(' → ')}</div></div>`).join('')}`:''}
     ${e.timingPoints.some(t=>t.position)?`<h2>Locations</h2><table><tbody>${e.timingPoints.filter(t=>t.position).map(t=>`<tr><td style="width:40%">${esc(t.name)}</td><td>${esc(t.position)}</td></tr>`).join('')}</tbody></table>`:''}
     ${e.contests.some(c=>ranks(c).length)?`<h2>Rankings</h2><table><tbody>${e.contests.filter(c=>ranks(c).length).map(c=>`<tr><td style="width:30%"><b>${esc(c.name)}</b></td><td>${ranks(c).map(esc).join('<br>')}</td></tr>`).join('')}</tbody></table>`:''}
     ${withResolved&&rq.length?`<h2>Resolved questions</h2><ul class="qs done">${rq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}${q.answer?`<div class="a">→ ${esc(q.answer)}</div>`:''}</span></li>`).join('')}</ul>`:''}
-    ${e.myrrUrl?`<h2>Results</h2><div>${esc(e.myrrUrl)}</div>`:''}
+    ${myrrUrl(e)?`<h2>Results</h2><div>${esc(myrrUrl(e))}</div>`:''}
     <div class="footer"><span>${esc(clientName(e.clientId))}</span><span>Updated ${esc(fmtLong(today()))}</span></div>
   </div>`;
 }
@@ -882,7 +984,7 @@ $('#newbtn').onclick=()=>{
   if(!S) return;
   if(route.view==='c'){ const c={id:uid('cl'),name:'',contact:'',email:'',phone:'',coefficient:1,notes:''}; S.clients.push(c); touch(); go('c',c.id); setTimeout(()=>$('#detail .name')?.focus(),0); return; }
   if(route.view==='h'){ $('#a-hours')?.focus(); return; }
-  const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',myrrUrl:'',links:[],timingPoints:[],contests:[],presenter:[],questions:[],checklist:{},notes:''};
+  const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],presenter:[],questions:[],checklist:{},notes:''};
   S.events.push(e); touch(); go('e',e.id); setTimeout(()=>$('#detail .name')?.focus(),0);
 };
 $('#savebtn').onclick=()=>{ document.activeElement?.blur?.(); save(); };
