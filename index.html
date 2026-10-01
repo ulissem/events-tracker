@@ -172,17 +172,17 @@ table.t td.gr{width:44px;white-space:nowrap}
 table.t td.gr > *{vertical-align:middle;display:inline-flex}
 @container ev (min-width:600px){
   .tpwrap{overflow-x:auto}
-  table.t.tps{table-layout:fixed;min-width:800px}
-  table.t.tps th:nth-child(1){width:52px} table.t.tps th:nth-child(3){width:180px}
-  table.t.tps th:nth-child(4),table.t.tps th:nth-child(5){width:58px} table.t.tps th:nth-child(6){width:200px}
-  table.t.tps th:nth-child(7){width:15%} table.t.tps th:nth-child(8){width:15%} table.t.tps th:nth-child(9){width:34px}
+  table.t.tps{table-layout:fixed;min-width:830px}
+  table.t.tps th:nth-child(1){width:52px} table.t.tps th:nth-child(2){width:21%} table.t.tps th:nth-child(3){width:185px}
+  table.t.tps th:nth-child(4),table.t.tps th:nth-child(5){width:58px} table.t.tps th:nth-child(6){width:124px}
+  table.t.tps th:nth-child(7){width:15%} table.t.tps th:nth-child(9){width:34px}
 }
 table.t tr.dup select.idsel{border-color:var(--danger)!important;color:var(--danger)}
 .rep{font-size:12px;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rep.bad{color:var(--warn)}
-.modecell{display:flex;align-items:center;gap:6px}
-.modecell select{flex:0 0 auto;max-width:100px}
-.modecell .rep{min-width:0}
+.hwsel{flex:1;min-width:0;display:flex;flex-direction:column}
+.hwsel select{width:100%}
+.hwsel .rep{padding-left:6px;margin-top:-2px}
 .alerts{margin:8px 0 0;padding:8px 12px;border:1px solid var(--danger);border-radius:8px;color:var(--danger);font-size:13px}
 .check li.auto label{cursor:default}
 .check .tag{margin-left:6px;font-size:11px}
@@ -922,10 +922,10 @@ function tpRow(e,t,i,dups){
   return `<tr data-si="${i}" class="${dup?'dup':''}">
     <td class="gr">${GRIP}<input type="color" class="swatch" data-o="${ref(t)}" data-k="color" value="${esc(t.color||'#cccccc')}" aria-label="Colour ${esc(t.name)}"></td>
     <td>${cell(t,'name',{ph:'Name'})}</td>
-    <td><div class="hwcell">${hwImg(t.hardware)?`<img class="hwimg" src="${hwImg(t.hardware)}" alt="">`:''}<select data-o="${ref(t)}" data-k="hardware" data-r="detail" aria-label="Hardware ${esc(t.name)}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${t.hardware===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${t.hardware&&!avail.includes(t.hardware)?'<span class="warn" title="Not available with this technology">⚠</span>':''}</div></td>
+    <td><div class="hwcell">${hwImg(t.hardware)?`<img class="hwimg" src="${hwImg(t.hardware)}" alt="">`:''}<div class="hwsel"><select data-o="${ref(t)}" data-k="hardware" data-r="detail" aria-label="Hardware ${esc(t.name)}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${t.hardware===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${link}</div>${t.hardware&&!avail.includes(t.hardware)?'<span class="warn" title="Not available with this technology">⚠</span>':''}</div></td>
     <td class="sm">${ids&&hw.ch?range('ch',hw.ch):''}</td>
     <td class="sm">${ids&&hw.loop?range('loop',hw.loop):''}</td>
-    <td>${ids&&hw.modes?`<div class="modecell"><select data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value="">Mode</option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>${link}</div>`:''}</td>
+    <td>${ids&&hw.modes?`<select data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value="">Mode</option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
     <td>${cell(t,'position',{ph:'Position: lat, lon',label:'Position'})}</td>
     <td>${cell(t,'notes',{ph:'Notes',label:'Notes'})}</td>
     <td class="x"><button class="btn sm ghost danger" data-deltp="${i}" type="button" aria-label="Remove point">×</button></td></tr>`;
