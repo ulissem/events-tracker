@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Events tracker</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1f4e79">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Events">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -174,6 +182,8 @@ dialog h2{margin:0 0 6px;font-size:18px}
 dialog p{margin:0 0 16px;color:var(--ink-2);font-size:14px}
 dialog .fld{margin-bottom:12px}
 dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;flex-wrap:wrap}
+details.adv{margin:4px 0 8px;font-size:13px;color:var(--ink-2)}
+details.adv summary{cursor:pointer;margin-bottom:10px}
 .msg{font-size:14px;color:var(--danger);min-height:20px;margin-top:6px}
 #sumdlg{max-width:900px;padding:0;background:var(--bg)}
 #sumdlg .sumbar{display:flex;gap:8px;align-items:center;padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;flex-wrap:wrap}
@@ -260,17 +270,22 @@ dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;fle
 </main>
 
 <dialog id="settings">
-  <h2>Connect to the data repository</h2>
-  <p>Data lives in a folder of a private repo. The token stays in this browser only.</p>
-  <div class="fld"><label class="f" for="s-owner">GitHub user</label><input id="s-owner" autocapitalize="off" spellcheck="false"></div>
-  <div class="fld"><label class="f" for="s-repo">Data repository</label><input id="s-repo" autocapitalize="off" spellcheck="false"></div>
-  <div class="fld"><label class="f" for="s-dir">Folder</label><input id="s-dir" autocapitalize="off" spellcheck="false"></div>
-  <div class="fld"><label class="f" for="s-token">Token (fine-grained, Contents: read &amp; write)</label><input id="s-token" type="password" autocapitalize="off" autocomplete="off"></div>
-  <div class="msg" id="s-msg"></div>
-  <div class="actions">
-    <button class="btn" id="s-cancel" type="button">Cancel</button>
-    <button class="btn primary" id="s-save" type="button">Connect</button>
-  </div>
+  <!-- A real login form (username + current-password + submit) so Bitwarden and the OS can autofill it. -->
+  <form id="loginform" method="post" action="#" autocomplete="on">
+    <h2>Log in</h2>
+    <p>The password is your GitHub token. It stays in this browser only.</p>
+    <div class="fld"><label class="f" for="s-owner">User</label><input id="s-owner" name="username" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>
+    <div class="fld"><label class="f" for="s-token">Password</label><input id="s-token" name="password" type="password" autocomplete="current-password" required></div>
+    <details class="adv"><summary>Data location</summary>
+      <div class="fld"><label class="f" for="s-repo">Data repository</label><input id="s-repo" name="repo" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+      <div class="fld"><label class="f" for="s-dir">Folder</label><input id="s-dir" name="folder" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    </details>
+    <div class="msg" id="s-msg"></div>
+    <div class="actions">
+      <button class="btn" id="s-cancel" type="button">Cancel</button>
+      <button class="btn primary" id="s-save" type="submit">Log in</button>
+    </div>
+  </form>
 </dialog>
 
 <dialog id="sumdlg" aria-label="Client summary">
@@ -880,12 +895,13 @@ $('#logoutbtn').onclick=async()=>{
 };
 
 const dlg=$('#settings');
-function openSettings(msg=''){ $('#s-owner').value=cfg.owner; $('#s-repo').value=cfg.repo; $('#s-dir').value=cfg.dir; $('#s-token').value=cfg.token; $('#s-msg').textContent=msg; dlg.showModal(); }
+function openSettings(msg=''){ $('#s-cancel').hidden=!S; $('#s-owner').value=cfg.owner; $('#s-repo').value=cfg.repo; $('#s-dir').value=cfg.dir; $('#s-token').value=cfg.token; $('#s-msg').textContent=msg; dlg.showModal(); }
 $('#setbtn').onclick=()=>{ if(DEMO){ alert('Demo mode: data comes from ../data and is never saved.'); return; } openSettings(); };
 $('#s-cancel').onclick=()=>dlg.close();
-$('#s-save').onclick=async()=>{
+dlg.addEventListener('cancel',e=>{ if(!S) e.preventDefault(); }); // Esc can't dismiss the login before data is loaded
+$('#loginform').onsubmit=async ev=>{ ev.preventDefault();
   cfg={owner:$('#s-owner').value.trim(),repo:$('#s-repo').value.trim(),dir:$('#s-dir').value.trim()||'data',token:$('#s-token').value.trim()};
-  if(!cfg.owner||!cfg.repo||!cfg.token){ $('#s-msg').textContent='Fill in user, repository and token.'; return; }
+  if(!cfg.owner||!cfg.repo||!cfg.token){ $('#s-msg').textContent='Fill in user and password.'; return; }
   try{
     let res=await loadAll();
     if(res==='missing'){
@@ -894,8 +910,10 @@ $('#s-save').onclick=async()=>{
       dirty=true; await save();
     }
     saveCfg(); dlg.close(); render();
-  }catch(err){ $('#s-msg').textContent=err.message+'. Check user, repository and token permissions.'; }
+  }catch(err){ $('#s-msg').textContent=err.message+'. Check user, password (token) and its permissions.'; }
 };
+
+if('serviceWorker' in navigator&&location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 new ResizeObserver(([en])=>document.documentElement.style.setProperty('--hh',en.target.offsetHeight+'px')).observe($('header'));
 
