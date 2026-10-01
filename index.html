@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -11,14 +11,14 @@
 :root{
   --bg:#eef0f2; --panel:#ffffff; --panel-2:#f6f7f9; --ink:#1b232b; --ink-2:#5a6670; --line:#d7dce1;
   --accent:#1f4e79; --accent-ink:#ffffff; --accent-soft:#e8eef5;
-  --ok:#2d8a4e; --warn:#c7781b; --danger:#b3261e;
+  --ok:#2d8a4e; --warn:#d9730d; --warn-soft:#fdf0e3; --danger:#b3261e;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#14191e; --panel:#1c2329; --panel-2:#232b32; --ink:#e3e8ec; --ink-2:#97a3ad; --line:#323c45;
     --accent:#7fb0e0; --accent-ink:#0f1a24; --accent-soft:#22313f;
-    --ok:#5cbf7d; --warn:#e3a14f; --danger:#ef7a72; color-scheme:dark;
+    --ok:#5cbf7d; --warn:#f0a050; --warn-soft:#3a2a18; --danger:#ef7a72; color-scheme:dark;
   }
 }
 *,*::before,*::after{box-sizing:border-box}
@@ -30,13 +30,14 @@ a{color:var(--accent)}
 [hidden]{display:none!important}
 
 /* header */
-header{display:flex;align-items:center;gap:12px;padding:10px 20px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+header{display:flex;align-items:center;gap:10px;padding:10px 20px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;flex-wrap:wrap}
 header h1{margin:0 8px 0 0;font-size:16px;font-weight:600;white-space:nowrap}
 nav.tabs{display:flex;gap:2px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:2px}
 nav.tabs a{padding:5px 12px;border-radius:6px;text-decoration:none;color:var(--ink-2);font-size:14px;font-weight:500}
 nav.tabs a[aria-current="page"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 header .spacer{flex:1}
 #savestate{font-size:13px;color:var(--ink-2);text-align:right}
+#savestate.dirty{color:var(--warn)}
 #savestate.err{color:var(--danger)}
 .btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 12px;font-size:14px;line-height:1.2;text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .btn:hover{background:var(--panel-2)}
@@ -44,8 +45,15 @@ header .spacer{flex:1}
 .btn.danger{color:var(--danger)}
 .btn.sm{padding:4px 9px;font-size:13px}
 .btn.ghost{border-color:transparent;background:none}
+.btn.icon{padding:6px;width:34px;height:34px;justify-content:center}
+.btn.icon svg{width:18px;height:18px;display:block}
 .btn[disabled],.btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
 #unitbtn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+#savebtn{color:var(--ink-2)}
+#savebtn.dirty{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+#savebtn.saving{animation:pulse 1s ease-in-out infinite}
+#savebtn.err{color:var(--danger);border-color:var(--danger)}
+@keyframes pulse{50%{opacity:.45}}
 
 /* layout */
 main{display:grid;grid-template-columns:380px 1fr;min-height:calc(100vh - 54px)}
@@ -79,12 +87,12 @@ main.full #detail{max-width:1100px}
 /* detail */
 .empty{color:var(--ink-2);padding-top:40px;max-width:460px}
 .empty h2{font-weight:600;margin:0 0 8px;color:var(--ink)}
-.title{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.title{display:flex;align-items:center;gap:8px;margin-bottom:20px}
 .title input.name{flex:1;font-size:26px;font-weight:600;border:0;border-bottom:1px solid transparent;background:none;padding:2px 0;min-width:0}
 .title input.name:hover,.title input.name:focus{border-bottom-color:var(--line);outline:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 18px;margin-bottom:8px}
 .grid .wide{grid-column:1/-1}
-label.f{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px}
+label.f,span.f{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px}
 .fld input,.fld select,.fld textarea,input.in,select.in,textarea.in{width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 9px;background:var(--panel);min-width:0}
 textarea{resize:vertical;min-height:62px;line-height:1.4}
 h3{font-size:13px;font-weight:600;color:var(--ink-2);margin:30px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
@@ -115,6 +123,21 @@ table.t tr.closed td{color:var(--ink-2)}
 .seq .srow::before{counter-increment:s;content:counter(s);font-size:12px;color:var(--ink-2);text-align:right}
 .seq select,.seq input{border:1px solid var(--line);border-radius:6px;padding:5px 7px;background:var(--panel);min-width:0}
 .sub{font-size:12px;color:var(--ink-2);margin:12px 0 5px;font-weight:500}
+
+/* checkable lists (rankings, team scores, presenter) */
+.tasks{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--panel)}
+.tasks > .f{margin:2px 2px 4px}
+.task{display:grid;grid-template-columns:22px 1fr 30px;gap:4px;align-items:center;min-height:32px}
+.task input[type=checkbox]{width:16px;height:16px;margin:0 0 0 2px;accent-color:var(--ok)}
+.task .tt{border:1px solid transparent;border-radius:5px;padding:4px 6px;background:none;min-width:0;width:100%}
+.task .tt:hover,.task .tt:focus{border-color:var(--line)}
+.task.done .tt{text-decoration:line-through;color:var(--ink-2)}
+.task.add .plus{color:var(--ink-2);text-align:center}
+.task.add .tt{color:var(--ink-2)}
+.task.add .tt:focus{color:var(--ink)}
+.task .btn{opacity:.5}
+.task:hover .btn,.task .btn:focus{opacity:1}
+.taskcount{font-weight:400;color:var(--ink-2);margin-left:4px}
 
 .q{display:grid;grid-template-columns:38px 1fr auto;gap:8px 10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:start}
 .q .qn{font-weight:600;color:var(--warn);padding-top:7px}
@@ -170,7 +193,7 @@ dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;fle
 .sheet .seqline{font-size:13px;margin:2px 0 8px}
 .sheet .qs{margin:0;padding:0;list-style:none}
 .sheet .qs li{display:grid;grid-template-columns:40px 1fr;padding:6px 0;border-bottom:1px solid #eceff2}
-.sheet .qs b{color:#c7781b}
+.sheet .qs b{color:#d9730d}
 .sheet .qs.done b{color:#2d8a4e}
 .sheet .qs .a{color:#5a6670;font-size:13px}
 .sheet .prog{height:6px;background:#d7dce1;border-radius:3px;overflow:hidden;width:200px;display:inline-block;vertical-align:middle;margin-right:8px}
@@ -179,8 +202,8 @@ dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;fle
 #printarea{display:none}
 
 @media (max-width:860px){
-  header{padding-left:12px;padding-right:12px}
-  header h1{display:none}
+  header{padding-left:12px;padding-right:12px;gap:8px}
+  header h1,#savestate{display:none}
   main{grid-template-columns:1fr}
   #list{border-right:0;position:static;height:auto}
   #detail{padding:18px 16px 60px}
@@ -193,12 +216,11 @@ dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;fle
   .closebox{grid-template-columns:1fr 1fr}
   .q{grid-template-columns:32px 1fr}
   .q .qc{grid-column:2;flex-direction:row;justify-content:space-between}
-  #back{display:inline-flex}
+  .task .btn{opacity:1}
   table.t.resp thead{display:none}
   table.t.resp tr{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);padding:6px 0}
   table.t.resp td{border:0}
 }
-#back{display:none}
 @media print{
   body.printing > *:not(#printarea){display:none!important}
   body.printing{background:#fff}
@@ -206,52 +228,57 @@ dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;fle
   #printarea .sheet{width:auto;padding:0}
   @page{margin:14mm}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <header>
-  <button id="back" class="btn sm" type="button">‹ Indietro</button>
   <h1>Events tracker</h1>
-  <nav class="tabs" aria-label="Sezioni">
-    <a href="#/e" data-view="e">Eventi</a>
-    <a href="#/c" data-view="c">Clienti</a>
-    <a href="#/h" data-view="h">Ore</a>
+  <nav class="tabs" aria-label="Sections">
+    <a href="#/e" data-view="e">Events</a>
+    <a href="#/c" data-view="c">Clients</a>
+    <a href="#/h" data-view="h">Hours</a>
   </nav>
   <span class="spacer"></span>
   <span id="savestate" role="status"></span>
-  <button id="unitbtn" class="btn sm" type="button" aria-pressed="false" title="Mostra / nascondi valori">🍦</button>
-  <button id="newbtn" class="btn" type="button">+ Evento</button>
-  <button id="setbtn" class="btn sm" type="button" title="Impostazioni" aria-label="Impostazioni">⚙</button>
+  <button id="savebtn" class="btn icon" type="button" title="Save (⌘S / Ctrl+S)" aria-label="Save">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3"/><rect x="7" y="13" width="10" height="7" rx="1"/></svg>
+  </button>
+  <button id="unitbtn" class="btn icon" type="button" aria-pressed="false" title="Show / hide values">🍦</button>
+  <button id="newbtn" class="btn" type="button">+ Event</button>
+  <button id="setbtn" class="btn icon" type="button" title="Settings" aria-label="Settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
+  <button id="logoutbtn" class="btn icon" type="button" title="Log out" aria-label="Log out">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+  </button>
 </header>
 
 <main id="main">
-  <nav id="list" aria-label="Elenco"></nav>
+  <nav id="list" aria-label="List"></nav>
   <section id="detail"></section>
 </main>
 
 <dialog id="settings">
-  <h2>Collegamento al repository</h2>
-  <p>I dati vivono nella cartella di un repo privato. Il token resta solo in questo browser.</p>
-  <div class="fld"><label class="f" for="s-owner">Utente GitHub</label><input id="s-owner" autocapitalize="off" spellcheck="false"></div>
-  <div class="fld"><label class="f" for="s-repo">Repository dati</label><input id="s-repo" autocapitalize="off" spellcheck="false"></div>
-  <div class="fld"><label class="f" for="s-dir">Cartella</label><input id="s-dir" autocapitalize="off" spellcheck="false"></div>
+  <h2>Connect to the data repository</h2>
+  <p>Data lives in a folder of a private repo. The token stays in this browser only.</p>
+  <div class="fld"><label class="f" for="s-owner">GitHub user</label><input id="s-owner" autocapitalize="off" spellcheck="false"></div>
+  <div class="fld"><label class="f" for="s-repo">Data repository</label><input id="s-repo" autocapitalize="off" spellcheck="false"></div>
+  <div class="fld"><label class="f" for="s-dir">Folder</label><input id="s-dir" autocapitalize="off" spellcheck="false"></div>
   <div class="fld"><label class="f" for="s-token">Token (fine-grained, Contents: read &amp; write)</label><input id="s-token" type="password" autocapitalize="off" autocomplete="off"></div>
   <div class="msg" id="s-msg"></div>
   <div class="actions">
-    <button class="btn danger" id="s-logout" type="button">Scollega</button>
-    <span class="spacer" style="flex:1"></span>
-    <button class="btn" id="s-cancel" type="button">Annulla</button>
-    <button class="btn primary" id="s-save" type="button">Collega</button>
+    <button class="btn" id="s-cancel" type="button">Cancel</button>
+    <button class="btn primary" id="s-save" type="button">Connect</button>
   </div>
 </dialog>
 
-<dialog id="sumdlg" aria-label="Riepilogo per il cliente">
+<dialog id="sumdlg" aria-label="Client summary">
   <div class="sumbar">
-    <label><input type="checkbox" id="sum-resolved"> includi domande risolte</label>
-    <button class="btn" id="sum-png" type="button">Scarica PNG</button>
-    <button class="btn" id="sum-pdf" type="button">Stampa / PDF</button>
-    <button class="btn primary" id="sum-close" type="button">Chiudi</button>
+    <label><input type="checkbox" id="sum-resolved"> include resolved questions</label>
+    <button class="btn" id="sum-png" type="button">Download PNG</button>
+    <button class="btn" id="sum-pdf" type="button">Print / PDF</button>
+    <button class="btn primary" id="sum-close" type="button">Close</button>
   </div>
   <div class="sumwrap"><div id="sumsheet"></div></div>
 </dialog>
@@ -280,21 +307,22 @@ const GitHubStore={
   async list(){
     const r=await fetch(this.url(),{headers:this.hdr(),cache:'no-store'});
     if(r.status===404) return null;
-    if(!r.ok) throw new Error(r.status===401?'Token non valido':`GitHub ${r.status}`);
+    if(!r.ok) throw new Error(r.status===401?'Invalid token':`GitHub ${r.status}`);
     return (await r.json()).filter(f=>f.type==='file'&&f.name.endsWith('.json')).map(f=>f.name);
   },
   async get(name){
     const r=await fetch(this.url(name),{headers:this.hdr(),cache:'no-store'});
-    if(r.status===404) return null;
-    if(!r.ok) throw new Error(`GitHub ${r.status} su ${name}`);
+    if(r.status===404){ delete this.sha[name]; return null; }
+    if(!r.ok) throw new Error(`GitHub ${r.status} on ${name}`);
     const j=await r.json(); this.sha[name]=j.sha; return b64dec(j.content);
   },
-  async put(name,text){
-    const body={message:`${name} · ${new Date().toISOString().slice(0,16).replace('T',' ')}`,content:b64enc(text)};
+  async put(name,text,message,{keepalive=false}={}){
+    const body={message,content:b64enc(text)};
     if(this.sha[name]) body.sha=this.sha[name];
-    const r=await fetch(this.url(name),{method:'PUT',headers:this.hdr(),body:JSON.stringify(body)});
+    const json=JSON.stringify(body);
+    const r=await fetch(this.url(name),{method:'PUT',headers:this.hdr(),body:json,keepalive:keepalive&&json.length<60000});
     if(r.status===409||r.status===422) throw new ConflictError(name);
-    if(!r.ok) throw new Error(`errore ${r.status}`);
+    if(!r.ok) throw new Error(r.status===403?'GitHub rate limit, retry in a few minutes':`error ${r.status}`);
     this.sha[name]=(await r.json()).content.sha;
   }
 };
@@ -302,22 +330,34 @@ const GitHubStore={
 const DemoStore={
   async list(){ return ['config.json','clients.json','hours.json','events-2026.json']; },
   async get(name){ const r=await fetch('../data/'+name,{cache:'no-store'}); return r.ok?r.text():null; },
-  async put(){ await new Promise(r=>setTimeout(r,150)); }
+  async put(){ await new Promise(r=>setTimeout(r,250)); }
 };
 const Store=DEMO?DemoStore:GitHubStore;
 
 /* =====================================================================
    MODEL
    ===================================================================== */
-const DEFAULT_CONFIG={version:2,unit:{label:'gelati',icon:'🍦'},
-  statuses:[{name:'da preparare',color:'#8a949d'},{name:'in corso',color:'#3b6fb6'},{name:'in test',color:'#c7781b'},{name:'pronto',color:'#2d8a4e'},{name:'chiuso',color:'#1f4e79'}],
-  eventTypes:['Trail','Corsa su strada','Ciclismo','Triathlon','Multi'],startTypes:['in linea','a onde','individuale'],checklistTemplate:[]};
+const DEFAULT_CONFIG={version:2,unit:{label:'ice creams',icon:'🍦'},
+  statuses:[{name:'to prepare',color:'#8a949d'},{name:'in progress',color:'#3b6fb6'},{name:'testing',color:'#c7781b'},{name:'ready',color:'#2d8a4e'},{name:'closed',color:'#1f4e79'}],
+  eventTypes:['Trail','Road running','Vertical / hill climb','Cycling','Triathlon','Multi'],startTypes:['mass','wave','individual'],checklistTemplate:[]};
+/* Older data (Italian labels, plain-string lists) is upgraded in memory on load. */
+const LEGACY={'da preparare':'to prepare','in corso':'in progress','in test':'testing','pronto':'ready','chiuso':'closed','in linea':'mass','a onde':'wave','individuale':'individual'};
+const toTasks=a=>(a||[]).map(x=>typeof x==='string'?{text:x,done:false}:x);
+function normalize(){
+  for(const e of S.events){
+    for(const k of ['links','timingPoints','contests','questions']) e[k]=e[k]||[];
+    e.checklist=e.checklist||{}; e.presenter=toTasks(e.presenter);
+    if(LEGACY[e.status]) e.status=LEGACY[e.status];
+    for(const c of e.contests){ c.splits=c.splits||[]; c.rankings=toTasks(c.rankings); c.teamScores=toTasks(c.teamScores); if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; }
+  }
+}
 let S=null;              // {config, clients[], events[], hours:{entries[],closures[]}}
 let saved={};            // file name -> last saved text
+let savedItems={};       // 'e:<id>' / 'c:<id>' -> last saved JSON, for commit messages
 let eventFiles=new Set();// events-YYYY.json files known in the repo
 
 async function loadAll(){
-  setState('caricamento…');
+  setState('loading…');
   const names=await Store.list();
   if(names===null) return 'missing';
   const txt={}; await Promise.all(names.map(async n=>{ txt[n]=await Store.get(n); }));
@@ -328,11 +368,14 @@ async function loadAll(){
      events:[]};
   eventFiles=new Set(names.filter(n=>/^events-.+\.json$/.test(n)));
   for(const n of [...eventFiles]) S.events.push(...((j(n)||{}).events||[]));
-  saved={}; for(const [n,t] of Object.entries(serialize())) if(txt[n]!=null) saved[n]=t; // unchanged files won't be rewritten
-  for(const n of names) if(!(n in saved)&&txt[n]!=null) saved[n]=txt[n];
-  setState(DEMO?'demo · non salva':'aggiornato');
+  normalize();
+  saved={}; for(const n of names) if(txt[n]!=null) saved[n]=txt[n];
+  // a file that differs only in formatting doesn't count as unsaved
+  for(const [n,t] of Object.entries(serialize())) if(txt[n]!=null&&JSON.stringify(JSON.parse(txt[n]))===JSON.stringify(JSON.parse(t))) saved[n]=t;
+  snapshotItems(); dirty=false; setState(DEMO?'demo · not saved':'up to date');
   return 'ok';
 }
+function snapshotItems(){ savedItems={}; for(const e of S.events) savedItems['e:'+e.id]=JSON.stringify(e); for(const c of S.clients) savedItems['c:'+c.id]=JSON.stringify(c); }
 const yearOf=e=>(e.dateStart||'').slice(0,4)||String(new Date().getFullYear());
 function serialize(){
   const out={
@@ -345,50 +388,82 @@ function serialize(){
     out[f]=JSON.stringify({version:2,year:+y||y,events:ev},null,2); }
   return out;
 }
-let dirty=false,timer=null,saving=false;
-function touch(what){ dirty=true; setState('modificato'); clearTimeout(timer); timer=setTimeout(save,1500); if(what!=='none') renderList(); }
-async function save(){
-  if(saving){ clearTimeout(timer); timer=setTimeout(save,800); return; }
-  if(!dirty) return; dirty=false; saving=true; setState('salvataggio…');
+/* Commit message that says what changed, e.g. "Events 2026: Relais Rose, Zampata Trail" */
+function changedNames(list,p){
+  const ids=new Set(list.map(x=>x.id));
+  const ch=list.filter(x=>savedItems[p+x.id]!==JSON.stringify(x)).map(x=>x.name||'untitled');
+  const gone=Object.keys(savedItems).filter(k=>k.startsWith(p)&&!ids.has(k.slice(2))).length;
+  const all=[...ch,...(gone?[`${gone} removed`]:[])];
+  return (all.length>3?`${all.slice(0,3).join(', ')} +${all.length-3}`:all.join(', '))||'update';
+}
+function commitMessage(file){
+  if(file==='hours.json') return 'Hours';
+  if(file==='config.json') return 'Config';
+  if(file==='clients.json') return 'Clients: '+changedNames(S.clients,'c:');
+  const y=file.slice(7,-5); return `Events ${y}: `+changedNames(S.events.filter(e=>yearOf(e)===y),'e:');
+}
+
+let dirty=false,saving=false;
+function touch(what){ dirty=true; setState('unsaved changes'); if(what!=='none') renderList(); }
+async function save({unload=false}={}){
+  if(saving||!S) return;
+  if(!dirty){ setState(DEMO?'demo · not saved':'saved'); return; }
+  dirty=false; saving=true; setState('saving…');
+  let file=null;
   try{
     const out=serialize();
     for(const [n,t] of Object.entries(out)){
-      if(saved[n]===t) continue;
-      await Store.put(n,t); saved[n]=t; if(n.startsWith('events-')) eventFiles.add(n);
+      if(saved[n]===t) continue; file=n;
+      await Store.put(n,t,commitMessage(n),{keepalive:unload}); saved[n]=t; if(n.startsWith('events-')) eventFiles.add(n);
     }
-    setState(DEMO?'demo · non salva':'salvato');
+    snapshotItems(); saving=false; setState(dirty?'unsaved changes':DEMO?'demo · not saved':'saved');
   }catch(err){
-    if(err instanceof ConflictError){ setState('conflitto: ricaricato, ripeti l’ultima modifica',true); await loadAll(); render(); }
-    else{ dirty=true; setState(err.message,true); }
-  }finally{ saving=false; }
+    saving=false; dirty=true;
+    if(err instanceof ConflictError){
+      setState('conflict',true);
+      if(confirm(`${file} was changed elsewhere (another device or tab).\n\nOK: overwrite it with your version.\nCancel: discard your unsaved changes and reload.`)){
+        await Store.get(file); return save();
+      }
+      await loadAll(); render();
+    } else setState(err.message,true);
+  }
 }
-window.addEventListener('beforeunload',e=>{ if(dirty){ save(); e.preventDefault(); e.returnValue=''; } });
-function setState(t,err){ const el=$('#savestate'); el.textContent=t; el.className=err?'err':''; }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&dirty) save({unload:true}); });
+window.addEventListener('pagehide',()=>{ if(dirty) save({unload:true}); });
+window.addEventListener('beforeunload',e=>{ if(dirty||saving){ save({unload:true}); e.preventDefault(); e.returnValue=''; } });
+document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){ e.preventDefault(); document.activeElement?.blur?.(); save(); } });
+function setState(t,err){
+  const el=$('#savestate'), b=$('#savebtn');
+  el.textContent=t; el.className=err?'err':dirty?'dirty':'';
+  b.classList.toggle('dirty',dirty&&!err); b.classList.toggle('saving',saving); b.classList.toggle('err',!!err);
+  b.title=(err?t+' — click to retry':saving?'Saving…':dirty?'Unsaved changes — click to save':'Saved')+' (⌘S / Ctrl+S)';
+}
 
 /* =====================================================================
    HELPERS
    ===================================================================== */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const MONTHS=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
-const DAYS=['dom','lun','mar','mer','gio','ven','sab'];
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const today=()=>{ const d=new Date(); return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); };
 function fmtDay(d){ if(!d) return {n:'–',m:''}; const [y,m,dd]=d.split('-'); return {n:String(+dd),m:MONTHS[+m-1]+' '+y.slice(2)}; }
 function fmtRange(e){ const a=fmtDay(e.dateStart); if(!e.dateEnd||e.dateEnd===e.dateStart) return a; const b=fmtDay(e.dateEnd); return {n:a.n+'–'+b.n,m:b.m}; }
 function fmtLong(d){ if(!d) return ''; const dt=new Date(d+'T12:00'); return `${DAYS[dt.getDay()]} ${dt.getDate()} ${MONTHS[dt.getMonth()]} ${dt.getFullYear()}`; }
 const longRange=e=>e.dateEnd&&e.dateEnd!==e.dateStart?`${fmtLong(e.dateStart)} → ${fmtLong(e.dateEnd)}`:fmtLong(e.dateStart);
 const num=v=>{ const n=parseFloat(String(v??'').replace(',','.')); return isFinite(n)?n:0; };
-const fmtN=n=>(Math.round(n*100)/100).toLocaleString('it-IT');
+const fmtN=n=>(Math.round(n*100)/100).toLocaleString('en-GB');
 const uid=p=>p+'-'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 const slug=n=>n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const clientOf=id=>S.clients.find(c=>c.id===id);
-const clientName=id=>clientOf(id)?.name||'— senza cliente —';
+const clientName=id=>clientOf(id)?.name||'— no client —';
 const statusColor=s=>(S.config.statuses.find(x=>x.name===s)||{}).color||'#8a949d';
 const progress=e=>{ const t=S.config.checklistTemplate; return t.length?t.filter(k=>e.checklist?.[k]).length/t.length:0; };
 const openQ=e=>(e.questions||[]).filter(q=>!q.resolved);
 const entriesOf=f=>S.hours.entries.filter(f);
 const sumH=a=>a.reduce((s,h)=>s+num(h.hours),0);
-const U=()=>S.config.unit||{label:'unità',icon:'•'};
+const U=()=>S.config.unit||{label:'units',icon:'•'};
+const plural=(n,one,many)=>`${n} ${n===1?one:many}`;
 let showValues=false;
 const val=v=>showValues?`${fmtN(v)} ${esc(U().icon)}`:'•••';
 const isOpen=h=>!h.closure;
@@ -396,32 +471,46 @@ const isOpen=h=>!h.closure;
 /* Two-way binding: rendered inputs point at the object they edit via data-o (index into OBJ). */
 let OBJ=[];
 const ref=o=>{ OBJ.push(o); return OBJ.length-1; };
-const shown=(o,k,t)=>t==='num'&&typeof o[k]==='number'?String(o[k]).replace('.',','):o[k];
 function F(o,k,label,{type='text',ph='',cls='',t='',list=''}={}){
   const id='f'+OBJ.length+k;
-  return `<div class="fld ${cls}"><label class="f" for="${id}">${label}</label><input id="${id}" type="${type}" data-o="${ref(o)}" data-k="${k}" ${t?`data-t="${t}"`:''} value="${esc(shown(o,k,t))}" placeholder="${esc(ph)}" ${list?`list="${list}"`:''}></div>`;
+  return `<div class="fld ${cls}"><label class="f" for="${id}">${label}</label><input id="${id}" type="${type}" data-o="${ref(o)}" data-k="${k}" ${t?`data-t="${t}" inputmode="decimal"`:''} value="${esc(o[k])}" placeholder="${esc(ph)}" ${list?`list="${list}"`:''}></div>`;
 }
-function T(o,k,label,{ph='',cls='',t=''}={}){
-  const id='f'+OBJ.length+k, v=t==='lines'?(o[k]||[]).join('\n'):o[k];
-  return `<div class="fld ${cls}"><label class="f" for="${id}">${label}</label><textarea id="${id}" data-o="${ref(o)}" data-k="${k}" ${t?`data-t="${t}"`:''} placeholder="${esc(ph)}">${esc(v)}</textarea></div>`;
+function T(o,k,label,{ph='',cls=''}={}){
+  const id='f'+OBJ.length+k;
+  return `<div class="fld ${cls}"><label class="f" for="${id}">${label}</label><textarea id="${id}" data-o="${ref(o)}" data-k="${k}" placeholder="${esc(ph)}">${esc(o[k])}</textarea></div>`;
 }
 function Sel(o,k,label,opts,{cls='',r=''}={}){
   const id='f'+OBJ.length+k;
   return `<div class="fld ${cls}"><label class="f" for="${id}">${label}</label><select id="${id}" data-o="${ref(o)}" data-k="${k}" ${r?`data-r="${r}"`:''}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${String(o[k]??'')===String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select></div>`;
 }
-const cell=(o,k,{ph='',type='text',t='',label=''}={})=>`<input type="${type}" data-o="${ref(o)}" data-k="${k}" ${t?`data-t="${t}"`:''} value="${esc(shown(o,k,t))}" placeholder="${esc(ph)}" aria-label="${esc(label||ph)}" ${t==='num'?'inputmode="decimal"':''}>`;
+const cell=(o,k,{ph='',type='text',t='',label=''}={})=>`<input type="${type}" data-o="${ref(o)}" data-k="${k}" ${t?`data-t="${t}" inputmode="decimal"`:''} value="${esc(o[k])}" placeholder="${esc(ph)}" aria-label="${esc(label||ph)}">`;
+/* Checkable list: rankings, team scores, presenter screens. lk = stable key to refocus the add field after re-render. */
+function Tasks(o,k,label,ph,lk){
+  o[k]=toTasks(o[k]); const arr=o[k], a=ref(arr), done=arr.filter(x=>x.done).length;
+  return `<div class="tasks"><span class="f">${label}${arr.length?`<span class="taskcount">· ${done}/${arr.length} done</span>`:''}</span>
+    ${arr.map((it,i)=>`<div class="task ${it.done?'done':''}"><input type="checkbox" data-o="${ref(it)}" data-k="done" data-r="detail" ${it.done?'checked':''} aria-label="Done: ${esc(it.text)}"><input class="tt" data-o="${ref(it)}" data-k="text" value="${esc(it.text)}" aria-label="${esc(label)} ${i+1}"><button class="btn sm ghost danger" data-delitem="${a}:${i}" type="button" aria-label="Remove ${esc(it.text)}">×</button></div>`).join('')}
+    <div class="task add"><span class="plus" aria-hidden="true">+</span><input class="tt" data-addto="${a}" data-lk="${esc(lk)}" placeholder="${esc(ph)}" aria-label="Add to ${esc(label)}"><span></span></div>
+  </div>`;
+}
 function bind(root){
   root.querySelectorAll('[data-o]').forEach(el=>{
     const evn=(el.type==='checkbox'||el.tagName==='SELECT')?'change':'input';
     el.addEventListener(evn,()=>{
       const o=OBJ[+el.dataset.o], k=el.dataset.k, t=el.dataset.t;
       let v=el.type==='checkbox'?el.checked:el.value;
-      if(t==='lines') v=v.split('\n').map(s=>s.trim()).filter(Boolean);
       if(t==='num') v=num(v);
       o[k]=v;
       if(el.dataset.r==='detail'){ touch(); renderDetail(); } else touch();
     });
   });
+  root.querySelectorAll('[data-addto]').forEach(el=>{
+    const add=refocus=>{ const v=el.value.trim(); if(!v) return; el.value='';
+      OBJ[+el.dataset.addto].push({text:v,done:false}); touch(); renderDetail();
+      if(refocus) root.querySelector(`[data-lk="${CSS.escape(el.dataset.lk)}"]`)?.focus(); };
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); add(true); } });
+    el.addEventListener('change',()=>add(false));
+  });
+  on(root,'[data-delitem]',b=>{ const [a,i]=b.dataset.delitem.split(':').map(Number); OBJ[a].splice(i,1); touch(); renderDetail(); });
 }
 const on=(root,sel,fn)=>root.querySelectorAll(sel).forEach(el=>el.addEventListener('click',ev=>fn(el,ev)));
 
@@ -431,7 +520,7 @@ const on=(root,sel,fn)=>root.querySelectorAll(sel).forEach(el=>el.addEventListen
 let route={view:'e',id:null};
 function parseRoute(){ const [,v='e',id=null]=location.hash.split('/'); route={view:['e','c','h'].includes(v)?v:'e',id:id&&decodeURIComponent(id)}; document.body.classList.toggle('showing-detail',!!route.id); }
 const go=(v,id)=>{ location.hash=id?`#/${v}/${encodeURIComponent(id)}`:`#/${v}`; };
-window.addEventListener('hashchange',()=>{ parseRoute(); render(); });
+window.addEventListener('hashchange',()=>{ parseRoute(); render(); window.scrollTo(0,0); });
 
 /* =====================================================================
    RENDER
@@ -441,8 +530,8 @@ function render(){
   if(!S) return;
   document.querySelectorAll('nav.tabs a').forEach(a=>{ if(a.dataset.view===route.view) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
   $('#main').classList.toggle('full',route.view==='h');
-  $('#newbtn').textContent=route.view==='c'?'+ Cliente':route.view==='h'?'+ Ore':'+ Evento';
-  $('#unitbtn').textContent=U().icon; $('#unitbtn').title=`Mostra / nascondi ${U().label}`;
+  $('#newbtn').textContent=route.view==='c'?'+ Client':route.view==='h'?'+ Hours':'+ Event';
+  $('#unitbtn').textContent=U().icon; $('#unitbtn').title=`Show / hide ${U().label}`;
   renderList(); renderDetail();
 }
 function renderList(){
@@ -461,19 +550,19 @@ function renderEventList(L){
   ev.sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
   const hidden=S.events.filter(e=>(e.dateEnd||e.dateStart||'9')<t).length;
   L.innerHTML=`<div class="filters">
-      <input type="search" id="fl-q" placeholder="Cerca evento, luogo, cliente" value="${esc(flt.q)}" aria-label="Cerca">
-      <select id="fl-client" aria-label="Cliente"><option value="">Tutti i clienti</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
-      <select id="fl-status" aria-label="Stato"><option value="">Tutti gli stati</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
-      <label><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> mostra passati (${hidden})</label>
+      <input type="search" id="fl-q" placeholder="Search event, place, client" value="${esc(flt.q)}" aria-label="Search">
+      <select id="fl-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+      <select id="fl-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+      <label><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> show past events (${hidden})</label>
     </div>`+
     ev.map(e=>{ const d=fmtRange(e), past=(e.dateEnd||e.dateStart||'9')<t, oq=openQ(e).length, h=sumH(entriesOf(x=>x.eventId===e.id));
       return `<button class="row ${e.id===route.id?'active':''} ${past?'past':''}" data-id="${esc(e.id)}" type="button">
         <span class="d">${esc(d.n)}<small>${esc(d.m)}</small></span>
-        <span><span class="n">${esc(e.name)||'<i>senza nome</i>'}</span><br><span class="m">${esc(clientName(e.clientId))}${e.location?' · '+esc(e.location):''}</span></span>
+        <span><span class="n">${esc(e.name)||'<i>untitled</i>'}</span><br><span class="m">${esc(clientName(e.clientId))}${e.location?' · '+esc(e.location):''}</span></span>
         <span class="st"><span><i class="dot" style="background:${esc(statusColor(e.status))}"></i>${esc(e.status||'')}</span><span class="bar"><i style="width:${Math.round(progress(e)*100)}%"></i></span>
         <span>${oq?`<span class="qbadge">${oq} ?</span>`:''}${oq&&h?' · ':''}${h?fmtN(h)+' h':''}</span></span>
       </button>`; }).join('')+
-    `<div class="listfoot"><span>${ev.length} eventi</span><span>${S.events.reduce((a,e)=>a+openQ(e).length,0)} domande aperte</span></div>`;
+    `<div class="listfoot"><span>${plural(ev.length,'event','events')}</span><span>${plural(S.events.reduce((a,e)=>a+openQ(e).length,0),'open question','open questions')}</span></div>`;
   on(L,'.row',b=>go('e',b.dataset.id));
   $('#fl-q').oninput=e=>{ flt.q=e.target.value; renderList(); };
   $('#fl-client').onchange=e=>{ flt.client=e.target.value; renderList(); };
@@ -485,9 +574,9 @@ function renderClientList(L){
   const cs=S.clients.slice().sort((a,b)=>a.name.localeCompare(b.name));
   L.innerHTML=cs.map(c=>{ const n=S.events.filter(e=>e.clientId===c.id).length, h=sumH(entriesOf(x=>x.clientId===c.id&&isOpen(x)));
     return `<button class="row client ${c.id===route.id?'active':''}" data-id="${esc(c.id)}" type="button">
-      <span><span class="n">${esc(c.name)||'<i>senza nome</i>'}</span><br><span class="m">${n} eventi${c.contact?' · '+esc(c.contact):''}</span></span>
-      <span class="st">${h?`<span>${fmtN(h)} h aperte</span>`:''}</span></button>`; }).join('')+
-    `<div class="listfoot"><span>${cs.length} clienti</span></div>`;
+      <span><span class="n">${esc(c.name)||'<i>untitled</i>'}</span><br><span class="m">${plural(n,'event','events')}${c.contact?' · '+esc(c.contact):''}</span></span>
+      <span class="st">${h?`<span>${fmtN(h)} h open</span>`:''}</span></button>`; }).join('')+
+    `<div class="listfoot"><span>${plural(cs.length,'client','clients')}</span></div>`;
   on(L,'.row',b=>go('c',b.dataset.id));
 }
 
@@ -497,66 +586,66 @@ function renderDetail(){
   const D=$('#detail');
   if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else renderHours(D);
   bind(D);
+  D.querySelector('#closebtn')?.addEventListener('click',()=>go(route.view));
 }
+const closeBtn=what=>`<button class="btn icon ghost" id="closebtn" type="button" title="Close ${what}" aria-label="Close ${what}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
 
 /* ---------------- EVENT ---------------- */
 function renderEvent(D){
   const e=S.events.find(x=>x.id===route.id);
-  if(!e){ D.innerHTML=`<div class="empty"><h2>Scegli un evento</h2>Oppure creane uno con «+ Evento». Ogni evento ha le sue gare, i punti di cronometraggio, le domande per il cliente e le ore.</div>`; return; }
-  for(const k of ['links','timingPoints','contests','presenter','questions']) e[k]=e[k]||[];
-  e.checklist=e.checklist||{};
-  const tpOpts=[['','— punto —'],...e.timingPoints.map(t=>[t.id,t.name||'(senza nome)'])];
+  if(!e){ D.innerHTML=`<div class="empty"><h2>Pick an event</h2>Or create one with «+ Event». Each event has its races, timing points, questions for the client and hours.</div>`; return; }
+  const tpOpts=[['','— point —'],...e.timingPoints.map(t=>[t.id,t.name||'(untitled)'])];
   const evHours=entriesOf(h=>h.eventId===e.id).sort((a,b)=>a.date.localeCompare(b.date));
   const oq=openQ(e).length, pct=Math.round(progress(e)*100);
   D.innerHTML=`
-  <div class="title"><input class="name" data-o="${ref(e)}" data-k="name" value="${esc(e.name)}" placeholder="Nome evento" aria-label="Nome evento">
-    <button class="btn" id="sumbtn" type="button">Riepilogo</button></div>
+  <div class="title"><input class="name" data-o="${ref(e)}" data-k="name" value="${esc(e.name)}" placeholder="Event name" aria-label="Event name">
+    <button class="btn" id="sumbtn" type="button">Summary</button>${closeBtn('event')}</div>
   <div class="grid">
-    ${Sel(e,'clientId','Cliente',[['','— senza cliente —'],...S.clients.map(c=>[c.id,c.name])],{r:'detail'})}
-    ${Sel(e,'status','Stato',S.config.statuses.map(s=>[s.name,s.name]))}
-    ${F(e,'dateStart','Data inizio',{type:'date'})}${F(e,'dateEnd','Data fine (se multi-day)',{type:'date'})}
-    ${F(e,'location','Luogo')}${F(e,'type','Tipo',{list:'dl-types',ph:'Trail, ciclismo…'})}
-    ${F(e,'website','Sito dell’evento',{type:'url',ph:'https://…',cls:'wide'})}
+    ${Sel(e,'clientId','Client',[['','— no client —'],...S.clients.map(c=>[c.id,c.name])],{r:'detail'})}
+    ${Sel(e,'status','Status',S.config.statuses.map(s=>[s.name,s.name]))}
+    ${F(e,'dateStart','Start date',{type:'date'})}${F(e,'dateEnd','End date (if multi-day)',{type:'date'})}
+    ${F(e,'location','Location')}${F(e,'type','Type',{list:'dl-types',ph:'Trail, cycling…'})}
+    ${F(e,'website','Event website',{type:'url',ph:'https://…',cls:'wide'})}
   </div>
   <datalist id="dl-types">${S.config.eventTypes.map(t=>`<option value="${esc(t)}">`).join('')}</datalist>
 
-  <h3>RR14 e my.raceresult</h3>
+  <h3>RR14 and my.raceresult</h3>
   <div class="grid">
-    <div class="fld"><label class="f" for="f-rrid">EventID</label><div class="inline"><input id="f-rrid" data-o="${ref(e)}" data-k="rr14EventId" value="${esc(e.rr14EventId)}" inputmode="numeric"><button class="btn sm" id="cpid" type="button" ${e.rr14EventId?'':'disabled'}>Copia</button></div></div>
-    <div class="fld"><label class="f" for="f-myrr">Pagina my.raceresult.com</label><div class="inline"><input id="f-myrr" type="url" data-o="${ref(e)}" data-k="myrrUrl" value="${esc(e.myrrUrl)}" placeholder="https://my.raceresult.com/…">${linkBtn(e.myrrUrl)}</div></div>
+    <div class="fld"><label class="f" for="f-rrid">EventID</label><div class="inline"><input id="f-rrid" data-o="${ref(e)}" data-k="rr14EventId" value="${esc(e.rr14EventId)}" inputmode="numeric"><button class="btn sm" id="cpid" type="button" ${e.rr14EventId?'':'disabled'}>Copy</button></div></div>
+    <div class="fld"><label class="f" for="f-myrr">my.raceresult.com page</label><div class="inline"><input id="f-myrr" type="url" data-o="${ref(e)}" data-k="myrrUrl" value="${esc(e.myrrUrl)}" placeholder="https://my.raceresult.com/…">${linkBtn(e.myrrUrl)}</div></div>
   </div>
 
-  <h3>Link e documenti <span class="sp"></span><button class="btn sm" id="addlink" type="button">+ Link</button></h3>
-  ${e.links.length?`<table class="t"><tbody>${e.links.map((l,i)=>`<tr><td style="width:34%">${cell(l,'label',{ph:'Regolamento, GPX, branding…'})}</td><td>${cell(l,'url',{ph:'https://…',type:'url',label:'Indirizzo'})}</td><td class="x">${linkBtn(l.url)}</td><td class="x"><button class="btn sm ghost danger" data-dellink="${i}" type="button" aria-label="Rimuovi link">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Regolamento, GPX, branding, cartella condivisa…</p>'}
+  <h3>Links and documents <span class="sp"></span><button class="btn sm" id="addlink" type="button">+ Link</button></h3>
+  ${e.links.length?`<table class="t"><tbody>${e.links.map((l,i)=>`<tr><td style="width:34%">${cell(l,'label',{ph:'Regulations, GPX, branding…'})}</td><td>${cell(l,'url',{ph:'https://…',type:'url',label:'Address'})}</td><td class="x">${linkBtn(l.url)}</td><td class="x"><button class="btn sm ghost danger" data-dellink="${i}" type="button" aria-label="Remove link">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Regulations, GPX, branding, shared folder…</p>'}
 
-  <h3>Punti di cronometraggio · ${e.timingPoints.length} <span class="sp"></span><button class="btn sm" id="addtp" type="button">+ Punto</button></h3>
-  ${e.timingPoints.length?`<table class="t resp"><thead><tr><th>Nome</th><th>Posizione</th><th>Note / hardware</th><th></th></tr></thead><tbody>${e.timingPoints.map((t,i)=>`<tr><td>${cell(t,'name',{ph:'Nome'})}</td><td>${cell(t,'position',{ph:'lat, lon o descrizione',label:'Posizione'})}</td><td>${cell(t,'notes',{ph:'—',label:'Note'})}</td><td class="x"><button class="btn sm ghost danger" data-deltp="${i}" type="button" aria-label="Rimuovi punto">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Partenza, arrivo, TB intermedi. Le gare li usano in sequenza.</p>'}
+  <h3>Timing points · ${e.timingPoints.length} <span class="sp"></span><button class="btn sm" id="addtp" type="button">+ Point</button></h3>
+  ${e.timingPoints.length?`<table class="t resp"><thead><tr><th>Name</th><th>Position</th><th>Notes / hardware</th><th></th></tr></thead><tbody>${e.timingPoints.map((t,i)=>`<tr><td>${cell(t,'name',{ph:'Name'})}</td><td>${cell(t,'position',{ph:'lat, lon or description',label:'Position'})}</td><td>${cell(t,'notes',{ph:'—',label:'Notes'})}</td><td class="x"><button class="btn sm ghost danger" data-deltp="${i}" type="button" aria-label="Remove point">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Start, finish, intermediate points. Races use them in sequence.</p>'}
 
-  <h3>Gare · ${e.contests.length} <span class="sp"></span><button class="btn sm" id="addct" type="button">+ Gara</button></h3>
-  ${e.contests.map((c,ci)=>contestCard(e,c,ci,tpOpts)).join('')||'<p class="hint">Nessuna gara.</p>'}
+  <h3>Races · ${e.contests.length} <span class="sp"></span><button class="btn sm" id="addct" type="button">+ Race</button></h3>
+  ${e.contests.map((c,ci)=>contestCard(e,c,ci,tpOpts)).join('')||'<p class="hint">No races yet.</p>'}
 
   <h3>Presenter</h3>
-  ${T(e,'presenter','Schermate / liste per il Presenter on-site',{t:'lines',ph:'Una per riga'})}
+  ${Tasks(e,'presenter','Presenter screens / lists on site','Add a screen…',`p-${e.id}`)}
 
-  <h3>Domande per il cliente · ${oq} aperte <span class="sp"></span><button class="btn sm" id="addq" type="button">+ Domanda</button></h3>
+  <h3>Questions for the client · ${oq} open <span class="sp"></span><button class="btn sm" id="addq" type="button">+ Question</button></h3>
   ${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}">
-     <span class="qn">D${q.n}</span>
-     <textarea class="in" data-o="${ref(q)}" data-k="text" placeholder="Domanda" aria-label="Domanda D${q.n}">${esc(q.text)}</textarea>
-     <span class="qc"><label><input type="checkbox" data-o="${ref(q)}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> risolta</label><button class="btn sm ghost danger" data-delq="${i}" type="button" aria-label="Elimina domanda">×</button></span>
-     <input class="in qa" data-o="${ref(q)}" data-k="answer" value="${esc(q.answer)}" placeholder="Risposta" aria-label="Risposta D${q.n}">
-   </div>`).join('')||'<p class="hint">Le domande aperte finiscono nel riepilogo, numerate.</p>'}
+     <span class="qn">Q${q.n}</span>
+     <textarea class="in" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
+     <span class="qc"><label><input type="checkbox" data-o="${ref(q)}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> resolved</label><button class="btn sm ghost danger" data-delq="${i}" type="button" aria-label="Delete question">×</button></span>
+     <input class="in qa" data-o="${ref(q)}" data-k="answer" value="${esc(q.answer)}" placeholder="Answer" aria-label="Answer Q${q.n}">
+   </div>`).join('')||'<p class="hint">Open questions go into the summary, numbered.</p>'}
 
   <h3>Checklist · ${pct}%</h3>
   <ul class="check">${S.config.checklistTemplate.map(k=>`<li><label><input type="checkbox" data-ck="${esc(k)}" ${e.checklist[k]?'checked':''}><span class="${e.checklist[k]?'done':''}">${esc(k)}</span></label></li>`).join('')}</ul>
 
-  <h3>Ore · ${fmtN(sumH(evHours))} h <span class="sp"></span><span class="hint">${fmtN(sumH(evHours.filter(isOpen)))} h aperte</span></h3>
+  <h3>Hours · ${fmtN(sumH(evHours))} h <span class="sp"></span><span class="hint">${fmtN(sumH(evHours.filter(isOpen)))} h open</span></h3>
   ${hoursTable(evHours,{showEvent:false,showClient:false})}
-  <div class="addrow"><input type="date" id="h-date" value="${today()}" aria-label="Data"><input type="text" inputmode="decimal" id="h-hours" placeholder="Ore" aria-label="Ore"><input id="h-note" class="grow" placeholder="Cosa hai fatto" aria-label="Attività"><button class="btn" id="addh" type="button" ${e.clientId?'':'disabled title="Assegna prima un cliente"'}>Aggiungi</button></div>
+  <div class="addrow"><input type="date" id="h-date" value="${today()}" aria-label="Date"><input type="text" inputmode="decimal" id="h-hours" placeholder="Hours" aria-label="Hours"><input id="h-note" class="grow" placeholder="What you did" aria-label="Activity"><button class="btn" id="addh" type="button" ${e.clientId?'':'disabled title="Assign a client first"'}>Add</button></div>
 
-  <h3>Note</h3>
-  ${T(e,'notes','Note interne (non vanno nel riepilogo)')}
+  <h3>Notes</h3>
+  ${T(e,'notes','Internal notes (never in the summary)')}
 
-  <div class="foot"><span>id: ${esc(e.id)}</span><button class="btn sm danger" id="delev" type="button">Elimina evento</button></div>`;
+  <div class="foot"><span>id: ${esc(e.id)}</span><button class="btn sm danger" id="delev" type="button">Delete event</button></div>`;
 
   /* event actions */
   $('#sumbtn').onclick=()=>openSummary(e);
@@ -565,15 +654,15 @@ function renderEvent(D){
   $('#addlink').onclick=()=>{ e.links.push({label:'',url:''}); touch(); renderDetail(); };
   on(D,'[data-dellink]',b=>{ e.links.splice(+b.dataset.dellink,1); touch(); renderDetail(); });
   $('#addtp').onclick=()=>{ e.timingPoints.push({id:uid('tp'),name:'',position:'',notes:''}); touch(); renderDetail(); };
-  on(D,'[data-deltp]',b=>{ const t=e.timingPoints[+b.dataset.deltp]; const used=e.contests.filter(c=>c.splits?.some(s=>s.tp===t.id));
-    if(used.length&&!confirm(`«${t.name}» è usato da ${used.map(c=>c.name).join(', ')}. Rimuoverlo anche dalle sequenze?`)) return;
+  on(D,'[data-deltp]',b=>{ const t=e.timingPoints[+b.dataset.deltp]; const used=e.contests.filter(c=>c.splits.some(s=>s.tp===t.id));
+    if(used.length&&!confirm(`«${t.name}» is used by ${used.map(c=>c.name).join(', ')}. Remove it from those sequences too?`)) return;
     for(const c of used) c.splits=c.splits.filter(s=>s.tp!==t.id); e.timingPoints.splice(+b.dataset.deltp,1); touch(); renderDetail(); });
   $('#addct').onclick=()=>{ e.contests.push({id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'',route:'',eligibility:'',splits:[],rankings:[],teamScores:[],relay:'',myrrUrl:'',notes:''}); touch(); renderDetail(); };
-  on(D,'[data-delct]',b=>{ const c=e.contests[+b.dataset.delct]; if(confirm(`Eliminare la gara «${c.name||'senza nome'}»?`)){ e.contests.splice(+b.dataset.delct,1); touch(); renderDetail(); } });
+  on(D,'[data-delct]',b=>{ const c=e.contests[+b.dataset.delct]; if(confirm(`Delete the race «${c.name||'untitled'}»?`)){ e.contests.splice(+b.dataset.delct,1); touch(); renderDetail(); } });
   on(D,'[data-upct]',b=>{ const i=+b.dataset.upct; if(i>0){ [e.contests[i-1],e.contests[i]]=[e.contests[i],e.contests[i-1]]; touch(); renderDetail(); } });
-  on(D,'[data-addsp]',b=>{ const c=e.contests[+b.dataset.addsp]; (c.splits=c.splits||[]).push({tp:'',km:''}); touch(); renderDetail(); });
+  on(D,'[data-addsp]',b=>{ e.contests[+b.dataset.addsp].splits.push({tp:'',km:''}); touch(); renderDetail(); });
   on(D,'[data-delsp]',b=>{ const [ci,si]=b.dataset.delsp.split(':').map(Number); e.contests[ci].splits.splice(si,1); touch(); renderDetail(); });
-  $('#addq').onclick=()=>{ const n=Math.max(0,...e.questions.map(q=>q.n||0))+1; e.questions.push({id:uid('q'),n,text:'',answer:'',resolved:false}); touch(); renderDetail(); D.querySelector(`[aria-label="Domanda D${n}"]`)?.focus(); };
+  $('#addq').onclick=()=>{ const n=Math.max(0,...e.questions.map(q=>q.n||0))+1; e.questions.push({id:uid('q'),n,text:'',answer:'',resolved:false}); touch(); renderDetail(); D.querySelector(`[aria-label="Question Q${n}"]`)?.focus(); };
   on(D,'[data-delq]',b=>{ e.questions.splice(+b.dataset.delq,1); touch(); renderDetail(); });
   D.querySelectorAll('[data-ck]').forEach(c=>c.onchange=()=>{ e.checklist[c.dataset.ck]=c.checked; touch(); renderDetail(); });
   $('#addh').onclick=()=>{ const h=num($('#h-hours').value); if(!h||!e.clientId) return;
@@ -581,51 +670,50 @@ function renderEvent(D){
   $('#h-note').onkeydown=ev=>{ if(ev.key==='Enter') $('#addh').click(); };
   bindHoursTable(D);
   $('#delev').onclick=()=>{
-    if(evHours.length){ alert(`Questo evento ha ${evHours.length} righe di ore. Eliminale o spostale prima (sezione Ore).`); return; }
-    if(confirm(`Eliminare «${e.name}»? Resta nello storico dei commit.`)){ S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
+    if(evHours.length){ alert(`This event has ${plural(evHours.length,'hours entry','hours entries')}. Delete or move them first (Hours section).`); return; }
+    if(confirm(`Delete «${e.name}»? It stays in the commit history.`)){ S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
 }
-function linkBtn(url){ return `<a class="btn sm" href="${esc(url||'#')}" target="_blank" rel="noopener noreferrer" ${/^https?:\/\//.test(url||'')?'':'aria-disabled="true" tabindex="-1"'}>Apri</a>`; }
+function linkBtn(url){ return `<a class="btn sm" href="${esc(url||'#')}" target="_blank" rel="noopener noreferrer" ${/^https?:\/\//.test(url||'')?'':'aria-disabled="true" tabindex="-1"'}>Open</a>`; }
 function contestCard(e,c,ci,tpOpts){
-  c.splits=c.splits||[];
   return `<div class="card">
-    <div class="cardhead"><input data-o="${ref(c)}" data-k="name" value="${esc(c.name)}" placeholder="Nome gara" aria-label="Nome gara">
-      ${ci?`<button class="btn sm ghost" data-upct="${ci}" type="button" aria-label="Sposta su">↑</button>`:''}
-      <button class="btn sm ghost danger" data-delct="${ci}" type="button" aria-label="Elimina gara">×</button></div>
+    <div class="cardhead"><input data-o="${ref(c)}" data-k="name" value="${esc(c.name)}" placeholder="Race name" aria-label="Race name">
+      ${ci?`<button class="btn sm ghost" data-upct="${ci}" type="button" aria-label="Move up">↑</button>`:''}
+      <button class="btn sm ghost danger" data-delct="${ci}" type="button" aria-label="Delete race">×</button></div>
     <div class="grid">
-      ${F(c,'date','Giorno',{type:'date'})}${F(c,'startTime','Partenza',{type:'time'})}
-      ${F(c,'distance','Distanza (km)',{ph:'21,1'})}${F(c,'elevation','D+ (m)',{ph:'—'})}
-      ${Sel(c,'startType','Tipo di partenza',[['','—'],...S.config.startTypes.map(s=>[s,s])])}
-      ${F(c,'route','Percorso',{ph:'Partenza → Arrivo'})}
-      ${F(c,'eligibility','Ammessi / requisiti',{ph:'es. nati 2010 e prima',cls:'wide'})}
+      ${F(c,'date','Day',{type:'date'})}${F(c,'startTime','Start time',{type:'time'})}
+      ${F(c,'distance','Distance (km)',{ph:'21.1'})}${F(c,'elevation','Elevation gain (m)',{ph:'—'})}
+      ${Sel(c,'startType','Start type',[['','—'],...S.config.startTypes.map(s=>[s,s])])}
+      ${F(c,'route','Route',{ph:'Start → Finish'})}
+      ${F(c,'eligibility','Eligibility / requirements',{ph:'e.g. born 2010 or earlier',cls:'wide'})}
     </div>
-    <div class="sub">Sequenza dei punti</div>
-    <div class="seq">${c.splits.map((s,si)=>`<div class="srow"><select data-o="${ref(s)}" data-k="tp" aria-label="Punto ${si+1}">${tpOpts.map(([v,l])=>`<option value="${esc(v)}" ${s.tp===v?'selected':''}>${esc(l)}</option>`).join('')}</select><input data-o="${ref(s)}" data-k="km" value="${esc(s.km)}" placeholder="km" aria-label="km punto ${si+1}"><button class="btn sm ghost danger" data-delsp="${ci}:${si}" type="button" aria-label="Rimuovi">×</button></div>`).join('')}
-      <button class="btn sm" data-addsp="${ci}" type="button" ${e.timingPoints.length?'':'disabled title="Aggiungi prima i punti di cronometraggio"'}>+ Punto in sequenza</button></div>
+    <div class="sub">Timing point sequence</div>
+    <div class="seq">${c.splits.map((s,si)=>`<div class="srow"><select data-o="${ref(s)}" data-k="tp" aria-label="Point ${si+1}">${tpOpts.map(([v,l])=>`<option value="${esc(v)}" ${s.tp===v?'selected':''}>${esc(l)}</option>`).join('')}</select><input data-o="${ref(s)}" data-k="km" value="${esc(s.km)}" placeholder="km" aria-label="km of point ${si+1}"><button class="btn sm ghost danger" data-delsp="${ci}:${si}" type="button" aria-label="Remove">×</button></div>`).join('')}
+      <button class="btn sm" data-addsp="${ci}" type="button" ${e.timingPoints.length?'':'disabled title="Add timing points first"'}>+ Point in sequence</button></div>
     <div class="two">
-      ${T(c,'rankings','Classifiche (una per riga)',{t:'lines',ph:'Scratch U/D\nCategorie (primi 3)'})}
-      ${T(c,'teamScores','Punteggi di squadra (uno per riga)',{t:'lines',ph:'es. Società: somma 3 migliori tempi'})}
-      ${T(c,'relay','Staffetta',{ph:'Frazioni, punti di cambio…'})}
-      ${T(c,'notes','Note gara')}
+      ${Tasks(c,'rankings','Rankings','Add a ranking…',`r-${c.id}`)}
+      ${Tasks(c,'teamScores','Team scores','Add a team score…',`t-${c.id}`)}
+      ${T(c,'relay','Relay',{ph:'Legs, changeover points…'})}
+      ${T(c,'notes','Race notes')}
     </div>
-    <div class="grid" style="margin-top:12px">${F(c,'myrrUrl','Pagina / lista my.rr della gara',{type:'url',ph:'https://…',cls:'wide'})}</div>
+    <div class="grid" style="margin-top:12px">${F(c,'myrrUrl','my.rr page / list for this race',{type:'url',ph:'https://…',cls:'wide'})}</div>
   </div>`;
 }
 
 /* ---------------- HOURS table (shared) ---------------- */
 function hoursTable(rows,{showEvent=true,showClient=true}={}){
-  if(!rows.length) return '<p class="hint">Nessuna ora registrata.</p>';
-  return `<table class="t resp"><thead><tr><th>Data</th>${showClient?'<th>Cliente</th>':''}${showEvent?'<th>Evento</th>':''}<th>Attività</th><th class="num">Ore</th><th class="num">${esc(U().icon)}</th><th>Stato</th><th></th></tr></thead><tbody>
+  if(!rows.length) return '<p class="hint">No hours logged.</p>';
+  return `<table class="t resp"><thead><tr><th>Date</th>${showClient?'<th>Client</th>':''}${showEvent?'<th>Event</th>':''}<th>Activity</th><th class="num">Hours</th><th class="num">${esc(U().icon)}</th><th>Status</th><th></th></tr></thead><tbody>
   ${rows.map(h=>{ const c=clientOf(h.clientId), cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure);
     const coef=cl?cl.coefficient:num(c?.coefficient), ev=S.events.find(x=>x.id===h.eventId);
     return `<tr class="${h.closure?'closed':''}">
-      <td>${h.closure?esc(h.date):cell(h,'date',{type:'date',label:'Data'})}</td>
+      <td>${h.closure?esc(h.date):cell(h,'date',{type:'date',label:'Date'})}</td>
       ${showClient?`<td>${esc(c?.name||'—')}</td>`:''}
-      ${showEvent?`<td>${ev?`<a href="#/e/${encodeURIComponent(ev.id)}">${esc(ev.name)}</a>`:'<span class="hint">generico</span>'}</td>`:''}
-      <td>${h.closure?esc(h.note):cell(h,'note',{ph:'—',label:'Attività'})}</td>
-      <td class="num" style="width:80px">${h.closure?fmtN(num(h.hours)):cell(h,'hours',{t:'num',label:'Ore'})}</td>
+      ${showEvent?`<td>${ev?`<a href="#/e/${encodeURIComponent(ev.id)}">${esc(ev.name)}</a>`:'<span class="hint">general</span>'}</td>`:''}
+      <td>${h.closure?esc(h.note):cell(h,'note',{ph:'—',label:'Activity'})}</td>
+      <td class="num" style="width:80px">${h.closure?fmtN(num(h.hours)):cell(h,'hours',{t:'num',label:'Hours'})}</td>
       <td class="num">${val(num(h.hours)*coef)}</td>
-      <td>${h.closure?`<span class="tag" title="${esc(cl?.ref||'')}">chiusa</span>`:'<span class="tag open">aperta</span>'}</td>
-      <td class="x">${h.closure?'':`<button class="btn sm ghost danger" data-delh="${esc(h.id)}" type="button" aria-label="Elimina riga">×</button>`}</td></tr>`; }).join('')}
+      <td>${h.closure?`<span class="tag" title="${esc(cl?.ref||'')}">closed</span>`:'<span class="tag open">open</span>'}</td>
+      <td class="x">${h.closure?'':`<button class="btn sm ghost danger" data-delh="${esc(h.id)}" type="button" aria-label="Delete entry">×</button>`}</td></tr>`; }).join('')}
   </tbody></table>`;
 }
 function bindHoursTable(D){
@@ -636,57 +724,57 @@ function bindHoursTable(D){
 /* ---------------- CLIENT ---------------- */
 function renderClient(D){
   const c=S.clients.find(x=>x.id===route.id);
-  if(!c){ D.innerHTML=`<div class="empty"><h2>Scegli un cliente</h2>Oppure creane uno con «+ Cliente». Il coefficiente moltiplica le ore e dà i ${esc(U().label)} ${esc(U().icon)}.</div>`; return; }
+  if(!c){ D.innerHTML=`<div class="empty"><h2>Pick a client</h2>Or create one with «+ Client». The coefficient multiplies hours into ${esc(U().label)} ${esc(U().icon)}.</div>`; return; }
   const ev=S.events.filter(e=>e.clientId===c.id).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
   const all=entriesOf(h=>h.clientId===c.id), open=all.filter(isOpen);
   const closures=S.hours.closures.filter(x=>x.clientId===c.id).sort((a,b)=>b.date.localeCompare(a.date));
   const coef=num(c.coefficient);
   const closedVal=closures.reduce((s,x)=>s+x.value,0), closedH=closures.reduce((s,x)=>s+x.hours,0);
   D.innerHTML=`
-  <div class="title"><input class="name" data-o="${ref(c)}" data-k="name" value="${esc(c.name)}" placeholder="Nome cliente" aria-label="Nome cliente"></div>
+  <div class="title"><input class="name" data-o="${ref(c)}" data-k="name" value="${esc(c.name)}" placeholder="Client name" aria-label="Client name">${closeBtn('client')}</div>
   <div class="grid">
-    ${F(c,'contact','Referente')}${F(c,'email','Email',{type:'email'})}${F(c,'phone','Telefono',{type:'tel'})}
-    ${F(c,'coefficient','Coefficiente',{t:'num',ph:'1'})}
-    ${T(c,'notes','Note',{cls:'wide'})}
+    ${F(c,'contact','Contact person')}${F(c,'email','Email',{type:'email'})}${F(c,'phone','Phone',{type:'tel'})}
+    ${F(c,'coefficient','Coefficient',{t:'num',ph:'1'})}
+    ${T(c,'notes','Notes',{cls:'wide'})}
   </div>
-  <h3>Situazione</h3>
+  <h3>Overview</h3>
   <div class="stats">
-    <div class="stat"><b>${ev.length}</b><span>eventi</span></div>
-    <div class="stat"><b>${fmtN(sumH(open))}</b><span>ore aperte</span></div>
-    <div class="stat"><b>${val(sumH(open)*coef)}</b><span>${esc(U().label)} aperti</span></div>
-    <div class="stat"><b>${fmtN(closedH)}</b><span>ore chiuse</span></div>
-    <div class="stat"><b>${val(closedVal)}</b><span>${esc(U().label)} chiusi</span></div>
+    <div class="stat"><b>${ev.length}</b><span>events</span></div>
+    <div class="stat"><b>${fmtN(sumH(open))}</b><span>open hours</span></div>
+    <div class="stat"><b>${val(sumH(open)*coef)}</b><span>open ${esc(U().label)}</span></div>
+    <div class="stat"><b>${fmtN(closedH)}</b><span>closed hours</span></div>
+    <div class="stat"><b>${val(closedVal)}</b><span>closed ${esc(U().label)}</span></div>
   </div>
-  <h3>Eventi</h3>
-  ${ev.length?`<table class="t"><tbody>${ev.map(e=>`<tr><td style="width:150px">${esc(longRange(e))}</td><td><a href="#/e/${encodeURIComponent(e.id)}">${esc(e.name||'senza nome')}</a></td><td><i class="dot" style="background:${esc(statusColor(e.status))}"></i>${esc(e.status)}</td><td class="num">${openQ(e).length?`<span class="qbadge">${openQ(e).length} ?</span>`:''}</td><td class="num">${fmtN(sumH(all.filter(h=>h.eventId===e.id)))} h</td></tr>`).join('')}</tbody></table>`:'<p class="hint">Nessun evento.</p>'}
-  <h3>Chiudi periodo</h3>
-  <p class="hint" style="margin-top:0">Segna come chiuse le ore aperte fino alla data scelta. Il coefficiente di oggi resta fissato nella chiusura.</p>
+  <h3>Events</h3>
+  ${ev.length?`<table class="t"><tbody>${ev.map(e=>`<tr><td style="width:170px">${esc(longRange(e))}</td><td><a href="#/e/${encodeURIComponent(e.id)}">${esc(e.name||'untitled')}</a></td><td><i class="dot" style="background:${esc(statusColor(e.status))}"></i>${esc(e.status)}</td><td class="num">${openQ(e).length?`<span class="qbadge">${openQ(e).length} ?</span>`:''}</td><td class="num">${fmtN(sumH(all.filter(h=>h.eventId===e.id)))} h</td></tr>`).join('')}</tbody></table>`:'<p class="hint">No events.</p>'}
+  <h3>Close period</h3>
+  <p class="hint" style="margin-top:0">Marks open hours up to the chosen date as closed. Today's coefficient is frozen into the closure.</p>
   <div class="closebox">
-    <div class="fld"><label class="f" for="cl-until">Fino al</label><input id="cl-until" type="date" value="${today()}"></div>
-    <div class="fld"><label class="f" for="cl-ref">Riferimento</label><input id="cl-ref" placeholder="es. 2026-10"></div>
-    <button class="btn primary" id="cl-go" type="button" ${open.length?'':'disabled'}>Chiudi</button>
+    <div class="fld"><label class="f" for="cl-until">Up to</label><input id="cl-until" type="date" value="${today()}"></div>
+    <div class="fld"><label class="f" for="cl-ref">Reference</label><input id="cl-ref" placeholder="e.g. 2026-10"></div>
+    <button class="btn primary" id="cl-go" type="button" ${open.length?'':'disabled'}>Close</button>
   </div>
   <p class="hint" id="cl-preview"></p>
-  <h3>Chiusure</h3>
-  ${closures.length?`<table class="t resp"><thead><tr><th>Chiusa il</th><th>Fino al</th><th>Rif.</th><th class="num">Ore</th><th class="num">Coeff.</th><th class="num">${esc(U().icon)}</th><th></th></tr></thead><tbody>
-    ${closures.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.until)}</td><td>${esc(x.ref)}</td><td class="num">${fmtN(x.hours)}</td><td class="num">${showValues?fmtN(x.coefficient):'•••'}</td><td class="num">${val(x.value)}</td><td class="x"><button class="btn sm ghost" data-reopen="${esc(x.id)}" type="button" title="Riapri queste ore">Annulla</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Nessuna chiusura.</p>'}
-  <h3>Ore aperte · ${fmtN(sumH(open))} h</h3>
+  <h3>Closures</h3>
+  ${closures.length?`<table class="t resp"><thead><tr><th>Closed on</th><th>Up to</th><th>Ref.</th><th class="num">Hours</th><th class="num">Coeff.</th><th class="num">${esc(U().icon)}</th><th></th></tr></thead><tbody>
+    ${closures.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.until)}</td><td>${esc(x.ref)}</td><td class="num">${fmtN(x.hours)}</td><td class="num">${showValues?fmtN(x.coefficient):'•••'}</td><td class="num">${val(x.value)}</td><td class="x"><button class="btn sm ghost" data-reopen="${esc(x.id)}" type="button" title="Reopen these hours">Undo</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">No closures.</p>'}
+  <h3>Open hours · ${fmtN(sumH(open))} h</h3>
   ${hoursTable(open.sort((a,b)=>a.date.localeCompare(b.date)),{showClient:false})}
-  <div class="foot"><span>id: ${esc(c.id)}</span><button class="btn sm danger" id="delcl" type="button">Elimina cliente</button></div>`;
+  <div class="foot"><span>id: ${esc(c.id)}</span><button class="btn sm danger" id="delcl" type="button">Delete client</button></div>`;
 
   const preview=()=>{ const u=$('#cl-until').value, rows=open.filter(h=>!u||h.date<=u);
-    $('#cl-preview').textContent=rows.length?`${rows.length} righe · ${fmtN(sumH(rows))} h${showValues?` · ${fmtN(sumH(rows)*coef)} ${U().icon}`:''}`:'Nessuna ora aperta in questo intervallo.'; return rows; };
+    $('#cl-preview').textContent=rows.length?`${plural(rows.length,'entry','entries')} · ${fmtN(sumH(rows))} h${showValues?` · ${fmtN(sumH(rows)*coef)} ${U().icon}`:''}`:'No open hours in this range.'; return rows; };
   preview(); $('#cl-until').oninput=preview;
   $('#cl-go').onclick=()=>{ const rows=preview(); if(!rows.length) return;
-    if(!confirm(`Chiudere ${rows.length} righe (${fmtN(sumH(rows))} h)?`)) return;
+    if(!confirm(`Close ${plural(rows.length,'entry','entries')} (${fmtN(sumH(rows))} h)?`)) return;
     const h=sumH(rows), x={id:uid('cl'),clientId:c.id,date:today(),until:$('#cl-until').value,ref:$('#cl-ref').value.trim(),hours:h,coefficient:coef,value:Math.round(h*coef*100)/100,entryIds:rows.map(r=>r.id)};
     S.hours.closures.push(x); for(const r of rows) r.closure=x.id; touch(); renderDetail(); };
-  on(D,'[data-reopen]',b=>{ const x=S.hours.closures.find(y=>y.id===b.dataset.reopen); if(!x||!confirm('Riaprire le ore di questa chiusura?')) return;
+  on(D,'[data-reopen]',b=>{ const x=S.hours.closures.find(y=>y.id===b.dataset.reopen); if(!x||!confirm('Reopen the hours of this closure?')) return;
     for(const h of S.hours.entries) if(h.closure===x.id) h.closure=null; S.hours.closures=S.hours.closures.filter(y=>y!==x); touch(); renderDetail(); });
   D.querySelector('[data-k=coefficient]').addEventListener('change',()=>renderDetail());
   bindHoursTable(D);
-  $('#delcl').onclick=()=>{ if(ev.length||all.length){ alert('Il cliente ha eventi o ore collegati: spostali o eliminali prima.'); return; }
-    if(confirm(`Eliminare il cliente «${c.name}»?`)){ S.clients=S.clients.filter(x=>x!==c); touch(); go('c'); } };
+  $('#delcl').onclick=()=>{ if(ev.length||all.length){ alert('This client has events or hours: move or delete them first.'); return; }
+    if(confirm(`Delete the client «${c.name}»?`)){ S.clients=S.clients.filter(x=>x!==c); touch(); go('c'); } };
 }
 
 /* ---------------- HOURS view ---------------- */
@@ -697,23 +785,23 @@ function renderHours(D){
   const tot=rows.reduce((s,h)=>{ const cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure); return s+num(h.hours)*(cl?cl.coefficient:num(clientOf(h.clientId)?.coefficient)); },0);
   const addC=hf.client||S.clients[0]?.id||'';
   D.innerHTML=`
-  <div class="title"><h2 style="margin:0;font-size:24px">Ore</h2></div>
+  <div class="title"><h2 style="margin:0;font-size:24px">Hours</h2></div>
   <div class="hoursbar">
-    <select id="hf-client" aria-label="Cliente"><option value="">Tutti i clienti</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${hf.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
-    <select id="hf-state" aria-label="Stato">${[['open','Aperte'],['closed','Chiuse'],['all','Tutte']].map(([v,l])=>`<option value="${v}" ${hf.state===v?'selected':''}>${l}</option>`).join('')}</select>
-    <input type="month" id="hf-month" value="${hf.month}" aria-label="Mese">
+    <select id="hf-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${hf.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+    <select id="hf-state" aria-label="Status">${[['open','Open'],['closed','Closed'],['all','All']].map(([v,l])=>`<option value="${v}" ${hf.state===v?'selected':''}>${l}</option>`).join('')}</select>
+    <input type="month" id="hf-month" value="${hf.month}" aria-label="Month">
     <span class="hint" style="margin-left:auto"><b>${fmtN(sumH(rows))} h</b> · ${val(tot)}</span>
   </div>
   <div class="addrow wide" id="addform" style="margin:0 0 16px">
-    <select id="a-client" aria-label="Cliente">${S.clients.map(c=>`<option value="${esc(c.id)}" ${addC===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
-    <select id="a-event" aria-label="Evento"></select>
-    <input type="date" id="a-date" value="${today()}" aria-label="Data">
-    <input id="a-hours" inputmode="decimal" placeholder="Ore" aria-label="Ore">
-    <input id="a-note" class="grow" placeholder="Cosa hai fatto" aria-label="Attività">
-    <button class="btn primary" id="a-add" type="button" ${S.clients.length?'':'disabled'}>Aggiungi</button>
+    <select id="a-client" aria-label="Client">${S.clients.map(c=>`<option value="${esc(c.id)}" ${addC===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+    <select id="a-event" aria-label="Event"></select>
+    <input type="date" id="a-date" value="${today()}" aria-label="Date">
+    <input id="a-hours" inputmode="decimal" placeholder="Hours" aria-label="Hours">
+    <input id="a-note" class="grow" placeholder="What you did" aria-label="Activity">
+    <button class="btn primary" id="a-add" type="button" ${S.clients.length?'':'disabled'}>Add</button>
   </div>
   ${hoursTable(rows)}`;
-  const fillEv=()=>{ const cid=$('#a-client').value; $('#a-event').innerHTML=`<option value="">— generico (nessun evento) —</option>`+S.events.filter(e=>e.clientId===cid).sort((a,b)=>(b.dateStart||'').localeCompare(a.dateStart||'')).map(e=>`<option value="${esc(e.id)}">${esc(e.name)}</option>`).join(''); };
+  const fillEv=()=>{ const cid=$('#a-client').value; $('#a-event').innerHTML=`<option value="">— general (no event) —</option>`+S.events.filter(e=>e.clientId===cid).sort((a,b)=>(b.dateStart||'').localeCompare(a.dateStart||'')).map(e=>`<option value="${esc(e.id)}">${esc(e.name)}</option>`).join(''); };
   fillEv(); $('#a-client').onchange=fillEv;
   $('#hf-client').onchange=e=>{ hf.client=e.target.value; renderDetail(); };
   $('#hf-state').onchange=e=>{ hf.state=e.target.value; renderDetail(); };
@@ -730,21 +818,23 @@ function renderHours(D){
 let sumEvent=null;
 function summaryHTML(e,withResolved){
   const tpName=id=>(e.timingPoints.find(t=>t.id===id)||{}).name||'?';
-  const pct=Math.round(progress(e)*100), oq=openQ(e), rq=(e.questions||[]).filter(q=>q.resolved);
+  const pct=Math.round(progress(e)*100), oq=openQ(e), rq=e.questions.filter(q=>q.resolved);
   const anyDate=e.contests.some(c=>c.date), anyTime=e.contests.some(c=>c.startTime), anyEl=e.contests.some(c=>c.elevation), anyElig=e.contests.some(c=>c.eligibility);
+  const sub=c=>[c.route,c.startType&&`${c.startType} start`].filter(Boolean).map(esc).join(' · ');
+  const ranks=c=>[...c.rankings.map(r=>r.text),...c.teamScores.map(t=>'Teams: '+t.text),...(c.relay?['Relay: '+c.relay]:[])];
   return `<div class="sheet">
     <h1>${esc(e.name)}</h1>
     <div class="meta">${esc(longRange(e))}${e.location?' · '+esc(e.location):''}${e.website?' · '+esc(e.website):''}</div>
-    <div><span class="pill" style="background:${esc(statusColor(e.status))}">${esc(e.status)}</span><span class="prog"><i style="width:${pct}%"></i></span>${pct}% preparazione${oq.length?` · <b style="color:#c7781b">${oq.length} ${oq.length===1?'domanda aperta':'domande aperte'}</b>`:''}</div>
-    ${oq.length?`<h2>Domande aperte</h2><ul class="qs">${oq.map(q=>`<li><b>D${q.n}</b><span>${esc(q.text)}</span></li>`).join('')}</ul>`:''}
-    ${e.contests.length?`<h2>Gare</h2><table><thead><tr><th>Gara</th>${anyDate?'<th>Giorno</th>':''}${anyTime?'<th>Partenza</th>':''}<th>Distanza</th>${anyEl?'<th>D+</th>':''}${anyElig?'<th>Ammessi</th>':''}</tr></thead><tbody>
-      ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${c.route?`<div class="route">${esc(c.route)}${c.startType?' · partenza '+esc(c.startType):''}</div>`:c.startType?`<div class="route">partenza ${esc(c.startType)}</div>`:''}</td>${anyDate?`<td>${esc(fmtLong(c.date))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
-    ${e.contests.some(c=>c.splits?.length)?`<h2>Punti di cronometraggio per gara</h2>${e.contests.filter(c=>c.splits?.length).map(c=>`<div><b>${esc(c.name)}</b><div class="seqline">${c.splits.map(s=>`${esc(tpName(s.tp))}${s.km!==''&&s.km!=null?` <span style="color:#5a6670">(${esc(s.km)} km)</span>`:''}`).join(' → ')}</div></div>`).join('')}`:''}
-    ${e.timingPoints.some(t=>t.position)?`<h2>Posizioni</h2><table><tbody>${e.timingPoints.filter(t=>t.position).map(t=>`<tr><td style="width:40%">${esc(t.name)}</td><td>${esc(t.position)}</td></tr>`).join('')}</tbody></table>`:''}
-    ${e.contests.some(c=>c.rankings?.length||c.teamScores?.length||c.relay)?`<h2>Classifiche</h2><table><tbody>${e.contests.filter(c=>c.rankings?.length||c.teamScores?.length||c.relay).map(c=>`<tr><td style="width:30%"><b>${esc(c.name)}</b></td><td>${[...(c.rankings||[]),...(c.teamScores||[]).map(t=>'Squadre: '+t),...(c.relay?['Staffetta: '+c.relay]:[])].map(esc).join('<br>')}</td></tr>`).join('')}</tbody></table>`:''}
-    ${withResolved&&rq.length?`<h2>Domande risolte</h2><ul class="qs done">${rq.map(q=>`<li><b>D${q.n}</b><span>${esc(q.text)}${q.answer?`<div class="a">→ ${esc(q.answer)}</div>`:''}</span></li>`).join('')}</ul>`:''}
-    ${e.myrrUrl?`<h2>Risultati</h2><div>${esc(e.myrrUrl)}</div>`:''}
-    <div class="footer"><span>${esc(clientName(e.clientId))}</span><span>Aggiornato al ${esc(fmtLong(today()))}</span></div>
+    <div><span class="pill" style="background:${esc(statusColor(e.status))}">${esc(e.status)}</span><span class="prog"><i style="width:${pct}%"></i></span>${pct}% prepared${oq.length?` · <b style="color:#d9730d">${plural(oq.length,'open question','open questions')}</b>`:''}</div>
+    ${oq.length?`<h2>Open questions</h2><ul class="qs">${oq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}</span></li>`).join('')}</ul>`:''}
+    ${e.contests.length?`<h2>Races</h2><table><thead><tr><th>Race</th>${anyDate?'<th>Day</th>':''}${anyTime?'<th>Start</th>':''}<th>Distance</th>${anyEl?'<th>Elev. gain</th>':''}${anyElig?'<th>Eligibility</th>':''}</tr></thead><tbody>
+      ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="route">${sub(c)}</div>`:''}</td>${anyDate?`<td>${esc(fmtLong(c.date))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
+    ${e.contests.some(c=>c.splits.length)?`<h2>Timing points per race</h2>${e.contests.filter(c=>c.splits.length).map(c=>`<div><b>${esc(c.name)}</b><div class="seqline">${c.splits.map(s=>`${esc(tpName(s.tp))}${s.km!==''&&s.km!=null?` <span style="color:#5a6670">(${esc(s.km)} km)</span>`:''}`).join(' → ')}</div></div>`).join('')}`:''}
+    ${e.timingPoints.some(t=>t.position)?`<h2>Locations</h2><table><tbody>${e.timingPoints.filter(t=>t.position).map(t=>`<tr><td style="width:40%">${esc(t.name)}</td><td>${esc(t.position)}</td></tr>`).join('')}</tbody></table>`:''}
+    ${e.contests.some(c=>ranks(c).length)?`<h2>Rankings</h2><table><tbody>${e.contests.filter(c=>ranks(c).length).map(c=>`<tr><td style="width:30%"><b>${esc(c.name)}</b></td><td>${ranks(c).map(esc).join('<br>')}</td></tr>`).join('')}</tbody></table>`:''}
+    ${withResolved&&rq.length?`<h2>Resolved questions</h2><ul class="qs done">${rq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}${q.answer?`<div class="a">→ ${esc(q.answer)}</div>`:''}</span></li>`).join('')}</ul>`:''}
+    ${e.myrrUrl?`<h2>Results</h2><div>${esc(e.myrrUrl)}</div>`:''}
+    <div class="footer"><span>${esc(clientName(e.clientId))}</span><span>Updated ${esc(fmtLong(today()))}</span></div>
   </div>`;
 }
 function openSummary(e){ sumEvent=e; $('#sum-resolved').checked=false; $('#sumsheet').innerHTML=summaryHTML(e,false); $('#sumdlg').showModal(); }
@@ -760,45 +850,51 @@ let h2c=null;
 function loadH2C(){ return h2c||(h2c=new Promise((ok,ko)=>{ const s=document.createElement('script');
   s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
   s.integrity='sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H'; s.crossOrigin='anonymous';
-  s.onload=()=>ok(window.html2canvas); s.onerror=()=>{ h2c=null; ko(new Error('html2canvas non caricato')); }; document.head.appendChild(s); })); }
+  s.onload=()=>ok(window.html2canvas); s.onerror=()=>{ h2c=null; ko(new Error('Could not load html2canvas')); }; document.head.appendChild(s); })); }
 $('#sum-png').onclick=async()=>{
-  const b=$('#sum-png'); b.disabled=true; b.textContent='Preparo…';
+  const b=$('#sum-png'); b.disabled=true; b.textContent='Preparing…';
   try{ const html2canvas=await loadH2C(); await document.fonts?.ready;
     const canvas=await html2canvas($('#sumsheet .sheet'),{scale:2,backgroundColor:'#ffffff',logging:false});
-    const a=document.createElement('a'); a.download=`riepilogo-${slug(sumEvent.name||'evento')}-${today()}.png`; a.href=canvas.toDataURL('image/png'); a.click();
+    const a=document.createElement('a'); a.download=`summary-${slug(sumEvent.name||'event')}-${today()}.png`; a.href=canvas.toDataURL('image/png'); a.click();
   }catch(err){ alert(err.message); }
-  finally{ b.disabled=false; b.textContent='Scarica PNG'; }
+  finally{ b.disabled=false; b.textContent='Download PNG'; }
 };
 
 /* =====================================================================
    TOOLBAR, SETTINGS, BOOT
    ===================================================================== */
 $('#newbtn').onclick=()=>{
+  if(!S) return;
   if(route.view==='c'){ const c={id:uid('cl'),name:'',contact:'',email:'',phone:'',coefficient:1,notes:''}; S.clients.push(c); touch(); go('c',c.id); setTimeout(()=>$('#detail .name')?.focus(),0); return; }
   if(route.view==='h'){ $('#a-hours')?.focus(); return; }
   const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',myrrUrl:'',links:[],timingPoints:[],contests:[],presenter:[],questions:[],checklist:{},notes:''};
   S.events.push(e); touch(); go('e',e.id); setTimeout(()=>$('#detail .name')?.focus(),0);
 };
-$('#back').onclick=()=>go(route.view);
+$('#savebtn').onclick=()=>{ document.activeElement?.blur?.(); save(); };
 $('#unitbtn').onclick=()=>{ showValues=!showValues; $('#unitbtn').setAttribute('aria-pressed',showValues); renderDetail(); };
+$('#logoutbtn').onclick=async()=>{
+  if(DEMO){ alert('Demo mode: nothing to log out from.'); return; }
+  if(dirty) await save();
+  if(dirty&&!confirm('Some changes could not be saved and will be lost. Log out anyway?')) return;
+  cfg.token=''; saveCfg(); dirty=false; location.hash=''; location.reload();
+};
 
 const dlg=$('#settings');
 function openSettings(msg=''){ $('#s-owner').value=cfg.owner; $('#s-repo').value=cfg.repo; $('#s-dir').value=cfg.dir; $('#s-token').value=cfg.token; $('#s-msg').textContent=msg; dlg.showModal(); }
-$('#setbtn').onclick=()=>{ if(DEMO){ alert('Modalità demo: i dati arrivano da ../data e non vengono salvati.'); return; } openSettings(); };
+$('#setbtn').onclick=()=>{ if(DEMO){ alert('Demo mode: data comes from ../data and is never saved.'); return; } openSettings(); };
 $('#s-cancel').onclick=()=>dlg.close();
-$('#s-logout').onclick=()=>{ if(!confirm('Rimuovere il token da questo browser?')) return; cfg.token=''; saveCfg(); location.reload(); };
 $('#s-save').onclick=async()=>{
   cfg={owner:$('#s-owner').value.trim(),repo:$('#s-repo').value.trim(),dir:$('#s-dir').value.trim()||'data',token:$('#s-token').value.trim()};
-  if(!cfg.owner||!cfg.repo||!cfg.token){ $('#s-msg').textContent='Compila utente, repository e token.'; return; }
+  if(!cfg.owner||!cfg.repo||!cfg.token){ $('#s-msg').textContent='Fill in user, repository and token.'; return; }
   try{
     let res=await loadAll();
     if(res==='missing'){
-      if(!confirm(`La cartella «${cfg.dir}» non esiste in ${cfg.owner}/${cfg.repo}. Crearla con file vuoti?`)) return;
-      S={config:structuredClone(DEFAULT_CONFIG),clients:[],events:[],hours:{entries:[],closures:[]}}; saved={}; eventFiles=new Set();
+      if(!confirm(`The folder «${cfg.dir}» doesn't exist in ${cfg.owner}/${cfg.repo}. Create it with empty files?`)) return;
+      S={config:structuredClone(DEFAULT_CONFIG),clients:[],events:[],hours:{entries:[],closures:[]}}; saved={}; savedItems={}; eventFiles=new Set();
       dirty=true; await save();
     }
     saveCfg(); dlg.close(); render();
-  }catch(err){ $('#s-msg').textContent=err.message+'. Controlla utente, repo e permessi del token.'; }
+  }catch(err){ $('#s-msg').textContent=err.message+'. Check user, repository and token permissions.'; }
 };
 
 new ResizeObserver(([en])=>document.documentElement.style.setProperty('--hh',en.target.offsetHeight+'px')).observe($('header'));
