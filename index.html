@@ -87,7 +87,9 @@ main.full{grid-template-columns:1fr}
   table.t.tps td:nth-child(9){grid-area:i}
   table.t.splits td.gr{padding-top:10px}
 }
-@media (min-width:1720px){ .evgrid{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,400px);gap:0 32px;align-items:start} .evside{position:sticky;top:calc(var(--hh,54px) + 12px);max-height:calc(100vh - var(--hh,54px) - 24px);overflow-y:auto;padding-right:4px} .evside > h3:first-child{margin-top:0} }
+.sidebtn{display:none}
+.sidebtn[aria-pressed="false"]{color:var(--ink-2)}
+@media (min-width:1720px){ .sidebtn{display:inline-flex} .evgrid.stacked{max-width:1400px} .evgrid:not(.stacked){max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,400px);gap:0 32px;align-items:start} .evgrid:not(.stacked) .evside{position:sticky;top:calc(var(--hh,54px) + 12px);max-height:calc(100vh - var(--hh,54px) - 24px);overflow-y:auto;padding-right:4px} .evgrid:not(.stacked) .evside > h3:first-child{margin-top:0} }
 main.full #list{display:none}
 main.full #detail{max-width:1100px}
 
@@ -175,11 +177,17 @@ table.t td.gr > *{vertical-align:middle;display:inline-flex}
   table.t.tps{table-layout:fixed;min-width:830px}
   table.t.tps th:nth-child(1){width:52px} table.t.tps th:nth-child(2){width:21%} table.t.tps th:nth-child(3){width:185px}
   table.t.tps th:nth-child(4),table.t.tps th:nth-child(5){width:58px} table.t.tps th:nth-child(6){width:124px}
-  table.t.tps th:nth-child(7){width:15%} table.t.tps th:nth-child(9){width:34px}
+  table.t.tps th:nth-child(7){width:48px} table.t.tps th:nth-child(9){width:34px}
 }
 table.t tr.dup select.idsel{border-color:var(--danger)!important;color:var(--danger)}
 .rep{font-size:12px;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rep.bad{color:var(--warn)}
+.pin{color:var(--ink-2);opacity:.6}
+.pin.set{color:var(--accent);opacity:1}
+#pospop{position:absolute;z-index:20;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:12px;width:280px}
+#pospop .f{margin-bottom:6px}
+#pospop input{width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 9px;background:var(--panel)}
+#pospop .actions{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px}
 .hwsel{flex:1;min-width:0;display:flex;flex-direction:column}
 .hwsel select{width:100%}
 .hwsel .rep{padding-left:6px;margin-top:-2px}
@@ -387,6 +395,11 @@ details.adv summary{cursor:pointer;margin-bottom:10px}
   <div class="sumwrap"><div id="sumsheet"></div></div>
 </dialog>
 <div id="printarea"></div>
+<div id="pospop" hidden role="dialog" aria-label="Timing point position">
+  <label class="f" for="pp-in" id="pp-title">Position</label>
+  <input id="pp-in" placeholder="43.7243, 7.4106" autocomplete="off" inputmode="decimal">
+  <div class="actions"><a class="btn sm" id="pp-map" target="_blank" rel="noopener noreferrer">Open map ↗</a><span><button class="btn sm ghost danger" id="pp-clear" type="button">Clear</button> <button class="btn sm primary" id="pp-done" type="button">Done</button></span></div>
+</div>
 
 <script>
 'use strict';
@@ -812,6 +825,7 @@ function renderDetail(){
 const closeBtn=what=>`<button class="btn icon ghost" id="closebtn" type="button" title="Close ${what}" aria-label="Close ${what}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
 
 /* ---------------- EVENT ---------------- */
+let sideOpen=(()=>{ try{ return localStorage.getItem('events-tracker-side')!=='0' }catch{ return true } })();
 function renderEvent(D){
   const e=S.events.find(x=>x.id===route.id);
   if(!e){ D.innerHTML=`<div class="empty"><h2>Pick an event</h2>Or create one with «+ Event». Each event has its races, timing points, questions for the client and hours.</div>`; return; }
@@ -821,8 +835,9 @@ function renderEvent(D){
   const dups=duplicates(e), ckItems=checklistItems(e);
   D.innerHTML=`
   <div class="title"><input class="name" data-o="${ref(e)}" data-k="name" value="${esc(e.name)}" placeholder="Event name" aria-label="Event name">
-    <button class="btn" id="sumbtn" type="button">Summary</button>${closeBtn('event')}</div>
-  <div class="evgrid"><div class="evmain">
+    <button class="btn" id="sumbtn" type="button">Summary</button>
+    <button class="btn icon ghost sidebtn" id="sidebtn" type="button" aria-pressed="${sideOpen}" title="${sideOpen?'Move questions, checklist and hours below':'Show questions, checklist and hours on the side'}" aria-label="Side panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>${sideOpen?'<path d="M17.5 9v6" stroke-linecap="round"/>':''}</svg></button>${closeBtn('event')}</div>
+  <div class="evgrid ${sideOpen?'':'stacked'}"><div class="evmain">
   <div class="grid">
     ${Sel(e,'clientId','Client',[['','— no client —'],...S.clients.map(c=>[c.id,c.name])],{r:'detail'})}
     ${Sel(e,'status','Status',S.config.statuses.map(s=>[s.name,s.name]))}
@@ -843,7 +858,7 @@ function renderEvent(D){
   ${e.links.length?`<table class="t"><tbody>${e.links.map((l,i)=>`<tr><td style="width:34%">${cell(l,'label',{ph:'Regulations, GPX, branding…'})}</td><td>${cell(l,'url',{ph:'https://…',type:'url',label:'Address'})}</td><td class="x">${linkBtn(l.url)}</td><td class="x"><button class="btn sm ghost danger" data-dellink="${i}" type="button" aria-label="Remove link">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Regulations, GPX, branding, shared folder…</p>'}
 
   <h3>Timing points · ${e.timingPoints.length} <span class="sp"></span><button class="btn sm" id="addtp" type="button">+ Point</button></h3>
-  ${e.timingPoints.length?`<div class="tpwrap"><table class="t resp tps"><thead><tr><th></th><th>Name</th><th>Hardware</th><th>Ch.</th><th>L.</th><th>Mode</th><th>Position (lat, lon)</th><th>Notes</th><th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${e.timingPoints.map((t,i)=>tpRow(e,t,i,dups)).join('')}</tbody></table></div>
+  ${e.timingPoints.length?`<div class="tpwrap"><table class="t resp tps"><thead><tr><th></th><th>Name</th><th>Hardware</th><th>Ch.</th><th>L.</th><th>Mode</th><th title="Position (lat, lon)">Pos.</th><th>Notes</th><th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${e.timingPoints.map((t,i)=>tpRow(e,t,i,dups)).join('')}</tbody></table></div>
   ${dups.length?`<div class="alerts">${dups.map(([k,v])=>`Ch. ${esc(k.split('/')[0])}${k.endsWith('–')?'':` / L. ${esc(k.split('/')[1])}`} is used ${v.length} times: ${v.map(t=>esc(t.name||'untitled')).join(', ')}`).join('<br>')}</div>`:''}
   <div class="toolbar"><button class="btn sm" id="tpcolors" type="button">Auto colours</button><button class="btn sm" id="tpexport" type="button">Export Timing Points.lvs</button></div>`:'<p class="hint">The hardware on the course: start, finish, intermediate points. Races use them in their splits.</p>'}
 
@@ -880,6 +895,7 @@ function renderEvent(D){
   <div class="foot"><span>id: ${esc(e.id)}</span><button class="btn sm danger" id="delev" type="button">Delete event</button></div>`;
 
   /* event actions */
+  $('#sidebtn').onclick=()=>{ sideOpen=!sideOpen; try{ localStorage.setItem('events-tracker-side',sideOpen?'1':'0') }catch{} renderDetail(); };
   on(D,'[data-tech]',b=>{ e.technology=e.technology===b.dataset.tech?'':b.dataset.tech; touch(); renderDetail(); });
   $('#sumbtn').onclick=()=>openSummary(e);
   $('#cpid').onclick=()=>navigator.clipboard?.writeText(e.rr14EventId);
@@ -889,6 +905,7 @@ function renderEvent(D){
   $('#addtp').onclick=()=>{ e.timingPoints.push({id:uid('tp'),name:'',hardware:'',ch:'',loop:'',mode:'',color:nextColor(e),position:'',notes:''}); touch(); renderDetail(); };
   $('#tpcolors')?.addEventListener('click',()=>{ e.timingPoints.forEach((t,i)=>t.color=PASTEL[i%PASTEL.length]); touch(); renderDetail(); });
   $('#tpexport')?.addEventListener('click',()=>exportTimingPoints(e));
+  on(D,'[data-pos]',b=>openPos(b,OBJ[+b.dataset.pos]));
   on(D,'[data-deltp]',b=>{ const t=e.timingPoints[+b.dataset.deltp]; const used=e.contests.filter(c=>c.splits.some(s=>s.tp===t.id));
     if(used.length&&!confirm(`«${t.name}» is used by ${used.map(c=>c.name).join(', ')}. Remove it from those sequences too?`)) return;
     for(const c of used) c.splits=c.splits.filter(s=>s.tp!==t.id); e.timingPoints.splice(+b.dataset.deltp,1); touch(); renderDetail(); });
@@ -926,10 +943,25 @@ function tpRow(e,t,i,dups){
     <td class="sm">${ids&&hw.ch?range('ch',hw.ch):''}</td>
     <td class="sm">${ids&&hw.loop?range('loop',hw.loop):''}</td>
     <td>${ids&&hw.modes?`<select data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value="">Mode</option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
-    <td>${cell(t,'position',{ph:'Position: lat, lon',label:'Position'})}</td>
+    <td><button class="btn icon ghost pin ${t.position?'set':''}" data-pos="${ref(t)}" type="button" title="${t.position?esc('Position: '+t.position):'Set position'}" aria-label="Position of ${esc(t.name||'timing point')}"><svg viewBox="0 0 24 24" fill="${t.position?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" fill="${t.position?'var(--panel)':'none'}"/></svg></button></td>
     <td>${cell(t,'notes',{ph:'Notes',label:'Notes'})}</td>
     <td class="x"><button class="btn sm ghost danger" data-deltp="${i}" type="button" aria-label="Remove point">×</button></td></tr>`;
 }
+/* Position popover: one shared editor, attached to the clicked pin */
+let posTarget=null;
+function openPos(btn,t){
+  const pop=$('#pospop'), r=btn.getBoundingClientRect(); posTarget=t;
+  $('#pp-title').textContent=`Position · ${t.name||'timing point'}`; $('#pp-in').value=t.position||''; syncMap();
+  pop.hidden=false; pop.style.top=`${r.bottom+scrollY+6}px`; pop.style.left=`${Math.max(8,Math.min(r.right+scrollX-280,innerWidth-292))}px`;
+  $('#pp-in').focus(); $('#pp-in').select();
+}
+function syncMap(){ const ll=latlon($('#pp-in').value), a=$('#pp-map'); a.href=ll?`https://www.google.com/maps?q=${ll}`:'#'; a.setAttribute('aria-disabled',ll?'false':'true'); }
+function closePos(){ if(!posTarget) return; $('#pospop').hidden=true; posTarget=null; renderDetail(); }
+$('#pp-in').addEventListener('input',e=>{ if(!posTarget) return; posTarget.position=e.target.value.trim(); touch('none'); syncMap(); });
+$('#pp-in').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key==='Escape'){ e.preventDefault(); closePos(); } });
+$('#pp-done').onclick=closePos;
+$('#pp-clear').onclick=()=>{ if(posTarget){ posTarget.position=''; touch('none'); } closePos(); };
+document.addEventListener('pointerdown',e=>{ if(posTarget&&!e.target.closest('#pospop,[data-pos]')) closePos(); });
 function download(name,text,type='text/plain'){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
 const latlon=p=>{ const m=String(p||'').match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/); return m?`${m[1]},${m[2]}`:''; };
 /* Same line layout as an RR14 Timing Points export: NAME;9;30;#color;lat,lon;0;0;0;0;0 */
