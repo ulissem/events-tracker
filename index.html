@@ -139,10 +139,17 @@ table.t td.sm{width:64px}
 a.plain{color:var(--accent);text-decoration:none;padding:7px 0;display:inline-block}
 .sub{font-size:12px;color:var(--ink-2);margin:12px 0 5px;font-weight:500}
 
-/* checkable lists (rankings, team scores, presenter) */
-.tasks{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--panel)}
+/* checkable lists: name · [url] · note · actions, with one level of sub-items */
+.tasks{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--panel);margin-bottom:12px}
 .tasks > .f{margin:2px 2px 4px}
-.task{display:grid;grid-template-columns:22px 1fr 30px;gap:4px;align-items:center;min-height:32px}
+.task{display:grid;grid-template-columns:22px minmax(0,1fr) minmax(0,1.3fr) 30px 30px;gap:4px;align-items:center;min-height:34px}
+.tasks.wurl .task{grid-template-columns:22px minmax(0,1fr) minmax(0,1fr) 52px minmax(0,1.2fr) 30px 30px}
+.task.child{margin-left:26px}
+.task.add{grid-template-columns:22px minmax(0,1fr)!important}
+.task .tn{color:var(--ink-2);font-size:13px}
+.task .tn:not(:placeholder-shown){color:var(--ink)}
+.task .btn.icon{width:28px;height:28px;padding:4px}
+.task a.btn{justify-content:center}
 .task input[type=checkbox]{width:16px;height:16px;margin:0 0 0 2px;accent-color:var(--ok)}
 .task .tt{border:1px solid transparent;border-radius:5px;padding:4px 6px;background:none;min-width:0;width:100%}
 .task .tt:hover,.task .tt:focus{border-color:var(--line)}
@@ -234,6 +241,12 @@ details.adv summary{cursor:pointer;margin-bottom:10px}
   .q{grid-template-columns:32px 1fr}
   .q .qc{grid-column:2;flex-direction:row;justify-content:space-between}
   .task .btn{opacity:1}
+  .task,.tasks.wurl .task{grid-template-columns:22px minmax(0,1fr) 30px 30px;grid-template-areas:"c t s x" ". u o o" ". n n n"}
+  .task > :nth-child(1){grid-area:c} .task > .tt:not(.tu):not(.tn){grid-area:t} .task .tu{grid-area:u} .task > a.btn{grid-area:o;justify-self:start}
+  .task .tn{grid-area:n} .task .addsub{grid-area:s} .task .del{grid-area:x}
+  .task.child{margin-left:14px}
+  .task.add{grid-template-areas:none}
+  .task.add > *{grid-area:auto!important}
   table.t.resp thead{display:none}
   table.t.resp tr{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);padding:6px 0}
   table.t.resp td{border:0}
@@ -376,17 +389,23 @@ const DEFAULT_CONFIG={version:2,unit:{label:'ice creams',icon:'🍦'},
   eventTypes:['Trail','Road running','Vertical / hill climb','Cycling','Triathlon','Multi'],startTypes:['mass','wave','individual'],checklistTemplate:[]};
 /* Older data (Italian labels, plain-string lists) is upgraded in memory on load. */
 const LEGACY={'da preparare':'to prepare','in corso':'in progress','in test':'testing','pronto':'ready','chiuso':'closed','in linea':'mass','a onde':'wave','individuale':'individual'};
-const toTasks=a=>(a||[]).map(x=>typeof x==='string'?{text:x,done:false}:x);
+const mkTask=(text='')=>({text,done:false,note:'',url:'',children:[]});
+const toTasks=a=>(a||[]).map(x=>{ const t=typeof x==='string'?mkTask(x):{...mkTask(),...x}; t.children=(t.children||[]).map(c=>{ const k={...mkTask(),...c}; delete k.children; return k; }); return t; });
+const countTasks=a=>a.reduce((n,t)=>[n[0]+1+t.children.length,n[1]+(t.done?1:0)+t.children.filter(c=>c.done).length],[0,0]);
+/* Output lists. Per race: rankings, team scores. Per event: the rest (all can hold a URL). */
+const RACE_LISTS=[['rankings','Rankings','Add a ranking…',false],['teamScores','Team scores','Add a team score…',false]];
+const EVENT_LISTS=[['lists','Lists','Add a list…',true],['myrrTabs','my.rr tabs','Add a my.rr tab…',true],['participantViews','Participant views','Add a participant view…',true],['presenter','Presenter','Add a Presenter screen…',true]];
 function normalize(){
   for(const e of S.events){
     for(const k of ['links','timingPoints','contests','questions']) e[k]=e[k]||[];
-    e.checklist=e.checklist||{}; e.presenter=toTasks(e.presenter);
+    e.checklist=e.checklist||{}; for(const [k] of EVENT_LISTS) e[k]=toTasks(e[k]);
     if(LEGACY[e.status]) e.status=LEGACY[e.status];
     if(e.myrrUrl!==undefined&&(!e.myrrUrl||e.myrrUrl===myrrUrl(e))) delete e.myrrUrl; // now derived from EventID
     e.technology=e.technology||'';
     for(const t of e.timingPoints){ t.hardware=t.hardware||''; t.ch=t.ch||''; t.loop=t.loop||''; t.mode=t.mode||''; if(!t.color) t.color=nextColor(e); }
     for(const c of e.contests){ c.splits=(c.splits||[]).map(x=>({id:x.id||uid('s'),name:x.name||'',label:x.label||'',tp:x.tp||'',km:x.km??''}));
-      c.rankings=toTasks(c.rankings); c.teamScores=toTasks(c.teamScores); if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; }
+      for(const [k] of RACE_LISTS) c[k]=toTasks(c[k]); if(LEGACY[c.startType]) c.startType=LEGACY[c.startType];
+      if(c.myrrUrl){ const t=mkTask(c.name||'Race page'); t.url=c.myrrUrl; e.myrrTabs.push(t); } delete c.myrrUrl; } // per-race my.rr link → event my.rr tabs
   }
 }
 /* Timing hardware. tech = timing technologies it can be used with; ch/loop = allowed ID ranges (active only). */
@@ -538,12 +557,20 @@ function Sel(o,k,label,opts,{cls='',r=''}={}){
   return `<div class="fld ${cls}"><label class="f" for="${id}">${label}</label><select id="${id}" data-o="${ref(o)}" data-k="${k}" ${r?`data-r="${r}"`:''}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${String(o[k]??'')===String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select></div>`;
 }
 const cell=(o,k,{ph='',type='text',t='',label=''}={})=>`<input type="${type}" data-o="${ref(o)}" data-k="${k}" ${t?`data-t="${t}" inputmode="decimal"`:''} value="${esc(o[k])}" placeholder="${esc(ph)}" aria-label="${esc(label||ph)}">`;
-/* Checkable list: rankings, team scores, presenter screens. lk = stable key to refocus the add field after re-render. */
-function Tasks(o,k,label,ph,lk){
-  o[k]=toTasks(o[k]); const arr=o[k], a=ref(arr), done=arr.filter(x=>x.done).length;
-  return `<div class="tasks"><span class="f">${label}${arr.length?`<span class="taskcount">· ${done}/${arr.length} done</span>`:''}</span>
-    ${arr.map((it,i)=>`<div class="task ${it.done?'done':''}"><input type="checkbox" data-o="${ref(it)}" data-k="done" data-r="detail" ${it.done?'checked':''} aria-label="Done: ${esc(it.text)}"><input class="tt" data-o="${ref(it)}" data-k="text" value="${esc(it.text)}" aria-label="${esc(label)} ${i+1}"><button class="btn sm ghost danger" data-delitem="${a}:${i}" type="button" aria-label="Remove ${esc(it.text)}">×</button></div>`).join('')}
-    <div class="task add"><span class="plus" aria-hidden="true">+</span><input class="tt" data-addto="${a}" data-lk="${esc(lk)}" placeholder="${esc(ph)}" aria-label="Add to ${esc(label)}"><span></span></div>
+/* Checkable list with notes, optional URL and one level of sub-items. lk = stable key to refocus after re-render. */
+function Tasks(o,k,label,ph,lk,withUrl){
+  o[k]=toTasks(o[k]); const arr=o[k], [tot,done]=countTasks(arr);
+  const row=(it,list,i,child,pos)=>`<div class="task ${it.done?'done':''} ${child?'child':''}">
+      <input type="checkbox" data-o="${ref(it)}" data-k="done" data-r="detail" ${it.done?'checked':''} aria-label="Done: ${esc(it.text)}">
+      <input class="tt" data-o="${ref(it)}" data-k="text" value="${esc(it.text)}" data-lk="${esc(lk)}:${pos}" aria-label="${esc(label)} ${pos}">
+      ${withUrl?`<input class="tt tu" type="url" data-o="${ref(it)}" data-k="url" data-r="blur" value="${esc(it.url)}" placeholder="https://…" aria-label="URL ${esc(it.text)}">${linkBtn(it.url)}`:''}
+      <input class="tt tn" data-o="${ref(it)}" data-k="note" value="${esc(it.note)}" placeholder="Note" aria-label="Note ${esc(it.text)}">
+      ${child?'<span class="addsub"></span>':`<button class="btn sm ghost addsub" data-addsub="${ref(it.children)}" data-lk="${esc(lk)}:${pos}" type="button" title="Add sub-item" aria-label="Add sub-item to ${esc(it.text)}">+</button>`}
+      <button class="btn sm ghost danger del" data-delitem="${ref(list)}:${i}" type="button" aria-label="Remove ${esc(it.text)}">×</button>
+    </div>`;
+  return `<div class="tasks ${withUrl?'wurl':''}"><span class="f">${label}${tot?`<span class="taskcount">· ${done}/${tot} done</span>`:''}</span>
+    ${arr.map((it,i)=>row(it,arr,i,false,`${i+1}`)+it.children.map((c,j)=>row(c,it.children,j,true,`${i+1}.${j+1}`)).join('')).join('')}
+    <div class="task add"><span class="plus" aria-hidden="true">+</span><input class="tt" data-addto="${ref(arr)}" data-lk="${esc(lk)}" placeholder="${esc(ph)}" aria-label="Add to ${esc(label)}"></div>
   </div>`;
 }
 function bind(root){
@@ -560,11 +587,13 @@ function bind(root){
   });
   root.querySelectorAll('[data-addto]').forEach(el=>{
     const add=refocus=>{ const v=el.value.trim(); if(!v) return; el.value='';
-      OBJ[+el.dataset.addto].push({text:v,done:false}); touch(); renderDetail();
+      OBJ[+el.dataset.addto].push(mkTask(v)); touch(); renderDetail();
       if(refocus) root.querySelector(`[data-lk="${CSS.escape(el.dataset.lk)}"]`)?.focus(); };
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); add(true); } });
     el.addEventListener('change',()=>add(false));
   });
+  on(root,'[data-addsub]',b=>{ const ch=OBJ[+b.dataset.addsub]; ch.push(mkTask()); const lk=`${b.dataset.lk}.${ch.length}`; touch(); renderDetail();
+    root.querySelector(`[data-lk="${CSS.escape(lk)}"]`)?.focus(); });
   on(root,'[data-delitem]',b=>{ const [a,i]=b.dataset.delitem.split(':').map(Number); OBJ[a].splice(i,1); touch(); renderDetail(); });
 }
 const on=(root,sel,fn)=>root.querySelectorAll(sel).forEach(el=>el.addEventListener('click',ev=>fn(el,ev)));
@@ -681,8 +710,8 @@ function renderEvent(D){
   <h3>Races · ${e.contests.length} <span class="sp"></span><button class="btn sm" id="addct" type="button">+ Race</button></h3>
   ${e.contests.map((c,ci)=>contestCard(e,c,ci,tpOpts)).join('')||'<p class="hint">No races yet.</p>'}
 
-  <h3>Presenter</h3>
-  ${Tasks(e,'presenter','Presenter screens / lists on site','Add a screen…',`p-${e.id}`)}
+  <h3>Outputs</h3>
+  ${EVENT_LISTS.map(([k,l,ph,u])=>Tasks(e,k,l,ph,`${k}-${e.id}`,u)).join('')}
 
   <h3>Questions for the client · ${oq} open <span class="sp"></span><button class="btn sm" id="addq" type="button">+ Question</button></h3>
   ${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}">
@@ -717,7 +746,7 @@ function renderEvent(D){
   on(D,'[data-deltp]',b=>{ const t=e.timingPoints[+b.dataset.deltp]; const used=e.contests.filter(c=>c.splits.some(s=>s.tp===t.id));
     if(used.length&&!confirm(`«${t.name}» is used by ${used.map(c=>c.name).join(', ')}. Remove it from those sequences too?`)) return;
     for(const c of used) c.splits=c.splits.filter(s=>s.tp!==t.id); e.timingPoints.splice(+b.dataset.deltp,1); touch(); renderDetail(); });
-  $('#addct').onclick=()=>{ e.contests.push({id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'',route:'',eligibility:'',splits:[],rankings:[],teamScores:[],relay:'',myrrUrl:'',notes:''}); touch(); renderDetail(); };
+  $('#addct').onclick=()=>{ e.contests.push({id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'',route:'',eligibility:'',splits:[],rankings:[],teamScores:[],relay:'',notes:''}); touch(); renderDetail(); };
   on(D,'[data-delct]',b=>{ const c=e.contests[+b.dataset.delct]; if(confirm(`Delete the race «${c.name||'untitled'}»?`)){ e.contests.splice(+b.dataset.delct,1); touch(); renderDetail(); } });
   on(D,'[data-upct]',b=>{ const i=+b.dataset.upct; if(i>0){ [e.contests[i-1],e.contests[i]]=[e.contests[i],e.contests[i-1]]; touch(); renderDetail(); } });
   on(D,'[data-addsp]',b=>{ e.contests[+b.dataset.addsp].splits.push({id:uid('s'),name:'',label:'',tp:'',km:''}); touch(); renderDetail(); });
@@ -782,13 +811,12 @@ function contestCard(e,c,ci,tpOpts){
         <td class="x"><button class="btn sm ghost danger" data-delsp="${ci}:${si}" type="button" aria-label="Remove split">×</button></td></tr>`).join('')}
       </tbody></table>`:''}
       <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" ${e.timingPoints.length?'':'disabled title="Add timing points first"'}>+ Split</button></div></div>
+    <div class="sub">Scoring</div>
+    ${RACE_LISTS.map(([k,l,ph,u])=>Tasks(c,k,l,ph,`${k}-${c.id}`,u)).join('')}
     <div class="two">
-      ${Tasks(c,'rankings','Rankings','Add a ranking…',`r-${c.id}`)}
-      ${Tasks(c,'teamScores','Team scores','Add a team score…',`t-${c.id}`)}
       ${T(c,'relay','Relay',{ph:'Legs, changeover points…'})}
       ${T(c,'notes','Race notes')}
     </div>
-    <div class="grid" style="margin-top:12px">${F(c,'myrrUrl','my.rr page / list for this race',{type:'url',ph:'https://…',cls:'wide'})}</div>
   </div>`;
 }
 
@@ -914,7 +942,8 @@ function summaryHTML(e,withResolved){
   const pct=Math.round(progress(e)*100), oq=openQ(e), rq=e.questions.filter(q=>q.resolved);
   const anyDate=e.contests.some(c=>c.date), anyTime=e.contests.some(c=>c.startTime), anyEl=e.contests.some(c=>c.elevation), anyElig=e.contests.some(c=>c.eligibility);
   const sub=c=>[c.route,c.startType&&`${c.startType} start`].filter(Boolean).map(esc).join(' · ');
-  const ranks=c=>[...c.rankings.map(r=>r.text),...c.teamScores.map(t=>'Teams: '+t.text),...(c.relay?['Relay: '+c.relay]:[])];
+  const item=(t,pre='')=>`${pre}${esc(t.text)}${t.note?` <span style="color:#5a6670">— ${esc(t.note)}</span>`:''}${t.children.length?`<div style="margin:2px 0 4px 14px;font-size:13px">${t.children.map(c=>'· '+esc(c.text)+(c.note?` <span style="color:#5a6670">— ${esc(c.note)}</span>`:'')).join('<br>')}</div>`:''}`;
+  const ranks=c=>[...c.rankings.map(r=>item(r)),...c.teamScores.map(t=>item(t,'Teams: ')),...(c.relay?['Relay: '+esc(c.relay)]:[])];
   return `<div class="sheet">
     <h1>${esc(e.name)}</h1>
     <div class="meta">${esc(longRange(e))}${e.location?' · '+esc(e.location):''}${e.website?' · '+esc(e.website):''}</div>
@@ -924,7 +953,7 @@ function summaryHTML(e,withResolved){
       ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="route">${sub(c)}</div>`:''}</td>${anyDate?`<td>${esc(fmtLong(c.date))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
     ${e.contests.some(c=>c.splits.length)?`<h2>Timing points per race</h2>${e.contests.filter(c=>c.splits.length).map(c=>`<div><b>${esc(c.name)}</b><div class="seqline">${c.splits.map((s,i)=>`${esc(s.label||tpName(s.tp))}${!s.label&&s.km!==''&&s.km!=null?` <span style="color:#5a6670">(${esc(s.km)} km)</span>`:''}`).join(' → ')}</div></div>`).join('')}`:''}
     ${e.timingPoints.some(t=>t.position)?`<h2>Locations</h2><table><tbody>${e.timingPoints.filter(t=>t.position).map(t=>`<tr><td style="width:40%">${esc(t.name)}</td><td>${esc(t.position)}</td></tr>`).join('')}</tbody></table>`:''}
-    ${e.contests.some(c=>ranks(c).length)?`<h2>Rankings</h2><table><tbody>${e.contests.filter(c=>ranks(c).length).map(c=>`<tr><td style="width:30%"><b>${esc(c.name)}</b></td><td>${ranks(c).map(esc).join('<br>')}</td></tr>`).join('')}</tbody></table>`:''}
+    ${e.contests.some(c=>ranks(c).length)?`<h2>Rankings</h2><table><tbody>${e.contests.filter(c=>ranks(c).length).map(c=>`<tr><td style="width:30%"><b>${esc(c.name)}</b></td><td>${ranks(c).join('<br>')}</td></tr>`).join('')}</tbody></table>`:''}
     ${withResolved&&rq.length?`<h2>Resolved questions</h2><ul class="qs done">${rq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}${q.answer?`<div class="a">→ ${esc(q.answer)}</div>`:''}</span></li>`).join('')}</ul>`:''}
     ${myrrUrl(e)?`<h2>Results</h2><div>${esc(myrrUrl(e))}</div>`:''}
     <div class="footer"><span>${esc(clientName(e.clientId))}</span><span>Updated ${esc(fmtLong(today()))}</span></div>
@@ -960,7 +989,7 @@ $('#newbtn').onclick=()=>{
   if(!S) return;
   if(route.view==='c'){ const c={id:uid('cl'),name:'',contact:'',email:'',phone:'',coefficient:1,notes:''}; S.clients.push(c); touch(); go('c',c.id); setTimeout(()=>$('#detail .name')?.focus(),0); return; }
   if(route.view==='h'){ $('#a-hours')?.focus(); return; }
-  const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],presenter:[],questions:[],checklist:{},notes:''};
+  const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],lists:[],myrrTabs:[],participantViews:[],presenter:[],questions:[],checklist:{},notes:''};
   S.events.push(e); touch(); go('e',e.id); setTimeout(()=>$('#detail .name')?.focus(),0);
 };
 $('#savebtn').onclick=()=>{ document.activeElement?.blur?.(); save(); };
