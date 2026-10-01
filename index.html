@@ -127,6 +127,16 @@ table.t tr.closed td{color:var(--ink-2)}
 .cardhead input{flex:1;font-size:17px;font-weight:600;border:0;border-bottom:1px solid transparent;background:none;padding:2px 0;min-width:0}
 .cardhead input:hover,.cardhead input:focus{border-bottom-color:var(--line);outline:0}
 .seq{margin:4px 0 12px}
+.card.race{padding:0}
+.racehead{display:flex;align-items:center;gap:6px;padding:10px 12px 10px 6px;cursor:pointer;border-radius:10px}
+.racehead:hover{background:var(--panel-2)}
+.racehead .rt{flex:1;min-width:0;display:flex;flex-direction:column}
+.racehead .rt b{font-size:16px;font-weight:600}
+.racehead .rm{font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.racehead .chev svg{transition:transform .15s}
+.race.open .racehead{border-bottom:1px solid var(--line);border-radius:10px 10px 0 0}
+.race.open .chev svg{transform:rotate(90deg)}
+.racebody{padding:14px 16px 16px}
 table.t td.n{width:26px;color:var(--ink-2);font-size:12px;text-align:right}
 table.t td.sw{width:38px}
 input.swatch{width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;cursor:pointer}
@@ -392,9 +402,23 @@ const LEGACY={'da preparare':'to prepare','in corso':'in progress','in test':'te
 const mkTask=(text='')=>({text,done:false,note:'',url:'',children:[]});
 const toTasks=a=>(a||[]).map(x=>{ const t=typeof x==='string'?mkTask(x):{...mkTask(),...x}; t.children=(t.children||[]).map(c=>{ const k={...mkTask(),...c}; delete k.children; return k; }); return t; });
 const countTasks=a=>a.reduce((n,t)=>[n[0]+1+t.children.length,n[1]+(t.done?1:0)+t.children.filter(c=>c.done).length],[0,0]);
-/* Output lists. Per race: rankings, team scores. Per event: the rest (all can hold a URL). */
-const RACE_LISTS=[['rankings','Rankings','Add a ranking…',false],['teamScores','Team scores','Add a team score…',false]];
-const EVENT_LISTS=[['lists','Lists','Add a list…',true],['myrrTabs','my.rr tabs','Add a my.rr tab…',true],['participantViews','Participant views','Add a participant view…',true],['presenter','Presenter','Add a Presenter screen…',true]];
+/* Event-level lists: [key, title, placeholder, has URL] */
+const SCORING_LISTS=[['rankings','Rankings','Add a ranking…',false],['teamScores','Team scores','Add a team score…',false]];
+const OUTPUT_LISTS=[['lists','Lists','Add a list…',false],['myrrTabs','my.rr tabs','Add a my.rr tab…',true],['participantViews','Participant views','Add a participant view…',true],['presenter','Presenter','Add a Presenter screen…',true]];
+const EVENT_LISTS=[...SCORING_LISTS,...OUTPUT_LISTS];
+const TIME_BASIS={gun:'Gun time',chip:'Chip time'};
+/* Rankings used to live on each race: merge them into the event, noting which races had them. */
+function liftRaceLists(e){
+  for(const [k] of SCORING_LISTS){
+    const seen=new Map();
+    for(const c of e.contests){ for(const t of toTasks(c[k])){ if(!seen.has(t.text)) seen.set(t.text,{t,races:[]}); seen.get(t.text).races.push(c.name||'untitled'); } delete c[k]; }
+    for(const {t,races} of seen.values()){
+      if(e[k].some(x=>x.text===t.text)) continue;
+      if(e.contests.length>1&&races.length<e.contests.length) t.note=[t.note,'Only: '+races.join(', ')].filter(Boolean).join(' · ');
+      e[k].push(t);
+    }
+  }
+}
 function normalize(){
   for(const e of S.events){
     for(const k of ['links','timingPoints','contests','questions']) e[k]=e[k]||[];
@@ -404,8 +428,9 @@ function normalize(){
     e.technology=e.technology||'';
     for(const t of e.timingPoints){ t.hardware=t.hardware||''; t.ch=t.ch||''; t.loop=t.loop||''; t.mode=t.mode||''; if(!t.color) t.color=nextColor(e); }
     for(const c of e.contests){ c.splits=(c.splits||[]).map(x=>({id:x.id||uid('s'),name:x.name||'',label:x.label||'',tp:x.tp||'',km:x.km??''}));
-      for(const [k] of RACE_LISTS) c[k]=toTasks(c[k]); if(LEGACY[c.startType]) c.startType=LEGACY[c.startType];
+      if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; c.startType=c.startType||'mass'; c.timeBasis=c.timeBasis||'';
       if(c.myrrUrl){ const t=mkTask(c.name||'Race page'); t.url=c.myrrUrl; e.myrrTabs.push(t); } delete c.myrrUrl; } // per-race my.rr link → event my.rr tabs
+    liftRaceLists(e);
   }
 }
 /* Timing hardware. tech = timing technologies it can be used with; ch/loop = allowed ID ranges (active only). */
@@ -707,11 +732,14 @@ function renderEvent(D){
   ${e.timingPoints.length?`<table class="t resp tps"><thead><tr><th></th><th>Name</th><th>Hardware</th><th>Ch.</th><th>L. / mode</th><th>Position (lat, lon)</th><th>Notes</th><th></th></tr></thead><tbody>${e.timingPoints.map((t,i)=>tpRow(e,t,i)).join('')}</tbody></table>
   <div class="toolbar"><button class="btn sm" id="tpcolors" type="button">Auto colours</button><button class="btn sm" id="tpexport" type="button">Export Timing Points.lvs</button></div>`:'<p class="hint">The hardware on the course: start, finish, intermediate points. Races use them in their splits.</p>'}
 
-  <h3>Races · ${e.contests.length} <span class="sp"></span><button class="btn sm" id="addct" type="button">+ Race</button></h3>
+  <h3>Races · ${e.contests.length} <span class="sp"></span>${e.contests.length>1?`<button class="btn sm ghost" id="ctall" type="button">${e.contests.every(c=>openRaces.has(c.id))?'Collapse all':'Expand all'}</button>`:''}<button class="btn sm" id="addct" type="button">+ Race</button></h3>
   ${e.contests.map((c,ci)=>contestCard(e,c,ci,tpOpts)).join('')||'<p class="hint">No races yet.</p>'}
 
+  <h3>Scoring</h3>
+  ${SCORING_LISTS.map(([k,l,ph,u])=>Tasks(e,k,l,ph,`${k}-${e.id}`,u)).join('')}
+
   <h3>Outputs</h3>
-  ${EVENT_LISTS.map(([k,l,ph,u])=>Tasks(e,k,l,ph,`${k}-${e.id}`,u)).join('')}
+  ${OUTPUT_LISTS.map(([k,l,ph,u])=>Tasks(e,k,l,ph,`${k}-${e.id}`,u)).join('')}
 
   <h3>Questions for the client · ${oq} open <span class="sp"></span><button class="btn sm" id="addq" type="button">+ Question</button></h3>
   ${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}">
@@ -746,7 +774,9 @@ function renderEvent(D){
   on(D,'[data-deltp]',b=>{ const t=e.timingPoints[+b.dataset.deltp]; const used=e.contests.filter(c=>c.splits.some(s=>s.tp===t.id));
     if(used.length&&!confirm(`«${t.name}» is used by ${used.map(c=>c.name).join(', ')}. Remove it from those sequences too?`)) return;
     for(const c of used) c.splits=c.splits.filter(s=>s.tp!==t.id); e.timingPoints.splice(+b.dataset.deltp,1); touch(); renderDetail(); });
-  $('#addct').onclick=()=>{ e.contests.push({id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'',route:'',eligibility:'',splits:[],rankings:[],teamScores:[],relay:'',notes:''}); touch(); renderDetail(); };
+  $('#addct').onclick=()=>{ const c={id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'mass',timeBasis:'',route:'',eligibility:'',splits:[],relay:'',notes:''}; e.contests.push(c); openRaces.add(c.id); saveOpen(); touch(); renderDetail(); D.querySelector(`[data-racename="${c.id}"]`)?.focus(); };
+  $('#ctall')?.addEventListener('click',()=>{ const all=e.contests.every(c=>openRaces.has(c.id)); for(const c of e.contests) all?openRaces.delete(c.id):openRaces.add(c.id); saveOpen(); renderDetail(); });
+  on(D,'[data-toggle]',(b,ev)=>{ if(ev.target.closest('button:not(.chev)')) return; const id=b.dataset.toggle; openRaces.has(id)?openRaces.delete(id):openRaces.add(id); saveOpen(); renderDetail(); });
   on(D,'[data-delct]',b=>{ const c=e.contests[+b.dataset.delct]; if(confirm(`Delete the race «${c.name||'untitled'}»?`)){ e.contests.splice(+b.dataset.delct,1); touch(); renderDetail(); } });
   on(D,'[data-upct]',b=>{ const i=+b.dataset.upct; if(i>0){ [e.contests[i-1],e.contests[i]]=[e.contests[i],e.contests[i-1]]; touch(); renderDetail(); } });
   on(D,'[data-addsp]',b=>{ e.contests[+b.dataset.addsp].splits.push({id:uid('s'),name:'',label:'',tp:'',km:''}); touch(); renderDetail(); });
@@ -788,15 +818,25 @@ function exportTimingPoints(e){
   if(skipped) setTimeout(()=>alert(`${plural(skipped,'Management Box was','Management Boxes were')} left out: not a timing point in RR14.`),300);
 }
 function linkBtn(url){ return `<a class="btn sm" href="${esc(url||'#')}" target="_blank" rel="noopener noreferrer" ${/^https?:\/\//.test(url||'')?'':'aria-disabled="true" tabindex="-1"'}>Open</a>`; }
+/* Which race cards are expanded — a per-browser convenience, not data. */
+const openRaces=new Set((()=>{ try{ return JSON.parse(localStorage.getItem('events-tracker-open')||'[]') }catch{ return [] } })());
+function saveOpen(){ try{ localStorage.setItem('events-tracker-open',JSON.stringify([...openRaces].slice(-200))) }catch{} }
 function contestCard(e,c,ci,tpOpts){
-  return `<div class="card">
-    <div class="cardhead"><input data-o="${ref(c)}" data-k="name" value="${esc(c.name)}" placeholder="Race name" aria-label="Race name">
+  const open=openRaces.has(c.id);
+  const meta=[c.date&&fmtLong(c.date),c.startTime,c.distance&&`${c.distance} km`,c.startType&&`${c.startType} start`,c.timeBasis&&TIME_BASIS[c.timeBasis],c.splits.length&&plural(c.splits.length,'split','splits')].filter(Boolean).map(esc).join(' · ');
+  return `<div class="card race ${open?'open':''}">
+    <div class="racehead" data-toggle="${esc(c.id)}">
+      <button class="btn icon ghost chev" type="button" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} ${esc(c.name||'race')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      <span class="rt"><b>${esc(c.name)||'<i>untitled race</i>'}</b><span class="rm">${meta}</span></span>
       ${ci?`<button class="btn sm ghost" data-upct="${ci}" type="button" aria-label="Move up">↑</button>`:''}
       <button class="btn sm ghost danger" data-delct="${ci}" type="button" aria-label="Delete race">×</button></div>
+    ${open?`<div class="racebody">
     <div class="grid">
+      ${F(c,'name','Race name',{cls:'wide'}).replace('<input ',`<input data-racename="${esc(c.id)}" `)}
       ${F(c,'date','Day',{type:'date'})}${F(c,'startTime','Start time',{type:'time'})}
       ${F(c,'distance','Distance (km)',{ph:'21.1'})}${F(c,'elevation','Elevation gain (m)',{ph:'—'})}
-      ${Sel(c,'startType','Start type',[['','—'],...S.config.startTypes.map(s=>[s,s])])}
+      ${Sel(c,'startType','Start type',S.config.startTypes.map(s=>[s,s]))}
+      ${Sel(c,'timeBasis','Rankings by',[['','—'],...Object.entries(TIME_BASIS)])}
       ${F(c,'route','Route',{ph:'Start → Finish'})}
       ${F(c,'eligibility','Eligibility / requirements',{ph:'e.g. born 2010 or earlier',cls:'wide'})}
     </div>
@@ -811,12 +851,11 @@ function contestCard(e,c,ci,tpOpts){
         <td class="x"><button class="btn sm ghost danger" data-delsp="${ci}:${si}" type="button" aria-label="Remove split">×</button></td></tr>`).join('')}
       </tbody></table>`:''}
       <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" ${e.timingPoints.length?'':'disabled title="Add timing points first"'}>+ Split</button></div></div>
-    <div class="sub">Scoring</div>
-    ${RACE_LISTS.map(([k,l,ph,u])=>Tasks(c,k,l,ph,`${k}-${c.id}`,u)).join('')}
     <div class="two">
       ${T(c,'relay','Relay',{ph:'Legs, changeover points…'})}
       ${T(c,'notes','Race notes')}
     </div>
+    </div>`:''}
   </div>`;
 }
 
@@ -941,19 +980,20 @@ function summaryHTML(e,withResolved){
   const tpName=id=>(e.timingPoints.find(t=>t.id===id)||{}).name||'?';
   const pct=Math.round(progress(e)*100), oq=openQ(e), rq=e.questions.filter(q=>q.resolved);
   const anyDate=e.contests.some(c=>c.date), anyTime=e.contests.some(c=>c.startTime), anyEl=e.contests.some(c=>c.elevation), anyElig=e.contests.some(c=>c.eligibility);
-  const sub=c=>[c.route,c.startType&&`${c.startType} start`].filter(Boolean).map(esc).join(' · ');
+  const sub=c=>[c.route,c.startType&&`${c.startType} start`,c.relay&&`Relay: ${c.relay}`].filter(Boolean).map(esc).join(' · ');
   const item=(t,pre='')=>`${pre}${esc(t.text)}${t.note?` <span style="color:#5a6670">— ${esc(t.note)}</span>`:''}${t.children.length?`<div style="margin:2px 0 4px 14px;font-size:13px">${t.children.map(c=>'· '+esc(c.text)+(c.note?` <span style="color:#5a6670">— ${esc(c.note)}</span>`:'')).join('<br>')}</div>`:''}`;
-  const ranks=c=>[...c.rankings.map(r=>item(r)),...c.teamScores.map(t=>item(t,'Teams: ')),...(c.relay?['Relay: '+esc(c.relay)]:[])];
+  const anyBasis=e.contests.some(c=>c.timeBasis);
   return `<div class="sheet">
     <h1>${esc(e.name)}</h1>
     <div class="meta">${esc(longRange(e))}${e.location?' · '+esc(e.location):''}${e.website?' · '+esc(e.website):''}</div>
     <div><span class="pill" style="background:${esc(statusColor(e.status))}">${esc(e.status)}</span><span class="prog"><i style="width:${pct}%"></i></span>${pct}% prepared${oq.length?` · <b style="color:#d9730d">${plural(oq.length,'open question','open questions')}</b>`:''}</div>
     ${oq.length?`<h2>Open questions</h2><ul class="qs">${oq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}</span></li>`).join('')}</ul>`:''}
-    ${e.contests.length?`<h2>Races</h2><table><thead><tr><th>Race</th>${anyDate?'<th>Day</th>':''}${anyTime?'<th>Start</th>':''}<th>Distance</th>${anyEl?'<th>Elev. gain</th>':''}${anyElig?'<th>Eligibility</th>':''}</tr></thead><tbody>
-      ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="route">${sub(c)}</div>`:''}</td>${anyDate?`<td>${esc(fmtLong(c.date))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
+    ${e.contests.length?`<h2>Races</h2><table><thead><tr><th>Race</th>${anyDate?'<th>Day</th>':''}${anyTime?'<th>Start</th>':''}<th>Distance</th>${anyEl?'<th>Elev. gain</th>':''}${anyElig?'<th>Eligibility</th>':''}${anyBasis?'<th>Rankings by</th>':''}</tr></thead><tbody>
+      ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="route">${sub(c)}</div>`:''}</td>${anyDate?`<td>${esc(fmtLong(c.date))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}${anyBasis?`<td>${esc(TIME_BASIS[c.timeBasis]||'')}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
     ${e.contests.some(c=>c.splits.length)?`<h2>Timing points per race</h2>${e.contests.filter(c=>c.splits.length).map(c=>`<div><b>${esc(c.name)}</b><div class="seqline">${c.splits.map((s,i)=>`${esc(s.label||tpName(s.tp))}${!s.label&&s.km!==''&&s.km!=null?` <span style="color:#5a6670">(${esc(s.km)} km)</span>`:''}`).join(' → ')}</div></div>`).join('')}`:''}
     ${e.timingPoints.some(t=>t.position)?`<h2>Locations</h2><table><tbody>${e.timingPoints.filter(t=>t.position).map(t=>`<tr><td style="width:40%">${esc(t.name)}</td><td>${esc(t.position)}</td></tr>`).join('')}</tbody></table>`:''}
-    ${e.contests.some(c=>ranks(c).length)?`<h2>Rankings</h2><table><tbody>${e.contests.filter(c=>ranks(c).length).map(c=>`<tr><td style="width:30%"><b>${esc(c.name)}</b></td><td>${ranks(c).join('<br>')}</td></tr>`).join('')}</tbody></table>`:''}
+    ${e.rankings.length?`<h2>Rankings</h2><div>${e.rankings.map(r=>item(r)).join('<br>')}</div>`:''}
+    ${e.teamScores.length?`<h2>Team scores</h2><div>${e.teamScores.map(r=>item(r)).join('<br>')}</div>`:''}
     ${withResolved&&rq.length?`<h2>Resolved questions</h2><ul class="qs done">${rq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}${q.answer?`<div class="a">→ ${esc(q.answer)}</div>`:''}</span></li>`).join('')}</ul>`:''}
     ${myrrUrl(e)?`<h2>Results</h2><div>${esc(myrrUrl(e))}</div>`:''}
     <div class="footer"><span>${esc(clientName(e.clientId))}</span><span>Updated ${esc(fmtLong(today()))}</span></div>
