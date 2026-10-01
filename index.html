@@ -69,6 +69,24 @@ main.full{grid-template-columns:1fr}
 #list{border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;position:sticky;top:var(--hh,54px);align-self:start;height:calc(100vh - var(--hh,54px))}
 #detail{padding:26px 32px 60px;max-width:1600px;min-width:0}
 .evgrid{max-width:980px}
+.evmain{container:ev/inline-size;min-width:0}
+@container ev (max-width:599px){
+  table.t.tps thead,table.t.splits thead{display:none}
+  table.t.tps tr,table.t.splits tr{display:grid;border-bottom:1px solid var(--line);padding:6px 0}
+  table.t.tps td,table.t.splits td{border:0;width:auto!important}
+  table.t.tps tr{grid-template-columns:48px 70px 70px minmax(0,1fr) 34px;grid-template-areas:"a b b b i" "a c c c c" "a d e f f" "a g g g g" "a h h h h"}
+  table.t.splits tr{grid-template-columns:44px minmax(0,1fr) 80px 34px;grid-template-areas:"a b b f" "a c c c" "a d e e"}
+  table.t.tps td:nth-child(1),table.t.splits td:nth-child(1){grid-area:a}
+  table.t.tps td:nth-child(2),table.t.splits td:nth-child(2){grid-area:b}
+  table.t.tps td:nth-child(3),table.t.splits td:nth-child(3){grid-area:c}
+  table.t.tps td:nth-child(4),table.t.splits td:nth-child(4){grid-area:d}
+  table.t.tps td:nth-child(5),table.t.splits td:nth-child(5){grid-area:e}
+  table.t.tps td:nth-child(6),table.t.splits td:nth-child(6){grid-area:f}
+  table.t.tps td:nth-child(7){grid-area:g}
+  table.t.tps td:nth-child(8){grid-area:h}
+  table.t.tps td:nth-child(9){grid-area:i}
+  table.t.splits td.gr{padding-top:10px}
+}
 @media (min-width:1480px){ .evgrid{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,400px);gap:0 32px;align-items:start} .evside{position:sticky;top:calc(var(--hh,54px) + 12px);max-height:calc(100vh - var(--hh,54px) - 24px);overflow-y:auto;padding-right:4px} .evside > h3:first-child{margin-top:0} }
 main.full #list{display:none}
 main.full #detail{max-width:1100px}
@@ -140,32 +158,49 @@ table.t tr.closed td{color:var(--ink-2)}
 .race.open .chev svg{transform:rotate(90deg)}
 .racebody{padding:14px 16px 16px}
 .dayro{padding:7px 0;color:var(--ink-2)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
-.seg button{border:0;background:none;padding:4px 12px 4px 6px;display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-2)}
-.seg button + button{border-left:1px solid var(--line)}
-.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink);font-weight:500}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 120px;position:relative;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:4px 10px 4px 5px;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);min-width:0}
+.seg button .hwimg{filter:grayscale(1);opacity:.5}
+.seg button .rd{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);margin-left:auto;flex:none}
+.seg button[aria-checked="true"]{border:2px solid var(--accent);padding:3px 9px 3px 4px;background:var(--accent-soft);color:var(--ink);font-weight:600}
+.seg button[aria-checked="true"] .hwimg{filter:none;opacity:1}
+.seg button[aria-checked="true"] .rd{border-color:var(--accent);background:radial-gradient(circle,var(--accent) 0 4px,transparent 5px)}
 .hwimg{width:30px;height:30px;border-radius:6px;background:#eef1f4;object-fit:contain;padding:2px;flex:none}
 .seg .hwimg{width:28px;height:28px}
 .hwcell{display:flex;align-items:center;gap:6px}
 .hwcell select{flex:1;min-width:0}
 table.t td.gr{width:44px;white-space:nowrap}
 table.t td.gr > *{vertical-align:middle;display:inline-flex}
-@media (min-width:861px){
+@container ev (min-width:600px) and (max-width:1099px){
+  table.t.tps thead{display:none}
+  table.t.tps tr{display:grid;grid-template-columns:52px minmax(0,1fr) 190px 62px 62px 116px 34px;grid-template-areas:"a b c d e f i" "a g g g h h h";column-gap:4px;border-bottom:1px solid var(--line);padding:4px 0}
+  table.t.tps td{border:0;width:auto!important;padding-top:2px;padding-bottom:2px}
+  table.t.tps td:nth-child(1){grid-area:a} table.t.tps td:nth-child(2){grid-area:b} table.t.tps td:nth-child(3){grid-area:c}
+  table.t.tps td:nth-child(4){grid-area:d} table.t.tps td:nth-child(5){grid-area:e} table.t.tps td:nth-child(6){grid-area:f}
+  table.t.tps td:nth-child(7){grid-area:g} table.t.tps td:nth-child(8){grid-area:h} table.t.tps td:nth-child(9){grid-area:i}
+  table.t.tps tr.kid td:first-child{position:static} table.t.tps tr.kid{position:relative}
+}
+@container ev (min-width:1100px){
   table.t.tps{table-layout:fixed}
   table.t.tps th:nth-child(1){width:52px} table.t.tps th:nth-child(2){width:17%} table.t.tps th:nth-child(3){width:190px}
   table.t.tps th:nth-child(4),table.t.tps th:nth-child(5){width:58px} table.t.tps th:nth-child(6){width:108px}
   table.t.tps th:nth-child(7){width:16%} table.t.tps th:nth-child(9){width:34px}
 }
 table.t tr.dup select.idsel{border-color:var(--danger)!important;color:var(--danger)}
-.link{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;background:var(--accent-soft);color:var(--accent);margin-top:3px;white-space:nowrap}
-.link.bad{background:none;border:1px solid var(--warn);color:var(--warn)}
+.link.bad{display:inline-block;font-size:12px;color:var(--warn);margin-top:2px}
+table.t.tps tr.parent td{border-bottom-color:transparent}
+table.t.tps tr.kid td{background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+table.t.tps tr.kid td:first-child{position:relative}
+.elbow{position:absolute;left:20px;top:-6px;width:18px;height:calc(50% + 6px);border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);border-bottom-left-radius:8px;opacity:.7}
+.wifi{width:14px;height:14px;color:var(--accent);vertical-align:-2px}
+.kidtag{font-size:12px;color:var(--accent);display:flex;align-items:center;gap:4px;margin-top:2px}
 .alerts{margin:8px 0 0;padding:8px 12px;border:1px solid var(--danger);border-radius:8px;color:var(--danger);font-size:13px}
 .check li.auto label{cursor:default}
 .check .tag{margin-left:6px;font-size:11px}
 .check .grp{font-size:12px;color:var(--ink-2);font-weight:500;margin:10px 0 2px;break-after:avoid}
 table.t td.n{width:26px;color:var(--ink-2);font-size:12px;text-align:right}
 table.t td.sw{width:38px}
-input.swatch{width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;cursor:pointer}
+input.swatch,table.t td input.swatch{width:28px;flex:none;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;cursor:pointer}
 input.swatch::-webkit-color-swatch-wrapper{padding:2px}
 input.swatch::-webkit-color-swatch{border:0;border-radius:4px}
 table.t td.sm{width:64px}
@@ -295,18 +330,6 @@ details.adv summary{cursor:pointer;margin-bottom:10px}
   table.t.resp tr{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);padding:6px 0}
   table.t.resp td{border:0}
   table.t.resp td.sm,table.t.resp td.x,table.t.resp td.n{width:auto}
-  table.t.tps tr{grid-template-columns:48px 70px 70px minmax(0,1fr) 34px;grid-template-areas:"a b b b i" "a c c c c" "a d e f f" "a g g g g" "a h h h h"}
-  table.t.splits tr{grid-template-columns:44px minmax(0,1fr) 80px 34px;grid-template-areas:"a b b f" "a c c c" "a d e e"}
-  table.t.tps td:nth-child(1),table.t.splits td:nth-child(1){grid-area:a}
-  table.t.tps td:nth-child(2),table.t.splits td:nth-child(2){grid-area:b}
-  table.t.tps td:nth-child(3),table.t.splits td:nth-child(3){grid-area:c}
-  table.t.tps td:nth-child(4),table.t.splits td:nth-child(4){grid-area:d}
-  table.t.tps td:nth-child(5),table.t.splits td:nth-child(5){grid-area:e}
-  table.t.tps td:nth-child(6),table.t.splits td:nth-child(6){grid-area:f}
-  table.t.tps td:nth-child(7){grid-area:g}
-  table.t.tps td:nth-child(8){grid-area:h}
-  table.t.tps td:nth-child(9){grid-area:i}
-  table.t.splits td.gr{padding-top:10px}
 }
 @media print{
   body.printing > *:not(#printarea){display:none!important}
@@ -692,7 +715,7 @@ function sortable(root){
       clearInterval(timer); g.removeEventListener('pointermove',move); g.removeEventListener('pointerup',up); g.removeEventListener('pointercancel',up);
       item.classList.remove('dragging'); document.body.classList.remove('sorting');
       const order=[...box.children].filter(x=>x.dataset.si!==undefined).map(x=>+x.dataset.si);
-      if(order.join()!==before){ const arr=OBJ[+box.dataset.sort], copy=order.map(i=>arr[i]); arr.splice(0,arr.length,...copy); touch(); }
+      if(order.join()!==before){ const arr=OBJ[+box.dataset.sort], copy=order.map(i=>arr[i]); copy.push(...arr.filter(x=>!copy.includes(x))); arr.splice(0,arr.length,...copy); touch(); }
       renderDetail();
     };
     g.addEventListener('pointermove',move); g.addEventListener('pointerup',up); g.addEventListener('pointercancel',up);
@@ -824,14 +847,14 @@ function renderEvent(D){
   <div class="grid">
     <div class="fld"><label class="f" for="f-rrid">EventID</label><div class="inline"><input id="f-rrid" data-o="${ref(e)}" data-k="rr14EventId" data-r="blur" value="${esc(e.rr14EventId)}" inputmode="numeric"><button class="btn sm" id="cpid" type="button" ${e.rr14EventId?'':'disabled'}>Copy</button></div></div>
     <div class="fld"><span class="f">my.raceresult.com page</span>${myrrUrl(e)?`<a class="plain" href="${esc(myrrUrl(e))}" target="_blank" rel="noopener noreferrer">${esc(myrrUrl(e).replace('https://',''))} ↗</a>`:'<span class="hint" style="display:inline-block;padding:7px 0">Set the EventID</span>'}</div>
-    <div class="fld"><span class="f">Timing technology</span><div class="seg" role="group" aria-label="Timing technology">${Object.entries(TECH).map(([k,v])=>`<button type="button" data-tech="${k}" aria-pressed="${e.technology===k}"><img class="hwimg" src="${v.img}" alt="">${v.label}</button>`).join('')}</div></div>
+    <div class="fld" style="grid-column:span 2"><span class="f">Timing technology</span><div class="seg" role="radiogroup" aria-label="Timing technology">${Object.entries(TECH).map(([k,v])=>`<button type="button" role="radio" data-tech="${k}" aria-checked="${e.technology===k}"><img class="hwimg" src="${v.img}" alt="">${v.label}<span class="rd" aria-hidden="true"></span></button>`).join('')}</div></div>
   </div>
 
   <h3>Links and documents <span class="sp"></span><button class="btn sm" id="addlink" type="button">+ Link</button></h3>
   ${e.links.length?`<table class="t"><tbody>${e.links.map((l,i)=>`<tr><td style="width:34%">${cell(l,'label',{ph:'Regulations, GPX, branding…'})}</td><td>${cell(l,'url',{ph:'https://…',type:'url',label:'Address'})}</td><td class="x">${linkBtn(l.url)}</td><td class="x"><button class="btn sm ghost danger" data-dellink="${i}" type="button" aria-label="Remove link">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Regulations, GPX, branding, shared folder…</p>'}
 
   <h3>Timing points · ${e.timingPoints.length} <span class="sp"></span><button class="btn sm" id="addtp" type="button">+ Point</button></h3>
-  ${e.timingPoints.length?`<table class="t resp tps"><thead><tr><th></th><th>Name</th><th>Hardware</th><th>Ch.</th><th>L.</th><th>Mode</th><th>Position (lat, lon)</th><th>Notes</th><th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${e.timingPoints.map((t,i)=>tpRow(e,t,i,dups)).join('')}</tbody></table>
+  ${e.timingPoints.length?`<table class="t resp tps"><thead><tr><th></th><th>Name</th><th>Hardware</th><th>Ch.</th><th>L.</th><th>Mode</th><th>Position (lat, lon)</th><th>Notes</th><th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${tpOrder(e).map(t=>tpRow(e,t,e.timingPoints.indexOf(t),dups)).join('')}</tbody></table>
   ${dups.length?`<div class="alerts">${dups.map(([k,v])=>`Ch. ${esc(k.split('/')[0])}${k.endsWith('–')?'':` / L. ${esc(k.split('/')[1])}`} is used ${v.length} times: ${v.map(t=>esc(t.name||'untitled')).join(', ')}`).join('<br>')}</div>`:''}
   <div class="toolbar"><button class="btn sm" id="tpcolors" type="button">Auto colours</button><button class="btn sm" id="tpexport" type="button">Export Timing Points.lvs</button></div>`:'<p class="hint">The hardware on the course: start, finish, intermediate points. Races use them in their splits.</p>'}
 
@@ -904,20 +927,23 @@ function tpRow(e,t,i,dups){
   const hw=HW[t.hardware], ids=tech!=='passive'&&hw, dup=dups.some(([,v])=>v.includes(t));
   // loops already taken on this channel by other loop devices
   const taken=new Set(e.timingPoints.filter(x=>x!==t&&HW[x.hardware]?.loop&&String(x.ch)===String(t.ch)&&x.ch).map(x=>String(x.loop)));
-  const range=(k,[a,b])=>`<select class="idsel" data-o="${ref(t)}" data-k="${k}" data-r="detail" aria-label="${k==='ch'?'Channel ID':'Loop ID'} ${esc(t.name)}"><option value=""></option>${Array.from({length:b-a+1},(_,j)=>a+j).map(n=>`<option ${String(t[k])===String(n)?'selected':''} ${k==='loop'&&taken.has(String(n))&&String(t.loop)!==String(n)?'disabled':''}>${n}</option>`).join('')}</select>`;
-  const rt=repeatTarget(e,t), rs=repeaters(e,t);
-  const link=rt===null?`<span class="link bad">repeat: no Decoder on Ch. ${esc(t.ch||'?')} / L. 1</span>`:rt?`<span class="link" title="Sends reads over WiFi">⇢ repeats to ${esc(rt.name||'Decoder')}</span>`:rs.length?`<span class="link" title="Receives reads over WiFi">⇠ ${rs.map(x=>esc(x.name||'Loop Box')).join(', ')}</span>`:'';
-  return `<tr data-si="${i}" class="${dup?'dup':''}">
-    <td class="gr">${GRIP}<input type="color" class="swatch" data-o="${ref(t)}" data-k="color" value="${esc(t.color||'#cccccc')}" aria-label="Colour ${esc(t.name)}"></td>
-    <td>${cell(t,'name',{ph:'Name'})}${link?`<div>${link}</div>`:''}</td>
+  const range=(k,[a,b])=>`<select class="idsel" data-o="${ref(t)}" data-k="${k}" data-r="detail" aria-label="${k==='ch'?'Channel ID':'Loop ID'} ${esc(t.name)}"><option value="">${k==='ch'?'Ch.':'L.'}</option>${Array.from({length:b-a+1},(_,j)=>a+j).map(n=>`<option ${String(t[k])===String(n)?'selected':''} ${k==='loop'&&taken.has(String(n))&&String(t.loop)!==String(n)?'disabled':''}>${n}</option>`).join('')}</select>`;
+  const rt=repeatTarget(e,t), kid=!!rt;
+  const link=rt===null?`<span class="link bad">⚠ repeat: no Decoder on Ch. ${esc(t.ch||'?')} / L. 1</span>`:'';
+  return `<tr ${kid?'':`data-si="${i}"`} class="${dup?'dup':''} ${kid?'kid':''} ${repeaters(e,t).length?'parent':''}">
+    <td class="gr">${kid?`<span class="elbow" aria-hidden="true"></span><span style="width:16px"></span>`:GRIP}<input type="color" class="swatch" data-o="${ref(t)}" data-k="color" value="${esc(t.color||'#cccccc')}" aria-label="Colour ${esc(t.name)}"></td>
+    <td>${cell(t,'name',{ph:'Name'})}${link?`<div>${link}</div>`:''}${kid?`<div class="kidtag" title="Sends its reads over WiFi to ${esc(rt.name||'the Decoder')}">${WIFI} repeat to ${esc(rt.name||'Decoder')}</div>`:''}</td>
     <td><div class="hwcell">${hwImg(t.hardware)?`<img class="hwimg" src="${hwImg(t.hardware)}" alt="">`:''}<select data-o="${ref(t)}" data-k="hardware" data-r="detail" aria-label="Hardware ${esc(t.name)}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${t.hardware===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${t.hardware&&!avail.includes(t.hardware)?'<span class="warn" title="Not available with this technology">⚠</span>':''}</div></td>
     <td class="sm">${ids&&hw.ch?range('ch',hw.ch):''}</td>
     <td class="sm">${ids&&hw.loop?range('loop',hw.loop):''}</td>
-    <td>${ids&&hw.modes?`<select data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value=""></option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
-    <td>${cell(t,'position',{ph:'43.7243, 7.4106',label:'Position'})}</td>
-    <td>${cell(t,'notes',{ph:'—',label:'Notes'})}</td>
+    <td>${ids&&hw.modes?`<select data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value="">Mode</option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
+    <td>${cell(t,'position',{ph:'Position: lat, lon',label:'Position'})}</td>
+    <td>${cell(t,'notes',{ph:'Notes',label:'Notes'})}</td>
     <td class="x"><button class="btn sm ghost danger" data-deltp="${i}" type="button" aria-label="Remove point">×</button></td></tr>`;
 }
+const WIFI='<svg class="wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5.5 12.5a10 10 0 0 1 13 0"/><path d="M9 16.3a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r="1.2" fill="currentColor"/></svg>';
+/* Display order: each Decoder is followed by the Loop Boxes that repeat to it */
+function tpOrder(e){ const out=[], kids=new Set(e.timingPoints.filter(t=>repeatTarget(e,t))); for(const t of e.timingPoints){ if(kids.has(t)) continue; out.push(t); out.push(...repeaters(e,t)); } return out; }
 function download(name,text,type='text/plain'){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
 const latlon=p=>{ const m=String(p||'').match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/); return m?`${m[1]},${m[2]}`:''; };
 /* Same line layout as an RR14 Timing Points export: NAME;9;30;#color;lat,lon;0;0;0;0;0 */
@@ -1102,8 +1128,8 @@ function summaryHTML(e,withResolved){
     ${e.contests.length?`<h2>Races</h2><table><thead><tr><th>Race</th>${anyDate?'<th>Day</th>':''}${anyTime?'<th>Start</th>':''}<th>Distance</th>${anyEl?'<th>Elev. gain</th>':''}${anyElig?'<th>Eligibility</th>':''}${anyBasis?'<th>Rankings by</th>':''}</tr></thead><tbody>
       ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="route">${sub(c)}</div>`:''}</td>${anyDate?`<td>${esc(dayLabel(e,raceDate(e,c)))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}${anyBasis?`<td>${esc(TIME_BASIS[c.timeBasis]||'')}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
     ${e.contests.some(c=>c.splits.length)?`<h2>Timing points per race</h2>${e.contests.filter(c=>c.splits.length).map(c=>`<div><b>${esc(c.name)}</b><div class="seqline">${c.splits.map((s,i)=>`${esc(s.label||tpName(s.tp))}${!s.label&&s.km!==''&&s.km!=null?` <span style="color:#5a6670">(${esc(s.km)} km)</span>`:''}`).join(' → ')}</div></div>`).join('')}`:''}
-    ${e.timingPoints.length?`<h2>Timing points${e.technology?` · ${esc(TECH[e.technology].label)} timing <img class="hw" src="${TECH[e.technology].img}" alt="">`:''}</h2><table><thead><tr><th></th><th>Timing point</th><th>Hardware</th><th>Ch. / L.</th><th>Position</th></tr></thead><tbody>${e.timingPoints.map(t=>{ const rt=repeatTarget(e,t), rs=repeaters(e,t);
-      return `<tr><td style="width:34px">${hwImg(t.hardware)?`<img class="hw" src="${hwImg(t.hardware)}" alt="">`:''}</td><td><span class="sw" style="background:${esc(t.color||'#ccc')}"></span>${esc(t.name)}${rt?`<div class="rep">⇢ repeats to ${esc(rt.name)} (WiFi)</div>`:''}${rs.length?`<div class="rep">⇠ receives from ${rs.map(x=>esc(x.name)).join(', ')}</div>`:''}</td><td>${esc(t.hardware||'—')}${t.mode?` · ${esc(t.mode)}`:''}</td><td>${idKey(e,t)?esc((t.ch?'Ch. '+t.ch:'')+(t.loop&&HW[t.hardware]?.loop?' / L. '+t.loop:'')):''}</td><td>${esc(t.position)}</td></tr>`; }).join('')}</tbody></table>`:''}
+    ${e.timingPoints.length?`<h2>Timing points${e.technology?` · ${esc(TECH[e.technology].label)} timing <img class="hw" src="${TECH[e.technology].img}" alt="">`:''}</h2><table><thead><tr><th></th><th>Timing point</th><th>Hardware</th><th>Ch. / L.</th><th>Position</th></tr></thead><tbody>${tpOrder(e).map(t=>{ const rt=repeatTarget(e,t);
+      return `<tr${rt?' style="background:#f3f6fa"':''}><td style="width:${rt?52:34}px;${rt?'padding-left:18px':''}">${rt?'<span style="color:#1f4e79">└</span> ':''}${hwImg(t.hardware)?`<img class="hw" src="${hwImg(t.hardware)}" alt="">`:''}</td><td><span class="sw" style="background:${esc(t.color||'#ccc')}"></span>${esc(t.name)}${rt?`<div class="rep">repeat over WiFi to ${esc(rt.name)}</div>`:''}</td><td>${esc(t.hardware||'—')}${t.mode?` · ${esc(t.mode)}`:''}</td><td>${idKey(e,t)?esc((t.ch?'Ch. '+t.ch:'')+(t.loop&&HW[t.hardware]?.loop?' / L. '+t.loop:'')):''}</td><td>${esc(t.position)}</td></tr>`; }).join('')}</tbody></table>`:''}
     ${e.rankings.length?`<h2>Rankings</h2><div>${e.rankings.map(r=>item(r)).join('<br>')}</div>`:''}
     ${e.teamScores.length?`<h2>Team scores</h2><div>${e.teamScores.map(r=>item(r)).join('<br>')}</div>`:''}
     ${withResolved&&rq.length?`<h2>Resolved questions</h2><ul class="qs done">${rq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}${q.answer?`<div class="a">→ ${esc(q.answer)}</div>`:''}</span></li>`).join('')}</ul>`:''}
