@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Events tracker</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -953,6 +953,10 @@ textarea.impta{min-height:130px;font-family:"JetBrains Mono",ui-monospace,monosp
   #printarea .sheet{width:auto;padding:0;box-shadow:none}
   @page{margin:14mm}
 }
+/* iOS Safari: time/date inputs ignore the grid width and centre their value */
+input[type=time],input[type=date]{min-width:0;max-width:100%;width:100%;-webkit-appearance:none;appearance:none;text-align:left}
+input[type=time]::-webkit-date-and-time-value,input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+@media (max-width:860px){ input:not([type=checkbox]):not([type=radio]):not([type=color]),select,textarea{font-size:16px} }
 </style>
 </head>
 <body>
@@ -1173,6 +1177,7 @@ function normalize(){
     for(const t of e.timingPoints){ t.hardware=t.hardware||''; t.ch=t.ch||''; t.loop=t.loop||''; t.mode=t.mode||''; t.position=t.position||''; t.notes=t.notes||''; if(!t.color) t.color=nextColor(e); }
     for(const c of e.contests){
       if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; c.startType=c.startType||'mass'; c.timeBasis=c.timeBasis||''; c.date=c.date||'';
+      if(c.route){ const r='Route: '+c.route; if(!(c.notes||'').includes(r)) c.notes=[r,c.notes].filter(Boolean).join('\n'); } delete c.route; // route is derived from Start/Finish now
       if(c.myrrUrl){ const t=mkTask(c.name||'Race page'); t.url=c.myrrUrl; e.myrrTabs.push(t); } delete c.myrrUrl; // per-race my.rr link → event my.rr tabs
       normSplits(e,c);
     }
@@ -1857,7 +1862,7 @@ function renderEvent(D){
     e.timingPoints.splice(+b.dataset.deltp,1); touch(); renderDetail(); });
   on(D,'[data-pos]',b=>openPin(b,OBJ[+b.dataset.pos]));
   on(D,'[data-note]',b=>openNote(b,OBJ[+b.dataset.note]));
-  $('#addct').onclick=()=>{ const c={id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'mass',timeBasis:'',route:'',eligibility:'',startSplit:false,splits:[{id:uid('s'),role:'finish',label:'',tp:'',km:''}],relay:'',notes:''};
+  $('#addct').onclick=()=>{ const c={id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'mass',timeBasis:'',eligibility:'',startSplit:false,splits:[{id:uid('s'),role:'finish',label:'',tp:'',km:''}],relay:'',notes:''};
     e.contests.push(c); openRaces.add(c.id); saveOpen(); touch(); renderDetail(); D.querySelector(`[data-racename="${CSS.escape(c.id)}"]`)?.focus(); };
   $('#ctall')?.addEventListener('click',()=>{ const all=e.contests.every(c=>openRaces.has(c.id)); for(const c of e.contests) all?openRaces.delete(c.id):openRaces.add(c.id); saveOpen(); renderDetail(); });
   on(D,'[data-toggle]',(b,ev)=>{ if(ev.target.closest('.ract')) return; const id=b.dataset.toggle; openRaces.has(id)?openRaces.delete(id):openRaces.add(id); saveOpen(); renderDetail(); });
@@ -1930,7 +1935,6 @@ function raceCard(e,c,ci,tpOpts){
         ${F(c,'distance','Distance',{ph:'21.1',hint:'km',r:'change',attrs:'inputmode="decimal"'})}${F(c,'elevation','Elevation gain',{ph:'—',hint:'m',attrs:'inputmode="numeric"'})}
         ${Sel(c,'startType','Start type',S.config.startTypes.map(s=>[s,s]),{r:'detail'})}
         ${Sel(c,'timeBasis','Rankings by',[['','—'],...Object.entries(TIME_BASIS)],{r:'detail'})}
-        ${F(c,'route','Route',{ph:'Start → Finish',cls:'span2'})}
         ${F(c,'eligibility','Eligibility / requirements',{ph:'e.g. born 2010 or earlier',cls:'span2'})}
       </div>
       <div class="sub">Splits <span class="count">${c.splits.length}</span><label class="switch" title="Timing mat at the start (km 0). Off = gun start."><input type="checkbox" data-startsplit="${ci}" ${c.startSplit?'checked':''} aria-describedby="sshint-${ci}"> Start split<span id="sshint-${ci}" hidden>Timing mat at the start, km 0</span></label></div>
@@ -2288,7 +2292,8 @@ function summaryHTML(e,withResolved){
   const tpName=id=>(e.timingPoints.find(t=>t.id===id)||{}).name||'?';
   const pct=Math.round(progress(e)*100), oq=openQ(e), rq=e.questions.filter(q=>q.resolved);
   const multi=eventDays(e).length>0, anyDate=multi&&e.contests.some(c=>raceDate(e,c)), anyTime=e.contests.some(c=>c.startTime), anyEl=e.contests.some(c=>c.elevation), anyElig=e.contests.some(c=>c.eligibility);
-  const sub=c=>[c.route,c.startType&&`${c.startType} start`,c.relay&&`Relay: ${c.relay}`].filter(Boolean).map(esc).join(' · ');
+  const routeOf=c=>{ const n=r=>{ const sp=c.splits.find(x=>x.role===r); return sp?.tp?tpName(sp.tp):''; }, a=c.startSplit?n('start'):'', b=n('finish'); return a&&b&&a!==b?`${a} → ${b}`:''; };
+  const sub=c=>[routeOf(c),c.startType&&`${c.startType} start`,c.relay&&`Relay: ${c.relay}`].filter(Boolean).map(esc).join(' · ');
   const item=t=>`${esc(t.text)}${t.note?` <span class="s-note">— ${esc(t.note)}</span>`:''}${t.children.length?`<div style="margin:2px 0 4px 14px;font-size:12.5px">${t.children.map(c=>'· '+esc(c.text)+(c.note?` <span class="s-note">— ${esc(c.note)}</span>`:'')).join('<br>')}</div>`:''}`;
   const anyBasis=e.contests.some(c=>c.timeBasis);
   const timed=e.contests.filter(c=>c.splits.some(x=>x.tp||x.label));
@@ -2353,7 +2358,7 @@ function eventToImport(e){
   const out=clean({id:e.id,name:e.name,client:c?{name:c.name}:null,clientId:c?c.id:null,status:e.status,dateStart:e.dateStart,dateEnd:e.dateEnd,location:e.location,type:e.type,website:e.website,rr14EventId:e.rr14EventId,technology:e.technology||null,
     links:e.links.map(l=>clean({label:l.label,url:l.url})),
     timingPoints:e.timingPoints.map(t=>clean({name:t.name,hardware:t.hardware,ch:n(t.ch),loop:n(t.loop),mode:t.mode,position:t.position,notes:t.notes})),
-    contests:e.contests.map(c=>clean({name:c.name,date:c.date,startTime:c.startTime,distance:n(c.distance),elevation:n(c.elevation),startType:c.startType,timeBasis:c.timeBasis||null,route:c.route,eligibility:c.eligibility,relay:c.relay,notes:c.notes,startSplit:!!c.startSplit,
+    contests:e.contests.map(c=>clean({name:c.name,date:c.date,startTime:c.startTime,distance:n(c.distance),elevation:n(c.elevation),startType:c.startType,timeBasis:c.timeBasis||null,eligibility:c.eligibility,relay:c.relay,notes:c.notes,startSplit:!!c.startSplit,
       splits:c.splits.map(x=>clean({role:x.role,label:x.label,timingPoint:tpName(x.tp),km:x.role==='start'?0:n(x.km)}))})),
     ...Object.fromEntries(EVENT_LISTS.map(([k])=>[k,e[k].map(task)])),
     questions:e.questions.map(q=>clean({n:q.n,text:q.text,answer:q.answer,resolved:q.resolved||null})),
@@ -2409,7 +2414,7 @@ function aiPrompt(e=null){
   "contests": [ {
     "name": "race name as written", "date": "YYYY-MM-DD (multi-day events: which day)", "startTime": "HH:MM",
     "distance": 21.1, "elevation": 950, "startType": "mass | wave | individual", "timeBasis": "gun | chip | null",
-    "route": "From → To", "eligibility": "age / licence rules", "relay": "legs, changeover points", "notes": "string",
+    "eligibility": "age / licence rules", "relay": "legs, changeover points", "notes": "string",
     "startSplit": false,
     "splits": [ { "role": "start | split | finish", "label": "string or null", "timingPoint": "name from timingPoints", "km": 5 } ]
   } ],
@@ -2578,7 +2583,7 @@ function defaultClient(card){
 const tpIdByName=(e,name)=>name?(e.timingPoints.find(t=>rrName(t.name)===rrName(name))?.id||''):'';
 const seqText=r=>[...(r.startSplit?[]:['Gun start']),...r.splits.filter(s=>r.startSplit||s.role!=='start').map(s=>`${s.role==='start'?'Start':s.role==='finish'?'Finish':'Split'}${s.timingPoint?' '+s.timingPoint:''}${s.km!==''?` (${s.km} km)`:''}`)].join(' → ')+(r.splits.some(s=>s.role==='finish')?'':' → Finish');
 function mkRace(r,e){
-  return {id:uid('c'),name:r.name,date:r.date,startTime:r.startTime,distance:r.distance,elevation:r.elevation,startType:r.startType||'mass',timeBasis:r.timeBasis,route:r.route,eligibility:r.eligibility,relay:r.relay,notes:r.notes,
+  return {id:uid('c'),name:r.name,date:r.date,startTime:r.startTime,distance:r.distance,elevation:r.elevation,startType:r.startType||'mass',timeBasis:r.timeBasis,eligibility:r.eligibility,relay:r.relay,notes:[r.route&&'Route: '+r.route,r.notes].filter(Boolean).join('\n'),
     startSplit:r.startSplit,splits:r.splits.map(s=>({id:uid('s'),role:s.role,label:s.label,tp:tpIdByName(e,s.timingPoint),km:s.role==='start'?'0':s.km}))};
 }
 /* existing race without intermediates: fill Start/Finish where empty, add the intermediates before Finish */
@@ -2610,7 +2615,7 @@ function buildRows(inc,e){
     for(const [k,l] of [['hardware','hardware'],['ch','Ch.'],['loop','L.'],['mode','mode'],['position','position'],['notes','notes']]) field('Timing points',`«${ex.name}» · ${l}`,ex,k,t[k]); }
   for(const r of inc.contests){ const ex=e.contests.find(c=>normTxt(c.name)===normTxt(r.name));
     if(!ex){ rows.push({sec:'Races',label:'Add race',to:[r.name,r.distance&&`${r.distance} km`,r.startTime,seqText(r)].filter(Boolean).join(' · '),checked:true,fn:ev=>ev.contests.push(mkRace(r,ev))}); continue; }
-    for(const [k,l,d] of [['date','day',D],['startTime','start time'],['distance','distance (km)'],['elevation','elevation (m)'],['startType','start type'],['timeBasis','rankings by'],['route','route'],['eligibility','eligibility'],['relay','relay'],['notes','race notes']]) field('Races',`«${ex.name}» · ${l}`,ex,k,r[k],d||fmt);
+    for(const [k,l,d] of [['date','day',D],['startTime','start time'],['distance','distance (km)'],['elevation','elevation (m)'],['startType','start type'],['timeBasis','rankings by'],['eligibility','eligibility'],['relay','relay'],['notes','race notes']]) field('Races',`«${ex.name}» · ${l}`,ex,k,r[k],d||fmt);
     const informative=r.startSplit||r.splits.some(s=>s.role!=='finish'||s.timingPoint||s.label||s.km!=='');
     if(informative){ const mids=ex.splits.filter(x=>x.role==='split').length;
       if(mids) warn.push(`«${ex.name}»: splits not changed — the race already has ${plural(mids,'intermediate split','intermediate splits')}`);
