@@ -1126,6 +1126,22 @@ main.agenda #detail{max-width:1560px}
   dialog#entrydlg .dlg{width:100%;padding-bottom:calc(22px + var(--sab))}
   .agld{grid-template-columns:1fr;gap:2px}
 }
+
+/* ---------- APP LOCK ---------- */
+#applock,#curtain{position:fixed;inset:0;z-index:1000;background:var(--bg);display:grid;place-items:center;padding:24px 16px calc(24px + var(--sab))}
+#applock[hidden],#curtain[hidden]{display:none}
+body.locked{overflow:hidden}
+.alk{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:320px;text-align:center}
+.alk h2{margin:4px 0 0;font-size:20px;letter-spacing:-.02em} .alk p{margin:0;color:var(--ink-2);min-height:20px}
+.alogo{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.alogo svg{width:30px;height:30px}
+.al-big{height:46px;width:100%;font-size:15px;margin-top:10px} .al-big svg{width:20px;height:20px}
+#al-pinf{display:flex;gap:8px;width:100%} #al-pinf .in{flex:1;text-align:center;letter-spacing:.3em;font-size:18px;height:44px} #al-pinf .btn{height:44px}
+.al-reset{margin-top:22px;color:var(--ink-3)}
+@media (max-width:860px){
+  dialog#lockdlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0}
+  dialog#lockdlg .dlg{width:100%;padding-bottom:calc(22px + var(--sab))}
+}
 </style>
 </head>
 <body>
@@ -1171,6 +1187,9 @@ main.agenda #detail{max-width:1560px}
       <div class="fld"><label class="lab" for="s-rr14user">RR14 user <span class="lh">· used by “Open in RR14”</span></label><input class="in" id="s-rr14user" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. Ulisse"></div>
       <div class="fld"><span class="lab">Safe-word <span class="lh">· privacy screen for hours and values</span></span>
         <div class="swrow"><span class="hint" id="s-swinfo"></span><button class="btn sm" type="button" id="s-swset">Change safe-word…</button></div></div>
+      <div class="fld"><span class="lab">App lock <span class="lh">· this device only</span></span>
+        <div class="swrow"><span class="hint" id="s-lkinfo"></span><button class="btn sm" type="button" id="s-lkon">Turn on…</button><button class="btn sm" type="button" id="s-lkpin">Change PIN…</button><button class="btn sm dangerous" type="button" id="s-lkoff">Turn off</button></div>
+        <div class="swrow" id="s-lkafter-row" style="margin-top:6px"><label class="hint" for="s-lkafter">Lock after</label><select class="in sm" id="s-lkafter" style="width:auto"><option value="0">leaving the app</option><option value="1">1 min</option><option value="5">5 min</option><option value="15">15 min</option><option value="60">1 hour</option></select><span class="hint">without activity</span></div></div>
       <div class="acts" id="s-democlose" hidden><button class="btn primary" type="button" id="s-dclose">Done</button></div>
     </div>
     <!-- A real login form (username + current-password + submit) so Bitwarden and the OS can autofill it. -->
@@ -1199,6 +1218,24 @@ main.agenda #detail{max-width:1560px}
       <div class="ulmsg" id="ul-msg" role="alert"></div></div>
     <div class="hint" id="ul-hint">Locks again after 10 minutes without activity, when you leave the tab, or with the 🍦 button.</div>
     <div class="acts"><button class="btn" type="button" id="ul-cancel">Cancel</button><button class="btn primary" type="submit" id="ul-go">Unlock</button></div>
+  </form>
+</dialog>
+<div id="applock" hidden><div class="alk">
+  <div class="alogo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+  <h2>Events tracker</h2><p id="al-msg">Locked</p>
+  <button class="btn primary al-big" type="button" id="al-bio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1M15 9v1M12 9v4h-1M9 16a4 4 0 0 0 6 0"/></svg><span>Unlock</span></button>
+  <form id="al-pinf" autocomplete="off" hidden><input class="in" id="al-pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="PIN" aria-label="PIN"><button class="btn primary" type="submit" id="al-pgo">Unlock</button></form>
+  <button class="btn ghost sm" type="button" id="al-usepin">Use PIN</button>
+  <button class="btn ghost sm al-reset" type="button" id="al-reset">Reset this device…</button>
+</div></div>
+<div id="curtain" hidden><div class="alogo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div></div>
+<dialog id="lockdlg" aria-label="App lock">
+  <form class="dlg" id="lockform" autocomplete="off">
+    <h2 id="lk-title" style="margin:0 0 6px;font-size:17px">App lock</h2><p id="lk-text" style="margin:0 0 14px;color:var(--ink-2)"></p>
+    <div class="en2"><div class="fld"><label class="lab" for="lk-p1">Backup PIN</label><input class="in" id="lk-p1" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="4–8 digits"></div>
+      <div class="fld"><label class="lab" for="lk-p2">Repeat PIN</label><input class="in" id="lk-p2" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="Same PIN"></div></div>
+    <div class="ulmsg" id="lk-msg" role="alert"></div>
+    <div class="acts" style="display:flex;gap:8px;align-items:center;margin-top:10px"><button class="btn ghost sm" type="button" id="lk-pinonly">PIN only</button><span class="spacer"></span><button class="btn" type="button" id="lk-cancel">Cancel</button><button class="btn primary" type="submit" id="lk-go">Turn on</button></div>
   </form>
 </dialog>
 <dialog id="entrydlg" aria-label="Agenda entry">
@@ -1257,7 +1294,7 @@ const CFG_KEY='events-tracker-cfg-v2';
 const DEMO=new URLSearchParams(location.search).has('demo');
 let cfg=Object.assign({owner:'',repo:'events-tracker-data',dir:'data',token:''},readLS(CFG_KEY));
 function readLS(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}') }catch{ return {} } }
-function saveCfg(){ try{ localStorage.setItem(CFG_KEY,JSON.stringify(cfg)) }catch{} }
+function saveCfg(){ if(lockOn()){ writeCfgEnc(); return; } try{ localStorage.setItem(CFG_KEY,JSON.stringify(cfg)) }catch{} } // with the app lock: token encrypted
 
 const b64enc=s=>{ const b=new TextEncoder().encode(s); let o=''; for(let i=0;i<b.length;i+=0x8000) o+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(o); };
 const b64dec=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g,'')),c=>c.charCodeAt(0)));
@@ -1543,8 +1580,8 @@ let hoursRec=null;       // {salt, iv, ct, pending, synced} encrypted hours copy
 let persistT=null, localWarned=false, syncing=false;
 const LOCAL_KEY=()=>`events-tracker-local:${cfg.owner}/${cfg.repo}/${cfg.dir}`;
 const hoursWaiting=()=>!S?.hours&&!!hoursRec?.pending;
-function readLocal(){ if(DEMO||!cfg.owner) return null; try{ const r=JSON.parse(localStorage.getItem(LOCAL_KEY())||'null'); return r?.v===1?r:null; }catch{ return null; } }
-function clearLocal(){ try{ localStorage.removeItem(LOCAL_KEY()); }catch{} }
+function readLocal(){ if(DEMO||!cfg.owner) return null; if(lockOn()) return localCache; try{ const r=JSON.parse(localStorage.getItem(LOCAL_KEY())||'null'); return r?.v===1?r:null; }catch{ return null; } }
+function clearLocal(){ localCache=null; try{ localStorage.removeItem(LOCAL_KEY()); }catch{} }
 function persistLocal(){
   const pend=persistT; clearTimeout(persistT); persistT=null;
   if(DEMO||!S||!cfg.owner) return;
@@ -1553,7 +1590,7 @@ function persistLocal(){
   const cur=serialize(), work={}; delete cur['hours.json'];
   for(const [n,t] of Object.entries(cur)) if(sv[n]!==t) work[n]=t;
   const rec={v:1,at:Date.now(),saved:sv,work,sha:{...GitHubStore.sha},eventFiles:[...eventFiles],hoursInRepo,hours:hoursRec};
-  try{ localStorage.setItem(LOCAL_KEY(),JSON.stringify(rec)); localWarned=false; }
+  try{ writeLocalRec(rec); localWarned=false; }
   catch{ if(!localWarned){ localWarned=true; toast('No offline copy','browser storage is full or blocked','warn','warn'); } }
 }
 function schedulePersist(){ clearTimeout(persistT); persistT=setTimeout(()=>{ persistLocal(); if(encKey&&S?.hours) sealHours(); },300); }
@@ -3501,6 +3538,149 @@ for(const t of ['pointerdown','keydown','wheel','touchstart']) document.addEvent
 setInterval(()=>{ if(unlocked&&Date.now()-lastAct>LOCK_MS) lock('Locked after 10 minutes without activity'); },10e3);
 
 /* =====================================================================
+   APP LOCK (Face ID / Touch ID, backup PIN). Per device, never in the repo.
+   A random data key (DK) encrypts the GitHub token and the offline copy on this device (AES-GCM).
+   DK is stored only wrapped: by a key from the passkey's PRF output (needs Face ID / Touch ID) and by a key from the PIN.
+   Locking = save to the device (encrypted) and reload; nothing stays in memory.
+   ===================================================================== */
+const LOCK_KEY='events-tracker-lock';
+let LOCK=(()=>{ try{ const r=JSON.parse(localStorage.getItem(LOCK_KEY)||'null'); return r?.v===1?r:null; }catch{ return null; } })();
+let DK=null, localCache=null, lastWrite=Promise.resolve(), wseq=0, locking=false, hiddenAt=0;
+const lockOn=()=>!DEMO&&!!LOCK;
+const BIO=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)?'Face ID':/Mac/.test(navigator.platform||navigator.userAgent)?'Touch ID':'fingerprint / face';
+const rnd=n=>crypto.getRandomValues(new Uint8Array(n));
+const lockMs=()=>((LOCK?.after??5)||0)*60e3;
+async function encJSON(o,key=DK){ const iv=rnd(12); return {iv:toB64(iv),ct:toB64(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(o))))}; }
+async function decJSON(e,key=DK){ return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(e.iv)},key,fromB64(e.ct)))); }
+const aesKey=raw=>crypto.subtle.importKey('raw',raw,'AES-GCM',false,['encrypt','decrypt']);
+async function prfKey(out){ const k=await crypto.subtle.importKey('raw',out,'HKDF',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt:new Uint8Array(32),info:new TextEncoder().encode('events-tracker app lock')},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); }
+async function pinKey(pin,salt,iter){ const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:fromB64(salt),iterations:iter},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); }
+const wrap=async(raw,kw)=>{ const iv=rnd(12); return {iv:toB64(iv),ct:toB64(await crypto.subtle.encrypt({name:'AES-GCM',iv},kw,raw))}; };
+const unwrap=async(w,kw)=>new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(w.iv)},kw,fromB64(w.ct)));
+/* passkey with PRF: Face ID / Touch ID gives back the same 32 secret bytes for the same salt */
+async function bioAvailable(){
+  try{ if(!window.PublicKeyCredential||!await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) return false;
+    if(PublicKeyCredential.getClientCapabilities){ const c=await PublicKeyCredential.getClientCapabilities(); if(c&&c['extension:prf']===false) return false; }
+    return true; }catch{ return false; } }
+async function bioGet(credId,salt){
+  const cred=await navigator.credentials.get({publicKey:{challenge:rnd(32),rpId:location.hostname,timeout:60000,userVerification:'required',
+    allowCredentials:[{type:'public-key',id:fromB64(credId)}],extensions:{prf:{eval:{first:fromB64(salt)}}}}});
+  const out=cred?.getClientExtensionResults?.().prf?.results?.first; if(!out) throw new Error('This browser can’t use '+BIO+' to encrypt (no PRF).'); return new Uint8Array(out); }
+async function bioCreate(salt){
+  const cred=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'Events tracker',id:location.hostname},
+    user:{id:rnd(16),name:`Events tracker · ${BIO==='Face ID'?'iPhone':BIO==='Touch ID'?'Mac':'device'}`,displayName:'Events tracker'},
+    pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],timeout:60000,
+    authenticatorSelection:{authenticatorAttachment:'platform',residentKey:'required',userVerification:'required'},
+    extensions:{prf:{eval:{first:fromB64(salt)}}}}});
+  const ext=cred.getClientExtensionResults?.().prf||{}, id=toB64(cred.rawId);
+  if(ext.enabled===false) throw new Error('This passkey can’t encrypt (no PRF support here).');
+  const out=ext.results?.first?new Uint8Array(ext.results.first):await bioGet(id,salt); // Safari: second Face ID to get the secret
+  return {id,out}; }
+
+/* device copy, encrypted while the lock is on (readLocal / persistLocal go through these) */
+function writeLocalRec(rec){
+  if(!lockOn()){ localStorage.setItem(LOCAL_KEY(),JSON.stringify(rec)); return; }
+  localCache=rec; if(!DK) return; const seq=++wseq;
+  lastWrite=encJSON(rec).then(e=>{ if(seq===wseq) localStorage.setItem(LOCAL_KEY(),JSON.stringify({v:1,enc:e})); })
+    .catch(()=>{ if(!localWarned){ localWarned=true; toast('No offline copy','browser storage is full or blocked','warn','warn'); } });
+}
+async function writeCfgEnc(){ if(!DK) return; const te=await encJSON({token:cfg.token}); const c={...cfg,token:'',tokenEnc:te}; try{ localStorage.setItem(CFG_KEY,JSON.stringify(c)); }catch{} }
+async function openVault(raw){
+  DK=await aesKey(raw);
+  const c=readLS(CFG_KEY); if(c.tokenEnc){ try{ cfg.token=(await decJSON(c.tokenEnc)).token||''; }catch{ cfg.token=''; } }
+  try{ const r=JSON.parse(localStorage.getItem(LOCAL_KEY())||'null'); localCache=r?.enc?await decJSON(r.enc):r?.v===1?r:null; }catch{ localCache=null; }
+}
+
+/* lock screen */
+let lockResolve=null;
+function showLock(msg=''){
+  const el=$('#applock'); el.hidden=false; document.body.classList.add('locked');
+  $('#al-msg').textContent=msg||'Locked'; $('#al-bio').hidden=!LOCK.credId; $('#al-bio span').textContent=`Unlock with ${BIO}`;
+  $('#al-pinf').hidden=!!LOCK.credId; $('#al-usepin').hidden=!LOCK.credId||!LOCK.pin; $('#al-pin').value='';
+  if(!LOCK.credId) setTimeout(()=>$('#al-pin').focus(),50);
+  return new Promise(r=>{ lockResolve=r; if(LOCK.credId) unlockBio(true); });
+}
+async function done_(raw){ await openVault(raw); RAW_HOLD=raw; $('#applock').hidden=true; document.body.classList.remove('locked'); curtain(false); lastAct=Date.now(); lockResolve?.(); lockResolve=null; }
+async function unlockBio(auto=false){
+  try{ $('#al-bio').disabled=true; const out=await bioGet(LOCK.credId,LOCK.prfSalt); await done_(await unwrap(LOCK.wPrf,await prfKey(out))); }
+  catch(err){ if(!auto) $('#al-msg').textContent=err?.name==='NotAllowedError'?`${BIO} cancelled — try again or use the PIN`:(err.message||'Could not unlock'); }
+  finally{ $('#al-bio').disabled=false; }
+}
+$('#al-bio').onclick=()=>unlockBio(false);
+$('#al-usepin').onclick=()=>{ $('#al-pinf').hidden=false; $('#al-usepin').hidden=true; $('#al-pin').focus(); };
+$('#al-pinf').addEventListener('submit',async ev=>{ ev.preventDefault(); const p=$('#al-pin').value; if(!p||!LOCK.pin) return;
+  $('#al-pgo').disabled=true;
+  try{ await done_(await unwrap(LOCK.pin.w,await pinKey(p,LOCK.pin.salt,LOCK.pin.iter))); }
+  catch{ $('#al-msg').textContent='Wrong PIN'; $('#al-pin').select(); shake($('#al-pin')); }
+  finally{ $('#al-pgo').disabled=false; } });
+$('#al-reset').onclick=()=>{
+  if(!confirm('Reset this device?\n\nThis removes the app lock, the GitHub token and the offline copy from this device. Changes not yet saved to GitHub are lost.\n\nYou log in again with your token (Bitwarden).')) return;
+  try{ localStorage.removeItem(LOCK_KEY); localStorage.removeItem(LOCAL_KEY()); const c=readLS(CFG_KEY); delete c.tokenEnc; c.token=''; localStorage.setItem(CFG_KEY,JSON.stringify(c)); }catch{}
+  location.reload(); };
+/* cover while the app is in the background (also hides it in the iPhone app switcher) */
+function curtain(on){ $('#curtain').hidden=!on; }
+async function lockApp(){
+  if(!lockOn()||!DK||locking) return; locking=true; curtain(true); closePops(); closeCmd();
+  try{ if(S){ clearTimeout(persistT); persistT=null; if(encKey&&S.hours) await sealHours(); persistLocal(); } await lastWrite; }catch{}
+  location.reload();
+}
+document.addEventListener('visibilitychange',()=>{ if(!lockOn()||!DK) return;
+  if(document.visibilityState==='hidden'){ hiddenAt=Date.now(); curtain(true); persistLocal(); }
+  else if(Date.now()-hiddenAt>=lockMs()) lockApp(); else curtain(false); });
+setInterval(()=>{ if(lockOn()&&DK&&Date.now()-lastAct>Math.max(lockMs(),60e3)) lockApp(); },10e3);
+
+/* settings: turn on / off, lock after, change PIN */
+function lockInfo(){
+  const on=lockOn();
+  $('#s-lkinfo').textContent=DEMO?'Not in demo mode.':!on?'Off. The token and offline copy are stored in clear on this device.':`On · ${LOCK.credId?BIO+' + PIN':'PIN only'} · data on this device is encrypted`;
+  $('#s-lkon').hidden=on||DEMO; $('#s-lkoff').hidden=!on; $('#s-lkpin').hidden=!on; $('#s-lkafter-row').hidden=!on;
+  if(on) $('#s-lkafter').value=String(LOCK.after??5);
+}
+$('#s-lkafter').onchange=e=>{ LOCK.after=+e.target.value; localStorage.setItem(LOCK_KEY,JSON.stringify(LOCK)); toast('Saved',e.target.selectedOptions[0].textContent,'lock'); };
+$('#s-lkon').onclick=()=>{ $('#settings').close(); openLockSetup(); };
+$('#s-lkpin').onclick=()=>{ $('#settings').close(); openLockSetup(true); };
+$('#s-lkoff').onclick=async()=>{
+  if(!confirm('Turn off the app lock on this device?\n\nThe token and the offline copy will be stored without encryption again.')) return;
+  const rec=localCache; LOCK=null; DK=null; localCache=null;
+  try{ localStorage.removeItem(LOCK_KEY); const c={...cfg}; delete c.tokenEnc; localStorage.setItem(CFG_KEY,JSON.stringify(c)); if(rec) localStorage.setItem(LOCAL_KEY(),JSON.stringify(rec)); }catch{}
+  persistLocal(); lockInfo(); toast('App lock off','you can delete the “Events tracker” passkey in the Passwords app','lock'); };
+let lkPinOnly=false;
+function openLockSetup(pinOnly=false){
+  lkPinOnly=pinOnly; $('#lk-title').textContent=pinOnly?'Change backup PIN':'App lock';
+  $('#lk-text').textContent=pinOnly?'Type the new PIN twice.':`Unlock with ${BIO} on this device. The token and the offline copy are encrypted; without ${BIO} or the PIN they can’t be read. Choose a backup PIN for when ${BIO} doesn’t work.`;
+  $('#lk-p1').value=''; $('#lk-p2').value=''; $('#lk-msg').textContent=''; $('#lk-go').disabled=false;
+  $('#lk-go').textContent=pinOnly?'Change PIN':`Turn on with ${BIO}`; $('#lk-pinonly').hidden=pinOnly;
+  $('#lockdlg').showModal(); setTimeout(()=>$('#lk-p1').focus(),30);
+}
+$('#lk-cancel').onclick=()=>$('#lockdlg').close();
+async function turnOnLock(useBio){
+  const p=$('#lk-p1').value, msg=$('#lk-msg');
+  if(!/^\d{4,8}$/.test(p)){ msg.textContent='Use 4 to 8 digits.'; shake($('#lk-p1')); return; }
+  if(p!==$('#lk-p2').value){ msg.textContent='The two PINs are different.'; shake($('#lk-p2')); return; }
+  $('#lk-go').disabled=true; $('#lk-pinonly').disabled=true;
+  try{
+    const salt=toB64(rnd(16)), pinW={salt,iter:PBKDF2_ITER};
+    if(lkPinOnly){ const raw=await unwrapCurrent(); pinW.w=await wrap(raw,await pinKey(p,salt,PBKDF2_ITER)); LOCK.pin=pinW; localStorage.setItem(LOCK_KEY,JSON.stringify(LOCK)); $('#lockdlg').close(); toast('PIN changed','','lock'); return; }
+    const raw=rnd(32); pinW.w=await wrap(raw,await pinKey(p,salt,PBKDF2_ITER));
+    const rec={v:1,after:5,pin:pinW,credId:null,prfSalt:null,wPrf:null};
+    if(useBio){ msg.textContent=`Confirm with ${BIO}…`; rec.prfSalt=toB64(rnd(32)); const {id,out}=await bioCreate(rec.prfSalt); rec.credId=id; rec.wPrf=await wrap(raw,await prfKey(out)); }
+    const plain=readLocal();
+    LOCK=rec; DK=await aesKey(raw); RAW_HOLD=raw; localStorage.setItem(LOCK_KEY,JSON.stringify(LOCK));
+    await writeCfgEnc(); if(plain) writeLocalRec(plain); else persistLocal(); await lastWrite;
+    $('#lockdlg').close(); toast('App lock on',useBio?`${BIO} on this device · backup PIN set`:'PIN on this device','lock');
+  }catch(err){ msg.textContent=err?.name==='NotAllowedError'?`${BIO} cancelled.`:err?.name==='InvalidStateError'?'A passkey already exists for this device.':(err.message||'Could not turn it on'); }
+  finally{ $('#lk-go').disabled=false; $('#lk-pinonly').disabled=false; }
+}
+/* the raw data key is needed again only to re-wrap it with a new PIN: kept in memory while unlocked */
+let RAW_HOLD=null;
+async function unwrapCurrent(){ if(RAW_HOLD) return RAW_HOLD; throw new Error('Lock and unlock once, then change the PIN.'); }
+$('#lockform').addEventListener('submit',async ev=>{ ev.preventDefault(); if(lkPinOnly) return turnOnLock(false);
+  if(!await bioAvailable()){ $('#lk-msg').textContent=`${BIO} isn’t available in this browser — use “PIN only”.`; return; } turnOnLock(true); });
+$('#lk-pinonly').onclick=()=>turnOnLock(false);
+
+/* =====================================================================
    NEW, SETTINGS, LOGIN, LOGOUT, BOOT
    ===================================================================== */
 function newItem(){
@@ -3516,7 +3696,7 @@ async function logout(){
   if(dirty) await save({quiet:true});
   if(dirty&&!confirm('Some changes could not be saved and will be lost. Log out anyway?')) return;
   if(hoursWaiting()&&!confirm('Hours changed offline have not been pushed yet (unlock to sync them). Log out anyway and lose them?')) return;
-  clearLocal(); cfg.token=''; saveCfg(); dirty=false; unlocked=false; location.hash=''; location.reload();
+  clearLocal(); try{ localStorage.removeItem(LOCK_KEY); }catch{} LOCK=null; cfg.token=''; delete cfg.tokenEnc; saveCfg(); dirty=false; unlocked=false; location.hash=''; location.reload();
 }
 const dlg=$('#settings');
 function openSettings(msg=''){
@@ -3529,7 +3709,7 @@ function openSettings(msg=''){
   $('#s-owner').value=cfg.owner; $('#s-repo').value=cfg.repo; $('#s-dir').value=cfg.dir; $('#s-token').value=cfg.token; $('#s-msg').textContent=msg;
   if(loggedIn){ $('#s-rr14user').value=S.config.rr14User||'';
     $('#s-swinfo').textContent=!hasSafeword()?'Not set yet — set it the first time you unlock.':priv()?'Set. You can change it while unlocked.':'Set. Unlock first to change it.';
-    $('#s-swset').disabled=!priv(); }
+    $('#s-swset').disabled=!priv(); lockInfo(); }
   if(!dlg.open) dlg.showModal();
 }
 $('#s-rr14user').addEventListener('input',e=>{ if(!S) return; S.config.rr14User=e.target.value.trim(); touch('none'); });
@@ -3634,6 +3814,7 @@ document.fonts?.ready.then(()=>document.querySelectorAll('textarea.auto').forEac
 
 (async()=>{
   parseRoute(); routeKey=location.hash; renderTop();
+  if(lockOn()) await showLock();
   if(!DEMO&&(!cfg.token||!cfg.owner)){ openSettings(); return; }
   if(!DEMO&&bootLocal()){ parseRoute(); render(); syncNow(); if(!navigator.onLine){ errMsg='Offline'; updSave(); } return; }
   try{ const res=await loadAll(); if(res==='missing'){ openSettings(`The folder «${cfg.dir}» doesn't exist in ${cfg.owner}/${cfg.repo}. Log in to create it.`); return; } parseRoute(); render(); }
