@@ -558,7 +558,7 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .ckhead b{font-size:18px;font-weight:600;letter-spacing:-.02em;display:block;line-height:1.1}
 .ckhead span{font-size:12px;color:var(--ink-3)}
 .ckhead .ckbars{margin-left:auto;display:flex;flex-direction:column;gap:5px;min-width:110px}
-.ckbars div{display:grid;grid-template-columns:52px 1fr 26px;align-items:center;gap:6px;font-size:11px;color:var(--ink-3)}
+.ckbars div{display:grid;grid-template-columns:72px 1fr 30px;align-items:center;gap:6px;font-size:11px;color:var(--ink-3)}
 .ckbars u{height:4px;border-radius:4px;background:var(--line);overflow:hidden;text-decoration:none}
 .ckbars u i{display:block;height:100%;background:var(--accent)}
 .check{list-style:none;margin:0 0 10px;padding:0}
@@ -567,6 +567,8 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .check li label:hover{background:var(--panel-2)}
 .check li.auto label{cursor:default}
 .check li .ckl{flex:1;min-width:0}
+.check .sub{font-size:11.5px;color:var(--ink-3);margin:6px 0 0;padding:0 4px 0 29px}
+.check li.kid label{padding-left:29px}
 .check li .done{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--line-3)}
 .autock{width:16px;height:16px;border-radius:50%;flex:none;display:grid;place-items:center;border:1.5px dashed var(--line-3)}
 .autock.on{border:0;background:var(--ok-soft);color:var(--ok)}
@@ -1711,7 +1713,7 @@ const isOpen=h=>!h.closure;
 /* Checklist = items derived from what the event contains (auto: computed; manual: you tick) + your fixed items + extras. */
 function checklistItems(e){
   const it=[], A=(key,label,done,group)=>it.push({key,label,done:!!done,auto:true,group}), M=(key,label,group)=>it.push({key,label,done:!!e.checklist[key],auto:false,group});
-  const G1='Setup', G2='Races', G3='Outputs';
+  const G1='Setup', G2='Races', G3='General';
   if(e.rr14EventId) A('RR14 file created','RR14 file created · EventID '+e.rr14EventId,true,G1); else M('RR14 file created','RR14 file created',G1);
   if(e.timingPoints.length){
     A('auto:hw','Hardware on every timing point',e.timingPoints.every(t=>t.hardware),G1);
@@ -1724,6 +1726,11 @@ function checklistItems(e){
     if(c.startType&&c.startType!=='mass') M(`race:${c.id}:start`,`${n}: ${c.startType} start times`,G2);
     if(c.relay) M(`race:${c.id}:relay`,`${n}: relay set up`,G2);
   }
+  // items ticked in On-registration / Kiosk, Scoring and Outputs: listed here too, ticking works in both places
+  for(const [g,lists] of [['Registration',REG_LISTS],['Scoring',SCORING_LISTS],['Outputs',OUTPUT_LISTS]])
+    for(const [k,l] of lists) for(const t of e[k]){ if(!t.text) continue;
+      it.push({key:'',label:t.text,done:!!t.done,task:t,group:g,sub:l});
+      for(const c of t.children) if(c.text) it.push({key:'',label:c.text,done:!!c.done,task:c,group:g,sub:l,child:true}); }
   if(e.questions.length) A('auto:questions','All client questions answered',!openQ(e).length,G3);
   for(const k of S.config.checklistTemplate) if(k!=='RR14 file created') M(k,k,G3);
   return it;
@@ -2167,8 +2174,8 @@ function renderEvent(D){
 
   <section class="sec" id="s-checklist"><div class="sech" style="--sc:${SECC.checklist}"><h3>${secBadge('checklist')}Checklist</h3></div>
   <div class="ckhead">${ring(p,40,4)}<div><b>${pct}%</b><span>${ckDone} of ${ckTot} done</span></div>
-    <div class="ckbars">${['Setup','Races','Outputs'].map(g=>{ const [d,t]=grpStat(g); return t?`<div><span>${g}</span><u><i style="width:${Math.round(d/t*100)}%"></i></u><span style="text-align:right">${d}/${t}</span></div>`:''; }).join('')}</div></div>
-  <ul class="check">${ck.map((x,i)=>`${x.group!==ck[i-1]?.group?`<li class="grp">${esc(x.group)}</li>`:''}<li class="${x.auto?'auto':''}"><label>${x.auto?`<span class="autock ${x.done?'on':''}">${x.done?ic('check',3):''}</span>`:`<input type="checkbox" class="ck" data-ck="${esc(x.key)}" ${x.done?'checked':''}>`}<span class="ckl ${x.done?'done':''}">${esc(x.label)}</span>${x.auto?'<span class="tag auto" title="Ticked automatically from the event data">auto</span>':''}</label></li>`).join('')}</ul>
+    <div class="ckbars">${[...new Set(ck.map(x=>x.group))].map(g=>{ const [d,t]=grpStat(g); return t?`<div><span>${g}</span><u><i style="width:${Math.round(d/t*100)}%"></i></u><span style="text-align:right">${d}/${t}</span></div>`:''; }).join('')}</div></div>
+  <ul class="check">${ck.map((x,i)=>`${x.group!==ck[i-1]?.group?`<li class="grp">${esc(x.group)}</li>`:''}${x.sub&&(x.sub!==ck[i-1]?.sub||x.group!==ck[i-1]?.group)?`<li class="sub">${esc(x.sub)}</li>`:''}<li class="${x.auto?'auto':''} ${x.child?'kid':''}"><label>${x.auto?`<span class="autock ${x.done?'on':''}">${x.done?ic('check',3):''}</span>`:x.task?`<input type="checkbox" class="ck" data-o="${ref(x.task)}" data-k="done" data-r="detail" ${x.done?'checked':''}>`:`<input type="checkbox" class="ck" data-ck="${esc(x.key)}" ${x.done?'checked':''}>`}<span class="ckl ${x.done?'done':''}">${esc(x.label)}</span>${x.auto?'<span class="tag auto" title="Ticked automatically from the event data">auto</span>':''}</label></li>`).join('')}</ul>
   ${Tasks(e,'checklistExtra','Extra items','Add an item…',`ck-${e.id}`,false)}
   ${linkedTodos(e)}
   </section>
@@ -2302,7 +2309,8 @@ function raceCard(e,c,ci,tpOpts){
 
 /* checkable list: grip · check · name · [url · open] · note · + · ×  — one level of sub-items, notes as lines under the item */
 function Tasks(o,k,label,ph,lk,withUrl){
-  o[k]=toTasks(o[k]); const arr=o[k], [tot,done]=countTasks(arr);
+  if(!Array.isArray(o[k])||o[k].some(x=>!x||typeof x!=='object'||!Array.isArray(x.children))) o[k]=toTasks(o[k]); // keep the same objects: the checklist ticks them too
+  const arr=o[k], [tot,done]=countTasks(arr);
   const row=(it,list,i,child,pos)=>`${child?`<div class="trow" data-si="${i}">`:''}<div class="task ${it.done?'done':''}">
       ${GRIP}
       <input type="checkbox" class="ck" data-o="${ref(it)}" data-k="done" data-r="detail" ${it.done?'checked':''} aria-label="Done: ${esc(it.text)}">
