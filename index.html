@@ -1372,9 +1372,7 @@ const isOpen=h=>!h.closure;
 function checklistItems(e){
   const it=[], A=(key,label,done,group)=>it.push({key,label,done:!!done,auto:true,group}), M=(key,label,group)=>it.push({key,label,done:!!e.checklist[key],auto:false,group});
   const G1='Setup', G2='Races', G3='Outputs';
-  M('RR14 file created','RR14 file created',G1);
-  A('auto:eventid','EventID set',e.rr14EventId,G1);
-  A('auto:tech','Timing technology chosen',e.technology,G1);
+  if(e.rr14EventId) A('RR14 file created','RR14 file created · EventID '+e.rr14EventId,true,G1); else M('RR14 file created','RR14 file created',G1);
   if(e.timingPoints.length){
     A('auto:hw','Hardware on every timing point',e.timingPoints.every(t=>t.hardware),G1);
     if(e.technology==='active'&&e.timingPoints.some(t=>HW[t.hardware]?.ch)) A('auto:ids','Ch. / L. set, no duplicates',e.timingPoints.every(t=>!HW[t.hardware]?.ch||idKey(e,t))&&!duplicates(e).length,G1);
@@ -1383,11 +1381,9 @@ function checklistItems(e){
   }
   for(const c of e.contests){ const n=c.name||'untitled race';
     M(`race:${c.id}:setup`,`${n}: contest and splits in RR14`,G2);
-    A(`race:${c.id}:basis`,`${n}: rankings by gun / chip chosen`,c.timeBasis,G2);
     if(c.startType&&c.startType!=='mass') M(`race:${c.id}:start`,`${n}: ${c.startType} start times`,G2);
     if(c.relay) M(`race:${c.id}:relay`,`${n}: relay set up`,G2);
   }
-  for(const [k,l] of EVENT_LISTS){ const [tot,done]=countTasks(e[k]); if(tot) A(`auto:${k}`,`${l} · ${done}/${tot}`,done===tot,G3); }
   if(e.questions.length) A('auto:questions','All client questions answered',!openQ(e).length,G3);
   for(const k of S.config.checklistTemplate) if(k!=='RR14 file created') M(k,k,G3);
   return it;
@@ -1726,7 +1722,10 @@ function renderClientList(L){
 function renderDetail(){
   if(!S) return;
   OBJ=[]; taRO.disconnect(); hsRO.disconnect(); const D=$('#detail');
+  const key=route.view+':'+(route.id||''), keep=D.dataset.k===key?[...D.querySelectorAll('.evside,.hsc,.tpwrap')].map(x=>[x.scrollTop,x.scrollLeft]):null;
   if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else renderHours(D);
+  D.dataset.k=key;
+  if(keep) D.querySelectorAll('.evside,.hsc,.tpwrap').forEach((x,i)=>{ if(keep[i]){ x.scrollTop=keep[i][0]; x.scrollLeft=keep[i][1]; } });
   bind(D); sortable(D); hscroll(D);
   D.querySelector('#closebtn')?.addEventListener('click',()=>go(route.view));
   D.querySelector('#backbtn')?.addEventListener('click',()=>go(route.view));
