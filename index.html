@@ -1120,7 +1120,8 @@ const countTasks=a=>a.reduce((n,t)=>[n[0]+1+t.children.length,n[1]+(t.done?1:0)+
 /* Event-level lists: [key, title, placeholder, has URL] */
 const SCORING_LISTS=[['rankings','Rankings','Add a ranking…',false],['teamScores','Team scores','Add a team score…',false]];
 const OUTPUT_LISTS=[['lists','Lists','Add a list…',false],['myrrTabs','my.rr tabs','Add a my.rr tab…',true],['participantViews','Participant views','Add a participant view…',true],['presenter','Presenter','Add a Presenter screen…',true]];
-const EVENT_LISTS=[...SCORING_LISTS,...OUTPUT_LISTS];
+const REG_LISTS=[['onReg','On-registration','Add an on-registration item…',true],['kiosk','Kiosk','Add a kiosk item…',true]];
+const EVENT_LISTS=[...SCORING_LISTS,...REG_LISTS,...OUTPUT_LISTS];
 const TIME_BASIS={gun:'Gun time',chip:'Chip time'};
 /* Rankings used to live on each race: merge them into the event, noting which races had them. */
 function liftRaceLists(e){
@@ -1445,8 +1446,8 @@ const P={
   doc:'<path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 13h6M9 17h4"/>',
 };
 const ic=(n,sw=2)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
-const SECC={general:'#64748b',rr14:'#e5484d',links:'#0ea5e9',tps:'#f59e0b',races:'#22a06b',scoring:'#8b5cf6',outputs:'#06b6d4',questions:'#f97316',checklist:'#3b82f6',hours:'#14b8a6',notes:'#94a3b8'};
-const SECI={general:'info',rr14:'stopwatch',links:'link',tps:'pin',races:'flag',scoring:'trophy',outputs:'layers',questions:'inbox',checklist:'checkc',hours:'clock',notes:'doc'};
+const SECC={general:'#64748b',rr14:'#e5484d',links:'#0ea5e9',tps:'#f59e0b',races:'#22a06b',scoring:'#8b5cf6',registration:'#ec4899',outputs:'#06b6d4',questions:'#f97316',checklist:'#3b82f6',hours:'#14b8a6',notes:'#94a3b8'};
+const SECI={general:'info',rr14:'stopwatch',links:'link',tps:'pin',races:'flag',scoring:'trophy',registration:'user',outputs:'layers',questions:'inbox',checklist:'checkc',hours:'clock',notes:'doc'};
 const secBadge=(k,cls='sb')=>`<span class="${cls}" style="--sc:${SECC[k]}" aria-hidden="true">${ic(SECI[k],2)}</span>`;
 /* external links of an event: my.raceresult results page and the RR14 web app */
 function evLinks(e){
@@ -1748,7 +1749,7 @@ function renderEvent(D){
   const LK=evLinks(e);
   const ckDone=ck.filter(x=>x.done).length+countTasks(e.checklistExtra)[1], ckTot=ck.length+countTasks(e.checklistExtra)[0];
   const grpStat=g=>{ const a=ck.filter(x=>x.group===g); return [a.filter(x=>x.done).length,a.length]; };
-  const scoreN=countTasks(e.rankings)[0]+countTasks(e.teamScores)[0], outN=OUTPUT_LISTS.reduce((a,[k])=>a+countTasks(e[k])[0],0);
+  const scoreN=countTasks(e.rankings)[0]+countTasks(e.teamScores)[0], outN=OUTPUT_LISTS.reduce((a,[k])=>a+countTasks(e[k])[0],0), regN=REG_LISTS.reduce((a,[k])=>a+countTasks(e[k])[0],0);
   const tpTools=`<button class="btn sm ghost" type="button" data-tpcolors>Auto colours</button><button class="btn sm ghost" type="button" data-tpexport title="Timing Points.lvs for RR14">${ic('file',1.8)} Export .lvs</button>`;
   D.innerHTML=`
   <div class="crumbs">${e.clientId&&clientOf(e.clientId)?`<button type="button" data-go="c:${esc(e.clientId)}">${esc(clientName(e.clientId))}</button>`:`<span>${esc(clientName(e.clientId))}</span>`}${ic('chev')}<span>${esc(e.type||'Event')}</span></div>
@@ -1758,7 +1759,7 @@ function renderEvent(D){
     <button class="btn icon ghost sidebtn ${sideOpen?'on':''}" id="sidebtn" type="button" aria-pressed="${sideOpen}" data-tip="${sideOpen?'Collapse':'Show'} side panel" data-kbd="]" aria-label="Side panel">${ic('side',1.9)}</button>${closeBtn('event')}</div>
   <div class="dmeta"><span class="cd ${cd.c||''}" style="${cd.c?'':'padding:0 7px;border-radius:999px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)'}">${cd.t}</span><span>${esc(rt.main)}</span><span class="dot"></span><span>${esc(e.location||'no location')}</span><span class="dot"></span><span style="display:flex;align-items:center;gap:6px">${ring(p,14,2.2)} ${pct}% prepared</span>${oq?`<span class="dot"></span><span class="qb">${plural(oq,'open question','open questions')}</span>`:''}<span class="dot"></span>${metaLink(LK.res)}${metaLink(LK.rr)}</div>
   <nav class="jump" id="jump" aria-label="Sections">
-    <a href="#s-general" data-jump>${secBadge('general','ji')}General</a><a href="#s-rr14" data-jump>${secBadge('rr14','ji')}RR14</a><a href="#s-links" data-jump>${secBadge('links','ji')}Links <em>${e.links.length||''}</em></a><a href="#s-tps" data-jump>${secBadge('tps','ji')}Timing points <em>${e.timingPoints.length}</em></a><a href="#s-races" data-jump>${secBadge('races','ji')}Races <em>${e.contests.length}</em></a><a href="#s-scoring" data-jump>${secBadge('scoring','ji')}Scoring <em>${scoreN||''}</em></a><a href="#s-outputs" data-jump>${secBadge('outputs','ji')}Outputs <em>${outN||''}</em></a>
+    <a href="#s-general" data-jump>${secBadge('general','ji')}General</a><a href="#s-rr14" data-jump>${secBadge('rr14','ji')}RR14</a><a href="#s-links" data-jump>${secBadge('links','ji')}Links <em>${e.links.length||''}</em></a><a href="#s-tps" data-jump>${secBadge('tps','ji')}Timing points <em>${e.timingPoints.length}</em></a><a href="#s-races" data-jump>${secBadge('races','ji')}Races <em>${e.contests.length}</em></a><a href="#s-registration" data-jump>${secBadge('registration','ji')}Registration <em>${regN||''}</em></a><a href="#s-scoring" data-jump>${secBadge('scoring','ji')}Scoring <em>${scoreN||''}</em></a><a href="#s-outputs" data-jump>${secBadge('outputs','ji')}Outputs <em>${outN||''}</em></a>
     <a href="#s-questions" data-jump>${secBadge('questions','ji')}Questions <em class="${oq?'w':''}">${oq||''}</em></a><a href="#s-checklist" data-jump>${secBadge('checklist','ji')}Checklist <em>${pct}%</em></a>${showH?`<a href="#s-hours" data-jump>${secBadge('hours','ji')}Hours <em>${fmtN(sumH(evHours))}</em></a>`:''}<a href="#s-notes" data-jump>${secBadge('notes','ji')}Notes</a>
   </nav>
   <div class="evgrid ${sideOpen?'':'collapsed'}"><div class="evmain">
@@ -1793,6 +1794,10 @@ function renderEvent(D){
 
   <section class="sec" id="s-races"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Races <span class="count">${e.contests.length}</span></h3><span class="sp"></span>${e.contests.length>1?`<button class="btn sm ghost" id="ctall" type="button">${e.contests.every(c=>openRaces.has(c.id))?'Collapse all':'Expand all'}</button>`:''}<button class="btn sm" id="addct" type="button">${ic('plus',2.2)} Race</button></div>
   ${e.contests.map((c,ci)=>raceCard(e,c,ci,tpOpts)).join('')||emptyBox('flag','No races yet.')}
+  </section>
+
+  <section class="sec" id="s-registration"><div class="sech" style="--sc:${SECC.registration}"><h3>${secBadge('registration')}On-registration / Kiosk</h3></div>
+  ${REG_LISTS.map(([k,l,ph,u])=>Tasks(e,k,l,ph,`${k}-${e.id}`,u)).join('')}
   </section>
 
   <section class="sec" id="s-scoring"><div class="sech" style="--sc:${SECC.scoring}"><h3>${secBadge('scoring')}Scoring</h3></div>
@@ -2307,6 +2312,8 @@ function summaryHTML(e,withResolved){
     ${timed.length?`<h2>Timing points per race</h2>${timed.map(c=>`<div><b>${esc(c.name)}</b><div class="s-seq">${seq(c)}</div></div>`).join('')}`:''}
     ${e.timingPoints.length?`<h2>Timing points${e.technology?` · ${esc(TECH[e.technology].label)} timing <img class="s-hw" src="${TECH[e.technology].img}" alt="">`:''}</h2><table><thead><tr><th></th><th>Timing point</th><th>Hardware</th><th>Ch. / L.</th><th>Position</th></tr></thead><tbody>${e.timingPoints.map(t=>{ const rt=repeatTarget(e,t);
       return `<tr><td style="width:34px">${hwImg(t.hardware)?`<img class="s-hw" src="${hwImg(t.hardware)}" alt="">`:''}</td><td><span class="s-sw" style="background:${esc(t.color||'#ccc')}"></span>${esc(t.name)}</td><td>${esc(t.hardware||'—')}${t.mode?` · ${esc(t.mode)}`:''}${rt?` <span class="s-rep">→ ${esc(rt.name)}</span>`:''}</td><td>${idKey(e,t)?esc((t.ch?'Ch. '+t.ch:'')+(t.loop&&HW[t.hardware]?.loop?' / L. '+t.loop:'')):''}</td><td>${esc(t.position)}</td></tr>`; }).join('')}</tbody></table>`:''}
+    ${e.onReg.length?`<h2>On-registration</h2><div>${e.onReg.map(item).join('<br>')}</div>`:''}
+    ${e.kiosk.length?`<h2>Kiosk</h2><div>${e.kiosk.map(item).join('<br>')}</div>`:''}
     ${e.rankings.length?`<h2>Rankings</h2><div>${e.rankings.map(item).join('<br>')}</div>`:''}
     ${e.teamScores.length?`<h2>Team scores</h2><div>${e.teamScores.map(item).join('<br>')}</div>`:''}
     ${withResolved&&rq.length?`<h2>Resolved questions</h2><ul class="s-qs done">${rq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}${q.answer?`<div class="s-a">→ ${esc(q.answer)}</div>`:''}</span></li>`).join('')}</ul>`:''}
@@ -2421,6 +2428,8 @@ function aiPrompt(e=null){
   } ],
   "rankings":         [ { "text": "e.g. Overall M/F", "note": "string", "children": [ { "text": "string" } ] } ],
   "teamScores":       [ { "text": "string", "note": "string", "children": [] } ],
+  "onReg":            [ { "text": "on-site registration item, e.g. Late entries at the race office", "note": "string" } ],
+  "kiosk":            [ { "text": "self-service kiosk item, e.g. Bib check / print kiosk", "note": "string" } ],
   "lists":            [ { "text": "e.g. Speaker list", "note": "string" } ],
   "myrrTabs":         [ { "text": "string", "url": "https://…" } ],
   "participantViews": [ { "text": "string", "url": "https://…" } ],
@@ -2898,7 +2907,7 @@ function newItem(){
   if(!S) return;
   if(route.view==='c'){ const c={id:uid('cl'),name:'',contact:'',email:'',phone:'',rrCustomerId:'',notes:''}; S.clients.push(c); touch(); go('c',c.id); focusName(); return; }
   if(route.view==='h'){ $('#a-hours')?.focus(); return; }
-  const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],rankings:[],teamScores:[],lists:[],myrrTabs:[],participantViews:[],presenter:[],questions:[],checklist:{},checklistExtra:[],notes:''};
+  const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],rankings:[],teamScores:[],onReg:[],kiosk:[],lists:[],myrrTabs:[],participantViews:[],presenter:[],questions:[],checklist:{},checklistExtra:[],notes:''};
   S.events.push(e); touch(); go('e',e.id); focusName();
 }
 async function logout(){
