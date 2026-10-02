@@ -1085,10 +1085,10 @@ main.agenda #detail{max-width:1560px}
 .agmini .g button.c:not(.s):not(.t) b{box-shadow:inset 0 0 0 1.5px var(--warn);border-radius:999px;width:28px}
 .agmini .g u{display:flex;gap:2px;text-decoration:none;height:5px;margin-top:3px}
 .agmini .g u i{width:5px;height:5px;border-radius:50%}
-.agmini .g button.r::before{content:"";position:absolute;left:0;right:0;top:44px;height:3px;opacity:.8}
-.agmini .g button.r.rs::before{border-radius:3px 0 0 3px} .agmini .g button.r.re::before{border-radius:0 3px 3px 0} .agmini .g button.r.rs.re::before{border-radius:3px;left:25%;right:25%}
-.agmini .g button.r.travel::before{background:var(--ag-travel)} .agmini .g button.r.away::before{background:var(--ag-away)} .agmini .g button.r.other::before{background:var(--ag-other)}
-.agmini .g button.rs::before{left:50%} .agmini .g button.re::before{right:50%}
+.agmini .g{position:relative}
+.agln{position:absolute;inset:0;pointer-events:none}
+.agln i{position:absolute;height:3px;opacity:.85} .agln i.st{border-top-left-radius:3px;border-bottom-left-radius:3px} .agln i.en{border-top-right-radius:3px;border-bottom-right-radius:3px}
+.agln i.travel{background:var(--ag-travel)} .agln i.away{background:var(--ag-away)} .agln i.other{background:var(--ag-other)}
 .agph .aghead .btn.ghost{border-color:transparent;background:none;box-shadow:none;width:34px}
 .agph .agdh{display:flex;align-items:center;justify-content:space-between;margin:16px 2px 7px}
 .agdh .w{display:inline-flex;align-items:center;gap:5px;color:var(--warn);text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:500} .agdh .w svg{width:14px;height:14px}
@@ -1102,18 +1102,6 @@ main.agenda #detail{max-width:1560px}
 .phtd.add{color:var(--ink-3)} .phtd.add svg{width:16px;height:16px;flex:none;margin-left:1px} .phtd.add .cell{flex:1;height:44px;padding:0}
 .phnotes textarea{display:block;width:100%;border:0;background:none;color:var(--ink);padding:12px 0;min-height:56px;resize:none;font:inherit;font-size:15px;line-height:1.5;outline:none}
 @media (max-width:860px){ .newbtn.onag{display:none!important} }
-.encal{border:1px solid var(--line-2);border-radius:10px;padding:6px 8px 8px;user-select:none;-webkit-user-select:none}
-.ecnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px} .ecnav b{font-size:13.5px}
-.ecg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));row-gap:2px}
-.ecg span{text-align:center;font-size:10.5px;font-weight:600;color:var(--ink-3);padding:2px 0 4px}
-.ecg button{position:relative;height:34px;border:0;background:none;font-size:13.5px;color:var(--ink);font-variant-numeric:tabular-nums}
-.ecg button.o{color:var(--ink-3)}
-.ecg button.t{font-weight:700;color:var(--accent)}
-.ecg button.in{background:var(--accent-soft)}
-.ecg button.a{border-radius:9px 0 0 9px} .ecg button.b{border-radius:0 9px 9px 0} .ecg button.a.b{border-radius:9px}
-.ecg button.a,.ecg button.b{background:var(--accent);color:var(--accent-ink);font-weight:600}
-.ecg button i{position:absolute;left:50%;bottom:4px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--warn)}
-.ecg button.a i,.ecg button.b i{background:var(--accent-ink)}
 #tdform .fld,#entryform .fld{margin-bottom:10px}
 #tdform .lab,#entryform .lab{display:flex;align-items:center;gap:4px}
 #tdform .acts{display:flex;gap:8px;align-items:center;margin-top:8px}
@@ -1216,7 +1204,7 @@ main.agenda #detail{max-width:1560px}
     <h2 id="en-head" style="margin:0 0 14px;font-size:17px">New entry</h2>
     <div class="enseg" id="en-type" role="group" aria-label="Type"><button type="button" data-t="travel">Travel</button><button type="button" data-t="away">Away</button><button type="button" data-t="other">Other</button></div>
     <div class="fld"><label class="lab" for="en-tt">Title</label><input class="in" id="en-tt" placeholder="Bastia, Holiday, Dentist…"></div>
-    <div class="fld"><div class="lab">Dates <span class="lh" id="en-sum"></span></div><div class="encal" id="en-cal"></div></div>
+    <div class="en2"><div class="fld"><label class="lab" for="en-from">From</label><input class="in" type="date" id="en-from"></div><div class="fld"><label class="lab" for="en-to">To</label><input class="in" type="date" id="en-to"></div></div>
     <div class="en2"><div class="fld"><label class="lab" for="en-time">Time <span class="lh">optional</span></label><input class="in" type="time" id="en-time"></div><div></div></div>
     <div class="fld"><label class="lab" for="en-note">Note</label><textarea class="in" id="en-note" rows="2" placeholder="Optional"></textarea></div>
     <div class="hint" id="en-hint" style="min-height:18px"></div>
@@ -1227,7 +1215,7 @@ main.agenda #detail{max-width:1560px}
   <form class="dlg" id="tdform" autocomplete="off">
     <h2 style="margin:0 0 14px;font-size:17px">To-do</h2>
     <div class="fld"><label class="lab" for="tf-text">To-do</label><input class="in" id="tf-text" placeholder="What to take care of"></div>
-    <div class="fld"><div class="lab">Due <span class="lh" id="tf-sum"></span><button class="btn sm ghost" type="button" id="tf-nodate" style="margin-left:auto;height:22px">No date</button></div><div class="encal" id="tf-cal"></div></div>
+    <div class="fld"><label class="lab" for="tf-due">Due <span class="lh">optional</span><button class="btn sm ghost" type="button" id="tf-nodate" style="margin-left:auto;height:22px">No date</button></label><input class="in" type="date" id="tf-due"></div>
     <div class="fld"><label class="lab" for="tf-link">Link</label><select class="in" id="tf-link"></select></div>
     <div class="fld"><label class="lab" for="tf-note">Note</label><textarea class="in" id="tf-note" rows="2" placeholder="Optional"></textarea></div>
     <div class="acts"><button class="btn dangerous" type="button" id="tf-del">Delete</button><span class="spacer"></span><button class="btn" type="button" id="tf-cancel">Cancel</button><button class="btn primary" type="submit">Save</button></div>
@@ -2546,12 +2534,17 @@ function agListView(){
 }
 function agMini(){
   const first=`${agMonth}-01`, off=(parse(first).getDay()+6)%7, start=addDays(first,-off), last=monthDays(agMonth).pop();
-  const cells=[]; for(let d=start;d<=last||cells.length%7;d=addDays(d,1)) cells.push(d);
   const ev=agF.ev?agEvents():[], en=agF.mine?agEntries():[], td=agF.todo?S.agenda.todos.filter(t=>t.due&&!t.done):[];
-  return `<div class="agmini"><div class="h">${['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('')}</div><div class="g">${cells.map(d=>{
-    const dots=[...ev.filter(i=>onDay(i,d)).map(i=>statusColor(i.o.status)),...td.filter(t=>t.due===d).map(()=>d<TODAY?'var(--danger)':'var(--ink-3)')].slice(0,4);
-    const r=en.filter(i=>onDay(i,d))[0];
-    return `<button type="button" data-sel="${d}" class="${d.slice(0,7)!==agMonth?'o':''} ${d===TODAY?'t':''} ${d===agSel?'s':''} ${r?'r '+r.o.type+(r.s===d?' rs':'')+(r.e===d?' re':''):''} ${d.slice(0,7)===agMonth&&clashOn(d)?'c':''}" aria-label="${esc(fmtLong(d))}"><b>${parse(d).getDate()}</b><u>${dots.map(c=>`<i style="background:${esc(c)}"></i>`).join('')}</u></button>`; }).join('')}</div></div>`;
+  const weeks=[]; for(let w=start;w<=last;w=addDays(w,7)) weeks.push(w);
+  return `<div class="agmini"><div class="h">${['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('')}</div>${weeks.map(ws=>{
+    const days=[...Array(7)].map((_,i)=>addDays(ws,i)), we=days[6];
+    // travel / away / other as lines under the days: own layer, so nothing in a day cell can move them
+    const segs=en.filter(i=>i.s<=we&&i.e>=ws).slice(0,2).map((i,k)=>{ const a=days.indexOf(i.s<ws?ws:i.s), b=days.indexOf(i.e>we?we:i.e);
+      const l=(a+(i.s>=ws?.5:0))/7*100, r=(b+(i.e<=we?.5:1))/7*100, one=i.s===i.e;
+      return `<i class="${i.o.type} ${i.s>=ws?'st':''} ${i.e<=we?'en':''}" style="left:${one?l-3.5:l}%;width:${one?7:r-l}%;bottom:${3+k*5}px"></i>`; }).join('');
+    return `<div class="g">${days.map(d=>{
+      const dots=[...ev.filter(i=>onDay(i,d)).map(i=>statusColor(i.o.status)),...td.filter(t=>t.due===d).map(()=>d<TODAY?'var(--danger)':'var(--ink-3)')].slice(0,4);
+      return `<button type="button" data-sel="${d}" class="${d.slice(0,7)!==agMonth?'o':''} ${d===TODAY?'t':''} ${d===agSel?'s':''} ${d.slice(0,7)===agMonth&&clashOn(d)?'c':''}" aria-label="${esc(fmtLong(d))}"><b>${parse(d).getDate()}</b><u>${dots.map(c=>`<i style="background:${esc(c)}"></i>`).join('')}</u></button>`; }).join('')}<span class="agln">${segs}</span></div>`; }).join('')}</div>`;
 }
 function linkOpts(link){
   const evOpts=S.events.filter(e=>!isPast(e)||link==='e:'+e.id).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
@@ -2644,62 +2637,45 @@ function linkedTodos(e){
   const a=S.agenda.todos.filter(t=>t.link==='e:'+e.id); if(!a.length) return '';
   return `<div class="tasks"><div class="th">From Agenda<a class="hint" href="#/a" style="margin-left:auto">open Agenda</a></div>${a.map(t=>`<div class="tdrow mini ${t.done?'done':''}"><input type="checkbox" class="ck" data-o="${ref(t)}" data-k="done" data-r="detail" ${t.done?'checked':''} aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}</span>${t.due?`<span class="tdue ${dueCls(t)} set">${esc(dueTxt(t.due))}</span>`:''}</div>`).join('')}</div>`;
 }
-/* small month picker inside a dialog: tap a day; with range, tap a second day to extend it */
-function inlineCal(el,st,{range=true,onPick}={}){
-  const busy={}; for(const i of agEvents()) for(let d=i.s,n=0;d<=i.e&&n<62;d=addDays(d,1),n++) busy[d]=1;
-  const draw=()=>{
-    const first=new Date(st.y,st.m,1,12), off=(first.getDay()+6)%7, start=isoOf(new Date(st.y,st.m,1-off,12)), ym=isoOf(first).slice(0,7);
-    const last=isoOf(new Date(st.y,st.m+1,0,12)), cells=[]; for(let d=start;d<=last||cells.length%7;d=addDays(d,1)) cells.push(d);
-    const lo=st.from, hi=st.to||st.from;
-    el.innerHTML=`<div class="ecnav"><button type="button" class="btn icon sm ghost" data-ecn="-1" aria-label="Previous month">${ic('chevl',2.2)}</button><b>${MONL[st.m]} ${st.y}</b><button type="button" class="btn icon sm ghost" data-ecn="1" aria-label="Next month">${ic('chev',2.2)}</button></div>
-      <div class="ecg">${['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('')}${cells.map(d=>`<button type="button" data-ecd="${d}" class="${d.slice(0,7)!==ym?'o':''} ${d===TODAY?'t':''} ${lo&&d>=lo&&d<=hi?'in':''} ${d===lo?'a':''} ${d===hi?'b':''}">${parse(d).getDate()}${busy[d]?'<i></i>':''}</button>`).join('')}</div>`; };
-  el.onclick=e=>{ const n=e.target.closest('[data-ecn]'); if(n){ const d=new Date(st.y,st.m+(+n.dataset.ecn),1,12); st.y=d.getFullYear(); st.m=d.getMonth(); draw(); return; }
-    const b=e.target.closest('[data-ecd]'); if(!b) return; const d=b.dataset.ecd;
-    if(!range||!st.pending||d<st.from){ st.from=st.to=d; st.pending=range; } else { st.to=d; st.pending=false; }
-    if(d.slice(0,7)!==isoOf(new Date(st.y,st.m,1,12)).slice(0,7)){ st.y=parse(d).getFullYear(); st.m=parse(d).getMonth(); }
-    draw(); onPick?.(); };
-  st.redraw=draw; draw();
-}
 /* entry dialog */
-let enCur=null; const EC={};
+let enCur=null;
 function openEntry(x,from=TODAY,to=from){
   closePops(); closeCmd(); enCur=x;
   const v=x||{type:agType,title:'',from,to,time:'',note:''};
   $('#en-head').textContent=x?'Edit entry':'New entry';
   $('#en-tt').value=v.title; $('#en-time').value=v.time; $('#en-note').value=v.note;
-  Object.assign(EC,{from:v.from,to:v.to||v.from,pending:!x&&v.from===(v.to||v.from),y:parse(v.from).getFullYear(),m:parse(v.from).getMonth()});
-  inlineCal($('#en-cal'),EC,{onPick:enHint});
+  $('#en-from').value=v.from; $('#en-to').value=v.to||v.from;
   setEnType(v.type); $('#en-del').hidden=!x; $('#en-go').textContent=x?'Save':'Add';
   enHint(); $('#entrydlg').showModal(); if(!narrow.matches) setTimeout(()=>$('#en-tt').focus(),30);
 }
 function setEnType(t){ $('#en-type').dataset.t=t; $('#en-type').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t)); }
-function enHint(){ const f=EC.from, t=EC.to||f;
-  $('#en-sum').textContent=f===t?`· ${fmtShort(f)}${EC.pending?' · tap another day for several days':''}`:`· ${rangeText(f,t).main}`;
-  if(!f){ $('#en-hint').textContent=''; return; }
+function enHint(){ const f=$('#en-from').value, t=$('#en-to').value||f; if(!f){ $('#en-hint').textContent=''; return; }
   const ev=agEvents().filter(i=>i.s<=(t<f?f:t)&&i.e>=(t<f?t:f)).map(i=>i.o.name||'untitled');
   $('#en-hint').textContent=ev.length?`Events on these days: ${ev.join(', ')}${$('#en-type').dataset.t==='travel'?'':' (shown as a clash)'}`:''; }
 $('#en-type').addEventListener('click',e=>{ const b=e.target.closest('button[data-t]'); if(b){ setEnType(b.dataset.t); enHint(); } });
+/* the iPhone date wheel stays open until you tap elsewhere: close it as soon as a day is picked */
+$('#en-from').addEventListener('change',e=>{ if(!$('#en-to').value||$('#en-to').value<e.target.value) $('#en-to').value=e.target.value; e.target.blur(); enHint(); });
+$('#en-to').addEventListener('change',e=>{ e.target.blur(); enHint(); });
 $('#en-cancel').onclick=()=>$('#entrydlg').close();
 $('#en-del').onclick=()=>{ if(!enCur||!confirm('Delete this entry?')) return; S.agenda.entries=S.agenda.entries.filter(x=>x!==enCur); touch('none'); $('#entrydlg').close(); renderDetail(); };
 $('#entryform').addEventListener('submit',ev=>{ ev.preventDefault();
-  let f=EC.from, t=EC.to||f; if(!f) return; if(t<f) [f,t]=[t,f];
+  let f=$('#en-from').value, t=$('#en-to').value||f; if(!f){ $('#en-from').focus(); return; } if(t<f) [f,t]=[t,f];
   const v={type:$('#en-type').dataset.t,title:$('#en-tt').value.trim(),from:f,to:t,time:$('#en-time').value,note:$('#en-note').value.trim()};
   agType=v.type;
   if(enCur) Object.assign(enCur,v); else S.agenda.entries.push({id:uid('ag'),...v});
   touch('none'); $('#entrydlg').close(); agMonth=f.slice(0,7); agSel=f; if(route.view==='a') renderDetail(); else go('a');
 });
 /* to-do dialog (phone) */
-let tdCur=null; const TC={};
+let tdCur=null;
 function openTodo(t){ closePops(); tdCur=t;
   $('#tf-text').value=t.text; $('#tf-note').value=t.note||''; $('#tf-link').innerHTML=linkOpts(t.link);
-  const b=parse(t.due||TODAY); Object.assign(TC,{from:t.due,to:t.due,pending:false,y:b.getFullYear(),m:b.getMonth()});
-  inlineCal($('#tf-cal'),TC,{range:false,onPick:tfSum}); tfSum(); $('#tododlg').showModal(); }
-function tfSum(){ $('#tf-sum').textContent=TC.from?`· ${fmtShort(TC.from)}`:'· no date'; $('#tf-nodate').hidden=!TC.from; }
-$('#tf-nodate').onclick=()=>{ TC.from=TC.to=''; TC.redraw(); tfSum(); };
+  $('#tf-due').value=t.due||''; $('#tf-nodate').hidden=!t.due; $('#tododlg').showModal(); }
+$('#tf-due').addEventListener('change',e=>{ e.target.blur(); $('#tf-nodate').hidden=!e.target.value; });
+$('#tf-nodate').onclick=()=>{ $('#tf-due').value=''; $('#tf-nodate').hidden=true; };
 $('#tf-cancel').onclick=()=>$('#tododlg').close();
 $('#tf-del').onclick=()=>{ if(!tdCur) return; S.agenda.todos=S.agenda.todos.filter(x=>x!==tdCur); touch('none'); $('#tododlg').close(); renderDetail(); };
 $('#tdform').addEventListener('submit',ev=>{ ev.preventDefault(); if(!tdCur) return;
-  Object.assign(tdCur,{text:$('#tf-text').value.trim()||tdCur.text,due:TC.from||'',link:$('#tf-link').value,note:$('#tf-note').value.trim()});
+  Object.assign(tdCur,{text:$('#tf-text').value.trim()||tdCur.text,due:$('#tf-due').value||'',link:$('#tf-link').value,note:$('#tf-note').value.trim()});
   touch('none'); $('#tododlg').close(); renderDetail(); });
 /* one-off .ics file for Apple / Google Calendar: events and own entries, all-day */
 function exportICS(){
