@@ -2396,7 +2396,9 @@ function aiPrompt(e=null){
     `timeBasis (rankings by): "gun" | "chip" | null`,'');
   L.push('SPLITS (RR14 convention, per race)',
     '- "finish" is always present and always the last split.',
-    '- "start" only if the email says there is a timing mat / box at the start; then "startSplit": true and the start split has km 0. Otherwise "startSplit": false (gun start) and no start split.',
+    '- "start": whenever the email gives a start location for a race, include a start split ("startSplit": true, km 0). If start and finish are at the same place ("départ/arrivée même endroit", "partenza/arrivo stesso posto"), the start split uses the SAME timing point as the finish; otherwise add a timing point named after the start place (e.g. "Patrimonio") and use it.',
+    '- Use "startSplit": false and no start split only if the email says gun start / no timing at the start, or gives no start location at all.',
+    '- If the email does not confirm a timing mat at the start, ask once per event whether there is one (chip start) or it is a gun start.',
     '- "split" = optional intermediate timing points, in course order, with their km.',
     '- "timingPoint" refers to a timing point by its exact "name" from "timingPoints". Every point used in splits must be listed in "timingPoints".',
     '- "TB", "Track Box", "tapis", "tappeto", "mat", "point de contrôle chronométré" at km X are timing points. Do not choose hardware unless the email names it.','');
@@ -2432,6 +2434,7 @@ function aiPrompt(e=null){
       `The email(s) are about the event below, already in the app. Return ONE event with the same "id": "${e.id}". Include what the email adds or changes; you may repeat unchanged values. Do not repeat questions that are already listed. Do not remove anything.`,
       '```json',JSON.stringify(eventToImport(e),null,2),'```','');
   }
+  L.push('OPERATOR NOTES (optional, written by the operator; they override the email when they conflict):','(none — add your own hints here, e.g. "every race has a start mat", "TB = Track Box Passive")','');
   L.push('EMAIL(S):','(paste the customer email(s) below this line)');
   return L.join('\n');
 }

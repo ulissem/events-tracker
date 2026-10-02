@@ -1,5 +1,5 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v9';
+const CACHE = 'events-tracker-v10';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 // A new version installs and then waits; the page shows "New version available" and asks it to take over.
