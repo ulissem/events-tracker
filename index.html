@@ -3575,9 +3575,14 @@ async function bioCreate(salt){
     authenticatorSelection:{authenticatorAttachment:'platform',residentKey:'required',userVerification:'required'},
     extensions:{prf:{eval:{first:fromB64(salt)}}}}});
   const ext=cred.getClientExtensionResults?.().prf||{}, id=toB64(cred.rawId);
-  if(ext.enabled===false) throw new Error('This passkey can’t encrypt (no PRF support here).');
-  const out=ext.results?.first?new Uint8Array(ext.results.first):await bioGet(id,salt); // Safari: second Face ID to get the secret
-  return {id,out}; }
+  if(ext.enabled===false) return {id,out:null}; // e.g. Chrome's own passkey store: unlock only, no secret
+  if(ext.results?.first) return {id,out:new Uint8Array(ext.results.first)};
+  try{ return {id,out:await bioGet(id,salt)}; }catch{ return {id,out:null}; } } // Safari: second Face ID to get the secret
+/* Face ID / Touch ID as a gate only (no PRF): the data key lives in IndexedDB as a non-extractable key */
+async function bioAssert(credId){ await navigator.credentials.get({publicKey:{challenge:rnd(32),rpId:location.hostname,timeout:60000,userVerification:'required',allowCredentials:[{type:'public-key',id:fromB64(credId)}]}}); }
+const idb=()=>new Promise((ok,ko)=>{ const r=indexedDB.open('events-tracker-lock',1); r.onupgradeneeded=()=>r.result.createObjectStore('k'); r.onsuccess=()=>ok(r.result); r.onerror=()=>ko(r.error); });
+async function idbKey(op,val){ const db=await idb(); return new Promise((ok,ko)=>{ const tx=db.transaction('k',op==='get'?'readonly':'readwrite'), st=tx.objectStore('k');
+  const q=op==='get'?st.get('dk'):op==='put'?st.put(val,'dk'):st.delete('dk'); q.onsuccess=()=>ok(q.result); q.onerror=()=>ko(q.error); }); }
 
 /* device copy, encrypted while the lock is on (readLocal / persistLocal go through these) */
 function writeLocalRec(rec){
@@ -3587,8 +3592,8 @@ function writeLocalRec(rec){
     .catch(()=>{ if(!localWarned){ localWarned=true; toast('No offline copy','browser storage is full or blocked','warn','warn'); } });
 }
 async function writeCfgEnc(){ if(!DK) return; const te=await encJSON({token:cfg.token}); const c={...cfg,token:'',tokenEnc:te}; try{ localStorage.setItem(CFG_KEY,JSON.stringify(c)); }catch{} }
-async function openVault(raw){
-  DK=await aesKey(raw);
+async function openVault(raw,key=null){
+  DK=key||await aesKey(raw);
   const c=readLS(CFG_KEY); if(c.tokenEnc){ try{ cfg.token=(await decJSON(c.tokenEnc)).token||''; }catch{ cfg.token=''; } }
   try{ const r=JSON.parse(localStorage.getItem(LOCAL_KEY())||'null'); localCache=r?.enc?await decJSON(r.enc):r?.v===1?r:null; }catch{ localCache=null; }
 }
@@ -3602,9 +3607,11 @@ function showLock(msg=''){
   if(!LOCK.credId) setTimeout(()=>$('#al-pin').focus(),50);
   return new Promise(r=>{ lockResolve=r; if(LOCK.credId) unlockBio(true); });
 }
-async function done_(raw){ await openVault(raw); RAW_HOLD=raw; $('#applock').hidden=true; document.body.classList.remove('locked'); curtain(false); lastAct=Date.now(); lockResolve?.(); lockResolve=null; }
+async function done_(raw,key=null){ await openVault(raw,key); if(raw) RAW_HOLD=raw; $('#applock').hidden=true; document.body.classList.remove('locked'); curtain(false); lastAct=Date.now(); lockResolve?.(); lockResolve=null; }
 async function unlockBio(auto=false){
-  try{ $('#al-bio').disabled=true; const out=await bioGet(LOCK.credId,LOCK.prfSalt); await done_(await unwrap(LOCK.wPrf,await prfKey(out))); }
+  try{ $('#al-bio').disabled=true;
+    if(LOCK.mode==='gate'){ await bioAssert(LOCK.credId); const k=await idbKey('get'); if(!k) throw new Error(`The ${BIO} key is missing on this device — use the PIN`); await done_(null,k); }
+    else{ const out=await bioGet(LOCK.credId,LOCK.prfSalt); await done_(await unwrap(LOCK.wPrf,await prfKey(out))); } }
   catch(err){ if(!auto) $('#al-msg').textContent=err?.name==='NotAllowedError'?`${BIO} cancelled — try again or use the PIN`:(err.message||'Could not unlock'); }
   finally{ $('#al-bio').disabled=false; }
 }
@@ -3617,6 +3624,7 @@ $('#al-pinf').addEventListener('submit',async ev=>{ ev.preventDefault(); const p
   finally{ $('#al-pgo').disabled=false; } });
 $('#al-reset').onclick=()=>{
   if(!confirm('Reset this device?\n\nThis removes the app lock, the GitHub token and the offline copy from this device. Changes not yet saved to GitHub are lost.\n\nYou log in again with your token (Bitwarden).')) return;
+  idbKey('del').catch(()=>{});
   try{ localStorage.removeItem(LOCK_KEY); localStorage.removeItem(LOCAL_KEY()); const c=readLS(CFG_KEY); delete c.tokenEnc; c.token=''; localStorage.setItem(CFG_KEY,JSON.stringify(c)); }catch{}
   location.reload(); };
 /* cover while the app is in the background (also hides it in the iPhone app switcher) */
@@ -3634,7 +3642,7 @@ setInterval(()=>{ if(lockOn()&&DK&&Date.now()-lastAct>Math.max(lockMs(),60e3)) l
 /* settings: turn on / off, lock after, change PIN */
 function lockInfo(){
   const on=lockOn();
-  $('#s-lkinfo').textContent=DEMO?'Not in demo mode.':!on?'Off. The token and offline copy are stored in clear on this device.':`On · ${LOCK.credId?BIO+' + PIN':'PIN only'} · data on this device is encrypted`;
+  $('#s-lkinfo').textContent=DEMO?'Not in demo mode.':!on?'Off. The token and offline copy are stored in clear on this device.':`On · ${LOCK.credId?BIO+(LOCK.mode==='gate'?' (unlock only)':'')+' + PIN':'PIN only'} · data on this device is encrypted`;
   $('#s-lkon').hidden=on||DEMO; $('#s-lkoff').hidden=!on; $('#s-lkpin').hidden=!on; $('#s-lkafter-row').hidden=!on;
   if(on) $('#s-lkafter').value=String(LOCK.after??5);
 }
@@ -3643,7 +3651,7 @@ $('#s-lkon').onclick=()=>{ $('#settings').close(); openLockSetup(); };
 $('#s-lkpin').onclick=()=>{ $('#settings').close(); openLockSetup(true); };
 $('#s-lkoff').onclick=async()=>{
   if(!confirm('Turn off the app lock on this device?\n\nThe token and the offline copy will be stored without encryption again.')) return;
-  const rec=localCache; LOCK=null; DK=null; localCache=null;
+  const rec=localCache; LOCK=null; DK=null; localCache=null; idbKey('del').catch(()=>{});
   try{ localStorage.removeItem(LOCK_KEY); const c={...cfg}; delete c.tokenEnc; localStorage.setItem(CFG_KEY,JSON.stringify(c)); if(rec) localStorage.setItem(LOCAL_KEY(),JSON.stringify(rec)); }catch{}
   persistLocal(); lockInfo(); toast('App lock off','you can delete the “Events tracker” passkey in the Passwords app','lock'); };
 let lkPinOnly=false;
@@ -3665,17 +3673,19 @@ async function turnOnLock(useBio){
     if(lkPinOnly){ const raw=await unwrapCurrent(); pinW.w=await wrap(raw,await pinKey(p,salt,PBKDF2_ITER)); LOCK.pin=pinW; localStorage.setItem(LOCK_KEY,JSON.stringify(LOCK)); $('#lockdlg').close(); toast('PIN changed','','lock'); return; }
     const raw=rnd(32); pinW.w=await wrap(raw,await pinKey(p,salt,PBKDF2_ITER));
     const rec={v:1,after:5,pin:pinW,credId:null,prfSalt:null,wPrf:null};
-    if(useBio){ msg.textContent=`Confirm with ${BIO}…`; rec.prfSalt=toB64(rnd(32)); const {id,out}=await bioCreate(rec.prfSalt); rec.credId=id; rec.wPrf=await wrap(raw,await prfKey(out)); }
+    if(useBio){ msg.textContent=`Confirm with ${BIO}…`; rec.prfSalt=toB64(rnd(32)); const {id,out}=await bioCreate(rec.prfSalt); rec.credId=id;
+      if(out){ rec.mode='prf'; rec.wPrf=await wrap(raw,await prfKey(out)); }
+      else{ rec.mode='gate'; await idbKey('put',await aesKey(raw)); } }
     const plain=readLocal();
     LOCK=rec; DK=await aesKey(raw); RAW_HOLD=raw; localStorage.setItem(LOCK_KEY,JSON.stringify(LOCK));
     await writeCfgEnc(); if(plain) writeLocalRec(plain); else persistLocal(); await lastWrite;
-    $('#lockdlg').close(); toast('App lock on',useBio?`${BIO} on this device · backup PIN set`:'PIN on this device','lock');
+    $('#lockdlg').close(); toast('App lock on',useBio?`${BIO} on this device${rec.mode==='gate'?' (unlock only: this browser can’t derive a key from it)':''} · backup PIN set`:'PIN on this device','lock');
   }catch(err){ msg.textContent=err?.name==='NotAllowedError'?`${BIO} cancelled.`:err?.name==='InvalidStateError'?'A passkey already exists for this device.':(err.message||'Could not turn it on'); }
   finally{ $('#lk-go').disabled=false; $('#lk-pinonly').disabled=false; }
 }
 /* the raw data key is needed again only to re-wrap it with a new PIN: kept in memory while unlocked */
 let RAW_HOLD=null;
-async function unwrapCurrent(){ if(RAW_HOLD) return RAW_HOLD; throw new Error('Lock and unlock once, then change the PIN.'); }
+async function unwrapCurrent(){ if(RAW_HOLD) return RAW_HOLD; throw new Error('Unlock once with the PIN, then change it.'); }
 $('#lockform').addEventListener('submit',async ev=>{ ev.preventDefault(); if(lkPinOnly) return turnOnLock(false);
   if(!await bioAvailable()){ $('#lk-msg').textContent=`${BIO} isn’t available in this browser — use “PIN only”.`; return; } turnOnLock(true); });
 $('#lk-pinonly').onclick=()=>turnOnLock(false);
@@ -3696,7 +3706,7 @@ async function logout(){
   if(dirty) await save({quiet:true});
   if(dirty&&!confirm('Some changes could not be saved and will be lost. Log out anyway?')) return;
   if(hoursWaiting()&&!confirm('Hours changed offline have not been pushed yet (unlock to sync them). Log out anyway and lose them?')) return;
-  clearLocal(); try{ localStorage.removeItem(LOCK_KEY); }catch{} LOCK=null; cfg.token=''; delete cfg.tokenEnc; saveCfg(); dirty=false; unlocked=false; location.hash=''; location.reload();
+  clearLocal(); try{ localStorage.removeItem(LOCK_KEY); }catch{} idbKey('del').catch(()=>{}); LOCK=null; cfg.token=''; delete cfg.tokenEnc; saveCfg(); dirty=false; unlocked=false; location.hash=''; location.reload();
 }
 const dlg=$('#settings');
 function openSettings(msg=''){
