@@ -1434,7 +1434,7 @@ async function loadAll(){
   // a file that differs only in formatting doesn't count as unsaved
   for(const [n,t] of Object.entries(serialize())) if(txt[n]!=null&&same(txt[n],t)) saved[n]=t;
   snapshotItems(); dirty=false; unlocked=false; encKey=null; coefMigrated=false; stateMsg=null; lastSaved=null; needRemote=false;
-  hoursRec=readLocal()?.hours||null; persistLocal(); updSave();
+  hoursRec=readLocal()?.hours||null; persistLocal(); markClean(); updSave();
   return 'ok';
 }
 function snapshotItems(){ savedItems={}; for(const e of S.events) savedItems['e:'+e.id]=JSON.stringify(e); for(const c of S.clients) savedItems['c:'+c.id]=JSON.stringify(c); }
@@ -1477,7 +1477,12 @@ function commitMessage(file){
 }
 
 let dirty=false,saving=false,stateMsg=null,errMsg=null,lastSaved=null;
-function touch(what){ dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); if(what!=='none') renderList(); }
+function touch(what){ dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); }
+/* an edit that was undone (item added, then removed) is not an unsaved change: compare with what was last saved */
+let dirtyT=null, cleanSnap=null; // cleanSnap: serialize() right after loading or saving (older files are upgraded on load, so they never match the saved text exactly)
+const markClean=()=>{ cleanSnap=serialize(); };
+function recheckDirty(){ clearTimeout(dirtyT); dirtyT=setTimeout(()=>{ if(!S||saving||!dirty) return;
+  if(!Object.entries(serialize()).some(([n,t])=>(cleanSnap?.[n]??saved[n])!==t)){ dirty=false; updSave(); } },250); }
 async function save({unload=false,quiet=false,retry=0}={}){
   if(saving||!S) return;
   if(!dirty&&!needRemote){ if(hoursWaiting()&&!unload&&!quiet){ toast(`Unlock ${U().icon} to sync the hours`,'hours changed offline are kept encrypted on this device','lock'); return; }
@@ -1497,7 +1502,7 @@ async function save({unload=false,quiet=false,retry=0}={}){
       if(n.startsWith('events-')) eventFiles.add(n);
       if(n==='hours.json'){ hoursInRepo=true; coefMigrated=false; }
     }
-    snapshotItems(); saving=false; lastSaved=Date.now(); importUndo=null; updSave();
+    snapshotItems(); saving=false; lastSaved=Date.now(); importUndo=null; if(!dirty) markClean(); updSave();
     if(done.some(d=>d[0]==='hours.json')){ if(encKey) sealHours(); else if(hoursRec){ hoursRec.synced=true; hoursRec.pending=false; } }
     persistLocal();
     if(wasOffline&&done.length) toast('Back online','changes pushed to GitHub','check');
@@ -1579,7 +1584,7 @@ function bootLocal(){
   normalize(); snapshotFrom(modelOf(r.saved));
   for(const [n,t] of Object.entries(serialize())) if(saved[n]!=null&&same(saved[n],t)) saved[n]=t;
   dirty=Object.entries(serialize()).some(([n,t])=>n!=='hours.json'&&saved[n]!==t);
-  unlocked=false; needRemote=true; stateMsg=null; updSave(); return true;
+  unlocked=false; needRemote=true; stateMsg=null; cleanSnap=dirty?null:serialize(); updSave(); return true;
 }
 function snapshotFrom(m){ savedItems={}; for(const e of m.events) savedItems['e:'+e.id]=JSON.stringify(e); for(const c of m.clients) savedItems['c:'+c.id]=JSON.stringify(c); }
 function modelOf(t){
@@ -1630,7 +1635,7 @@ async function syncFromRemote(){
   if(S.hours&&saved['hours.json']==null) saved['hours.json']=hoursText();
   normalize(); snapshotFrom(Rm);
   const out=serialize(); for(const [n,t] of Object.entries(out)) if(saved[n]!=null&&same(saved[n],t)) saved[n]=t;
-  dirty=Object.entries(out).some(([n,t])=>saved[n]!==t); needRemote=false;
+  dirty=Object.entries(out).some(([n,t])=>saved[n]!==t); needRemote=false; cleanSnap=dirty?null:out;
   persistLocal(); if(encKey&&S.hours) sealHours(); updSave();
   return JSON.stringify(out)!==before;
 }
