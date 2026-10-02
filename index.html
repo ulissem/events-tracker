@@ -31,7 +31,8 @@
   --shadow-pop:0 14px 36px -10px rgba(16,24,40,.22),0 2px 6px rgba(16,24,40,.06);
   --chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23596170' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E");
   --check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8.5l2.6 2.5L12 5.5'/%3E%3C/svg%3E");
-  --hh:calc(52px + env(safe-area-inset-top,0px));
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px); --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+  --hh:calc(52px + var(--sat));
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
@@ -68,7 +69,7 @@
    ===================================================================== */
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:13.5px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-feature-settings:"cv11","ss01","ss03";font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--bg);color:var(--ink);font:13.5px/1.45 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-feature-settings:"cv11","ss01","ss03";font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;padding-bottom:var(--sab)}
 button,input,select,textarea{font:inherit;color:inherit;letter-spacing:inherit}
 button{cursor:pointer}
 a{color:var(--accent);text-decoration:none}
@@ -91,7 +92,7 @@ svg{display:block}
 .in::placeholder,.bare::placeholder,.cell::placeholder{color:var(--ink-3)}
 textarea.in{height:auto;min-height:60px;padding:7px 10px;resize:vertical;line-height:1.45;display:block}
 textarea.auto{resize:none;overflow:hidden;field-sizing:content}
-select.in,select.cell{appearance:none;-webkit-appearance:none;background-image:var(--chev);background-repeat:no-repeat;background-position:right 9px center;padding-right:28px;cursor:pointer}
+select.in,select.cell{appearance:none;-webkit-appearance:none;line-height:normal;padding-top:0;padding-bottom:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-indent:0;vertical-align:middle;background-image:var(--chev);background-repeat:no-repeat;background-position:right 9px center;padding-right:28px;cursor:pointer}
 .in.sm{height:28px;font-size:13px}
 /* affix group: icon / input / button inside one field */
 .in.group{display:flex;align-items:center;gap:6px;padding:0 3px 0 10px}
@@ -109,7 +110,7 @@ select.in,select.cell{appearance:none;-webkit-appearance:none;background-image:v
 .cell:focus{border-color:var(--accent);background:var(--field);box-shadow:0 0 0 3px var(--ring)}
 select.cell{background-position:right 7px center;padding-right:22px}
 select.cell:not(:hover):not(:focus){background-image:none}
-select.cell.empty{color:var(--ink-3)}
+select.cell.unset{color:var(--ink-3)}
 
 .btn{height:30px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 11px;border-radius:7px;border:1px solid var(--line-2);background:var(--panel);color:var(--ink);font-size:13px;font-weight:500;white-space:nowrap;box-shadow:var(--shadow-sm);text-decoration:none;transition:background-color .12s,border-color .12s,color .12s}
 .btn:hover{background:var(--hover);text-decoration:none}
@@ -169,7 +170,7 @@ input[type=checkbox].ck:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)
 /* =====================================================================
    HEADER
    ===================================================================== */
-.top{position:sticky;top:0;z-index:40;height:var(--hh);display:flex;align-items:center;gap:6px;padding:env(safe-area-inset-top,0px) max(14px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:saturate(1.5) blur(12px);-webkit-backdrop-filter:saturate(1.5) blur(12px);border-bottom:1px solid var(--line)}
+.top{position:sticky;top:0;z-index:40;height:var(--hh);display:flex;align-items:center;gap:6px;padding:var(--sat) max(14px,var(--sar)) 0 max(16px,var(--sal));background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:saturate(1.5) blur(12px);-webkit-backdrop-filter:saturate(1.5) blur(12px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:9px;margin-right:10px;font-weight:600;font-size:14px;white-space:nowrap;letter-spacing:-.01em}
 .logo{width:24px;height:24px;border-radius:7px;background:var(--ink);color:var(--panel);display:grid;place-items:center}
 .logo svg{width:14px;height:14px}
@@ -436,6 +437,7 @@ body.sorting,body.sorting *{cursor:grabbing!important;user-select:none}
 .swatch::-moz-color-swatch{border:0;border-radius:4px}
 .hwcell{display:flex;align-items:center;gap:8px;min-width:0}
 .hwsel{flex:1;min-width:0;display:flex;flex-direction:column}
+.hwsel > select{flex:none}
 .rep{font-size:11.5px;color:var(--accent);padding-left:8px;margin-top:-2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
 .rep svg{width:11px;height:11px;flex:none}
 .pin{color:var(--ink-3)}
@@ -452,6 +454,11 @@ table.t.splits col.s1{width:50px} table.t.splits col.s2{width:140px} table.t.spl
 .hs.more-r::after{opacity:1}
 table.t .stk{position:sticky;z-index:1;background:var(--panel);transition:box-shadow .15s}
 table.t .stk1{left:0} table.t .stk2{left:var(--stk2,46px)}
+table.t.tps{--c1:46px;--c2:200px} table.t.splits{--c1:50px;--c2:140px}
+table.t.tps .stk1,table.t.splits .stk1{width:var(--c1);min-width:var(--c1);max-width:var(--c1)}
+table.t.tps .stk2,table.t.splits .stk2{left:var(--c1);width:var(--c2);min-width:var(--c2);max-width:var(--c2)}
+table.t th.stk{overflow:hidden;text-overflow:ellipsis}
+table.t th.stk2 + th{padding-left:12px}
 table.t tbody tr:hover > .stk{background:var(--panel-2)}
 table.t tr.dragging > .stk{background:var(--accent-soft)}
 .hs.more-l table.t .stk2{box-shadow:10px 0 10px -10px rgba(0,0,0,.35)}
@@ -691,7 +698,7 @@ dialog::backdrop{background:var(--scrim)}
 @media (max-width:1180px){ .cmdtrig{width:auto} .cmdtrig span{display:none} .cmdtrig kbd{display:none} }
 @media (max-width:1020px){ .brand b{display:none} .savestate span{display:none} }
 @media (max-width:860px){
-  .top{padding:0 8px 0 10px;gap:2px}
+  .top{padding:var(--sat) max(8px,var(--sar)) 0 max(10px,calc(var(--sal) + 6px));gap:2px}
   .brand{margin-right:4px}
   .cmdtrig{margin-left:4px;border:0;background:none;width:30px;padding:0 7px}
   .tabs button{padding:0 8px}
@@ -725,7 +732,9 @@ dialog::backdrop{background:var(--scrim)}
   .q .qc{grid-column:2;padding-top:0;justify-content:space-between}
   .ckhead .ckbars{display:none}
   .palette{border-radius:12px}
-  .overlay{padding-top:10px}
+  .overlay{padding-top:calc(10px + var(--sat));padding-left:max(10px,var(--sal));padding-right:max(10px,var(--sar))}
+  #list{padding-left:var(--sal);padding-right:var(--sar)}
+  body.drawer #list{padding-right:0}
   table.t.resp thead{display:none}
   table.t.resp tr{display:grid;grid-template-columns:1fr auto auto;padding:6px 0;border-bottom:1px solid var(--line)}
   table.t.resp td{border:0}
@@ -739,7 +748,7 @@ dialog::backdrop{background:var(--scrim)}
 @keyframes drawerout{to{transform:translateX(-100%)}}
 #dscrim{position:fixed;inset:0;z-index:65;background:var(--scrim);animation:fade .2s}
 @media (max-width:860px){
-  :root{--tb:calc(58px + env(safe-area-inset-bottom,0px));--jh:51px}
+  :root{--tb:calc(58px + var(--sab));--jh:51px}
   body{padding-bottom:var(--tb)}
   .top{gap:4px}
   .tabs,.savestate,#savebtn,#unitbtn,#themebtn,.vsep,#setbtn,#logoutbtn{display:none!important}
@@ -748,17 +757,21 @@ dialog::backdrop{background:var(--scrim)}
   .gbtns .btn.icon{width:38px}
   /* events list as a slide-over drawer */
   body.drawer{overflow:hidden}
-  body.drawer #list{display:flex!important;position:fixed;top:0;bottom:0;left:0;z-index:70;width:min(86vw,360px);height:auto;border-right:1px solid var(--line);box-shadow:var(--shadow-pop);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);animation:drawerin .26s cubic-bezier(.2,.8,.2,1)}
+  body.drawer #list{display:flex!important;position:fixed;top:0;bottom:0;left:0;z-index:70;width:min(86vw,360px);height:auto;border-right:1px solid var(--line);box-shadow:var(--shadow-pop);padding-top:var(--sat);padding-bottom:var(--sab);padding-left:var(--sal);animation:drawerin .26s cubic-bezier(.2,.8,.2,1)}
   body.drawer-out #list{animation:drawerout .2s ease-in forwards}
   body.drawer #list .lscroll{overflow-y:auto}
   body.drawer #list .mh{top:0}
-  dialog#settings,dialog#unlock{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0}
-  dialog#unlock .dlg,dialog#settings .dlg{width:100%;padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+  dialog#settings,dialog#unlock,dialog#impdlg,dialog#aidlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0}
+  dialog#impdlg .imp,dialog#aidlg .imp{width:100%;padding:16px 14px calc(16px + var(--sab))}
+  .icard header{flex-direction:column;align-items:stretch} .icard header .in{width:100%}
+  .impfile{flex-wrap:wrap}
+  dialog#unlock .dlg,dialog#settings .dlg{width:100%;padding-bottom:calc(22px + var(--sab))}
   .brand{margin-right:4px}
   .top > .ptitle{display:block;flex:0 1 auto;min-width:0;font-weight:600;font-size:17px;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .morebtn{display:inline-flex}
   .top > .spacer{display:none} .top > .cmdtrig{margin-left:auto}
   .grid .mfull{grid-column:1/-1}
+  table.t.tps{--c2:136px} table.t.splits{--c2:96px}
   table.t.tps col.c2{width:136px} table.t.splits col.s2{width:96px} table.t.tps{min-width:0} table.t.tps col.c7{width:88px}
   .deskonly{display:none!important}
   table.t.links tr{display:grid;grid-template-columns:minmax(0,1fr) 40px 40px;align-items:center;padding:4px 0;border-bottom:1px solid var(--line)}
@@ -768,7 +781,7 @@ dialog::backdrop{background:var(--scrim)}
   .cmdtrig{width:40px;height:40px;margin:0;padding:0;justify-content:center;border:0;background:none;color:var(--ink-2)}
   .cmdtrig svg{width:20px;height:20px}
   .btn.newbtn{width:40px;height:40px;padding:0;border-radius:10px}
-  .tabbar{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;position:fixed;left:0;right:0;bottom:0;z-index:45;height:var(--tb);padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:saturate(1.5) blur(14px);-webkit-backdrop-filter:saturate(1.5) blur(14px);border-top:1px solid var(--line)}
+  .tabbar{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;position:fixed;left:0;right:0;bottom:0;z-index:45;height:var(--tb);padding:0 var(--sar) var(--sab) var(--sal);background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:saturate(1.5) blur(14px);-webkit-backdrop-filter:saturate(1.5) blur(14px);border-top:1px solid var(--line)}
   .tabbar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:none;color:var(--ink-3);font-size:11px;font-weight:500;position:relative;-webkit-tap-highlight-color:transparent}
   .tabbar button svg{width:22px;height:22px}
   .tabbar button[aria-current="page"]{color:var(--accent)}
@@ -776,7 +789,7 @@ dialog::backdrop{background:var(--scrim)}
   .tabbar .tsave i{position:absolute;top:9px;left:calc(50% + 7px);width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--panel)}
   .tabbar .tsave.dirty i{background:var(--warn)} .tabbar .tsave.saving i{background:var(--accent);animation:pulse 1s infinite}
   #toasts{bottom:calc(var(--tb) + 12px)}
-  #detail{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  #detail{padding-left:max(16px,var(--sal));padding-right:max(16px,var(--sar))}
   .jump{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
   .btn,.btn.sm{height:40px;font-size:14px;border-radius:9px}
   .btn.icon,.btn.icon.sm{width:40px}
@@ -793,7 +806,7 @@ dialog::backdrop{background:var(--scrim)}
   .rh{padding:10px}
   .rh .chev{width:32px;height:32px}
   .task,.tasks.wurl .task{grid-template-columns:14px 26px minmax(0,1fr) 40px 40px 40px;min-height:44px}
-  .kpanel{max-height:calc(100vh - 20px)}
+  .kpanel{max-height:calc(100vh - 20px - var(--sat) - var(--sab))}
   .task.add{grid-template-columns:14px 26px minmax(0,1fr)!important}
   .check li label{padding:9px 4px;font-size:14px}
   .autock{width:20px;height:20px}
@@ -809,12 +822,12 @@ dialog::backdrop{background:var(--scrim)}
   .addrow .in.trig{font-size:15px}
   .palette .pi{height:46px}
   .grip,table.t .rowact{opacity:.8}
-  #dp.bsheet,#menu.bsheet,#pinpop.bsheet,#notepop.bsheet{position:fixed;left:0!important;right:0;top:auto!important;bottom:0;width:auto!important;min-width:0!important;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;border-bottom:0;padding:8px 14px calc(14px + env(safe-area-inset-bottom,0px));animation:sheetin .26s cubic-bezier(.2,.8,.2,1)}
+  #dp.bsheet,#menu.bsheet,#pinpop.bsheet,#notepop.bsheet{position:fixed;left:0!important;right:0;top:auto!important;bottom:0;width:auto!important;min-width:0!important;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;border-bottom:0;padding:8px 14px calc(14px + var(--sab));animation:sheetin .26s cubic-bezier(.2,.8,.2,1)}
   .pop.bsheet::before{content:'';display:block;width:38px;height:5px;border-radius:5px;background:var(--line-3);margin:0 auto 12px}
   #dp.bsheet .day{height:46px} #dp.bsheet .day span{width:40px;height:40px;font-size:15px}
   #dp.bsheet .dpseg button{height:36px;font-size:14px}
   #dp.bsheet .dptitle{height:40px;font-size:16px}
-  #dp.bsheet .dpfoot{margin:12px -14px calc(-14px - env(safe-area-inset-bottom,0px));padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));border-radius:0}
+  #dp.bsheet .dpfoot{margin:12px -14px calc(-14px - var(--sab));padding:12px 14px calc(12px + var(--sab));border-radius:0}
   #dp.bsheet .months button{height:52px;font-size:15px}
   #pinpop.bsheet .acts{margin-top:14px}
 }
@@ -831,7 +844,7 @@ dialog::backdrop{background:var(--scrim)}
 details.adv{margin:2px 0 12px;font-size:12.5px;color:var(--ink-2)}
 details.adv summary{cursor:pointer;margin-bottom:10px;width:max-content}
 .msg{font-size:12.5px;color:var(--danger);min-height:18px;margin-top:4px}
-dialog#settings,dialog#unlock{max-height:calc(100vh - 32px);overflow:auto}
+dialog#settings,dialog#unlock{max-height:calc(100vh - 16px - var(--sat));overflow:auto}
 .sset{padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
 .sset .fld{margin-bottom:12px}
 .swrow{display:flex;align-items:center;gap:10px;justify-content:space-between}
@@ -872,6 +885,58 @@ table.t.cltab{min-width:520px}
 .sheet .s-note{color:#596170}
 .sheet .s-foot{margin-top:26px;font-size:12px;color:#8a909b;display:flex;justify-content:space-between}
 #printarea{display:none}
+
+/* ---------- import from AI / AI prompt ---------- */
+dialog#impdlg,dialog#aidlg{max-height:calc(100vh - 16px - var(--sat));overflow:auto}
+@media (min-width:861px){ main{padding-left:var(--sal);padding-right:var(--sar)} #toasts{bottom:calc(22px + var(--sab))} }
+#impdlg{width:840px} #aidlg{width:720px}
+.imp{padding:20px 22px;max-width:100%}
+.imp h2{margin:0 0 4px;font-size:16px;letter-spacing:-.01em}
+.imp > p,.imp .ihd p{margin:0 0 12px;color:var(--ink-2);font-size:13px}
+.ihd{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.ihd > div{min-width:0}
+textarea.impta{min-height:130px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;line-height:1.45}
+.impdrop.over textarea{border-color:var(--accent);box-shadow:0 0 0 3px var(--ring);background:var(--accent-soft)}
+.impfile{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12.5px;color:var(--ink-3)}
+.impmsg{font-size:12.5px;border-radius:8px;padding:8px 12px;margin-top:10px;line-height:1.45;overflow-wrap:anywhere}
+.impmsg b{display:block;margin-bottom:2px}
+.impmsg ul{margin:2px 0 0;padding-left:18px}
+.impmsg.err{color:var(--danger);background:var(--danger-soft)}
+.impmsg.warn{color:var(--warn);background:var(--warn-soft)}
+.impmsg.ok{color:var(--ok);background:var(--ok-soft)}
+.implist{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.icard{border:1px solid var(--line);border-radius:10px;background:var(--panel);box-shadow:var(--shadow-sm);min-width:0}
+.icard.bad{border-color:color-mix(in srgb,var(--danger) 45%,var(--line))}
+.icard header{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.icard header .it{flex:1;min-width:150px;font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.icard header .it small{display:block;font-weight:400;color:var(--ink-3);font-size:12px}
+.icard header .in{width:auto;max-width:100%}
+.icard .ibody{padding:6px 12px 10px}
+.icard .ibody .impmsg{margin-top:6px}
+.irow{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px;cursor:pointer}
+.irow:last-child{border-bottom:0}
+.irow .ck{margin-top:1px}
+.irow .ilab{color:var(--ink-2)} .irow .ilab b{color:var(--ink);font-weight:600}
+.irow .ival{display:block;margin-top:1px;overflow-wrap:anywhere}
+.irow .ifr{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--line-3)}
+.irow .ito{color:var(--ink)}
+.irow .tag{margin-left:6px;vertical-align:1px}
+.isum{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0}
+.isum .tag{height:22px;font-size:12px;color:var(--ink-2)}
+.ikv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:3px 10px;font-size:12.5px;padding:4px 0 2px}
+.ikv span:nth-child(odd){color:var(--ink-3)} .ikv span{overflow-wrap:anywhere}
+.imp .acts{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap}
+.imp .acts .hint{margin-right:auto}
+.iprev{margin:0;max-height:300px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.5 "JetBrains Mono",ui-monospace,monospace;background:var(--sunken);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--ink-2)}
+.toast .tact{margin-left:8px;border:0;background:color-mix(in srgb,var(--panel) 20%,transparent);color:inherit;border-radius:6px;height:24px;padding:0 10px;font-weight:600;font-size:12.5px}
+.toast .tact:hover{background:color-mix(in srgb,var(--panel) 32%,transparent)}
+.listfoot .lfa{display:flex;align-items:center;gap:2px}
+#ptr{position:fixed;top:calc(var(--hh) + 4px);left:50%;z-index:39;width:36px;height:36px;margin-top:-36px;border-radius:50%;display:grid;place-items:center;background:var(--panel);color:var(--accent);box-shadow:var(--shadow-pop);opacity:0;transform:translate(-50%,0);transition:opacity .15s;pointer-events:none}
+#ptr svg{width:18px;height:18px;transition:transform .15s}
+#ptr.go .ptra{transform:rotate(180deg)}
+#ptr .ptrs,#ptr.spin .ptra{display:none}
+#ptr.spin .ptrs{display:block;animation:ptrspin .8s linear infinite}
+@keyframes ptrspin{to{transform:rotate(360deg)}}
 @media (max-width:860px){
   .phoneonly{display:flex!important}
   .closebox{grid-template-columns:1fr 1fr}
@@ -917,6 +982,7 @@ table.t.cltab{min-width:520px}
   </div>
 </div>
 <div id="toasts" aria-live="polite"></div>
+<div id="ptr" hidden aria-hidden="true"><svg class="ptra" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg><svg class="ptrs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg></div>
 <div id="tip" hidden></div>
 <div id="keys" class="overlay" hidden><div class="kpanel" role="dialog" aria-label="Keyboard shortcuts" id="kpanel"></div></div>
 <div id="scrim" hidden></div>
@@ -965,6 +1031,24 @@ table.t.cltab{min-width:520px}
 <dialog id="sumdlg" aria-label="Client summary">
   <div class="sumbar"><label class="chk"><input type="checkbox" class="ck" id="sum-res"> include resolved questions</label><button class="btn" type="button" id="sum-png">Download PNG</button><button class="btn" type="button" id="sum-pdf">Print / PDF</button><button class="btn primary" type="button" id="sum-close">Close</button></div>
   <div class="sumwrap"><div id="sumsheet"></div></div>
+</dialog>
+<dialog id="impdlg" aria-label="Import from AI">
+  <div class="imp">
+    <div class="ihd"><div><h2>Import from AI (JSON)</h2><p>Paste the AI's answer (code fences and extra text are fine) or drop a .json file. Nothing is saved until you press Save, and nothing is ever deleted.</p></div>
+      <button class="btn sm" type="button" id="imp-prompt">Copy AI prompt</button></div>
+    <div class="impdrop" id="imp-drop"><textarea class="in impta" id="imp-in" spellcheck="false" autocomplete="off" placeholder='```json&#10;{ "format": "events-tracker-import/1", "events": [ … ] }&#10;```' aria-label="AI answer (JSON)"></textarea></div>
+    <div class="impfile"><button class="btn sm" type="button" id="imp-choose">Choose .json file…</button><input type="file" id="imp-file" accept=".json,application/json,text/plain" hidden><span>or drop it on the box</span></div>
+    <div id="imp-out"></div>
+    <div class="acts"><span class="hint" id="imp-sum"></span><button class="btn" type="button" id="imp-cancel">Cancel</button><button class="btn primary" type="button" id="imp-apply" disabled>Import</button></div>
+  </div>
+</dialog>
+<dialog id="aidlg" aria-label="AI prompt">
+  <div class="imp">
+    <h2 id="ai-title">AI prompt</h2>
+    <p id="ai-text">Copy this prompt into any AI chat, paste the customer email(s) after it, then bring the JSON answer back with “Import from AI”.</p>
+    <pre class="iprev" id="ai-prev"></pre>
+    <div class="acts"><span class="hint" id="ai-len"></span><button class="btn" type="button" id="ai-close">Close</button><button class="btn" type="button" id="ai-import">Import answer…</button><button class="btn primary" type="button" id="ai-copy">Copy prompt</button></div>
+  </div>
 </dialog>
 <div id="printarea"></div>
 
@@ -1202,7 +1286,7 @@ async function save({unload=false,quiet=false}={}){
       if(n.startsWith('events-')) eventFiles.add(n);
       if(n==='hours.json'){ hoursInRepo=true; coefMigrated=false; }
     }
-    snapshotItems(); saving=false; lastSaved=Date.now(); updSave();
+    snapshotItems(); saving=false; lastSaved=Date.now(); importUndo=null; updSave();
     if(!unload&&!quiet) toast(!done.length?'Everything is saved':DEMO?'Demo · nothing written':'Saved',
       done.length===1?`${done[0][0]} · “${done[0][1]}”`:done.length?done.map(d=>d[0]).join(', '):'nothing to commit');
     dropHoursIfLocked();
@@ -1485,9 +1569,10 @@ function updSave(){
   const t=$('#tsave'); if(t){ t.className='tsave '+st; t.querySelector('span').textContent=errMsg?'Retry':dirty?'Save':saving?'Saving…':'Saved'; }
 }
 setInterval(updSave,30e3);
-function toast(msg,sub='',icon='check',cls=''){
-  const t=document.createElement('div'); t.className='toast '+cls; t.innerHTML=`<span class="ti">${ic(icon,3)}</span><span>${esc(msg)}${sub?`<small>${esc(sub)}</small>`:''}</span>`;
-  $('#toasts').append(t); setTimeout(()=>{ t.classList.add('out'); setTimeout(()=>t.remove(),220); },cls==='err'?5000:2600);
+function toast(msg,sub='',icon='check',cls='',action=null,persist=false){
+  const t=document.createElement('div'); t.className='toast '+cls; t.innerHTML=`<span class="ti">${ic(icon,3)}</span><span>${esc(msg)}${sub?`<small>${esc(sub)}</small>`:''}</span>${action?`<button type="button" class="tact">${esc(action.label)}</button>`:''}`;
+  if(action) t.querySelector('.tact').onclick=()=>{ t.remove(); action.run(); };
+  $('#toasts').append(t); if(!persist) setTimeout(()=>{ t.classList.add('out'); setTimeout(()=>t.remove(),220); },action?12000:cls==='err'?5000:2600);
 }
 
 /* =====================================================================
@@ -1609,13 +1694,14 @@ function renderEventList(L){
       ${groups.map(g=>{ const oq=g.items.reduce((a,e)=>a+openQ(e).length,0); return `<section class="mg"><div class="mh"><span>${ym(g.k)}</span><span class="mc">· ${plural(g.items.length,'event','events')}</span>${oq?`<span class="mp">${plural(oq,'open question','open questions')}</span>`:''}</div>${g.items.map(row).join('')}</section>`; }).join('')
         ||`<div class="lempty">${S.events.length?'No events match.':'No events yet.'}<br>${S.events.length?'<button class="btn sm" style="margin-top:10px" id="fl-reset" type="button">Clear filters</button>':''}</div>`}
     </div>
-    <div class="listfoot"><span>${plural(ev.length,'event','events')} · ${plural(S.events.reduce((a,e)=>a+openQ(e).length,0),'open question','open questions')}</span><button type="button" class="keysbtn kh" data-keys data-tip="Keyboard shortcuts" data-kbd="?" aria-label="Keyboard shortcuts">${ic('keyboard',1.8)}<kbd>?</kbd></button></div>`;
+    <div class="listfoot"><span>${plural(ev.length,'event','events')} · ${plural(S.events.reduce((a,e)=>a+openQ(e).length,0),'open question','open questions')}</span><span class="lfa"><button type="button" class="keysbtn" id="fl-import" data-tip="Import from AI (JSON)" aria-label="Import from AI (JSON)">${ic('upload',1.8)}<span>Import</span></button><button type="button" class="keysbtn kh" data-keys data-tip="Keyboard shortcuts" data-kbd="?" aria-label="Keyboard shortcuts">${ic('keyboard',1.8)}<kbd>?</kbd></button></span></div>`;
   L.querySelector('.lscroll').scrollTop=scroll;
   on(L,'[data-id]',b=>go('e',b.dataset.id));
   $('#fl-q').oninput=e=>{ flt.q=e.target.value; renderList(); };
   $('#fl-client').onchange=e=>{ flt.client=e.target.value; renderList(); };
   $('#fl-status').onchange=e=>{ flt.status=e.target.value; renderList(); };
   $('#fl-past').onchange=e=>{ flt.past=e.target.checked; renderList(); };
+  $('#fl-import').onclick=openImport;
   $('#fl-reset')?.addEventListener('click',()=>{ flt.q='';flt.client='';flt.status=''; renderList(); });
   if(focus==='fl-q'){ const i=$('#fl-q'); i.focus(); i.setSelectionRange(i.value.length,i.value.length); }
 }
@@ -1663,6 +1749,7 @@ function renderEvent(D){
   D.innerHTML=`
   <div class="crumbs">${e.clientId&&clientOf(e.clientId)?`<button type="button" data-go="c:${esc(e.clientId)}">${esc(clientName(e.clientId))}</button>`:`<span>${esc(clientName(e.clientId))}</span>`}${ic('chev')}<span>${esc(e.type||'Event')}</span></div>
   <div class="dtitle">${backBtn}<input class="nameinput" data-o="${ref(e)}" data-k="name" value="${esc(e.name)}" placeholder="Event name" aria-label="Event name">
+    <button class="btn icon ghost" id="aibtn" type="button" data-tip="Copy AI prompt to update this event" aria-label="Copy AI prompt to update this event">${ic('sparkle',1.8)}</button>
     <button class="btn" id="sumbtn" type="button" data-tip="Client summary (PNG / PDF)">${ic('doc',1.8)}<span class="sumtxt">Summary</span></button>
     <button class="btn icon ghost sidebtn ${sideOpen?'on':''}" id="sidebtn" type="button" aria-pressed="${sideOpen}" data-tip="${sideOpen?'Collapse':'Show'} side panel" data-kbd="]" aria-label="Side panel">${ic('side',1.9)}</button>${closeBtn('event')}</div>
   <div class="dmeta"><span class="cd ${cd.c||''}" style="${cd.c?'':'padding:0 7px;border-radius:999px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)'}">${cd.t}</span><span>${esc(rt.main)}</span><span class="dot"></span><span>${esc(e.location||'no location')}</span><span class="dot"></span><span style="display:flex;align-items:center;gap:6px">${ring(p,14,2.2)} ${pct}% prepared</span>${oq?`<span class="dot"></span><span class="qb">${plural(oq,'open question','open questions')}</span>`:''}<span class="dot"></span>${metaLink(LK.res)}${metaLink(LK.rr)}</div>
@@ -1752,6 +1839,7 @@ function renderEvent(D){
   $('#sidebtn').onclick=toggleSide;
   on(D,'[data-rail]',b=>{ if(!sideOpen) toggleSide(); const t=b.dataset.rail&&document.getElementById(b.dataset.rail); if(t) setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'start'}),280); });
   $('#sumbtn').onclick=()=>openSummary(e);
+  $('#aibtn').onclick=()=>openPrompt(e);
   $('#cpid').onclick=()=>{ if(!e.rr14EventId) return; navigator.clipboard?.writeText(e.rr14EventId).then(()=>toast('EventID copied',e.rr14EventId,'copy'),()=>toast('Could not copy','','warn','warn')); };
   on(D,'[data-tech]',b=>{ e.technology=e.technology===b.dataset.tech?'':b.dataset.tech; touch(); renderDetail(); });
   $('#statusbtn').onclick=ev=>openStatusMenu(ev.currentTarget,e);
@@ -1802,17 +1890,17 @@ function tpRow(e,t,i,dups){
   const hw=HW[t.hardware], ids=tech!=='passive'&&hw, dup=dups.some(([,v])=>v.includes(t));
   // loops already taken on this channel by other loop devices
   const taken=new Set(e.timingPoints.filter(x=>x!==t&&HW[x.hardware]?.loop&&String(x.ch)===String(t.ch)&&x.ch).map(x=>String(x.loop)));
-  const range=(k,[a,b])=>`<select class="cell ${t[k]?'':'empty'}" data-o="${ref(t)}" data-k="${k}" data-r="detail" aria-label="${k==='ch'?'Channel ID':'Loop ID'} ${esc(t.name)}" ${dup?'style="color:var(--danger);border-color:color-mix(in srgb,var(--danger) 50%,transparent)"':''}><option value="">${k==='ch'?'Ch.':'L.'}</option>${Array.from({length:b-a+1},(_,j)=>a+j).map(n=>`<option ${String(t[k])===String(n)?'selected':''} ${k==='loop'&&taken.has(String(n))&&String(t.loop)!==String(n)?'disabled':''}>${n}</option>`).join('')}</select>`;
+  const range=(k,[a,b])=>`<select class="cell ${t[k]?'':'unset'}" data-o="${ref(t)}" data-k="${k}" data-r="detail" aria-label="${k==='ch'?'Channel ID':'Loop ID'} ${esc(t.name)}" ${dup?'style="color:var(--danger);border-color:color-mix(in srgb,var(--danger) 50%,transparent)"':''}><option value="">${k==='ch'?'Ch.':'L.'}</option>${Array.from({length:b-a+1},(_,j)=>a+j).map(n=>`<option ${String(t[k])===String(n)?'selected':''} ${k==='loop'&&taken.has(String(n))&&String(t.loop)!==String(n)?'disabled':''}>${n}</option>`).join('')}</select>`;
   const rt=repeatTarget(e,t);
   const link=rt===null?`<span class="rep" style="color:var(--warn)" title="Needs a Decoder on Ch. ${esc(t.ch||'?')} / L. 1">${ic('warn')} no Decoder on L. 1</span>`:rt?`<span class="rep" title="Repeats its reads over WiFi to ${esc(rt.name||'the Decoder')}">${ic('wifi',2.2)}→ ${esc(rt.name||'Decoder')}</span>`:'';
   const ph=narrow.matches, hasN=ph&&t.notes, bad=t.hardware&&!avail.includes(t.hardware);
   return `<tr data-si="${i}" class="${hasN?'hasnote':''}">
     <td class="gr stk stk1">${GRIP}<input type="color" class="swatch" data-o="${ref(t)}" data-k="color" value="${esc(t.color||'#cccccc')}" aria-label="Colour ${esc(t.name)}"></td>
     <td class="stk stk2">${cell(t,'name',{ph:'Name'})}</td>
-    <td><div class="hwcell">${hwImg(t.hardware)?`<img class="hwimg" src="${hwImg(t.hardware)}" alt="">`:'<span class="hwimg" style="display:grid;place-items:center;color:var(--ink-3);background:var(--sunken);border:1px dashed var(--line-2)">?</span>'}<div class="hwsel"><select class="cell ${t.hardware?'':'empty'}" data-o="${ref(t)}" data-k="hardware" data-r="detail" aria-label="Hardware ${esc(t.name)}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${t.hardware===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${link}${bad?`<span class="rep" style="color:var(--warn)">${ic('warn')} not for ${esc(tech)} timing</span>`:''}</div></div></td>
+    <td><div class="hwcell">${hwImg(t.hardware)?`<img class="hwimg" src="${hwImg(t.hardware)}" alt="">`:'<span class="hwimg" style="display:grid;place-items:center;color:var(--ink-3);background:var(--sunken);border:1px dashed var(--line-2)">?</span>'}<div class="hwsel"><select class="cell ${t.hardware?'':'unset'}" data-o="${ref(t)}" data-k="hardware" data-r="detail" aria-label="Hardware ${esc(t.name)}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${t.hardware===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${link}${bad?`<span class="rep" style="color:var(--warn)">${ic('warn')} not for ${esc(tech)} timing</span>`:''}</div></div></td>
     <td>${ids&&hw.ch?range('ch',hw.ch):''}</td>
     <td>${ids&&hw.loop?range('loop',hw.loop):''}</td>
-    <td>${ids&&hw.modes?`<select class="cell ${t.mode?'':'empty'}" data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value="">Mode</option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
+    <td>${ids&&hw.modes?`<select class="cell ${t.mode?'':'unset'}" data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value="">Mode</option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
     <td><button class="btn icon sm ghost pin ${t.position?'set':''}" data-pos="${ref(t)}" type="button" title="${t.position?esc('Position: '+t.position):'Set position'}" aria-label="Position of ${esc(t.name||'timing point')}"><svg viewBox="0 0 24 24" fill="${t.position?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" fill="${t.position?'var(--panel)':'none'}"/></svg></button>${ph?`<button class="btn icon sm ghost notebtn ${t.notes?'set':''}" data-note="${ref(t)}" type="button" title="${t.notes?'Edit note':'Add note'}" aria-label="${t.notes?'Edit':'Add'} note for ${esc(t.name||'timing point')}">${ic('note',1.8)}</button>`:''}</td>
     ${ph?'':`<td>${cell(t,'notes',{ph:'Notes',label:'Notes'})}</td>`}
     <td class="x"><button class="btn icon sm ghost del rowact" data-deltp="${i}" type="button" aria-label="Remove point ${esc(t.name)}">${ic('x')}</button></td></tr>${hasN?`<tr class="tpnote"><td colspan="8"><div class="tpn">${ic('note',1.8)}<span>${esc(t.notes)}</span></div></td></tr>`:''}`;
@@ -2057,10 +2145,14 @@ function openMore(btn){
   m.innerHTML=`<div class="mlab">More</div>
     <button type="button" data-mm="theme">${ic(isDark()?'sun':'moon',1.9)}${isDark()?'Light theme':'Dark theme'}</button>
     <button type="button" data-mm="values"><span style="width:19px;text-align:center">${esc(U().icon)}</span>${priv()?'Lock private data':'Unlock private data…'}</button>
+    <button type="button" data-mm="prompt">${ic('sparkle',1.8)}Copy AI prompt</button>
+    <button type="button" data-mm="import">${ic('upload',1.8)}Import from AI (JSON)</button>
+    <button type="button" data-mm="refresh">${ic('refresh',1.8)}Refresh data</button>
+    <button type="button" data-mm="reload">${ic('refresh',1.8)}Reload app</button>
     <button type="button" data-mm="keys">${ic('keyboard',1.8)}Keyboard shortcuts</button>
     <button type="button" data-mm="settings">${ic('gear',1.8)}Settings</button>
     <button type="button" data-mm="logout">${ic('logout',1.9)}Log out</button>`;
-  on(m,'[data-mm]',b=>{ const k=b.dataset.mm; closePops(); if(k==='theme') toggleTheme(); else if(k==='values') togglePrivacy(); else if(k==='settings') openSettings(); else if(k==='keys') openKeys(); else logout(); });
+  on(m,'[data-mm]',b=>{ const k=b.dataset.mm; closePops(); if(k==='theme') toggleTheme(); else if(k==='values') togglePrivacy(); else if(k==='settings') openSettings(); else if(k==='keys') openKeys(); else if(k==='prompt') openPrompt(); else if(k==='refresh') refreshData(); else if(k==='reload') reloadApp(); else if(k==='import') openImport(); else logout(); });
   popAnchor=btn; place(m,btn,'right');
 }
 function openStatusMenu(btn,e){
@@ -2156,13 +2248,19 @@ function renderCmd(){
     {t:'New event',icon:'plus',k:'N',run:()=>{ if(route.view!=='e') go('e'); newItem(); }},
     {t:'New client',icon:'user',run:()=>{ go('c'); newItem(); }},
     {t:'Save',icon:'save',k:`${MOD}S`,run:()=>save()},
+    {t:'Copy AI prompt',icon:'sparkle',sub:'for a new event from an email',run:()=>openPrompt()},
+    {t:'Import from AI (JSON)',icon:'upload',run:()=>openImport()},
+    {t:'Refresh data',icon:'refresh',sub:DEMO?'re-read the demo files':'re-read from GitHub (saves first)',run:refreshData},
+    {t:'Reload app',icon:'refresh',sub:'saves first',run:reloadApp},
+    ...(importUndo?[{t:'Undo import',icon:'back',sub:'until the next save',run:undoImport}]:[]),
     {t:isDark()?'Switch to light theme':'Switch to dark theme',icon:isDark()?'sun':'moon',run:toggleTheme},
     priv()?{t:'Lock private data',icon:'lock',k:'L',run:()=>lock()}:{t:'Unlock private data…',icon:'unlock',k:'L',run:togglePrivacy},
     ...(ce?(()=>{ const L=evLinks(ce); return [
       {t:'Open in RR14',icon:L.rr.icon,sub:L.rr.url?ce.name:L.rr.why,run:()=>L.rr.url?window.open(L.rr.url,'_blank','noopener'):toast(L.rr.why,'','warn','warn')},
       {t:'Open my.raceresult',icon:L.res.icon,sub:L.res.url?ce.name:L.res.why,run:()=>L.res.url?window.open(L.res.url,'_blank','noopener'):toast(L.res.why,'','warn','warn')},
       {t:'Copy EventID',icon:'copy',sub:ce.rr14EventId||'Set the EventID',run:()=>ce.rr14EventId?navigator.clipboard?.writeText(ce.rr14EventId).then(()=>toast('EventID copied',ce.rr14EventId,'copy')):toast('Set the EventID','','warn','warn')},
-      {t:'Open client summary',icon:'doc',sub:ce.name,run:()=>openSummary(ce)}]; })():[]),
+      {t:'Open client summary',icon:'doc',sub:ce.name,run:()=>openSummary(ce)},
+      {t:'Copy AI prompt to update this event',icon:'sparkle',sub:ce.name,run:()=>openPrompt(ce)}]; })():[]),
     ...(priv()?[{t:'Go to Hours',icon:'hours',run:()=>go('h')}]:[]),
     {t:'Keyboard shortcuts',icon:'keyboard',k:'?',run:()=>openKeys()},
     {t:'Show past events',icon:'clock',run:()=>{ flt.past=true; go('e',route.view==='e'?route.id:null); }},
@@ -2235,6 +2333,415 @@ $('#sum-png').onclick=async()=>{
   finally{ b.disabled=false; b.textContent='Download PNG'; }
 };
 
+/* =====================================================================
+   AI PROMPT + IMPORT FROM AI (JSON). No API keys: the prompt is copied into any AI chat together with the
+   customer email, the JSON answer is pasted back here, previewed and merged. Imports never delete anything
+   and never carry hours, rates, coefficients or money.
+   ===================================================================== */
+const IMPORT_FORMAT='events-tracker-import/1';
+P.sparkle='<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>';
+P.upload='<path d="M12 15V4M7 9l5-5 5 5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>';
+const normTxt=s=>String(s??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const hwFor=t=>Object.keys(HW).filter(h=>HW[h].tech.includes(t));
+/* An event in import format (timing points referenced by name, no ids except the event's, never hours) */
+function eventToImport(e){
+  const tpName=id=>(e.timingPoints.find(t=>t.id===id)||{}).name||null;
+  const clean=o=>{ for(const k of Object.keys(o)) if(o[k]===''||o[k]==null||(Array.isArray(o[k])&&!o[k].length)) delete o[k]; return o; };
+  const n=v=>String(v??'').trim()===''?null:num(v);
+  const task=t=>clean({text:t.text,note:t.note,url:t.url,children:t.children.map(c=>clean({text:c.text,note:c.note,url:c.url}))});
+  const c=clientOf(e.clientId);
+  const out=clean({id:e.id,name:e.name,client:c?{name:c.name}:null,clientId:c?c.id:null,status:e.status,dateStart:e.dateStart,dateEnd:e.dateEnd,location:e.location,type:e.type,website:e.website,rr14EventId:e.rr14EventId,technology:e.technology||null,
+    links:e.links.map(l=>clean({label:l.label,url:l.url})),
+    timingPoints:e.timingPoints.map(t=>clean({name:t.name,hardware:t.hardware,ch:n(t.ch),loop:n(t.loop),mode:t.mode,position:t.position,notes:t.notes})),
+    contests:e.contests.map(c=>clean({name:c.name,date:c.date,startTime:c.startTime,distance:n(c.distance),elevation:n(c.elevation),startType:c.startType,timeBasis:c.timeBasis||null,route:c.route,eligibility:c.eligibility,relay:c.relay,notes:c.notes,startSplit:!!c.startSplit,
+      splits:c.splits.map(x=>clean({role:x.role,label:x.label,timingPoint:tpName(x.tp),km:x.role==='start'?0:n(x.km)}))})),
+    ...Object.fromEntries(EVENT_LISTS.map(([k])=>[k,e[k].map(task)])),
+    questions:e.questions.map(q=>clean({n:q.n,text:q.text,answer:q.answer,resolved:q.resolved||null})),
+    notes:e.notes});
+  return out;
+}
+/* Built from the live model every time, so enums, hardware rules and clients never go stale */
+function aiPrompt(e=null){
+  const t=today(), dow=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][parse(t).getDay()];
+  const ids=h=>{ const x=HW[h]; return [x.ch&&`ch ${x.ch[0]}–${x.ch[1]}`,x.loop&&`loop ${x.loop[0]}–${x.loop[1]}`].filter(Boolean).join(', ')||'no IDs'; };
+  const L=[];
+  L.push(`You help a sports-timing operator (RACE RESULT 14, "RR14") prepare timing for events. Read the customer email(s) pasted after this prompt (often in French or Italian) and extract the event data for the operator's Events tracker app.`,'');
+  L.push('OUTPUT',`Return ONLY one JSON object inside a single \`\`\`json code block, with no text before or after it:`,`{ "format": "${IMPORT_FORMAT}", "events": [ ... ] }`,`An email may describe several events: one object per event in "events".`,'');
+  L.push(`TODAY: ${t} (${dow}). Use it to resolve relative dates such as "next Saturday" or "le 12".`,'');
+  L.push('HARD RULES',
+    '1. Never invent. If something is not stated in the email, use null or leave the field out.',
+    '2. Anything ambiguous, missing (but needed for timing) or contradictory becomes a question in "questions": English, concise, one topic per question. Do not number them; the app numbers them.',
+    '3. Keep proper names exactly as written in the email: event, places, timing points, races. Do not translate them.',
+    '4. Write everything you create yourself (questions, notes, labels) in English.',
+    '5. Dates ISO YYYY-MM-DD. Times HH:MM, 24-hour. km, distances and elevation as plain numbers (21.1, not "21,1 km").',
+    '6. NEVER include hours worked, rates, prices, coefficients or any money amounts, even if the email mentions them.',
+    '7. Use only the allowed values below. If none fits, use null and ask a question.','');
+  L.push('CLIENTS (match the sender/organiser; if one clearly matches use "clientId", otherwise give "client": {"name": "..."}; never guess):',
+    ...(S.clients.length?S.clients.map(c=>`- ${c.id}: ${c.name||'(no name)'}`):['- (none yet)']),'');
+  L.push('ALLOWED VALUES',
+    `status: ${S.config.statuses.map(s=>`"${s.name}"`).join(' | ')} (optional; leave out for new events)`,
+    `type (free text, prefer one of): ${S.config.eventTypes.map(x=>`"${x}"`).join(', ')}`,
+    `technology: "active" | "passive" | null`,
+    `hardware with active timing: ${hwFor('active').map(h=>`"${h}"`).join(', ')}`,
+    `hardware with passive timing: ${hwFor('passive').map(h=>`"${h}"`).join(', ')}`,
+    `hardware IDs (active timing only; with passive timing leave ch/loop out): ${Object.keys(HW).map(h=>`${h}: ${ids(h)}`).join('; ')}`,
+    `mode: ${Object.keys(HW).filter(h=>HW[h].modes).map(h=>`${h}: ${HW[h].modes.map(m=>`"${m}"`).join(' | ')}`).join('; ')}; other hardware: no mode`,
+    ...Object.keys(HW).filter(h=>HW[h].notTP).map(h=>`${h} is equipment, not a timing point on the course; only list it if the email asks for it.`),
+    `startType: ${S.config.startTypes.map(x=>`"${x}"`).join(' | ')} (if not stated: leave out; the app assumes "mass")`,
+    `timeBasis (rankings by): "gun" | "chip" | null`,'');
+  L.push('SPLITS (RR14 convention, per race)',
+    '- "finish" is always present and always the last split.',
+    '- "start" only if the email says there is a timing mat / box at the start; then "startSplit": true and the start split has km 0. Otherwise "startSplit": false (gun start) and no start split.',
+    '- "split" = optional intermediate timing points, in course order, with their km.',
+    '- "timingPoint" refers to a timing point by its exact "name" from "timingPoints". Every point used in splits must be listed in "timingPoints".',
+    '- "TB", "Track Box", "tapis", "tappeto", "mat", "point de contrôle chronométré" at km X are timing points. Do not choose hardware unless the email names it.','');
+  L.push('SCHEMA of one event (every field optional except "name"; unknown → null or omit)',
+`{
+  "name": "string, as written in the email",
+  "clientId": "id from CLIENTS, only if it clearly matches",
+  "client": { "name": "organiser / customer name" },
+  "dateStart": "YYYY-MM-DD", "dateEnd": "YYYY-MM-DD, only for multi-day events",
+  "location": "string", "type": "string", "website": "https://…",
+  "rr14EventId": "digits, only if the email gives an RR14 / my.raceresult EventID",
+  "technology": "active | passive | null",
+  "links": [ { "label": "Regulations, GPX, …", "url": "https://…" } ],
+  "timingPoints": [ { "name": "string", "hardware": "allowed value or null", "ch": 1, "loop": 1, "mode": "allowed value or null", "position": "lat, lon or a description", "notes": "string" } ],
+  "contests": [ {
+    "name": "race name as written", "date": "YYYY-MM-DD (multi-day events: which day)", "startTime": "HH:MM",
+    "distance": 21.1, "elevation": 950, "startType": "mass | wave | individual", "timeBasis": "gun | chip | null",
+    "route": "From → To", "eligibility": "age / licence rules", "relay": "legs, changeover points", "notes": "string",
+    "startSplit": false,
+    "splits": [ { "role": "start | split | finish", "label": "string or null", "timingPoint": "name from timingPoints", "km": 5 } ]
+  } ],
+  "rankings":         [ { "text": "e.g. Overall M/F", "note": "string", "children": [ { "text": "string" } ] } ],
+  "teamScores":       [ { "text": "string", "note": "string", "children": [] } ],
+  "lists":            [ { "text": "e.g. Speaker list", "note": "string" } ],
+  "myrrTabs":         [ { "text": "string", "url": "https://…" } ],
+  "participantViews": [ { "text": "string", "url": "https://…" } ],
+  "presenter":        [ { "text": "string", "url": "https://…" } ],
+  "questions": [ { "text": "question for the customer, in English" } ],
+  "notes": "anything useful for the operator that fits nowhere else, in English"
+}`,'');
+  if(e){
+    L.push('UPDATE OF AN EXISTING EVENT',
+      `The email(s) are about the event below, already in the app. Return ONE event with the same "id": "${e.id}". Include what the email adds or changes; you may repeat unchanged values. Do not repeat questions that are already listed. Do not remove anything.`,
+      '```json',JSON.stringify(eventToImport(e),null,2),'```','');
+  }
+  L.push('EMAIL(S):','(paste the customer email(s) below this line)');
+  return L.join('\n');
+}
+let aiText='';
+function openPrompt(e=null){
+  closePops(); closeCmd(); aiText=aiPrompt(e);
+  $('#ai-title').textContent=e?`AI prompt · update “${e.name||'untitled'}”`:'AI prompt';
+  $('#ai-text').textContent=e?'Contains this event’s current data, so the AI returns an update. Paste the new email(s) after it, then bring the JSON answer back with “Import from AI”.'
+    :'Copy this prompt into any AI chat, paste the customer email(s) after it, then bring the JSON answer back with “Import from AI”.';
+  $('#ai-prev').textContent=aiText; $('#ai-len').textContent=`${aiText.split('\n').length} lines · ${aiText.length.toLocaleString('en-GB')} characters`;
+  if(!$('#aidlg').open) $('#aidlg').showModal(); $('#ai-prev').scrollTop=0;
+}
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return true; }
+  catch{ const ta=document.createElement('textarea'); ta.value=t; ta.style.cssText='position:fixed;opacity:0'; document.body.append(ta); ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch{} ta.remove(); return ok; }
+}
+$('#ai-copy').onclick=async()=>{ if(await copyText(aiText)) toast('Prompt copied','paste it into an AI chat, then add the email','copy'); else toast('Could not copy','select the text and copy it by hand','warn','warn'); };
+$('#ai-close').onclick=()=>$('#aidlg').close();
+$('#ai-import').onclick=()=>{ $('#aidlg').close(); openImport(); };
+/* ---- parse: tolerate ```json fences, text around the JSON and trailing commas ---- */
+function extractJSON(txt){
+  const s=String(txt||'').trim(); if(!s) throw new Error('Paste the AI answer or choose a .json file.');
+  const fence=s.match(/```(?:json|JSON)?[ \t]*\r?\n?([\s\S]*?)```/);
+  let body=(fence?fence[1]:s).trim();
+  if(!fence||!/^[\[{]/.test(body)){ const a=body.search(/[\[{]/), b=Math.max(body.lastIndexOf('}'),body.lastIndexOf(']')); if(a<0||b<a) throw new Error('No JSON object found in the text.'); body=body.slice(a,b+1); }
+  const where=(err,src)=>{ const m=String(err.message).match(/position (\d+)/); if(!m) return ''; const pre=src.slice(0,+m[1]), line=pre.split('\n').length, col=+m[1]-pre.lastIndexOf('\n'); return ` at line ${line}, column ${col}`; };
+  try{ return JSON.parse(body); }
+  catch(err){
+    const relaxed=body.replace(/,\s*([}\]])/g,'$1').replace(/[“”]/g,'"');
+    try{ return JSON.parse(relaxed); }catch{}
+    throw new Error(`Not valid JSON${where(err,body)}: ${err.message.replace(/^JSON\.parse: /,'').replace(/ (in JSON )?at position \d+.*$| at line \d+ column \d+.*$/,'')}`);
+  }
+}
+/* keys that look like hours or money are removed wherever they appear */
+const MONEY_KEY=/^(hours?|hrs|worked|rates?|hourly|price|prices|cost|costs|fees?|amounts?|money|coefficients?|coef|budget|invoice|tariffs?|eur|euros?|values?|total|totals|iceCreams?)$/i;
+const EV_KEYS=['id','name','client','clientId','status','dateStart','dateEnd','location','type','website','rr14EventId','technology','links','timingPoints','contests',...EVENT_LISTS.map(([k])=>k),'questions','notes'];
+function analyseImport(txt){
+  const R={errors:[],warnings:[],events:[]};
+  let raw; try{ raw=extractJSON(txt); }catch(err){ R.errors.push(err.message); return R; }
+  const strip=(o,p)=>{ if(Array.isArray(o)) o.forEach((x,i)=>strip(x,`${p}[${i}]`)); else if(o&&typeof o==='object') for(const k of Object.keys(o)){ if(MONEY_KEY.test(k)){ R.warnings.push(`${p?p+'.':''}${k}: hours / money-like field removed — imports never bring hours, rates or values`); delete o[k]; } else strip(o[k],p?`${p}.${k}`:k); } };
+  let root=raw;
+  if(Array.isArray(raw)){ root={format:IMPORT_FORMAT,events:raw}; R.warnings.push('(root): a bare list — read as "events"'); }
+  else if(raw&&typeof raw==='object'&&!('events' in raw)&&raw.name){ root={format:IMPORT_FORMAT,events:[raw]}; R.warnings.push('(root): a single event without "events" — read as one event'); }
+  if(!root||typeof root!=='object'){ R.errors.push(`(root): expected an object {"format": "${IMPORT_FORMAT}", "events": [...]}`); return R; }
+  if(!root.format) R.warnings.push(`format: missing — expected "${IMPORT_FORMAT}", reading it anyway`);
+  else if(root.format!==IMPORT_FORMAT) R.warnings.push(`format: "${root.format}" is not "${IMPORT_FORMAT}" — reading it anyway`);
+  if(!Array.isArray(root.events)){ R.errors.push('events: missing or not a list'); return R; }
+  if(!root.events.length){ R.errors.push('events: the list is empty — nothing to import'); return R; }
+  strip(root.events,'events');
+  root.events.forEach((x,i)=>R.events.push(cleanEvent(x,`events[${i}]`)));
+  return R;
+}
+function cleanEvent(x,p){
+  const ev={p,warnings:[],errors:[],inc:null};
+  const W=(q,m)=>ev.warnings.push(`${q}: ${m}`), E=(q,m)=>ev.errors.push(`${q}: ${m}`);
+  if(!x||typeof x!=='object'||Array.isArray(x)){ E(p,'must be an object'); return ev; }
+  const str=(v,q)=>{ if(v==null) return ''; if(typeof v==='number'||typeof v==='boolean') return String(v); if(typeof v!=='string'){ W(q,'not text — ignored'); return ''; } return v.trim(); };
+  const iso=(v,q)=>{ const s=str(v,q); if(!s) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(s)&&isoOf(parse(s))===s) return s; W(q,`"${s}" is not a date YYYY-MM-DD — ignored`); return ''; };
+  const numS=(v,q)=>{ if(v==null||v==='') return ''; const n=typeof v==='number'?v:parseFloat(String(v).replace(',','.')); if(!isFinite(n)){ W(q,`"${v}" is not a number — ignored`); return ''; } if(typeof v==='string'&&!/^\s*-?\d+([.,]\d+)?\s*$/.test(v)) W(q,`"${v}" read as ${n}`); return String(n); };
+  const en=(v,q,allowed)=>{ const s=str(v,q); if(!s) return ''; const hit=allowed.find(a=>a.toLowerCase()===s.toLowerCase()); if(!hit) W(q,`"${s}" is not one of ${allowed.map(a=>`"${a}"`).join(', ')} — ignored`); return hit||''; };
+  const arr=(v,q)=>{ if(v==null) return []; if(!Array.isArray(v)){ W(q,'must be a list — ignored'); return []; } return v; };
+  const url=(v,q)=>{ const s=str(v,q); if(s&&!/^https?:\/\//i.test(s)) W(q,`"${s}" is not an http(s) address`); return s; };
+  for(const k of Object.keys(x)) if(!EV_KEYS.includes(k)) W(`${p}.${k}`,'unknown field — ignored');
+  const inc={};
+  inc.id=str(x.id,`${p}.id`);
+  inc.name=str(x.name,`${p}.name`); if(!inc.name) E(`${p}.name`,'missing — every event needs a name');
+  inc.clientId=str(x.clientId,`${p}.clientId`);
+  inc.clientName=typeof x.client==='string'?x.client.trim():str(x.client?.name,`${p}.client.name`);
+  inc.status=en(x.status,`${p}.status`,S.config.statuses.map(s=>s.name));
+  inc.dateStart=iso(x.dateStart,`${p}.dateStart`); inc.dateEnd=iso(x.dateEnd,`${p}.dateEnd`);
+  if(inc.dateEnd&&!inc.dateStart){ W(`${p}.dateEnd`,'given without dateStart — ignored'); inc.dateEnd=''; }
+  if(inc.dateEnd&&inc.dateEnd<inc.dateStart){ W(`${p}.dateEnd`,`${inc.dateEnd} is before dateStart ${inc.dateStart} — ignored`); inc.dateEnd=''; }
+  if(inc.dateEnd===inc.dateStart) inc.dateEnd='';
+  for(const k of ['location','type','notes']) inc[k]=str(x[k],`${p}.${k}`);
+  inc.website=url(x.website,`${p}.website`);
+  inc.rr14EventId=str(x.rr14EventId,`${p}.rr14EventId`); if(inc.rr14EventId&&!/^\d+$/.test(inc.rr14EventId)){ W(`${p}.rr14EventId`,`"${inc.rr14EventId}" is not a number — ignored`); inc.rr14EventId=''; }
+  inc.technology=en(x.technology,`${p}.technology`,['active','passive']);
+  inc.links=arr(x.links,`${p}.links`).map((l,i)=>{ const q=`${p}.links[${i}]`; if(typeof l==='string') l={url:l}; return {label:str(l?.label,q+'.label'),url:url(l?.url,q+'.url')}; }).filter(l=>l.label||l.url);
+  // timing points
+  const seen=new Set();
+  inc.timingPoints=[];
+  arr(x.timingPoints,`${p}.timingPoints`).forEach((t,i)=>{ const q=`${p}.timingPoints[${i}]`;
+    if(typeof t==='string') t={name:t};
+    const name=str(t?.name,q+'.name'); if(!rrName(name)){ W(q,'no name — skipped'); return; }
+    if(seen.has(rrName(name))){ W(q,`«${name}» is listed twice — skipped`); return; } seen.add(rrName(name));
+    const tp={name,hardware:en(t.hardware,q+'.hardware',Object.keys(HW)),ch:'',loop:'',mode:'',position:str(t.position,q+'.position'),notes:str(t.notes,q+'.notes')};
+    const hw=HW[tp.hardware];
+    if(hw&&inc.technology&&!hw.tech.includes(inc.technology)) W(q+'.hardware',`"${tp.hardware}" is not used with ${inc.technology} timing`);
+    const rid=(k,rng)=>{ if(t[k]==null||t[k]==='') return ''; const n=Number(t[k]);
+      if(inc.technology==='passive'||!hw||!rng){ W(`${q}.${k}`,`${k==='ch'?'Ch.':'L.'} not used ${inc.technology==='passive'?'with passive timing':hw?'by '+tp.hardware:'without a hardware'} — ignored`); return ''; }
+      if(!Number.isInteger(n)||n<rng[0]||n>rng[1]){ W(`${q}.${k}`,`${t[k]} is outside ${rng[0]}–${rng[1]} for ${tp.hardware} — ignored`); return ''; } return String(n); };
+    tp.ch=rid('ch',hw?.ch); tp.loop=rid('loop',hw?.loop);
+    if(t.mode!=null&&t.mode!==''){ if(hw?.modes) tp.mode=en(t.mode,q+'.mode',hw.modes); else W(q+'.mode',`"${t.mode}" — ${tp.hardware||'this point'} has no mode, ignored`); }
+    inc.timingPoints.push(tp); });
+  // races
+  inc.contests=[];
+  arr(x.contests,`${p}.contests`).forEach((c,i)=>{ const q=`${p}.contests[${i}]`;
+    if(!c||typeof c!=='object'){ W(q,'not an object — skipped'); return; }
+    const name=str(c.name,q+'.name'); if(!name){ W(q,'no name — skipped'); return; }
+    const r={name,date:iso(c.date,q+'.date'),startTime:'',distance:numS(c.distance,q+'.distance'),elevation:numS(c.elevation,q+'.elevation'),
+      startType:en(c.startType,q+'.startType',S.config.startTypes),timeBasis:en(c.timeBasis,q+'.timeBasis',Object.keys(TIME_BASIS))};
+    for(const k of ['route','eligibility','relay','notes']) r[k]=str(c[k],`${q}.${k}`);
+    const st=str(c.startTime,q+'.startTime'), m=st.match(/^(\d{1,2})[:h.](\d{2})$/);
+    if(st){ if(m&&+m[1]<24&&+m[2]<60) r.startTime=`${pad(+m[1])}:${m[2]}`; else W(q+'.startTime',`"${st}" is not HH:MM — ignored`); }
+    if(r.date&&inc.dateStart&&(r.date<inc.dateStart||r.date>(inc.dateEnd||inc.dateStart))) W(q+'.date',`${r.date} is outside the event dates`);
+    let sp=arr(c.splits,q+'.splits').map((s,j)=>{ const qq=`${q}.splits[${j}]`; if(!s||typeof s!=='object'){ W(qq,'not an object — skipped'); return null; }
+      return {role:en(s.role,qq+'.role',ROLES),label:str(s.label,qq+'.label'),timingPoint:str(s.timingPoint??s.tp,qq+'.timingPoint'),km:numS(s.km,qq+'.km'),q:qq}; }).filter(Boolean);
+    if(sp.length&&sp.every(s=>!s.role)){ W(q+'.splits','no roles given — last = finish, first at km 0 = start, the rest intermediates');
+      if(sp.length>1&&sp[0].km!==''&&num(sp[0].km)===0) sp[0].role='start'; sp[sp.length-1].role='finish'; for(const s of sp) if(!s.role) s.role='split'; }
+    for(const s of sp) if(!s.role) s.role='split';
+    const fins=sp.filter(s=>s.role==='finish'), starts=sp.filter(s=>s.role==='start');
+    if(!fins.length) W(q+'.splits','no finish split — an empty Finish will be added');
+    if(fins.length>1) W(q+'.splits','several finish splits — only the last stays Finish, the others become intermediates');
+    if(fins.length&&sp[sp.length-1].role!=='finish') W(q+'.splits','finish is not last — it will be moved to the end');
+    if(starts.length>1) W(q+'.splits','several start splits — only the first is kept as Start');
+    r.startSplit=typeof c.startSplit==='boolean'?c.startSplit:starts.length>0;
+    if(c.startSplit===false&&starts.length) W(q+'.startSplit','false, but a start split is given — the start split is dropped');
+    if(c.startSplit===true&&!starts.length) W(q+'.startSplit','true without a start split — an empty Start will be added');
+    for(const s of starts) if(s.km!==''&&num(s.km)!==0) W(s.q+'.km',`start is always km 0 (got ${s.km})`);
+    r.splits=sp; inc.contests.push(r); });
+  // lists and questions
+  for(const [k] of EVENT_LISTS){ inc[k]=[];
+    arr(x[k],`${p}.${k}`).forEach((t,i)=>{ const q=`${p}.${k}[${i}]`; if(typeof t==='string') t={text:t};
+      const text=str(t?.text,q+'.text'); if(!text){ W(q,'no text — skipped'); return; }
+      inc[k].push({text,done:false,note:str(t.note,q+'.note'),url:str(t.url,q+'.url'),
+        children:arr(t.children,q+'.children').map((c,j)=>typeof c==='string'?{text:c}:c).map((c,j)=>({text:str(c?.text,`${q}.children[${j}].text`),done:false,note:str(c?.note,`${q}.children[${j}].note`),url:str(c?.url,`${q}.children[${j}].url`),children:[]})).filter(c=>c.text)}); }); }
+  inc.questions=arr(x.questions,`${p}.questions`).map((qq,i)=>str(typeof qq==='string'?qq:qq?.text,`${p}.questions[${i}].text`)).filter(Boolean);
+  if(!ev.errors.length) ev.inc=inc;
+  return ev;
+}
+/* ---- matching ---- */
+function matchTarget(inc){
+  if(inc.id&&S.events.some(e=>e.id===inc.id)) return inc.id;
+  if(inc.rr14EventId){ const m=S.events.find(e=>String(e.rr14EventId||'').trim()===inc.rr14EventId); if(m) return m.id; }
+  const n=normTxt(inc.name); if(!n||!inc.dateStart) return '';
+  return S.events.find(e=>normTxt(e.name)===n&&e.dateStart===inc.dateStart)?.id||'';
+}
+function matchClient(inc){
+  if(inc.clientId&&clientOf(inc.clientId)) return inc.clientId;
+  if(inc.clientName){ const n=normTxt(inc.clientName); return S.clients.find(c=>normTxt(c.name)===n)?.id||''; }
+  return '';
+}
+/* client choice: '' none · '=' keep the event's · 'id:<id>' · 'new' (create «name») */
+function defaultClient(card){
+  const inc=card.ev.inc, m=matchClient(inc), e=card.target&&S.events.find(x=>x.id===card.target);
+  if(e&&e.clientId) return '=';
+  return m?'id:'+m:inc.clientName?'new':e?'=':'';
+}
+const tpIdByName=(e,name)=>name?(e.timingPoints.find(t=>rrName(t.name)===rrName(name))?.id||''):'';
+const seqText=r=>[...(r.startSplit?[]:['Gun start']),...r.splits.filter(s=>r.startSplit||s.role!=='start').map(s=>`${s.role==='start'?'Start':s.role==='finish'?'Finish':'Split'}${s.timingPoint?' '+s.timingPoint:''}${s.km!==''?` (${s.km} km)`:''}`)].join(' → ')+(r.splits.some(s=>s.role==='finish')?'':' → Finish');
+function mkRace(r,e){
+  return {id:uid('c'),name:r.name,date:r.date,startTime:r.startTime,distance:r.distance,elevation:r.elevation,startType:r.startType||'mass',timeBasis:r.timeBasis,route:r.route,eligibility:r.eligibility,relay:r.relay,notes:r.notes,
+    startSplit:r.startSplit,splits:r.splits.map(s=>({id:uid('s'),role:s.role,label:s.label,tp:tpIdByName(e,s.timingPoint),km:s.role==='start'?'0':s.km}))};
+}
+/* existing race without intermediates: fill Start/Finish where empty, add the intermediates before Finish */
+function mergeSplits(ex,r,e){
+  const st=r.splits.find(s=>s.role==='start'), fin=[...r.splits].reverse().find(s=>s.role==='finish');
+  const mids=r.splits.filter(s=>s!==st&&s!==fin&&!(s.role==='start'&&!r.startSplit));
+  if(r.startSplit&&!ex.startSplit){ ex.startSplit=true; fixSplits(ex); }
+  const fill=(x,s)=>{ if(!x||!s) return; if(!x.tp) x.tp=tpIdByName(e,s.timingPoint); if(!x.label) x.label=s.label; if(x.role==='finish'&&String(x.km).trim()===''&&s.km!=='') x.km=s.km; };
+  if(ex.startSplit) fill(ex.splits.find(x=>x.role==='start'),st);
+  fill(ex.splits.find(x=>x.role==='finish'),fin);
+  const at=ex.splits.findIndex(x=>x.role==='finish');
+  ex.splits.splice(at<0?ex.splits.length:at,0,...mids.map(s=>({id:uid('s'),role:'split',label:s.label,tp:tpIdByName(e,s.timingPoint),km:s.km})));
+}
+const nextQ=e=>Math.max(0,...e.questions.map(q=>q.n||0))+1;
+/* Field-by-field changes for an existing event. Empty fields are filled (checked); different non-empty values are offered unchecked. Nothing is removed. */
+function buildRows(inc,e){
+  const rows=[], warn=[];
+  const fmt=v=>{ const s=String(v??''); return !s?'—':s.length>80?s.slice(0,80)+'…':s; };
+  const field=(sec,label,obj,k,v,disp=fmt)=>{ if(v===''||v==null) return; const cur=obj[k]; if(String(cur??'')===String(v)) return;
+    const empty=String(cur??'').trim()===''; rows.push({sec,label,from:empty?'':disp(cur),to:disp(v),checked:empty,ow:!empty,fn:()=>{ obj[k]=v; }}); };
+  const D=v=>v?fmtLong(v):'—';
+  field('Event','Name',e,'name',inc.name);
+  field('Event','Start date',e,'dateStart',inc.dateStart,D); field('Event','End date',e,'dateEnd',inc.dateEnd,D);
+  for(const [k,l] of [['location','Location'],['type','Type'],['website','Website'],['rr14EventId','EventID'],['technology','Timing technology'],['status','Status'],['notes','Notes']]) field('Event',l,e,k,inc[k]);
+  const lk=l=>normTxt(l.url)||normTxt(l.label);
+  for(const l of inc.links) if(!e.links.some(x=>lk(x)===lk(l))) rows.push({sec:'Links',label:'Add link',to:[l.label,l.url].filter(Boolean).join(' · '),checked:true,fn:ev=>ev.links.push({...l})});
+  for(const t of inc.timingPoints){ const ex=e.timingPoints.find(x=>rrName(x.name)===rrName(t.name));
+    if(!ex){ rows.push({sec:'Timing points',label:'Add timing point',to:[t.name,t.hardware,t.ch&&`Ch. ${t.ch}`,t.loop&&`L. ${t.loop}`,t.mode,t.position].filter(Boolean).join(' · '),checked:true,fn:ev=>ev.timingPoints.push({id:uid('tp'),...t,color:nextColor(ev)})}); continue; }
+    for(const [k,l] of [['hardware','hardware'],['ch','Ch.'],['loop','L.'],['mode','mode'],['position','position'],['notes','notes']]) field('Timing points',`«${ex.name}» · ${l}`,ex,k,t[k]); }
+  for(const r of inc.contests){ const ex=e.contests.find(c=>normTxt(c.name)===normTxt(r.name));
+    if(!ex){ rows.push({sec:'Races',label:'Add race',to:[r.name,r.distance&&`${r.distance} km`,r.startTime,seqText(r)].filter(Boolean).join(' · '),checked:true,fn:ev=>ev.contests.push(mkRace(r,ev))}); continue; }
+    for(const [k,l,d] of [['date','day',D],['startTime','start time'],['distance','distance (km)'],['elevation','elevation (m)'],['startType','start type'],['timeBasis','rankings by'],['route','route'],['eligibility','eligibility'],['relay','relay'],['notes','race notes']]) field('Races',`«${ex.name}» · ${l}`,ex,k,r[k],d||fmt);
+    const informative=r.startSplit||r.splits.some(s=>s.role!=='finish'||s.timingPoint||s.label||s.km!=='');
+    if(informative){ const mids=ex.splits.filter(x=>x.role==='split').length;
+      if(mids) warn.push(`«${ex.name}»: splits not changed — the race already has ${plural(mids,'intermediate split','intermediate splits')}`);
+      else rows.push({sec:'Races',label:`«${ex.name}» · splits`,to:seqText(r),checked:true,fn:ev=>mergeSplits(ex,r,ev)}); } }
+  for(const [k,l] of EVENT_LISTS){ const have=new Set(e[k].map(t=>normTxt(t.text)));
+    for(const t of inc[k]) if(!have.has(normTxt(t.text))){ have.add(normTxt(t.text)); rows.push({sec:l,label:`Add to ${l}`,to:t.text+(t.note?` — ${t.note}`:''),checked:true,fn:ev=>ev[k].push(structuredClone(t))}); } }
+  const hq=new Set(e.questions.map(q=>normTxt(q.text)));
+  for(const q of inc.questions) if(!hq.has(normTxt(q))){ hq.add(normTxt(q)); rows.push({sec:'Questions',label:'Add question',to:q,checked:true,fn:ev=>ev.questions.push({id:uid('q'),n:nextQ(ev),text:q,answer:'',resolved:false})}); }
+  return {rows,warn};
+}
+/* split → timing point references that resolve to nothing (for the chosen target) */
+function refWarnings(inc,e){
+  const names=new Set([...inc.timingPoints.map(t=>rrName(t.name)),...(e?e.timingPoints.map(t=>rrName(t.name)):[])]);
+  const out=[]; inc.contests.forEach(r=>r.splits.forEach(s=>{ if(s.timingPoint&&!names.has(rrName(s.timingPoint))) out.push(`${s.q}.timingPoint: «${s.timingPoint}» is not in the timing points — left empty`); })); return out;
+}
+let IMP=null, impTimer=null;
+function cardSetTarget(card,t){
+  card.target=t; card.client=defaultClient(card);
+  const e=t&&S.events.find(x=>x.id===t), b=e?buildRows(card.ev.inc,e):{rows:[],warn:[]};
+  card.rows=b.rows; card.warn=[...b.warn,...refWarnings(card.ev.inc,e)];
+  const m=matchClient(card.ev.inc), want=m?clientName(m):card.ev.inc.clientName;
+  if(e&&e.clientId&&want&&normTxt(want)!==normTxt(clientName(e.clientId))) card.warn.push(`client: the email names «${want}», the event has «${clientName(e.clientId)}» — kept (change it above)`);
+}
+function runImport(){
+  const txt=$('#imp-in').value;
+  if(!txt.trim()){ IMP=null; renderImp(); return; }
+  const an=analyseImport(txt);
+  IMP={an,cards:an.events.map(ev=>{ const c={ev,target:'',client:'',rows:[],warn:[]}; if(ev.inc) cardSetTarget(c,matchTarget(ev.inc)); return c; })};
+  renderImp();
+}
+const msgBox=(cls,title,items)=>items.length?`<div class="impmsg ${cls}"><b>${esc(title)}</b><ul>${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:'';
+function renderImp(){
+  const out=$('#imp-out');
+  if(!IMP){ out.innerHTML=''; updImpBtn(); return; }
+  const {an,cards}=IMP, evOpts=S.events.slice().sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
+  out.innerHTML=msgBox('err',an.errors.length===1?'Cannot import':'Cannot import',an.errors)+msgBox('warn','Warnings',an.warnings)
+    +(cards.length?`<div class="implist">${cards.map((c,ci)=>{ const inc=c.ev.inc;
+      if(!inc) return `<div class="icard bad"><header><span class="it">${esc(c.ev.p)}</span></header><div class="ibody">${msgBox('err','Not importable',c.ev.errors)}${msgBox('warn','Warnings',c.ev.warnings)}</div></div>`;
+      const e=c.target&&S.events.find(x=>x.id===c.target), m=matchClient(inc);
+      const cOpts=[[e?'=':'',e?`Client: keep «${e.clientId?clientName(e.clientId):'none'}»`:'No client'],...(!m&&inc.clientName?[['new',`Create client «${inc.clientName}»`]]:[]),...S.clients.map(x=>['id:'+x.id,`Client: ${x.name||'untitled'}${x.id===m?' (matched)':''}`])];
+      const head=`<header><span class="it">${esc(inc.name)}<small>${esc([rangeText(inc.dateStart,inc.dateEnd).main,inc.location].filter(Boolean).join(' · '))}</small></span>
+        <select class="in sm" data-itarget="${ci}" aria-label="Import into"><option value="">New event</option>${evOpts.map(x=>`<option value="${esc(x.id)}" ${x.id===c.target?'selected':''}>Update: ${esc(x.name||'untitled')}${x.dateStart?' · '+esc(fmtDay(x.dateStart)):''}</option>`).join('')}</select>
+        <select class="in sm" data-iclient="${ci}" aria-label="Client">${cOpts.map(([v,l])=>`<option value="${esc(v)}" ${c.client===v?'selected':''}>${esc(l)}</option>`).join('')}</select></header>`;
+      const warns=msgBox('warn','Warnings',[...c.ev.warnings,...c.warn]);
+      let body;
+      if(!e){ const nl=EVENT_LISTS.reduce((a,[k])=>a+inc[k].length,0);
+        body=`<div class="ikv"><span>Dates</span><span>${esc(rangeText(inc.dateStart,inc.dateEnd).main)}</span>${inc.type?`<span>Type</span><span>${esc(inc.type)}</span>`:''}${inc.rr14EventId?`<span>EventID</span><span>${esc(inc.rr14EventId)}</span>`:''}${inc.technology?`<span>Technology</span><span>${esc(TECH[inc.technology].label)}</span>`:''}${inc.website?`<span>Website</span><span>${esc(inc.website)}</span>`:''}</div>
+          <div class="isum">${[[inc.timingPoints.length,'timing point','timing points'],[inc.contests.length,'race','races'],[inc.links.length,'link','links'],[nl,'list item','list items'],[inc.questions.length,'question','questions']].map(([n,a,b])=>`<span class="tag">${plural(n,a,b)}</span>`).join('')}</div>
+          ${inc.contests.map(r=>`<div class="ikv"><span>${esc(r.name)}</span><span>${esc([r.distance&&`${r.distance} km`,r.startTime,seqText(r)].filter(Boolean).join(' · '))}</span></div>`).join('')}`;
+      } else body=c.rows.length?c.rows.map((r,ri)=>`<label class="irow"><input type="checkbox" class="ck" data-irow="${ci}:${ri}" ${r.checked?'checked':''}><span><span class="ilab"><b>${esc(r.sec)}</b> · ${esc(r.label)}${r.ow?'<span class="tag open">overwrite</span>':''}</span><span class="ival">${r.from?`<span class="ifr">${esc(r.from)}</span> → `:''}<span class="ito">${esc(r.to)}</span></span></span></label>`).join('')
+        :'<div class="hint" style="padding:6px 0">Nothing new for this event.</div>';
+      return `<div class="icard">${head}<div class="ibody">${warns}${body}</div></div>`; }).join('')}</div>`:'');
+  on(out,'[data-itarget]',(s)=>{ cardSetTarget(IMP.cards[+s.dataset.itarget],s.value); renderImp(); },'change');
+  on(out,'[data-iclient]',(s)=>{ IMP.cards[+s.dataset.iclient].client=s.value; updImpBtn(); },'change');
+  on(out,'[data-irow]',(x)=>{ const [ci,ri]=x.dataset.irow.split(':').map(Number); IMP.cards[ci].rows[ri].checked=x.checked; updImpBtn(); },'change');
+  updImpBtn();
+}
+const cardActive=c=>c.ev.inc&&(!c.target||c.rows.some(r=>r.checked)||clientChange(c));
+const clientChange=c=>{ const e=S.events.find(x=>x.id===c.target); if(!e) return false; return c.client==='new'||(c.client.startsWith('id:')&&c.client.slice(3)!==e.clientId); };
+function updImpBtn(){
+  const b=$('#imp-apply'), s=$('#imp-sum');
+  if(!IMP){ b.disabled=true; s.textContent=''; return; }
+  const act=IMP.cards.filter(cardActive), nNew=act.filter(c=>!c.target).length, nUpd=act.length-nNew, ch=act.reduce((a,c)=>a+c.rows.filter(r=>r.checked).length,0);
+  b.disabled=!act.length||IMP.an.errors.length>0;
+  s.textContent=IMP.an.errors.length?'':act.length?[nNew&&plural(nNew,'new event','new events'),nUpd&&`${plural(nUpd,'update','updates')} (${plural(ch,'change','changes')})`].filter(Boolean).join(' · '):'Nothing to import';
+  b.textContent=act.length>1?`Import ${act.length}`:'Import';
+}
+/* ---- apply / undo ---- */
+let importUndo=null;   // snapshot of events + clients before the last import; cleared by the next save
+function newEventId(inc){ const y=(inc.dateStart||'').slice(0,4), base=[slug(inc.name||'event'),y].filter(Boolean).join('-')||'event'; return base&&!S.events.some(e=>e.id===base)?base:uid('ev'); }
+function newClientId(name){ const base=slug(name||'client')||'client'; return S.clients.some(c=>c.id===base)?uid('cl'):base; }
+function buildEvent(inc,clientId){
+  const e={id:newEventId(inc),clientId:clientId||'',name:inc.name,dateStart:inc.dateStart,dateEnd:inc.dateEnd,location:inc.location,type:inc.type,status:inc.status||S.config.statuses[0]?.name||'',
+    website:inc.website,rr14EventId:inc.rr14EventId,technology:inc.technology,links:inc.links.map(l=>({...l})),timingPoints:[],contests:[],
+    ...Object.fromEntries(EVENT_LISTS.map(([k])=>[k,structuredClone(inc[k])])),questions:[],checklist:{},checklistExtra:[],notes:inc.notes};
+  for(const t of inc.timingPoints) e.timingPoints.push({id:uid('tp'),...t,color:nextColor(e)});
+  e.contests=inc.contests.map(r=>mkRace(r,e));
+  const seen=new Set(); for(const q of inc.questions) if(!seen.has(normTxt(q))){ seen.add(normTxt(q)); e.questions.push({id:uid('q'),n:nextQ(e),text:q,answer:'',resolved:false}); }
+  return e;
+}
+function applyImport(){
+  if(!IMP||IMP.an.errors.length) return;
+  const cards=IMP.cards.filter(cardActive); if(!cards.length) return;
+  const snap={events:JSON.stringify(S.events),clients:JSON.stringify(S.clients)};
+  const made=new Map(); let nNew=0,nUpd=0,nCh=0,nCl=0,firstId=null;
+  const clientFor=card=>{ const v=card.client;
+    if(v.startsWith('id:')) return v.slice(3);
+    if(v==='new'){ const name=card.ev.inc.clientName, key=normTxt(name);
+      if(!made.has(key)){ const c={id:newClientId(name),name,contact:'',email:'',phone:'',rrCustomerId:'',notes:''}; S.clients.push(c); made.set(key,c.id); nCl++; }
+      return made.get(key); }
+    return null; };
+  for(const card of cards){ const inc=card.ev.inc;
+    if(!card.target){ const e=buildEvent(inc,clientFor(card)); S.events.push(e); nNew++; firstId??=e.id; continue; }
+    const e=S.events.find(x=>x.id===card.target); if(!e) continue;
+    const rows=card.rows.filter(r=>r.checked); for(const r of rows) r.fn(e); nCh+=rows.length;
+    const cid=clientFor(card);
+    if(cid&&cid!==e.clientId){ e.clientId=cid; nCh++; if(priv()) for(const h of entriesOf(h=>h.eventId===e.id)) if(isOpen(h)) h.clientId=cid; }
+    nUpd++; firstId??=e.id; }
+  normalize();     // roles / Start / Finish rules, colours, defaults
+  importUndo=snap; touch();
+  $('#impdlg').close(); IMP=null;
+  if(firstId) go('e',firstId); else render();
+  toast('Imported — save to keep it',[nNew&&plural(nNew,'new event','new events'),nUpd&&`${plural(nUpd,'update','updates')} (${plural(nCh,'change','changes')})`,nCl&&plural(nCl,'new client','new clients')].filter(Boolean).join(' · '),'check','',{label:'Undo',run:undoImport});
+}
+function undoImport(){
+  if(!importUndo){ toast('Nothing to undo','the import was already saved','warn','warn'); return; }
+  const evs=JSON.parse(importUndo.events), ids=new Set(evs.map(e=>e.id));
+  if(priv()&&S.hours.entries.some(h=>h.eventId&&!ids.has(h.eventId))){ toast('Cannot undo','hours were logged on an imported event — delete them first','warn','warn'); return; }
+  S.events=evs; S.clients=JSON.parse(importUndo.clients); importUndo=null; touch();
+  if((route.view==='e'||route.view==='c')&&route.id&&!(route.view==='e'?S.events:S.clients).some(x=>x.id===route.id)) go(route.view); else render();
+  toast('Import undone','','check');
+}
+/* ---- dialog ---- */
+function openImport(){
+  if(!S) return; closePops(); closeCmd();
+  $('#imp-in').value=''; IMP=null; renderImp();
+  if(!$('#impdlg').open) $('#impdlg').showModal(); setTimeout(()=>$('#imp-in').focus(),30);
+}
+$('#imp-in').addEventListener('input',()=>{ clearTimeout(impTimer); impTimer=setTimeout(runImport,250); });
+$('#imp-cancel').onclick=()=>$('#impdlg').close();
+$('#impdlg').addEventListener('close',()=>{ IMP=null; clearTimeout(impTimer); });
+$('#imp-apply').onclick=applyImport;
+$('#imp-prompt').onclick=()=>{ $('#impdlg').close(); openPrompt(); };
+const readImportFile=f=>{ if(!f) return; if(f.size>2e6){ toast('File too large','max 2 MB','warn','warn'); return; } const r=new FileReader(); r.onload=()=>{ $('#imp-in').value=String(r.result||''); runImport(); }; r.onerror=()=>toast('Could not read the file','','warn','warn'); r.readAsText(f); };
+$('#imp-choose').onclick=()=>$('#imp-file').click();
+$('#imp-file').onchange=e=>{ readImportFile(e.target.files[0]); e.target.value=''; };
+{ const d=$('#imp-drop');
+  d.addEventListener('dragover',e=>{ e.preventDefault(); d.classList.add('over'); });
+  d.addEventListener('dragleave',()=>d.classList.remove('over'));
+  d.addEventListener('drop',e=>{ d.classList.remove('over'); const f=e.dataTransfer?.files?.[0]; if(f){ e.preventDefault(); readImportFile(f); } }); }
+
 /* ---- keyboard shortcut cheat sheet (?) ---- */
 function openKeys(){
   closePops(); closeCmd();
@@ -2267,7 +2774,7 @@ function spy(){
   spyObs?.disconnect(); const links=[...document.querySelectorAll('#jump a')]; if(!links.length) return;
   const vis=new Map();
   spyObs=new IntersectionObserver(ents=>{ for(const en of ents) vis.set(en.target.id,en.isIntersecting); const firstVis=links.find(a=>vis.get(a.getAttribute('href').slice(1)));
-    links.forEach(a=>a.classList.toggle('cur',a===firstVis)); },{rootMargin:`-${52+50}px 0px -55% 0px`});
+    links.forEach(a=>a.classList.toggle('cur',a===firstVis)); },{rootMargin:`-${($('#top')?.offsetHeight||52)+50}px 0px -55% 0px`});
   links.forEach(a=>{ const s=document.querySelector(a.getAttribute('href')); if(s) spyObs.observe(s); });
 }
 
@@ -2432,7 +2939,67 @@ $('#loginform').onsubmit=async ev=>{ ev.preventDefault();
   finally{ $('#s-save').disabled=false; }
 };
 
-if('serviceWorker' in navigator&&location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+P.refresh='<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/>';
+/* =====================================================================
+   UPDATES AND REFRESH (installed iPhone apps have no pull-to-refresh)
+   ===================================================================== */
+/* Save first; if that fails, ask before throwing changes away. Resolves true when it's safe to reload. */
+async function saveBeforeReload(what='Reload'){
+  for(let i=0;saving&&i<100;i++) await new Promise(r=>setTimeout(r,100));
+  if(dirty) await save({quiet:true});
+  if(dirty){ if(!confirm(`Some changes could not be saved (${errMsg||'error'}).\n\nOK: ${what} anyway and lose them.\nCancel: stay here.`)) return false; dirty=false; updSave(); }
+  return true;
+}
+async function reloadApp(){ if(await saveBeforeReload('Reload')) location.reload(); }
+let refreshing=false;
+/* Re-read everything from GitHub (or the demo folder) keeping the route; if unlocked, hours are fetched again too */
+async function refreshData(){
+  if(!S||refreshing) return; refreshing=true; ptrSpin(true);
+  try{
+    if(!await saveBeforeReload('Refresh')) return;
+    const wasUnlocked=unlocked;
+    const res=await loadAll();
+    if(res==='missing'){ toast('Data folder not found','check Settings','warn','err'); return; }
+    importUndo=null;
+    let note=DEMO?'demo data':'from GitHub';
+    if(wasUnlocked){ try{ await loadHours(); unlocked=true; lastAct=Date.now(); note+=' · hours too'; }catch(err){ note+=' · hours locked ('+err.message+')'; } }
+    parseRoute(); render(); toast('Data refreshed',note,'check');
+  }catch(err){ errMsg=err.message; updSave(); toast('Could not refresh',err.message,'warn','err'); }
+  finally{ refreshing=false; ptrSpin(false); }
+}
+/* service worker: check for a new version on load, when the app comes back, and every 30 min while visible */
+let swReg=null, swReloading=false, swNotified=false;
+function notifyUpdate(reg){ if(swNotified) return; swNotified=true;
+  toast('New version available','reload to use it','bolt','',{label:'Reload',run:async()=>{
+    if(!await saveBeforeReload('Reload')){ swNotified=false; notifyUpdate(reg); return; }
+    swReloading=true; if(reg.waiting) reg.waiting.postMessage({type:'skipWaiting'}); else location.reload();
+    setTimeout(()=>location.reload(),4000); }},true); }
+function watchSW(reg){
+  swReg=reg;
+  if(reg.waiting&&navigator.serviceWorker.controller) notifyUpdate(reg);
+  reg.addEventListener('updatefound',()=>{ const w=reg.installing; w?.addEventListener('statechange',()=>{ if(w.state==='installed'&&navigator.serviceWorker.controller) notifyUpdate(reg); }); });
+}
+const checkUpdate=()=>{ if(document.visibilityState==='visible') swReg?.update().catch(()=>{}); };
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+  navigator.serviceWorker.register('sw.js').then(reg=>{ watchSW(reg); reg.update().catch(()=>{}); }).catch(()=>{});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(swReloading){ swReloading=false; location.reload(); } }); // only when we asked for it
+  document.addEventListener('visibilitychange',checkUpdate);
+  setInterval(checkUpdate,30*60e3);
+}
+/* pull-to-refresh (phones): only when the page is at the very top and nothing else owns the gesture */
+const PTR_MAX=90, PTR_GO=64;
+let ptrY=null, ptrX=0, ptrD=0;
+function ptrSpin(on){ const p=$('#ptr'); if(!p) return; if(on){ p.hidden=false; p.classList.add('spin'); p.style.transform=`translate(-50%,${PTR_GO}px)`; p.style.opacity=1; } else { p.classList.remove('spin','go'); p.style.opacity=0; p.style.transform='translate(-50%,0)'; setTimeout(()=>{ if(!refreshing) p.hidden=true; },200); } }
+const ptrBlocked=t=>!narrow.matches||refreshing||window.scrollY>0||!S||document.body.classList.contains('drawer')||document.body.classList.contains('sorting')
+  ||document.querySelector('dialog[open]')||!$('#scrim').hidden||!$('#cmdk').hidden||!$('#keys').hidden
+  ||t.closest?.('.hsc,.pop,.grip,input,textarea,select,.tabbar,.overlay,.jump');
+document.addEventListener('touchstart',e=>{ ptrY=null; if(e.touches.length!==1||ptrBlocked(e.target)) return; ptrY=e.touches[0].clientY; ptrX=e.touches[0].clientX; ptrD=0; },{passive:true});
+document.addEventListener('touchmove',e=>{ if(ptrY===null) return; const t=e.touches[0], dy=t.clientY-ptrY, dx=Math.abs(t.clientX-ptrX);
+  if(window.scrollY>0||dy<0||(dx>12&&dx>dy)){ ptrY=null; ptrSpin(false); return; }
+  ptrD=Math.min(PTR_MAX,dy*.5); const p=$('#ptr'); if(ptrD<6) return; p.hidden=false; p.style.opacity=Math.min(1,ptrD/PTR_GO); p.style.transform=`translate(-50%,${ptrD}px)`; p.classList.toggle('go',ptrD>=PTR_GO); },{passive:true});
+const ptrEnd=()=>{ if(ptrY===null) return; ptrY=null; if(ptrD>=PTR_GO) refreshData(); else ptrSpin(false); ptrD=0; };
+document.addEventListener('touchend',ptrEnd,{passive:true}); document.addEventListener('touchcancel',()=>{ ptrY=null; ptrD=0; ptrSpin(false); },{passive:true});
+
 
 $('#dscrim').addEventListener('pointerdown',()=>closeDrawer());
 $('#scrim').addEventListener('pointerdown',()=>closePops());
