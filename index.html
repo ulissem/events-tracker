@@ -1099,7 +1099,7 @@ main.agenda #detail{max-width:1560px}
 .phtx small{display:block;color:var(--ink-3);font-size:12px;margin-top:1px}
 .phtd.done .phtx{color:var(--ink-3);text-decoration:line-through}
 .phtd .tdue{font-size:12px;opacity:1;padding:0}
-.phtd.add{color:var(--ink-3)} .phtd.add svg{width:16px;height:16px;flex:none;margin-left:1px} .phtd.add .cell{flex:1;height:44px;padding:0}
+.phtd.add{color:var(--ink-3)} .phtd.add svg{width:16px;height:16px;flex:none;margin-left:1px} .phtd.add .cell{flex:1;height:40px;padding:0 10px;margin:4px 0}
 .phnotes textarea{display:block;width:100%;border:0;background:none;color:var(--ink);padding:12px 0;min-height:56px;resize:none;font:inherit;font-size:15px;line-height:1.5;outline:none}
 @media (max-width:860px){ .newbtn.onag{display:none!important} }
 #tdform .fld,#entryform .fld{margin-bottom:10px}
@@ -2540,8 +2540,9 @@ function agMini(){
     const days=[...Array(7)].map((_,i)=>addDays(ws,i)), we=days[6];
     // travel / away / other as lines under the days: own layer, so nothing in a day cell can move them
     const segs=en.filter(i=>i.s<=we&&i.e>=ws).slice(0,2).map((i,k)=>{ const a=days.indexOf(i.s<ws?ws:i.s), b=days.indexOf(i.e>we?we:i.e);
-      const l=(a+(i.s>=ws?.5:0))/7*100, r=(b+(i.e<=we?.5:1))/7*100, one=i.s===i.e;
-      return `<i class="${i.o.type} ${i.s>=ws?'st':''} ${i.e<=we?'en':''}" style="left:${one?l-3.5:l}%;width:${one?7:r-l}%;bottom:${3+k*5}px"></i>`; }).join('');
+      // from the left edge of the first day's box to the right edge of the last one (a small gap where it really starts / ends)
+      const st=i.s>=ws, en=i.e<=we, l=a/7*100, w=(b-a+1)/7*100;
+      return `<i class="${i.o.type} ${st?'st':''} ${en?'en':''}" style="left:calc(${l}% + ${st?5:0}px);width:calc(${w}% - ${(st?5:0)+(en?5:0)}px);bottom:${3+k*5}px"></i>`; }).join('');
     return `<div class="g">${days.map(d=>{
       const dots=[...ev.filter(i=>onDay(i,d)).map(i=>statusColor(i.o.status)),...td.filter(t=>t.due===d).map(()=>d<TODAY?'var(--danger)':'var(--ink-3)')].slice(0,4);
       return `<button type="button" data-sel="${d}" class="${d.slice(0,7)!==agMonth?'o':''} ${d===TODAY?'t':''} ${d===agSel?'s':''} ${d.slice(0,7)===agMonth&&clashOn(d)?'c':''}" aria-label="${esc(fmtLong(d))}"><b>${parse(d).getDate()}</b><u>${dots.map(c=>`<i style="background:${esc(c)}"></i>`).join('')}</u></button>`; }).join('')}<span class="agln">${segs}</span></div>`; }).join('')}</div>`;
@@ -2624,8 +2625,9 @@ function bindAgenda(D){
     cal.addEventListener('pointerup',end); cal.addEventListener('pointercancel',end); }
   // to-dos
   const add=D.querySelector('#td-add');
-  if(add){ const go_=()=>{ const v=add.value.trim(); if(!v) return; S.agenda.todos.push({...mkTask(v),id:uid('td'),due:'',link:''}); touch('none'); renderDetail(); D.querySelector('#td-add')?.focus(); };
-    add.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); go_(); } }); }
+  if(add){ const go_=refocus=>{ const v=add.value.trim(); if(!v) return; add.value=''; S.agenda.todos.push({...mkTask(v),id:uid('td'),due:'',link:''}); touch('none'); renderDetail(); if(refocus) $('#td-add')?.focus(); };
+    add.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); go_(true); } });
+    add.addEventListener('blur',()=>setTimeout(()=>go_(false),0)); } // tapping elsewhere keeps what was typed
   on(D,'[data-tddue]',b=>{ const t=OBJ[+b.dataset.tddue]; openDate(b,{s:t.due,allowRange:false,onChange:s=>{ t.due=s||''; touch('none'); },onClose:()=>renderDetail(),clearable:true}); });
   D.querySelectorAll('[data-tdlink]').forEach(s=>s.addEventListener('change',()=>{ OBJ[+s.dataset.tdlink].link=s.value; touch('none'); renderDetail(); }));
   on(D,'[data-tddel]',b=>{ S.agenda.todos=S.agenda.todos.filter(t=>t.id!==b.dataset.tddel); touch('none'); renderDetail(); });
