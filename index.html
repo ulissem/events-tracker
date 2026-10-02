@@ -1719,10 +1719,8 @@ function checklistItems(e){
     A('auto:hw','Hardware on every timing point',e.timingPoints.every(t=>t.hardware),G1);
     if(e.technology==='active'&&e.timingPoints.some(t=>HW[t.hardware]?.ch)) A('auto:ids','Ch. / L. set, no duplicates',e.timingPoints.every(t=>!HW[t.hardware]?.ch||idKey(e,t))&&!duplicates(e).length,G1);
     if(e.timingPoints.some(t=>repeatTarget(e,t)!==undefined)) A('auto:repeat','Repeat Loop Boxes have a Decoder on L. 1',e.timingPoints.every(t=>repeatTarget(e,t)!==null),G1);
-    M('tp:imported','Timing points imported in RR14',G1);
   }
   for(const c of e.contests){ const n=c.name||'untitled race';
-    M(`race:${c.id}:setup`,`${n}: contest and splits in RR14`,G2);
     if(c.startType&&c.startType!=='mass') M(`race:${c.id}:start`,`${n}: ${c.startType} start times`,G2);
     if(c.relay) M(`race:${c.id}:relay`,`${n}: relay set up`,G2);
   }
@@ -1738,7 +1736,10 @@ function checklistItems(e){
 const progress=e=>{ const it=checklistItems(e), [xt,xd]=countTasks(e.checklistExtra||[]); const tot=it.length+xt; return tot?(it.filter(x=>x.done).length+xd)/tot:0; };
 /* Template items that are now computed from the event itself */
 const AUTO_NOW=['EventID noted','Contests defined','Splits / timing points','Rankings','Lists (speaker, results, statistics)','Presenter','my.raceresult.com page'];
-function normalizeConfig(){ if(S.config.checklistV2) return; S.config.checklistTemplate=S.config.checklistTemplate.filter(k=>!AUTO_NOW.includes(k)); S.config.checklistV2=true; }
+const DROPPED=['Hardware and equipment ready','Wrap-up: results published, export sent']; // removed from the standard checklist (Oct 2026)
+function normalizeConfig(){ const c=S.config;
+  if(!c.checklistV2){ c.checklistTemplate=c.checklistTemplate.filter(k=>!AUTO_NOW.includes(k)); c.checklistV2=true; }
+  if(!c.checklistV3){ c.checklistTemplate=c.checklistTemplate.filter(k=>!DROPPED.includes(k)); c.checklistV3=true; } }
 
 /* =====================================================================
    ICONS, section colours, external links (my.raceresult, RR14)
