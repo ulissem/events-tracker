@@ -957,6 +957,151 @@ textarea.impta{min-height:130px;font-family:"JetBrains Mono",ui-monospace,monosp
 input[type=time],input[type=date]{min-width:0;max-width:100%;width:100%;-webkit-appearance:none;appearance:none;text-align:left}
 input[type=time]::-webkit-date-and-time-value,input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 @media (max-width:860px){ input:not([type=checkbox]):not([type=radio]):not([type=color]),select,textarea{font-size:16px} }
+
+/* ---------- AGENDA ---------- */
+main.agenda #detail{max-width:1560px}
+.agwrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+@media (max-width:1180px){ .agwrap{grid-template-columns:1fr} }
+.aghead{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.aghead h2{margin:0 6px 0 0;font-size:22px;letter-spacing:-.02em;min-width:180px}
+.agchips{display:flex;gap:6px}
+.agchip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--line-2);font-size:12px;font-weight:500;color:var(--ink-2);background:var(--panel)}
+.agchip i{width:8px;height:8px;border-radius:3px;background:var(--accent)}
+.agchip.mine i{background:var(--ag-travel)} .agchip.todo i{background:var(--ink-3)}
+.agchip.off{opacity:.45} .agchip.off i{background:var(--line-3)}
+.agseg{display:inline-flex;background:var(--sunken);padding:3px;border-radius:9px;gap:2px}
+.agseg button{border:0;background:none;padding:3px 10px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.agseg button[aria-pressed=true]{background:var(--panel);color:var(--ink);box-shadow:var(--shadow-sm)}
+:root{--ag-travel:#0e9384;--ag-travel-s:#e3f6f3;--ag-away:#7a5af8;--ag-away-s:#f0ecfe;--ag-other:#64748b;--ag-other-s:#eef1f5}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--ag-travel:#3cc6b4;--ag-travel-s:#0f2624;--ag-away:#a48afb;--ag-away-s:#1f1835;--ag-other:#94a3b8;--ag-other-s:#1b1f26} }
+:root[data-theme="dark"]{--ag-travel:#3cc6b4;--ag-travel-s:#0f2624;--ag-away:#a48afb;--ag-away-s:#1f1835;--ag-other:#94a3b8;--ag-other-s:#1b1f26}
+.agcal{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm);user-select:none;-webkit-user-select:none}
+.agdow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:1px solid var(--line);background:var(--panel-2)}
+.agdow span{padding:7px 10px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.agwk{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:min-content;min-height:112px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.agwk:last-child{border-bottom:0}
+.agbg{position:absolute;inset:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.agbg button{border:0;border-right:1px solid var(--line);background:none;padding:0;cursor:cell}
+.agbg button:last-child{border-right:0}
+.agbg button:hover{background:var(--hover)}
+.agbg button.we{background:color-mix(in srgb,var(--sunken) 60%,transparent)}
+.agbg button.out{background:repeating-linear-gradient(135deg,transparent 0 6px,color-mix(in srgb,var(--line) 55%,transparent) 6px 7px)}
+.agbg button.today{background:color-mix(in srgb,var(--accent-soft) 75%,transparent)}
+.agbg button.pick{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.agdn{position:relative;grid-row:1;padding:6px 8px 4px;display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-2);pointer-events:none;min-width:0}
+.agdn b{font-weight:600}
+.agdn.out{color:var(--ink-3)} .agdn.out b{font-weight:500}
+.agdn.today b{background:var(--accent);color:var(--accent-ink);border-radius:999px;min-width:22px;height:22px;display:inline-grid;place-items:center;padding:0 6px}
+.agclash{color:var(--warn);display:flex;margin-left:auto} .agclash svg{width:14px;height:14px}
+.agtd{min-width:17px;height:17px;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:700;background:var(--sunken);color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:auto;cursor:default}
+.agclash+.agtd{margin-left:0} .agdn>b+.agtd{margin-left:auto}
+.agtd.late{background:var(--danger-soft);color:var(--danger);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 30%,transparent)}
+.agbar{position:relative;z-index:1;margin:2px 5px;height:22px;border-radius:6px;display:flex;align-items:center;gap:6px;padding:0 7px;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;min-width:0;border:0;text-decoration:none;text-align:left;color:var(--ink)}
+.agbar .dot{width:7px;height:7px;border-radius:50%;flex:none}
+.agbar .t{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.agbar .m{color:var(--ink-3);font-weight:400;font-size:11px;flex:none}
+.agbar svg{width:12px;height:12px;flex:none}
+.agbar.ev{background:var(--panel);box-shadow:inset 0 0 0 1px var(--line-2),var(--shadow-sm)}
+.agbar.ev:hover{box-shadow:inset 0 0 0 1px var(--accent-line),var(--shadow-sm)}
+.agbar.ev.warn{box-shadow:inset 0 0 0 1.5px var(--warn)}
+.agbar.travel{background:var(--ag-travel-s);color:var(--ag-travel);box-shadow:inset 3px 0 0 var(--ag-travel)}
+.agbar.away{background:var(--ag-away-s);color:var(--ag-away);box-shadow:inset 3px 0 0 var(--ag-away)}
+.agbar.other{background:var(--ag-other-s);color:var(--ag-other);box-shadow:inset 3px 0 0 var(--ag-other)}
+.agbar.cont-l{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:0}
+.agbar.cont-r{border-top-right-radius:0;border-bottom-right-radius:0;margin-right:0}
+.aglegend{display:flex;gap:14px;margin-top:10px;font-size:12px;color:var(--ink-3);flex-wrap:wrap;align-items:center}
+.aglegend span{display:inline-flex;align-items:center;gap:6px}
+.aglegend i{width:10px;height:10px;border-radius:3px}
+.aglegend i.ev{background:var(--panel);box-shadow:inset 0 0 0 1px var(--line-3)} .aglegend i.travel{background:var(--ag-travel)} .aglegend i.away{background:var(--ag-away)} .aglegend i.other{background:var(--ag-other)}
+.aglegend i.td{background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line-2)} .aglegend i.cl{background:var(--warn)}
+.aglegend .hint{margin-left:auto}
+.agclashes{margin-top:14px;background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 25%,transparent);border-radius:12px;padding:10px 14px}
+.agclashes h4{margin:0 0 6px;font-size:13px;color:var(--warn);display:flex;align-items:center;gap:6px}
+.agclashes h4 svg{width:15px;height:15px}
+.agclashes div{font-size:13px;padding:3px 0;display:flex;gap:10px;align-items:baseline}
+.agclashes .d{font:500 11.5px "JetBrains Mono",ui-monospace,monospace;color:var(--warn);min-width:96px;flex:none}
+.agside{display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(var(--hh) + 16px)}
+@media (max-width:1180px){ .agside{position:static} }
+.agpanel{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-sm);padding:12px 14px}
+.agpanel .sech{margin:0 0 8px;padding:0;position:static;background:none;border:0}
+.agpanel textarea.in{min-height:96px}
+.agics{align-self:flex-start} .agics .hint{margin-left:4px}
+.tdadd{display:flex;align-items:center;gap:8px;height:34px;border:1px dashed var(--line-3);border-radius:8px;padding:0 6px 0 10px;color:var(--ink-3);margin-bottom:4px}
+.tdadd svg{width:14px;height:14px;flex:none} .tdadd .cell{flex:1;min-width:0;height:30px;padding:0} .tdadd kbd{font-size:10.5px}
+.tdgrp{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:12px 2px 2px}
+.tdgrp.late{color:var(--danger)}
+.tdrow{position:relative;display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:0 4px;align-items:center;padding:1px 0;border-radius:7px}
+.tdacts{position:absolute;right:0;top:2px;display:flex;gap:1px;padding-left:10px;background:linear-gradient(90deg,transparent,var(--panel) 10px);opacity:0;pointer-events:none;transition:opacity .12s}
+.tdrow:hover .tdacts,.tdrow:focus-within .tdacts{opacity:1;pointer-events:auto}
+@media (hover:none){ .tdrow{grid-template-columns:18px minmax(0,1fr) auto auto;padding:2px 0 4px;border-bottom:1px solid var(--line);border-radius:0} .tdrow:last-of-type{border-bottom:0}
+  .tdrow .tx{grid-column:2/-1} .tdrow .tdue{grid-row:2;grid-column:3} .tdacts{grid-row:2;grid-column:4;position:static;opacity:1;pointer-events:auto;background:none;padding:0}
+  .tdrow .tdmeta{grid-row:2;grid-column:2;padding:0} .tdue:not(.set){opacity:1} .tdrow.mini .tdue{grid-row:auto} }
+.tdrow .cell.tx{height:30px}
+.tdrow.done .tx{color:var(--ink-3);text-decoration:line-through}
+.tdue{height:22px;border:0;border-radius:6px;background:none;color:var(--ink-3);font:500 11px "JetBrains Mono",ui-monospace,monospace;padding:0 6px;white-space:nowrap;display:inline-flex;align-items:center}
+.tdue svg{width:14px;height:14px}
+.tdue:not(.set){opacity:.55} .tdrow:hover .tdue{opacity:1}
+.tdue:hover{background:var(--hover)}
+.tdue.late{color:var(--danger)} .tdue.soon{color:var(--warn)}
+.tlink{position:relative;overflow:hidden} .tlink.set{color:var(--accent)}
+.tlink select{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:16px}
+.tdmeta{grid-column:2/-1;grid-row:2;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 0 5px 0}
+.tdmeta .tag{display:inline-flex;align-items:center;gap:4px;text-decoration:none}
+.tdmeta .tag svg{width:11px;height:11px}
+.tdmeta .tag.ev{background:var(--accent-soft);color:var(--accent);box-shadow:none}
+.tdnote{font-size:12px;color:var(--ink-3)}
+.tdmore{display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--ink-3);font-size:12.5px;margin-top:10px;padding:4px 2px}
+.tdmore svg{width:13px;height:13px}
+.tdrow.mini{grid-template-columns:18px minmax(0,1fr) auto;padding:5px 0}
+.tdrow.mini .tx{font-size:13.5px}
+.agempty{font-size:12.5px;color:var(--ink-3);padding:8px 2px}
+.aglist{display:flex;flex-direction:column;gap:12px}
+.agld{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px}
+.agldh{font-size:12.5px;font-weight:600;color:var(--ink-2);padding-top:10px}
+.agld.today .agldh{color:var(--accent)}
+.agcard{width:100%;display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;text-align:left;color:var(--ink);text-decoration:none}
+.agcard>span{flex:1;min-width:0} .agcard b{font-weight:500}
+.agcard small{display:block;color:var(--ink-3);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agcard .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.agcard>svg{width:14px;height:14px;flex:none;color:var(--ink-3)}
+.agcard.travel{background:var(--ag-travel-s);border-color:transparent;color:var(--ag-travel);box-shadow:inset 3px 0 0 var(--ag-travel)}
+.agcard.away{background:var(--ag-away-s);border-color:transparent;color:var(--ag-away);box-shadow:inset 3px 0 0 var(--ag-away)}
+.agcard.other{background:var(--ag-other-s);border-color:transparent;color:var(--ag-other);box-shadow:inset 3px 0 0 var(--ag-other)}
+.agcard.travel small,.agcard.away small,.agcard.other small{color:inherit;opacity:.75}
+.agcw{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--warn);background:var(--warn-soft);border-radius:9px;padding:7px 10px;margin-bottom:6px}
+.agcw svg{width:14px;height:14px;flex:none;margin-top:2px} .agcw span{color:var(--ink)}
+.agph{padding-bottom:80px} .agph .aghead h2{font-size:18px;min-width:0;margin-right:auto} .agph .aghead .spacer{display:none}
+.agph .agchips{margin-bottom:10px}
+.agph .agpanel{margin-top:14px}
+.agmini{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 6px 6px}
+.agmini .h,.agmini .g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center}
+.agmini .h span{font-size:10px;font-weight:600;color:var(--ink-3);padding-bottom:4px}
+.agmini .g button{height:44px;border:0;background:none;display:flex;flex-direction:column;align-items:center;padding:4px 0 0;font-size:14px;font-weight:500;color:var(--ink);border-radius:9px;position:relative}
+.agmini .g button.o{color:var(--ink-3);font-weight:400}
+.agmini .g button b{width:26px;height:26px;display:grid;place-items:center;border-radius:999px;font-weight:inherit;margin-top:-3px}
+.agmini .g button.t b{background:var(--accent);color:var(--accent-ink)}
+.agmini .g button.s{background:var(--accent-soft)}
+.agmini .g button.c b{box-shadow:inset 0 0 0 1.5px var(--warn)}
+.agmini .g u{display:flex;gap:2px;text-decoration:none;height:5px}
+.agmini .g u i{width:5px;height:5px;border-radius:50%}
+.agmini .g button.r::before{content:"";position:absolute;left:0;right:0;bottom:3px;height:3px;opacity:.75}
+.agmini .g button.r.travel::before{background:var(--ag-travel)} .agmini .g button.r.away::before{background:var(--ag-away)} .agmini .g button.r.other::before{background:var(--ag-other)}
+.agmini .g button.rs::before{left:50%} .agmini .g button.re::before{right:50%}
+.agdh{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin:14px 2px 6px}
+.agfab{position:fixed;right:16px;bottom:calc(76px + var(--sab));width:52px;height:52px;border-radius:16px;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:var(--shadow-pop);z-index:30}
+.agfab svg{width:22px;height:22px}
+.enseg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--sunken);padding:3px;border-radius:9px;gap:2px;margin-bottom:12px}
+.enseg button{border:0;background:none;padding:6px 0;border-radius:7px;font-size:13px;font-weight:500;color:var(--ink-2)}
+.enseg button[aria-pressed=true]{background:var(--panel);box-shadow:var(--shadow-sm)}
+.enseg button[data-t=travel][aria-pressed=true]{color:var(--ag-travel)} .enseg button[data-t=away][aria-pressed=true]{color:var(--ag-away)} .enseg button[data-t=other][aria-pressed=true]{color:var(--ag-other)}
+#entryform .fld{margin-bottom:10px}
+.en2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#entryform .acts{display:flex;gap:8px;align-items:center;margin-top:8px}
+@media (max-width:860px){
+  dialog#entrydlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0;max-height:calc(100vh - 16px - var(--sat));overflow:auto}
+  dialog#entrydlg .dlg{width:100%;padding-bottom:calc(22px + var(--sab))}
+  .agld{grid-template-columns:1fr;gap:2px}
+}
 </style>
 </head>
 <body>
@@ -1032,6 +1177,18 @@ input[type=time]::-webkit-date-and-time-value,input[type=date]::-webkit-date-and
     <div class="acts"><button class="btn" type="button" id="ul-cancel">Cancel</button><button class="btn primary" type="submit" id="ul-go">Unlock</button></div>
   </form>
 </dialog>
+<dialog id="entrydlg" aria-label="Agenda entry">
+  <form class="dlg" id="entryform" autocomplete="off">
+    <h2 id="en-head" style="margin:0 0 14px;font-size:17px">New entry</h2>
+    <div class="enseg" id="en-type" role="group" aria-label="Type"><button type="button" data-t="travel">Travel</button><button type="button" data-t="away">Away</button><button type="button" data-t="other">Other</button></div>
+    <div class="fld"><label class="lab" for="en-tt">Title</label><input class="in" id="en-tt" placeholder="Bastia, Holiday, Dentist…"></div>
+    <div class="en2"><div class="fld"><label class="lab" for="en-from">From</label><input class="in" type="date" id="en-from"></div><div class="fld"><label class="lab" for="en-to">To</label><input class="in" type="date" id="en-to"></div></div>
+    <div class="en2"><div class="fld"><label class="lab" for="en-time">Time <span class="lh">optional</span></label><input class="in" type="time" id="en-time"></div><div></div></div>
+    <div class="fld"><label class="lab" for="en-note">Note</label><textarea class="in" id="en-note" rows="2" placeholder="Optional"></textarea></div>
+    <div class="hint" id="en-hint" style="min-height:18px"></div>
+    <div class="acts"><button class="btn dangerous" type="button" id="en-del">Delete</button><span class="spacer"></span><button class="btn" type="button" id="en-cancel">Cancel</button><button class="btn primary" type="submit" id="en-go">Add</button></div>
+  </form>
+</dialog>
 <dialog id="sumdlg" aria-label="Client summary">
   <div class="sumbar"><label class="chk"><input type="checkbox" class="ck" id="sum-res"> include resolved questions</label><button class="btn" type="button" id="sum-png">Download PNG</button><button class="btn" type="button" id="sum-pdf">Print / PDF</button><button class="btn primary" type="button" id="sum-close">Close</button></div>
   <div class="sumwrap"><div id="sumsheet"></div></div>
@@ -1100,7 +1257,7 @@ const GitHubStore={
 };
 /* ?demo — reads ../data/ next to the site folder, never writes. For local testing only. */
 const DemoStore={
-  async list(){ return ['config.json','clients.json','hours.json','events-2026.json']; },
+  async list(){ return ['config.json','clients.json','hours.json','events-2026.json','agenda.json']; },
   async get(name){ const r=await fetch('../data/'+name,{cache:'no-store'}); return r.ok?r.text():null; },
   async put(){ await new Promise(r=>setTimeout(r,250)); }
 };
@@ -1171,6 +1328,10 @@ const splitKm=(c,x)=>x.role==='start'?0:String(x.km).trim()!==''?num(x.km):x.rol
 function splitMeta(c){ const n=c.splits.filter(x=>x.role==='split').length; if(!c.startSplit&&!n) return 'Finish only'; return [c.startSplit&&'Start',n&&plural(n,'split','splits'),'Finish'].filter(Boolean).join(' · '); }
 function normalize(){
   normalizeConfig();
+  const A=S.agenda=Object.assign({todos:[],entries:[],notes:''},S.agenda||{}); delete A.version;
+  A.todos=toTasks(A.todos).map(t=>({...t,id:t.id||uid('td'),due:t.due||'',link:t.link||''}));
+  A.entries=(A.entries||[]).map(x=>({id:x.id||uid('ag'),type:AG_TYPES[x.type]?x.type:'other',title:x.title||'',from:x.from||'',to:x.to||'',time:x.time||'',note:x.note||''}));
+  A.notes=A.notes||'';
   for(const e of S.events){
     for(const k of ['links','timingPoints','contests','questions']) e[k]=e[k]||[];
     e.checklist=e.checklist||{}; for(const [k] of EVENT_LISTS) e[k]=toTasks(e[k]);
@@ -1232,6 +1393,7 @@ async function loadAll(){
   S={config:Object.assign(structuredClone(DEFAULT_CONFIG),j('config.json')||{}),
      clients:(j('clients.json')||{}).clients||[],
      hours:null,
+     agenda:j('agenda.json'),
      events:[]};
   eventFiles=new Set(want.filter(n=>/^events-.+\.json$/.test(n)));
   for(const n of [...eventFiles]) S.events.push(...((j(n)||{}).events||[]));
@@ -1253,6 +1415,7 @@ function serialize(){
   if(S.hours) out['hours.json']=hoursText();
   out['config.json']=JSON.stringify(S.config,null,2);
   out['clients.json']=JSON.stringify({version:2,clients:S.clients},null,2);
+  const A=S.agenda; if(saved['agenda.json']!=null||A.todos.length||A.entries.length||A.notes) out['agenda.json']=JSON.stringify({version:1,todos:A.todos,entries:A.entries,notes:A.notes},null,2);
   const by={}; for(const e of S.events)(by[yearOf(e)]=by[yearOf(e)]||[]).push(e);
   const files=new Set([...eventFiles,...Object.keys(by).map(y=>`events-${y}.json`)]);
   for(const f of files){ const y=f.slice(7,-5); const ev=(by[y]||[]).slice().sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
@@ -1277,6 +1440,7 @@ function commitMessage(file){
   if(file==='hours.json') return coefMigrated?'Hours: client coefficients moved here from clients.json':'Hours';
   if(file==='config.json') return 'Config';
   if(file==='clients.json') return 'Clients: '+changedNames(S.clients,'c:');
+  if(file==='agenda.json') return 'Agenda';
   const y=file.slice(7,-5); return `Events ${y}: `+changedNames(S.events.filter(e=>yearOf(e)===y),'e:',S.events,y);
 }
 
@@ -1378,7 +1542,7 @@ async function openHours(){
 function bootLocal(){
   const r=readLocal(); if(!r||!r.saved['config.json']&&!r.work['config.json']) return false;
   const txt={...r.saved,...r.work}, m=modelOf(txt);
-  S={config:Object.assign(structuredClone(DEFAULT_CONFIG),m.config||{}),clients:m.clients,hours:null,events:m.events};
+  S={config:Object.assign(structuredClone(DEFAULT_CONFIG),m.config||{}),clients:m.clients,hours:null,events:m.events,agenda:m.agenda};
   saved={...r.saved}; GitHubStore.sha={...r.sha}; eventFiles=new Set(r.eventFiles||[]); hoursInRepo=!!r.hoursInRepo; hoursRec=r.hours||null;
   normalize(); snapshotFrom(modelOf(r.saved));
   for(const [n,t] of Object.entries(serialize())) if(saved[n]!=null&&same(saved[n],t)) saved[n]=t;
@@ -1390,7 +1554,7 @@ function modelOf(t){
   const j=n=>{ try{ return t[n]?JSON.parse(t[n]):null; }catch{ return null; } }, events=[];
   for(const n of Object.keys(t)) if(/^events-.+\.json$/.test(n)) events.push(...((j(n)||{}).events||[]));
   const h=j('hours.json');
-  return {config:j('config.json'),clients:(j('clients.json')||{}).clients||[],events,hours:h?{entries:h.entries||[],closures:h.closures||[],coefficients:h.coefficients||{}}:null};
+  return {config:j('config.json'),clients:(j('clients.json')||{}).clients||[],events,agenda:j('agenda.json'),hours:h?{entries:h.entries||[],closures:h.closures||[],coefficients:h.coefficients||{}}:null};
 }
 const canon=v=>v===undefined?undefined:JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(y=>[y,x[y]])):x);
 /* three-way merge by id: base (last sync), mine (this device), theirs (GitHub now) */
@@ -1423,6 +1587,10 @@ async function syncFromRemote(){
   delete cfgM.id; S.config=Object.assign(structuredClone(DEFAULT_CONFIG),cfgM);
   S.clients=merge3(B.clients,S.clients,Rm.clients,asker('Client',x=>x.name));
   S.events=merge3(B.events,S.events,Rm.events,asker('Event',x=>x.name));
+  { const b=B.agenda||{}, r=Rm.agenda||{}, A=S.agenda;
+    A.todos=merge3(b.todos,A.todos,r.todos,asker('To-do',x=>x.text));
+    A.entries=merge3(b.entries,A.entries,r.entries,asker('Agenda entry',x=>x.title||x.type));
+    A.notes=(merge3([{id:'n',v:b.notes||''}],[{id:'n',v:A.notes}],[{id:'n',v:r.notes||''}],asker('Agenda notes',()=>'notes'))[0]||{}).v||''; }
   if(S.hours) S.hours=mergeHours(B.hours,S.hours,Rm.hours||{});
   hoursInRepo=names.includes('hours.json');
   for(const n of names) if(/^events-.+\.json$/.test(n)) eventFiles.add(n);
@@ -1723,12 +1891,12 @@ const isDark=()=>document.documentElement.dataset.theme?document.documentElement
 function toggleTheme(){ const want=isDark()?'light':'dark'; if((want==='dark')===sysDark.matches){ delete document.documentElement.dataset.theme; try{ localStorage.removeItem(THEME_KEY) }catch{} }
   else{ document.documentElement.dataset.theme=want; try{ localStorage.setItem(THEME_KEY,want) }catch{} } renderTop(); }
 function renderTop(){
-  const vt={e:'Events',c:'Clients',h:'Hours'}[route.view];
-  const nv=route.view==='c'?'client':route.view==='h'?'hours':'event';
+  const vt={e:'Events',c:'Clients',a:'Agenda',h:'Hours'}[route.view];
+  const nv=route.view==='c'?'client':route.view==='h'?'hours':route.view==='a'?'agenda entry':'event';
   $('#top').innerHTML=`
-    ${route.view!=='h'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
+    ${route.view!=='h'&&route.view!=='a'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
     <div class="brand"><span class="logo">${ic('flag',2.4)}</span><b>Events tracker</b></div><span class="ptitle">${vt}</span>
-    <nav class="tabs" aria-label="Sections">${[['e','Events'],['c','Clients'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${route.view===v?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
+    <nav class="tabs" aria-label="Sections">${[['e','Events'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${route.view===v?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
     <button class="cmdtrig" id="cmdtrig" type="button" aria-label="Jump to" data-tip="Jump to an event, client or action" data-kbd="${MOD} K">${ic('search')}<span>Jump to…</span><kbd>${MOD==='⌘'?'⌘K':'Ctrl K'}</kbd></button>
     <span class="spacer"></span>
     <span class="savestate" id="savestate" role="status"><i></i><span></span></span>
@@ -1736,11 +1904,11 @@ function renderTop(){
     <button id="unitbtn" class="btn icon ghost ${priv()?'unl':''}" type="button" aria-pressed="${priv()}" data-tip="${priv()?'Unlocked — click to lock (auto-locks after 10 min idle)':'Unlock private data'}" data-kbd="L" aria-label="${priv()?'Lock private data':'Unlock private data'}">${esc(U().icon)}<span class="lk">${ic(priv()?'unlock':'lock',3)}</span></button>
     <button id="themebtn" class="btn icon ghost" type="button" data-tip="${isDark()?'Light':'Dark'} theme" aria-label="Toggle theme">${ic(isDark()?'sun':'moon',1.9)}</button>
     <span class="vsep"></span>
-    <button id="newbtn" class="btn primary newbtn" type="button" data-tip="${route.view==='h'?'Log hours':'New '+nv}" data-kbd="N" aria-label="${route.view==='h'?'Log hours':'New '+nv}">${ic('plus',2.4)}<span>${route.view==='c'?'Client':route.view==='h'?'Hours':'Event'}</span></button>
+    <button id="newbtn" class="btn primary newbtn" type="button" data-tip="${route.view==='h'?'Log hours':'New '+nv}" data-kbd="N" aria-label="${route.view==='h'?'Log hours':'New '+nv}">${ic('plus',2.4)}<span>${route.view==='c'?'Client':route.view==='h'?'Hours':route.view==='a'?'Entry':'Event'}</span></button>
     <button id="setbtn" class="btn icon ghost" type="button" data-tip="Settings" aria-label="Settings">${ic('gear',1.8)}</button>
     <button id="logoutbtn" class="btn icon ghost" type="button" data-tip="Log out" aria-label="Log out">${ic('logout',1.9)}</button>
     <button id="morebtn" class="btn icon ghost morebtn" type="button" aria-label="More">${ic('more',2)}</button>`;
-  $('#tabbar').innerHTML=[['e','Events','flag'],['c','Clients','user'],...(priv()?[['h','Hours','hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${route.view===v?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join('')+`<button type="button" class="tsave" id="tsave">${ic('save',1.8)}<i></i><span>Saved</span></button>`;
+  $('#tabbar').innerHTML=[['e','Events','flag'],['c','Clients','user'],['a','Agenda','cal'],...(priv()?[['h','Hours','hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${route.view===v?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join('')+`<button type="button" class="tsave" id="tsave">${ic('save',1.8)}<i></i><span>Saved</span></button>`;
   updSave();
   const tabGo=v=>go(v,narrow.matches?null:v==='e'?(route.view==='e'?route.id:lastEvent):v==='c'?(route.view==='c'?route.id:lastClient):null);
   on($('#top'),'[data-view]',b=>tabGo(b.dataset.view));
@@ -1763,9 +1931,9 @@ sysDark.addEventListener('change',()=>renderTop());
    ===================================================================== */
 function parseRoute(){
   const [,v='e',id=null]=location.hash.split('/');
-  let view=['e','c','h'].includes(v)?v:'e';
+  let view=['e','c','a','h'].includes(v)?v:'e';
   if(view==='h'&&!priv()){ view='e'; if(location.hash) history.replaceState(null,'','#/e'); } // Hours exist only while unlocked
-  route={view,id:view==='h'||!id?null:decodeURIComponent(id)};
+  route={view,id:view==='h'||view==='a'||!id?null:decodeURIComponent(id)};
   if(route.view==='e'&&route.id) lastEvent=route.id;
   if(route.view==='c'&&route.id) lastClient=route.id;
   document.body.classList.toggle('showing-detail',!!route.id);
@@ -1784,7 +1952,7 @@ function render(){
   today();
   if(route.view==='h'&&!priv()){ go('e'); return; }
   renderTop(); if(!S) return;
-  $('#main').classList.toggle('full',route.view==='h'); $('#main').classList.toggle('nolist',!listOpen);
+  $('#main').classList.toggle('full',route.view==='h'||route.view==='a'); $('#main').classList.toggle('agenda',route.view==='a'); $('#main').classList.toggle('nolist',!listOpen);
   renderList(); renderDetail();
 }
 
@@ -1859,7 +2027,7 @@ function renderDetail(){
   if(!S) return;
   OBJ=[]; taRO.disconnect(); hsRO.disconnect(); const D=$('#detail');
   const key=route.view+':'+(route.id||''), keep=D.dataset.k===key?[...D.querySelectorAll('.evside,.hsc,.tpwrap')].map(x=>[x.scrollTop,x.scrollLeft]):null;
-  if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else renderHours(D);
+  if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else if(route.view==='a') renderAgenda(D); else renderHours(D);
   D.dataset.k=key;
   if(keep) D.querySelectorAll('.evside,.hsc,.tpwrap').forEach((x,i)=>{ if(keep[i]){ x.scrollTop=keep[i][0]; x.scrollLeft=keep[i][1]; } });
   bind(D); sortable(D); hscroll(D);
@@ -1965,6 +2133,7 @@ function renderEvent(D){
     <div class="ckbars">${['Setup','Races','Outputs'].map(g=>{ const [d,t]=grpStat(g); return t?`<div><span>${g}</span><u><i style="width:${Math.round(d/t*100)}%"></i></u><span style="text-align:right">${d}/${t}</span></div>`:''; }).join('')}</div></div>
   <ul class="check">${ck.map((x,i)=>`${x.group!==ck[i-1]?.group?`<li class="grp">${esc(x.group)}</li>`:''}<li class="${x.auto?'auto':''}"><label>${x.auto?`<span class="autock ${x.done?'on':''}">${x.done?ic('check',3):''}</span>`:`<input type="checkbox" class="ck" data-ck="${esc(x.key)}" ${x.done?'checked':''}>`}<span class="ckl ${x.done?'done':''}">${esc(x.label)}</span>${x.auto?'<span class="tag auto" title="Ticked automatically from the event data">auto</span>':''}</label></li>`).join('')}</ul>
   ${Tasks(e,'checklistExtra','Extra items','Add an item…',`ck-${e.id}`,false)}
+  ${linkedTodos(e)}
   </section>
 
   ${showH?`<section class="sec" id="s-hours"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Hours</h3><span class="sp"></span><span class="hint">${ic('unlock',2).replace('<svg','<svg width="12" height="12" style="display:inline;vertical-align:-1px"')} unlocked · locks after 10 min idle</span></div>
@@ -2260,6 +2429,200 @@ function renderHours(D){
 }
 
 /* =====================================================================
+   AGENDA: month calendar (events + own entries + to-dos due), clashes, to-dos, notes.
+   Stored in agenda.json. Never in client summaries.
+   ===================================================================== */
+P.plane='<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>';
+P.away='<path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v7a2 2 0 0 0 4 0"/>';
+const AG_TYPES={travel:{label:'Travel',icon:'plane'},away:{label:'Away',icon:'away'},other:{label:'Other',icon:'clock'}};
+let agMonth=isoOf(new Date()).slice(0,7), agSel=null, agShowDone=false, agType='travel';
+let agView=(()=>{ try{ return localStorage.getItem('events-tracker-agview')==='list'?'list':'month'; }catch{ return 'month'; } })();
+const agF={ev:LS.get('events-tracker-ag-ev',true),mine:LS.get('events-tracker-ag-mine',true),todo:LS.get('events-tracker-ag-todo',true)};
+const agEvents=()=>S.events.filter(e=>e.dateStart).map(e=>({kind:'ev',id:e.id,s:e.dateStart,e:e.dateEnd&&e.dateEnd>e.dateStart?e.dateEnd:e.dateStart,o:e}));
+const agEntries=()=>S.agenda.entries.filter(x=>x.from).map(x=>({kind:'en',id:x.id,s:x.from,e:x.to&&x.to>x.from?x.to:x.from,o:x}));
+const onDay=(it,d)=>it.s<=d&&d<=it.e;
+const enLabel=x=>`${AG_TYPES[x.type].label}${x.title?' · '+x.title:''}`;
+const andList=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+/* clash: two events on the same day, or an event on a day with an Away / Other entry (travel is part of the job) */
+function clashOn(d){
+  const ev=agEvents().filter(i=>onDay(i,d)), mine=agEntries().filter(i=>onDay(i,d)&&i.o.type!=='travel');
+  if(!ev.length||(ev.length<2&&!mine.length)) return null;
+  const b=t=>`<b>${esc(t)}</b>`;
+  return {key:[...ev,...mine].map(i=>i.id).sort().join(),
+    html:ev.length>1?`${andList(ev.map(i=>b(i.o.name||'untitled')))} on the same day${mine.length?`, while you have ${andList(mine.map(i=>b(enLabel(i.o))))}`:''}`
+      :`${b(ev[0].o.name||'untitled')} while you have ${andList(mine.map(i=>b(enLabel(i.o))))}`};
+}
+const monthDays=ym=>{ const [y,m]=ym.split('-').map(Number), n=new Date(y,m,0).getDate(); return [...Array(n)].map((_,i)=>`${ym}-${pad(i+1)}`); };
+function agClashes(){
+  const out=[]; let prev=null;
+  for(const d of monthDays(agMonth)){ const c=clashOn(d); if(c&&prev&&prev.key===c.key){ prev.to=d; continue; } prev=c?{...c,from:d,to:d}:null; if(prev) out.push(prev); }
+  return out;
+}
+const dueTxt=d=>d===TODAY?'Today':d===addDays(TODAY,1)?'Tomorrow':d<addDays(TODAY,7)&&d>TODAY?fmtShort(d).split(' ').slice(0,2).join(' '):fmtDay(d);
+const dueCls=t=>!t.due||t.done?'':t.due<TODAY?'late':t.due<=addDays(TODAY,3)?'soon':'';
+const linkOf=t=>{ const [k,id]=String(t.link||'').split(':'); const o=k==='e'?S.events.find(x=>x.id===id):k==='c'?S.clients.find(x=>x.id===id):null; return o?{k,id,name:o.name||'untitled'}:null; };
+const evMeta=e=>{ const multi=e.dateEnd&&e.dateEnd>e.dateStart; if(multi) return `${DOW[parse(e.dateStart).getDay()]}–${DOW[parse(e.dateEnd).getDay()]}`; const t=e.contests.map(c=>c.startTime).filter(Boolean).sort()[0]; return t||''; };
+
+function agMonthGrid(){
+  const first=`${agMonth}-01`, off=(parse(first).getDay()+6)%7, start=addDays(first,-off), last=monthDays(agMonth).pop();
+  const items=[...(agF.ev?agEvents():[]),...(agF.mine?agEntries():[])];
+  const todos=agF.todo?S.agenda.todos.filter(t=>t.due&&!t.done):[];
+  const weeks=[]; for(let w=start;w<=last;w=addDays(w,7)) weeks.push(w);
+  const warn=i=>i.kind==='ev'&&monthDays(agMonth).some(d=>onDay(i,d)&&clashOn(d));
+  return `<div class="agcal" id="agcal"><div class="agdow">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<span>${x}</span>`).join('')}</div>
+  ${weeks.map(ws=>{
+    const days=[...Array(7)].map((_,i)=>addDays(ws,i)), we=days[6];
+    const segs=items.filter(i=>i.s<=we&&i.e>=ws).sort((a,b)=>a.s.localeCompare(b.s)||b.e.localeCompare(a.e)||(a.kind==='ev'?-1:1));
+    const lanes=[];
+    for(const g of segs){ g.a=days.indexOf(g.s<ws?ws:g.s); g.b=days.indexOf(g.e>we?we:g.e);
+      let L=lanes.findIndex(l=>l.every(([x,y])=>g.b<x||g.a>y)); if(L<0){ L=lanes.length; lanes.push([]); } lanes[L].push([g.a,g.b]); g.l=L; }
+    return `<div class="agwk"><div class="agbg">${days.map((d,i)=>`<button type="button" class="${i>4?'we':''} ${d.slice(0,7)!==agMonth?'out':''} ${d===TODAY?'today':''}" data-day="${d}" aria-label="New entry on ${esc(fmtLong(d))}"></button>`).join('')}</div>
+      ${days.map((d,i)=>{ const td=todos.filter(t=>t.due===d), cl=d.slice(0,7)===agMonth&&clashOn(d);
+        return `<span class="agdn ${d.slice(0,7)!==agMonth?'out':''} ${d===TODAY?'today':''}" style="grid-column:${i+1}"><b>${parse(d).getDate()}${d.endsWith('-01')?' '+MON[parse(d).getMonth()]:''}</b>
+          ${cl?`<span class="agclash" title="Clash">${ic('warn',2.2)}</span>`:''}${td.length?`<span class="agtd ${d<TODAY?'late':''}" title="${esc(td.map(t=>t.text).join('\n'))}">${td.length}</span>`:''}</span>`; }).join('')}
+      ${segs.map(g=>{ const pos=`grid-column:${g.a+1}/${g.b+2};grid-row:${g.l+2}`, cont=`${g.s<ws?'cont-l':''} ${g.e>we?'cont-r':''}`;
+        if(g.kind==='ev'){ const e=g.o, m=g.e>we&&g.s>=ws?'':evMeta(e);
+          return `<a class="agbar ev ${cont} ${warn(g)?'warn':''}" style="${pos}" href="#/e/${encodeURIComponent(e.id)}" title="${esc([e.name,e.location,clientName(e.clientId),e.status].filter(Boolean).join(' · '))}"><i class="dot" style="background:${esc(statusColor(e.status))}"></i><span class="t">${esc(e.name||'untitled')}</span>${g.e>we?`<span class="m">→ ${esc(fmtDay(g.e))}</span>`:m?`<span class="m">${esc(m)}</span>`:''}</a>`; }
+        const x=g.o; return `<button type="button" class="agbar ${x.type} ${cont}" style="${pos}" data-agen="${esc(x.id)}" title="${esc([enLabel(x),x.time,x.note].filter(Boolean).join(' · '))}">${ic(AG_TYPES[x.type].icon,2)}<span class="t">${esc(enLabel(x))}</span>${x.time?`<span class="m">${esc(x.time)}</span>`:''}</button>`; }).join('')}
+    </div>`; }).join('')}</div>
+  <div class="aglegend"><span><i class="ev"></i>Event (dot = status)</span><span><i class="travel"></i>Travel</span><span><i class="away"></i>Away</span><span><i class="other"></i>Other</span><span><i class="td"></i>To-dos due</span><span><i class="cl"></i>Clash</span><span class="hint">Click a day, or drag across days, to add an entry</span></div>`;
+}
+/* everything on one day, as cards (phone day view and list view) */
+function agDayCards(d,{empty=true}={}){
+  const ev=agF.ev?agEvents().filter(i=>onDay(i,d)):[], en=agF.mine?agEntries().filter(i=>onDay(i,d)):[], td=agF.todo?S.agenda.todos.filter(t=>t.due===d&&!t.done):[], cl=clashOn(d);
+  if(!ev.length&&!en.length&&!td.length) return empty?`<div class="agempty">Nothing on this day.</div>`:'';
+  return `${cl?`<div class="agcw">${ic('warn',2.2)}<span>${cl.html}</span></div>`:''}
+    ${ev.map(({o:e})=>`<a class="agcard" href="#/e/${encodeURIComponent(e.id)}"><i class="dot" style="background:${esc(statusColor(e.status))}"></i><span><b>${esc(e.name||'untitled')}</b><small>${esc([clientName(e.clientId),e.location,evMeta(e),e.status].filter(Boolean).join(' · '))}</small></span>${ic('chev',2)}</a>`).join('')}
+    ${en.map(({o:x})=>`<button type="button" class="agcard ${x.type}" data-agen="${esc(x.id)}">${ic(AG_TYPES[x.type].icon,2)}<span><b>${esc(enLabel(x))}</b><small>${esc([x.from!==(x.to||x.from)?rangeText(x.from,x.to).main:'',x.time,x.note].filter(Boolean).join(' · '))||'&nbsp;'}</small></span></button>`).join('')}
+    ${td.map(t=>`<div class="agcard tdc"><input type="checkbox" class="ck" data-o="${ref(t)}" data-k="done" data-r="detail" aria-label="Done: ${esc(t.text)}"><span><b>${esc(t.text||'To-do')}</b><small>To-do${linkOf(t)?' · '+esc(linkOf(t).name):''}</small></span></div>`).join('')}`;
+}
+function agListView(){
+  const days=monthDays(agMonth).map(d=>[d,agDayCards(d,{empty:false})]).filter(([,h])=>h);
+  return `<div class="aglist">${days.map(([d,h])=>`<div class="agld ${d===TODAY?'today':''}"><div class="agldh">${esc(fmtShort(d))}${d===TODAY?' · today':''}</div><div>${h}</div></div>`).join('')||emptyBox('cal','Nothing this month.')}</div>`;
+}
+function agMini(){
+  const first=`${agMonth}-01`, off=(parse(first).getDay()+6)%7, start=addDays(first,-off), last=monthDays(agMonth).pop();
+  const cells=[]; for(let d=start;d<=last||cells.length%7;d=addDays(d,1)) cells.push(d);
+  const ev=agF.ev?agEvents():[], en=agF.mine?agEntries():[], td=agF.todo?S.agenda.todos.filter(t=>t.due&&!t.done):[];
+  return `<div class="agmini"><div class="h">${['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('')}</div><div class="g">${cells.map(d=>{
+    const dots=[...ev.filter(i=>onDay(i,d)).map(i=>statusColor(i.o.status)),...td.filter(t=>t.due===d).map(()=>d<TODAY?'var(--danger)':'var(--ink-3)')].slice(0,4);
+    const r=en.filter(i=>onDay(i,d))[0];
+    return `<button type="button" data-sel="${d}" class="${d.slice(0,7)!==agMonth?'o':''} ${d===TODAY?'t':''} ${d===agSel?'s':''} ${r?'r '+r.o.type+(r.s===d?' rs':'')+(r.e===d?' re':''):''} ${d.slice(0,7)===agMonth&&clashOn(d)?'c':''}" aria-label="${esc(fmtLong(d))}"><b>${parse(d).getDate()}</b><u>${dots.map(c=>`<i style="background:${esc(c)}"></i>`).join('')}</u></button>`; }).join('')}</div></div>`;
+}
+function agTodos(){
+  const A=S.agenda, open=A.todos.filter(t=>!t.done), done=A.todos.filter(t=>t.done), soon=addDays(TODAY,14);
+  const byDue=(a,b)=>a.due.localeCompare(b.due);
+  const groups=[['late','Overdue',open.filter(t=>t.due&&t.due<TODAY).sort(byDue)],['','Next 14 days',open.filter(t=>t.due&&t.due>=TODAY&&t.due<=soon).sort(byDue)],
+    ['','Later',open.filter(t=>t.due>soon).sort(byDue)],['','No date',open.filter(t=>!t.due)]].filter(g=>g[2].length);
+  const linkSel=t=>{ const cur=linkOf(t); const evOpts=S.events.filter(e=>!isPast(e)||(cur?.k==='e'&&cur.id===e.id)).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
+    return `<select data-tdlink="${ref(t)}" aria-label="Link to an event or client"><option value="">No link</option>${S.clients.length?`<optgroup label="Clients">${S.clients.map(c=>`<option value="c:${esc(c.id)}" ${t.link==='c:'+c.id?'selected':''}>${esc(c.name||'untitled')}</option>`).join('')}</optgroup>`:''}${evOpts.length?`<optgroup label="Events">${evOpts.map(e=>`<option value="e:${esc(e.id)}" ${t.link==='e:'+e.id?'selected':''}>${esc(e.name||'untitled')}${e.dateStart?' · '+esc(fmtDay(e.dateStart)):''}</option>`).join('')}</optgroup>`:''}</select>`; };
+  const row=t=>{ const l=linkOf(t); return `<div class="tdrow ${t.done?'done':''}">
+      <input type="checkbox" class="ck" data-o="${ref(t)}" data-k="done" data-r="detail" ${t.done?'checked':''} aria-label="Done: ${esc(t.text)}">
+      <input class="cell tx" data-o="${ref(t)}" data-k="text" value="${esc(t.text)}" placeholder="To-do" aria-label="To-do">
+      <button type="button" class="tdue ${dueCls(t)} ${t.due?'set':''}" data-tddue="${ref(t)}" aria-label="${t.due?'Due '+esc(fmtLong(t.due)):'Set a due date'}" title="${t.due?esc(fmtLong(t.due)):'Due date'}">${t.due?esc(dueTxt(t.due)):ic('cal',1.8)}</button>
+      <span class="tdacts"><span class="btn icon sm ghost tlink ${l?'set':''}" title="${l?'Linked to '+esc(l.name):'Link to an event or client'}">${ic('link',1.8)}${linkSel(t)}</span>
+      <button class="btn icon sm ghost notebtn ${t.note?'set':''}" data-tnote="${ref(t)}" type="button" title="${t.note?'Edit note':'Add note'}" aria-label="Note">${ic('note',1.8)}</button>
+      <button class="btn icon sm ghost del" data-tddel="${esc(t.id)}" type="button" aria-label="Delete to-do">${ic('x')}</button></span>
+      ${l||t.note?`<div class="tdmeta">${l?`<a class="tag ${l.k==='e'?'ev':'cl'}" href="#/${l.k}/${encodeURIComponent(l.id)}">${ic(l.k==='e'?'flag':'user',2)}${esc(l.name)}</a>`:''}${t.note?`<span class="tdnote">${esc(t.note)}</span>`:''}</div>`:''}
+    </div>`; };
+  return `<section class="agpanel"><div class="sech" style="--sc:${SECC.checklist}"><h3>${secBadge('checklist')}To-dos <span class="count">${open.length} open</span></h3></div>
+    <div class="tdadd">${ic('plus',2.2)}<input class="cell" id="td-add" placeholder="Add a to-do…" aria-label="Add a to-do" enterkeyhint="done"><kbd class="deskonly">T</kbd></div>
+    ${groups.map(([c,l,a])=>`<div class="tdgrp ${c}">${l}</div>${a.map(row).join('')}`).join('')||(!done.length?`<div class="agempty">Things to take care of that are not about one event: “order batteries”, “renew licence”…</div>`:'')}
+    ${done.length?`<button type="button" class="tdmore" id="td-done">${ic(agShowDone?'chevd':'chev',2.2)}${done.length} done</button>${agShowDone?done.map(row).join('')+`<button type="button" class="btn sm ghost" id="td-clear" style="margin-top:6px">Clear done</button>`:''}`:''}
+  </section>`;
+}
+const agNotes=()=>`<section class="agpanel"><div class="sech" style="--sc:${SECC.notes}"><h3>${secBadge('notes')}Notes</h3><span class="sp"></span><span class="hint">free text · never in the summary</span></div>
+  <textarea class="in auto" rows="4" data-o="${ref(S.agenda)}" data-k="notes" placeholder="Anything to keep in mind: who prefers WhatsApp, which box needs a new cable, ideas…" aria-label="Agenda notes">${esc(S.agenda.notes)}</textarea></section>`;
+
+function renderAgenda(D){
+  if(!agSel||agSel.slice(0,7)!==agMonth) agSel=TODAY.slice(0,7)===agMonth?TODAY:`${agMonth}-01`;
+  const [y,m]=agMonth.split('-').map(Number), ph=narrow.matches, cls=agClashes();
+  const chips=`<span class="agchips">${[['ev','Events'],['mine','My entries'],['todo','To-dos']].map(([k,l])=>`<button type="button" class="agchip ${k} ${agF[k]?'':'off'}" data-agf="${k}" aria-pressed="${agF[k]}"><i></i>${l}</button>`).join('')}</span>`;
+  const head=`<div class="aghead"><h2>${MONL[m-1]} ${y}</h2>
+    <button class="btn icon sm" type="button" data-agnav="-1" aria-label="Previous month">${ic('chevl',2.2)}</button><button class="btn icon sm" type="button" data-agnav="1" aria-label="Next month">${ic('chev',2.2)}</button>
+    <button class="btn sm" type="button" data-agtoday>Today</button><span class="spacer"></span>
+    ${ph?'':`${chips}<span class="agseg" role="group" aria-label="View"><button type="button" data-agview="month" aria-pressed="${agView==='month'}">Month</button><button type="button" data-agview="list" aria-pressed="${agView==='list'}">List</button></span>`}</div>`;
+  const clashBox=cls.length?`<div class="agclashes"><h4>${ic('warn',2.2)}${plural(cls.length,'clash','clashes')} this month</h4>${cls.map(c=>`<div><span class="d">${esc(c.from===c.to?fmtShort(c.from):`${fmtShort(c.from)} – ${fmtShort(c.to)}`)}</span><span>${c.html}</span></div>`).join('')}</div>`:'';
+  if(ph) D.innerHTML=`<div class="agph">${head}${chips}${agMini()}
+      <div class="agdh">${esc(fmtLong(agSel))}${agSel===TODAY?' · today':''}</div><div class="agday">${agDayCards(agSel)}</div>
+      ${agTodos()}${agNotes()}
+      <button type="button" class="btn sm ghost agics" id="agics" style="margin-top:12px">${ic('cal',1.8)} Export .ics</button></div>`;
+  else D.innerHTML=`<div class="agwrap"><div class="agmain">${head}${agView==='month'?agMonthGrid():agListView()}${clashBox}</div>
+      <aside class="agside">${agTodos()}${agNotes()}<button type="button" class="btn sm ghost agics" id="agics">${ic('cal',1.8)} Export .ics <span class="hint">events + my entries</span></button></aside></div>`;
+  bindAgenda(D);
+}
+function bindAgenda(D){
+  on(D,'[data-agnav]',b=>{ const [y,m]=agMonth.split('-').map(Number), d=new Date(y,m-1+(+b.dataset.agnav),1,12); agMonth=isoOf(d).slice(0,7); agSel=null; renderDetail(); });
+  on(D,'[data-agtoday]',()=>{ agMonth=TODAY.slice(0,7); agSel=TODAY; renderDetail(); });
+  on(D,'[data-agview]',b=>{ agView=b.dataset.agview; try{ localStorage.setItem('events-tracker-agview',agView); }catch{} renderDetail(); });
+  on(D,'[data-agf]',b=>{ const k=b.dataset.agf; agF[k]=!agF[k]; LS.set('events-tracker-ag-'+k,agF[k]); renderDetail(); });
+  on(D,'[data-agen]',b=>openEntry(S.agenda.entries.find(x=>x.id===b.dataset.agen)));
+  on(D,'[data-sel]',b=>{ agSel=b.dataset.sel; if(agSel.slice(0,7)!==agMonth) agMonth=agSel.slice(0,7); renderDetail(); });
+  D.querySelector('#agfab')?.addEventListener('click',()=>openEntry(null,agSel));
+  D.querySelector('#agics')?.addEventListener('click',exportICS);
+  // click a day, or drag across days, to add an entry
+  const cal=D.querySelector('#agcal');
+  if(cal){ let a=null,b=null;
+    const mark=()=>cal.querySelectorAll('[data-day]').forEach(c=>{ const d=c.dataset.day, lo=a<b?a:b, hi=a<b?b:a; c.classList.toggle('pick',!!a&&d>=lo&&d<=hi); });
+    cal.addEventListener('pointerdown',ev=>{ const c=ev.target.closest('[data-day]'); if(!c||ev.button) return; ev.preventDefault(); a=b=c.dataset.day; mark(); cal.setPointerCapture(ev.pointerId); });
+    cal.addEventListener('pointermove',ev=>{ if(!a) return; const c=document.elementFromPoint(ev.clientX,ev.clientY)?.closest?.('[data-day]'); if(c&&c.dataset.day!==b){ b=c.dataset.day; mark(); } });
+    const end=ev=>{ if(!a) return; const lo=a<b?a:b, hi=a<b?b:a; a=b=null; if(ev.type==='pointerup') openEntry(null,lo,hi); else mark(); };
+    cal.addEventListener('pointerup',end); cal.addEventListener('pointercancel',end); }
+  // to-dos
+  const add=D.querySelector('#td-add');
+  if(add){ const go_=()=>{ const v=add.value.trim(); if(!v) return; S.agenda.todos.push({...mkTask(v),id:uid('td'),due:'',link:''}); touch('none'); renderDetail(); D.querySelector('#td-add')?.focus(); };
+    add.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); go_(); } }); }
+  on(D,'[data-tddue]',b=>{ const t=OBJ[+b.dataset.tddue]; openDate(b,{s:t.due,allowRange:false,onChange:s=>{ t.due=s||''; touch('none'); },onClose:()=>renderDetail(),clearable:true}); });
+  D.querySelectorAll('[data-tdlink]').forEach(s=>s.addEventListener('change',()=>{ OBJ[+s.dataset.tdlink].link=s.value; touch('none'); renderDetail(); }));
+  on(D,'[data-tddel]',b=>{ S.agenda.todos=S.agenda.todos.filter(t=>t.id!==b.dataset.tddel); touch('none'); renderDetail(); });
+  D.querySelector('#td-done')?.addEventListener('click',()=>{ agShowDone=!agShowDone; renderDetail(); });
+  D.querySelector('#td-clear')?.addEventListener('click',()=>{ const n=S.agenda.todos.filter(t=>t.done).length; if(!confirm(`Remove ${plural(n,'done to-do','done to-dos')}?`)) return; S.agenda.todos=S.agenda.todos.filter(t=>!t.done); agShowDone=false; touch('none'); renderDetail(); });
+}
+/* to-dos linked to an event, shown in its checklist (tick in either place) */
+function linkedTodos(e){
+  const a=S.agenda.todos.filter(t=>t.link==='e:'+e.id); if(!a.length) return '';
+  return `<div class="tasks"><div class="th">From Agenda<a class="hint" href="#/a" style="margin-left:auto">open Agenda</a></div>${a.map(t=>`<div class="tdrow mini ${t.done?'done':''}"><input type="checkbox" class="ck" data-o="${ref(t)}" data-k="done" data-r="detail" ${t.done?'checked':''} aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}</span>${t.due?`<span class="tdue ${dueCls(t)} set">${esc(dueTxt(t.due))}</span>`:''}</div>`).join('')}</div>`;
+}
+/* entry dialog */
+let enCur=null;
+function openEntry(x,from=TODAY,to=from){
+  closePops(); closeCmd(); enCur=x;
+  const v=x||{type:agType,title:'',from,to,time:'',note:''};
+  $('#en-head').textContent=x?'Edit entry':'New entry';
+  $('#en-tt').value=v.title; $('#en-from').value=v.from; $('#en-to').value=v.to||v.from; $('#en-time').value=v.time; $('#en-note').value=v.note;
+  setEnType(v.type); $('#en-del').hidden=!x; $('#en-go').textContent=x?'Save':'Add';
+  enHint(); $('#entrydlg').showModal(); if(!narrow.matches) setTimeout(()=>$('#en-tt').focus(),30);
+}
+function setEnType(t){ $('#en-type').dataset.t=t; $('#en-type').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t)); }
+function enHint(){ const f=$('#en-from').value, t=$('#en-to').value||f; if(!f){ $('#en-hint').textContent=''; return; }
+  const ev=agEvents().filter(i=>i.s<=(t<f?f:t)&&i.e>=(t<f?t:f)).map(i=>i.o.name||'untitled');
+  $('#en-hint').textContent=ev.length?`Events on these days: ${ev.join(', ')}${$('#en-type').dataset.t==='travel'?'':' (shown as a clash)'}`:''; }
+$('#en-type').addEventListener('click',e=>{ const b=e.target.closest('button[data-t]'); if(b){ setEnType(b.dataset.t); enHint(); } });
+$('#en-from').addEventListener('change',()=>{ if(!$('#en-to').value||$('#en-to').value<$('#en-from').value) $('#en-to').value=$('#en-from').value; enHint(); });
+$('#en-to').addEventListener('change',enHint);
+$('#en-cancel').onclick=()=>$('#entrydlg').close();
+$('#en-del').onclick=()=>{ if(!enCur||!confirm('Delete this entry?')) return; S.agenda.entries=S.agenda.entries.filter(x=>x!==enCur); touch('none'); $('#entrydlg').close(); renderDetail(); };
+$('#entryform').addEventListener('submit',ev=>{ ev.preventDefault();
+  let f=$('#en-from').value, t=$('#en-to').value||f; if(!f){ $('#en-from').focus(); return; } if(t<f) [f,t]=[t,f];
+  const v={type:$('#en-type').dataset.t,title:$('#en-tt').value.trim(),from:f,to:t,time:$('#en-time').value,note:$('#en-note').value.trim()};
+  agType=v.type;
+  if(enCur) Object.assign(enCur,v); else S.agenda.entries.push({id:uid('ag'),...v});
+  touch('none'); $('#entrydlg').close(); agMonth=f.slice(0,7); agSel=f; if(route.view==='a') renderDetail(); else go('a');
+});
+/* one-off .ics file for Apple / Google Calendar: events and own entries, all-day */
+function exportICS(){
+  if(!S) return;
+  const q=t=>String(t||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/[,;]/g,m=>'\\'+m), d=s=>s.replace(/-/g,'');
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''), L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Events tracker//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:Events tracker'];
+  const add=(uid_,s,e,sum,desc,loc)=>L.push('BEGIN:VEVENT',`UID:${uid_}@events-tracker`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${d(s)}`,`DTEND;VALUE=DATE:${d(addDays(e,1))}`,`SUMMARY:${q(sum)}`,...(desc?[`DESCRIPTION:${q(desc)}`]:[]),...(loc?[`LOCATION:${q(loc)}`]:[]),'END:VEVENT');
+  let n=0;
+  for(const i of agEvents()){ add(i.id,i.s,i.e,i.o.name||'Event',[clientName(i.o.clientId),i.o.status,i.o.contests.map(c=>[c.name,c.startTime].filter(Boolean).join(' ')).join(', ')].filter(Boolean).join(' · '),i.o.location); n++; }
+  for(const i of agEntries()){ add(i.id,i.s,i.e,enLabel(i.o),[i.o.time,i.o.note].filter(Boolean).join(' · ')); n++; }
+  L.push('END:VCALENDAR'); download('events-tracker.ics',L.join('\r\n')+'\r\n','text/calendar');
+  toast('Calendar file downloaded',`${plural(n,'item','items')} · open it to import into your calendar`,'file');
+}
+
+/* =====================================================================
    POPOVERS (date picker, status menu, position, notes, more) — bottom sheets on phones
    ===================================================================== */
 function place(pop,anchor,align='left'){
@@ -2322,10 +2685,10 @@ $('#pp-clear').onclick=()=>{ if(pinT){ pinT.position=''; touch('none'); } closeP
 
 /* date picker: single day or multi-day range, month grid, dots on days with other events */
 const DP={};
-function openDate(anchor,{s='',e='',allowRange=true,onChange,onClose,excludeId=null}){
+function openDate(anchor,{s='',e='',allowRange=true,onChange,onClose,excludeId=null,clearable=false}){
   if(!$('#dp').hidden&&popAnchor===anchor){ closePops(); return; } closePops();
   const multi=!!(e&&e!==s);
-  Object.assign(DP,{anchor,s:s||'',e:multi?e:'',mode:multi?'range':'single',allowRange,onChange,onClose,excludeId,view:'days',hover:'',pending:false,changed:false});
+  Object.assign(DP,{anchor,s:s||'',e:multi?e:'',mode:multi?'range':'single',allowRange,clearable,onChange,onClose,excludeId,view:'days',hover:'',pending:false,changed:false});
   const b=parse(s||TODAY); DP.y=b.getFullYear(); DP.m=b.getMonth();
   DP.busy={}; for(const ev of S.events){ if(ev.id===excludeId||!ev.dateStart) continue; const end=ev.dateEnd&&ev.dateEnd>ev.dateStart?ev.dateEnd:ev.dateStart; for(let d=ev.dateStart,n=0;d<=end&&n<62;d=addDays(d,1),n++) (DP.busy[d]=DP.busy[d]||[]).push(ev.name||'untitled'); }
   popAnchor=anchor; anchor.classList.add('on');
@@ -2353,7 +2716,7 @@ function renderDP(){
     const now=parse(TODAY);
     body=`<div class="months">${MON.map((mn,m)=>{ const n=S.events.filter(ev=>ev.dateStart&&ev.dateStart.startsWith(`${DP.y}-${pad(m+1)}`)).length; return `<button type="button" data-m="${m}" class="${m===DP.m?'cur':''} ${m===now.getMonth()&&DP.y===now.getFullYear()&&m!==DP.m?'now':''}">${mn}${n?`<i>${n} ev.</i>`:''}</button>`; }).join('')}</div>`;
   }
-  const foot=`<div class="dpfoot"><div class="dpsum"><b>${esc(r.main)}</b>${r.sub?esc(r.sub):'no date'}</div>${DP.allowRange?'<button class="btn sm ghost" type="button" data-clear>Clear</button>':''}<button class="btn sm primary" type="button" data-done>Done</button></div>`;
+  const foot=`<div class="dpfoot"><div class="dpsum"><b>${esc(r.main)}</b>${r.sub?esc(r.sub):'no date'}</div>${DP.allowRange||DP.clearable?'<button class="btn sm ghost" type="button" data-clear>Clear</button>':''}<button class="btn sm primary" type="button" data-done>Done</button></div>`;
   el.innerHTML=head+body+foot;
   on(el,'[data-mode]',b=>{ DP.mode=b.dataset.mode; DP.pending=false; if(DP.mode==='single'&&DP.e){ DP.e=''; commitDP(); } renderDP(); });
   on(el,'[data-nav]',b=>{ const n=+b.dataset.nav; if(DP.view==='days'){ DP.m+=n; if(DP.m<0){DP.m=11;DP.y--;} if(DP.m>11){DP.m=0;DP.y++;} } else DP.y+=n; renderDP(); });
@@ -2390,6 +2753,10 @@ function renderCmd(){
   const acts=[
     {t:'New event',icon:'plus',k:'N',run:()=>{ if(route.view!=='e') go('e'); newItem(); }},
     {t:'New client',icon:'user',run:()=>{ go('c'); newItem(); }},
+    {t:'Agenda',icon:'cal',sub:'calendar, to-dos and notes',run:()=>go('a')},
+    {t:'New agenda entry',icon:'cal',sub:'travel, away or other',run:()=>{ if(route.view!=='a') go('a'); openEntry(null,agSel||TODAY); }},
+    {t:'Add a to-do',icon:'checkc',k:'T',run:()=>{ if(route.view!=='a') go('a'); setTimeout(()=>$('#td-add')?.focus(),50); }},
+    {t:'Export calendar (.ics)',icon:'cal',sub:'events and your agenda entries',run:exportICS},
     {t:'Save',icon:'save',k:`${MOD}S`,run:()=>save()},
     {t:'Copy AI prompt',icon:'sparkle',sub:'for a new event from an email',run:()=>openPrompt()},
     {t:'Import from AI (JSON)',icon:'upload',run:()=>openImport()},
@@ -2900,7 +3267,7 @@ function openKeys(){
   const G=[
     ['Navigation',[[`Jump to an event, client or action`,K(MOD,'K')],['Search the event list',K('/')],['Next / previous event',K('J','or','K')],['Close popover, sheet, dialog, drawer or the open item',K('Esc')],['Show this cheat sheet',K('?')]]],
     ['Panels',[['Show / hide the list',K('[')],['Show / collapse the side panel',K(']')],['Navigate inside palette',K('↑','↓','↵')]]],
-    ['Editing',[['Save',K(MOD,'S')],['New event (new client on Clients)',K('N')],['Add the typed item (in “Add…” fields)',K('↵')],['Close the note editor',K(MOD,'↵')]]],
+    ['Editing',[['Save',K(MOD,'S')],['New event (new client on Clients, new entry on Agenda)',K('N')],['Add a to-do (on Agenda)',K('T')],['Add the typed item (in “Add…” fields)',K('↵')],['Close the note editor',K(MOD,'↵')]]],
     ['Privacy',[[`Unlock / lock private data (${esc(U().icon)})`,K('L')],['Auto-lock',`<span class="kk" style="font-size:12px">10 min idle · tab hidden</span>`]]],
   ];
   $('#kpanel').innerHTML=`<header><span class="ki">${ic('keyboard',1.8)}</span><div><h2>Keyboard shortcuts</h2><p>Shortcuts work when you are not typing in a field.</p></div><span class="spacer" style="flex:1"></span><button class="btn icon ghost" type="button" id="kclose" aria-label="Close">${ic('x')}</button></header>
@@ -2947,7 +3314,8 @@ document.addEventListener('keydown',e=>{
     if(route.id) go(route.view);
     return; }
   if(typing||e.metaKey||e.ctrlKey||e.altKey||!$('#cmdk').hidden||document.querySelector('dialog[open]')) return;
-  if(e.key==='['&&route.view!=='h'){ toggleList(); return; }
+  if(e.key==='['&&route.view!=='h'&&route.view!=='a'){ toggleList(); return; }
+  if(e.key==='t'&&route.view==='a'){ e.preventDefault(); $('#td-add')?.focus(); return; }
   if(e.key===']'&&route.view==='e'){ toggleSide(); return; }
   if(e.key==='/'&&route.view==='e'){ e.preventDefault(); if(narrow.matches&&route.id) openDrawer(); $('#fl-q')?.focus(); }
   else if((e.key==='j'||e.key==='k')&&route.view==='e'&&listOrder.length){ const i=listOrder.indexOf(route.id); const n=e.key==='j'?Math.min(listOrder.length-1,i+1):Math.max(0,i<0?0:i-1); go('e',listOrder[n]); document.querySelector('#list .row.active')?.scrollIntoView({block:'nearest'}); }
@@ -3054,6 +3422,7 @@ function newItem(){
   if(!S) return;
   if(route.view==='c'){ const c={id:uid('cl'),name:'',contact:'',email:'',phone:'',rrCustomerId:'',notes:''}; S.clients.push(c); touch(); go('c',c.id); focusName(); return; }
   if(route.view==='h'){ $('#a-hours')?.focus(); return; }
+  if(route.view==='a'){ openEntry(null,agSel||TODAY); return; }
   const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],rankings:[],teamScores:[],onReg:[],kiosk:[],lists:[],myrrTabs:[],participantViews:[],presenter:[],questions:[],checklist:{},checklistExtra:[],notes:''};
   S.events.push(e); touch(); go('e',e.id); focusName();
 }
@@ -3095,7 +3464,7 @@ $('#loginform').onsubmit=async ev=>{ ev.preventDefault();
     let res=await loadAll();
     if(res==='missing'){
       if(!confirm(`The folder «${cfg.dir}» doesn't exist in ${cfg.owner}/${cfg.repo}. Create it with empty files?`)) return;
-      S={config:structuredClone(DEFAULT_CONFIG),clients:[],events:[],hours:{entries:[],closures:[],coefficients:{}}}; saved={}; savedItems={}; eventFiles=new Set(); hoursInRepo=false; unlocked=false;
+      S={config:structuredClone(DEFAULT_CONFIG),clients:[],events:[],agenda:{todos:[],entries:[],notes:''},hours:{entries:[],closures:[],coefficients:{}}}; saved={}; savedItems={}; eventFiles=new Set(); hoursInRepo=false; unlocked=false;
       normalizeConfig(); dirty=true; await save({quiet:true});
     }
     saveCfg(); dlg.close(); parseRoute(); render();
