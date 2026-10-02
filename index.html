@@ -1105,6 +1105,8 @@ const DemoStore={
   async put(){ await new Promise(r=>setTimeout(r,250)); }
 };
 const Store=DEMO?DemoStore:GitHubStore;
+/* fetch() rejects with a TypeError when there is no network */
+const isNetErr=err=>err instanceof TypeError||!navigator.onLine;
 
 /* =====================================================================
    MODEL
@@ -1237,7 +1239,8 @@ async function loadAll(){
   saved={}; for(const n of want) if(txt[n]!=null) saved[n]=txt[n];
   // a file that differs only in formatting doesn't count as unsaved
   for(const [n,t] of Object.entries(serialize())) if(txt[n]!=null&&same(txt[n],t)) saved[n]=t;
-  snapshotItems(); dirty=false; unlocked=false; coefMigrated=false; stateMsg=null; lastSaved=null; updSave();
+  snapshotItems(); dirty=false; unlocked=false; encKey=null; coefMigrated=false; stateMsg=null; lastSaved=null; needRemote=false;
+  hoursRec=readLocal()?.hours||null; persistLocal(); updSave();
   return 'ok';
 }
 function snapshotItems(){ savedItems={}; for(const e of S.events) savedItems['e:'+e.id]=JSON.stringify(e); for(const c of S.clients) savedItems['c:'+c.id]=JSON.stringify(c); }
@@ -1278,13 +1281,19 @@ function commitMessage(file){
 }
 
 let dirty=false,saving=false,stateMsg=null,errMsg=null,lastSaved=null;
-function touch(what){ dirty=true; errMsg=null; updSave(); if(what!=='none') renderList(); }
-async function save({unload=false,quiet=false}={}){
+function touch(what){ dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); if(what!=='none') renderList(); }
+async function save({unload=false,quiet=false,retry=0}={}){
   if(saving||!S) return;
-  if(!dirty){ if(!unload&&!quiet) toast('Everything is saved','nothing to commit'); dropHoursIfLocked(); return; }
-  dirty=false; saving=true; errMsg=null; updSave();
+  if(!dirty&&!needRemote){ if(hoursWaiting()&&!unload&&!quiet){ toast(`Unlock ${U().icon} to sync the hours`,'hours changed offline are kept encrypted on this device','lock'); return; }
+    if(!unload&&!quiet) toast('Everything is saved','nothing to commit'); dropHoursIfLocked(); return; }
+  const wasOffline=errMsg==='Offline';
+  saving=true; errMsg=null; updSave();
   let file=null; const done=[];
   try{
+    if(needRemote&&unload){ saving=false; updSave(); persistLocal(); return; } // GitHub not read yet: the local copy keeps the changes
+    if(needRemote){ const ch=await syncFromRemote(); if(ch) render(); }
+    if(!dirty){ saving=false; updSave(); persistLocal(); return; }
+    dirty=false;
     const out=serialize();
     for(const [n,t] of Object.entries(out)){
       if(saved[n]===t) continue; file=n; const msg=commitMessage(n);
@@ -1293,26 +1302,151 @@ async function save({unload=false,quiet=false}={}){
       if(n==='hours.json'){ hoursInRepo=true; coefMigrated=false; }
     }
     snapshotItems(); saving=false; lastSaved=Date.now(); importUndo=null; updSave();
-    if(!unload&&!quiet) toast(!done.length?'Everything is saved':DEMO?'Demo · nothing written':'Saved',
+    if(done.some(d=>d[0]==='hours.json')){ if(encKey) sealHours(); else if(hoursRec){ hoursRec.synced=true; hoursRec.pending=false; } }
+    persistLocal();
+    if(wasOffline&&done.length) toast('Back online','changes pushed to GitHub','check');
+    else if(!unload&&!quiet) toast(!done.length?'Everything is saved':DEMO?'Demo · nothing written':'Saved',
       done.length===1?`${done[0][0]} · “${done[0][1]}”`:done.length?done.map(d=>d[0]).join(', '):'nothing to commit');
     dropHoursIfLocked();
   }catch(err){
     saving=false; dirty=true;
-    if(err instanceof ConflictError){
-      errMsg='Conflict'; updSave();
-      if(confirm(`${file} was changed elsewhere (another device or tab).\n\nOK: overwrite it with your version.\nCancel: discard your unsaved changes and reload.`)){
-        await Store.get(file); return save({unload,quiet});
-      }
-      await loadAll(); render(); return;
+    if(err instanceof ConflictError&&retry<3&&!unload){
+      // changed elsewhere: merge event by event, ask only when the same item changed on both sides, then save again
+      try{ await syncFromRemote(); render(); }catch(e2){ errMsg=isNetErr(e2)?'Offline':e2.message; updSave(); return; }
+      return save({unload,quiet,retry:retry+1});
     }
+    if(isNetErr(err)){ errMsg='Offline'; updSave(); persistLocal();
+      if(!unload&&!quiet&&!wasOffline) toast('Offline','changes are kept on this device and pushed when you are back online','wifi','warn'); return; }
     errMsg=err.message; updSave(); if(!unload) toast(err.message,'not saved — click save to retry','warn','err');
   }
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState!=='hidden') return;
-  if(unlocked) lock('Locked while you were away',{unload:true}); else if(dirty) save({unload:true});
+  if(document.visibilityState!=='hidden'){ if(needRemote||errMsg==='Offline') syncNow(); return; }
+  persistLocal();
+  if(unlocked) lock('Locked while you were away',{unload:true}); else if(dirty&&errMsg!=='Offline') save({unload:true});
 });
-window.addEventListener('pagehide',()=>{ if(dirty) save({unload:true}); });
+window.addEventListener('pagehide',()=>{ persistLocal(); if(dirty&&errMsg!=='Offline') save({unload:true}); });
+
+/* =====================================================================
+   OFFLINE: a copy of the data on this device (localStorage, per repo).
+   - saved (last known GitHub state) + only the files changed since, + GitHub shas.
+   - hours are never stored in clear: AES-GCM with a key derived from the safe-word (PBKDF2, same salt).
+   - back online, local and GitHub versions are merged item by item (events, clients, hours entries…);
+     only an item changed on both sides asks which version to keep.
+   ===================================================================== */
+let needRemote=false;    // booted from the local copy, GitHub not read yet
+let encKey=null;         // AES key for the hours copy; only while unlocked
+let hoursRec=null;       // {salt, iv, ct, pending, synced} encrypted hours copy
+let persistT=null, localWarned=false, syncing=false;
+const LOCAL_KEY=()=>`events-tracker-local:${cfg.owner}/${cfg.repo}/${cfg.dir}`;
+const hoursWaiting=()=>!S?.hours&&!!hoursRec?.pending;
+function readLocal(){ if(DEMO||!cfg.owner) return null; try{ const r=JSON.parse(localStorage.getItem(LOCAL_KEY())||'null'); return r?.v===1?r:null; }catch{ return null; } }
+function clearLocal(){ try{ localStorage.removeItem(LOCAL_KEY()); }catch{} }
+function persistLocal(){
+  const pend=persistT; clearTimeout(persistT); persistT=null;
+  if(DEMO||!S||!cfg.owner) return;
+  if(pend&&encKey&&S.hours){ sealHours(); return; } // sealHours writes the copy itself
+  const sv={...saved}; delete sv['hours.json'];
+  const cur=serialize(), work={}; delete cur['hours.json'];
+  for(const [n,t] of Object.entries(cur)) if(sv[n]!==t) work[n]=t;
+  const rec={v:1,at:Date.now(),saved:sv,work,sha:{...GitHubStore.sha},eventFiles:[...eventFiles],hoursInRepo,hours:hoursRec};
+  try{ localStorage.setItem(LOCAL_KEY(),JSON.stringify(rec)); localWarned=false; }
+  catch{ if(!localWarned){ localWarned=true; toast('No offline copy','browser storage is full or blocked','warn','warn'); } }
+}
+function schedulePersist(){ clearTimeout(persistT); persistT=setTimeout(()=>{ persistLocal(); if(encKey&&S?.hours) sealHours(); },300); }
+const toB64=u=>{ let o=''; const b=new Uint8Array(u); for(let i=0;i<b.length;i+=0x8000) o+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(o); };
+const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+/* encrypt the hours (last saved + current) into hoursRec */
+async function sealHours(){
+  if(!encKey||!S?.hours||!S.config.safeword?.salt) return;
+  const work=hoursText(), base=saved['hours.json']??null, iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},encKey,new TextEncoder().encode(JSON.stringify({base,work})));
+  hoursRec={salt:S.config.safeword.salt,iv:toB64(iv),ct:toB64(ct),pending:base!==work,synced:false}; persistLocal();
+}
+async function openHours(){
+  if(!hoursRec||!encKey) return null;
+  try{
+    if(hoursRec.salt!==S.config.safeword?.salt) throw new Error('salt');
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(hoursRec.iv)},encKey,fromB64(hoursRec.ct));
+    const o=JSON.parse(new TextDecoder().decode(pt)); if(hoursRec.synced) o.base=o.work; return o;
+  }catch{
+    if(hoursRec.pending) toast('Offline hours could not be read','the safe-word was changed on another device','warn','warn');
+    hoursRec=null; persistLocal(); return null;
+  }
+}
+/* start from the local copy: instant, and works without a network */
+function bootLocal(){
+  const r=readLocal(); if(!r||!r.saved['config.json']&&!r.work['config.json']) return false;
+  const txt={...r.saved,...r.work}, m=modelOf(txt);
+  S={config:Object.assign(structuredClone(DEFAULT_CONFIG),m.config||{}),clients:m.clients,hours:null,events:m.events};
+  saved={...r.saved}; GitHubStore.sha={...r.sha}; eventFiles=new Set(r.eventFiles||[]); hoursInRepo=!!r.hoursInRepo; hoursRec=r.hours||null;
+  normalize(); snapshotFrom(modelOf(r.saved));
+  for(const [n,t] of Object.entries(serialize())) if(saved[n]!=null&&same(saved[n],t)) saved[n]=t;
+  dirty=Object.entries(serialize()).some(([n,t])=>n!=='hours.json'&&saved[n]!==t);
+  unlocked=false; needRemote=true; stateMsg=null; updSave(); return true;
+}
+function snapshotFrom(m){ savedItems={}; for(const e of m.events) savedItems['e:'+e.id]=JSON.stringify(e); for(const c of m.clients) savedItems['c:'+c.id]=JSON.stringify(c); }
+function modelOf(t){
+  const j=n=>{ try{ return t[n]?JSON.parse(t[n]):null; }catch{ return null; } }, events=[];
+  for(const n of Object.keys(t)) if(/^events-.+\.json$/.test(n)) events.push(...((j(n)||{}).events||[]));
+  const h=j('hours.json');
+  return {config:j('config.json'),clients:(j('clients.json')||{}).clients||[],events,hours:h?{entries:h.entries||[],closures:h.closures||[],coefficients:h.coefficients||{}}:null};
+}
+const canon=v=>v===undefined?undefined:JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(y=>[y,x[y]])):x);
+/* three-way merge by id: base (last sync), mine (this device), theirs (GitHub now) */
+function merge3(B,L,Rm,ask){
+  const m=a=>new Map((a||[]).map(x=>[x.id,x])), b=m(B), l=m(L), r=m(Rm), out=[];
+  for(const id of [...l.keys(),...[...r.keys()].filter(k=>!l.has(k))]){
+    const lx=l.get(id), rx=r.get(id), cb=canon(b.get(id)), cl=canon(lx), cr=canon(rx);
+    const pick=cl===cr||cr===cb?lx:cl===cb?rx:ask(lx,rx)?lx:rx;
+    if(pick!==undefined) out.push(pick);
+  }
+  return out;
+}
+const asker=(kind,name)=>(mine,theirs)=>{ const n=name(mine||theirs)||'untitled';
+  return confirm(`${kind} “${n}” was ${mine?'changed':'deleted'} on this device and ${theirs?'changed':'deleted'} on another device.\n\nOK: keep the version on this device.\nCancel: take the other version.`); };
+const asMap=o=>Object.entries(o||{}).map(([id,v])=>({id,v})), fromMap=a=>Object.fromEntries(a.map(x=>[x.id,x.v]));
+function mergeHours(B,L,Rm){ B=B||{}; Rm=Rm||{};
+  const dt=h=>[h.date,h.hours+' h',h.note].filter(Boolean).join(' · ');
+  return {...Rm,...L,entries:merge3(B.entries,L.entries,Rm.entries,asker('Hours entry',dt)),
+    closures:merge3(B.closures,L.closures,Rm.closures,asker('Closure',x=>x.date)),
+    coefficients:fromMap(merge3(asMap(B.coefficients),asMap(L.coefficients),asMap(Rm.coefficients),asker('Coefficient of client',x=>clientName(x.id))))}; }
+const parseH=t=>{ const j=t?JSON.parse(t):{}; const o=Object.assign({},j,{entries:j.entries||[],closures:j.closures||[],coefficients:j.coefficients||{}}); delete o.version; return o; };
+/* read GitHub and merge it into what is on screen. Returns true if anything on screen changed. */
+async function syncFromRemote(){
+  const names=await Store.list(); if(names===null) throw new Error('Data folder not found on GitHub');
+  const want=names.filter(n=>n!=='hours.json'||S.hours), txt={};
+  await Promise.all(want.map(async n=>{ txt[n]=await Store.get(n); }));
+  for(const n of Object.keys(GitHubStore.sha)) if(!names.includes(n)) delete GitHubStore.sha[n];
+  const before=JSON.stringify(serialize()), B=modelOf(saved), Rm=modelOf(txt);
+  const cfgM=merge3([{id:'c',...(B.config||{})}],[{id:'c',...S.config}],[{id:'c',...(Rm.config||{})}],asker('Settings',()=>'config'))[0]||{};
+  delete cfgM.id; S.config=Object.assign(structuredClone(DEFAULT_CONFIG),cfgM);
+  S.clients=merge3(B.clients,S.clients,Rm.clients,asker('Client',x=>x.name));
+  S.events=merge3(B.events,S.events,Rm.events,asker('Event',x=>x.name));
+  if(S.hours) S.hours=mergeHours(B.hours,S.hours,Rm.hours||{});
+  hoursInRepo=names.includes('hours.json');
+  for(const n of names) if(/^events-.+\.json$/.test(n)) eventFiles.add(n);
+  saved={}; for(const n of want) if(txt[n]!=null) saved[n]=txt[n];
+  if(S.hours&&saved['hours.json']==null) saved['hours.json']=hoursText();
+  normalize(); snapshotFrom(Rm);
+  const out=serialize(); for(const [n,t] of Object.entries(out)) if(saved[n]!=null&&same(saved[n],t)) saved[n]=t;
+  dirty=Object.entries(out).some(([n,t])=>saved[n]!==t); needRemote=false;
+  persistLocal(); if(encKey&&S.hours) sealHours(); updSave();
+  return JSON.stringify(out)!==before;
+}
+/* back online (or the app comes back): read GitHub if needed, then push what is pending */
+async function syncNow(){
+  if(DEMO||!S||syncing||saving||!navigator.onLine) return; syncing=true;
+  try{
+    if(needRemote){ if(await syncFromRemote()) render(); }
+    if(dirty) await save({quiet:true});
+    else if(errMsg==='Offline'){ errMsg=null; updSave(); }
+  }catch(err){ errMsg=isNetErr(err)?'Offline':err.message; updSave(); }
+  finally{ syncing=false; }
+}
+window.addEventListener('online',()=>setTimeout(syncNow,800));
+window.addEventListener('offline',()=>{ if(!errMsg){ errMsg='Offline'; updSave(); } });
+setInterval(()=>{ if((errMsg==='Offline'||needRemote)&&document.visibilityState==='visible') syncNow(); },30e3);
 window.addEventListener('beforeunload',e=>{ if(dirty||saving){ save({unload:true}); e.preventDefault(); e.returnValue=''; } });
 
 /* =====================================================================
@@ -1564,11 +1698,12 @@ function sortable(root){
    ===================================================================== */
 function ago(t){ const s=Math.round((Date.now()-t)/1000); if(s<45) return 'just now'; const m=Math.round(s/60); if(m<60) return `${m} min ago`; return `${Math.round(m/60)} h ago`; }
 function updSave(){
-  const st=errMsg?'err':saving?'saving':dirty?'dirty':'saved';
-  const txt=stateMsg||errMsg||(saving?'Saving…':dirty?'Unsaved changes':DEMO?'Demo · not saved':lastSaved?`Saved · ${ago(lastSaved)}`:'Up to date');
+  const off=errMsg==='Offline';
+  const st=off?'dirty':errMsg?'err':saving?'saving':dirty||hoursWaiting()?'dirty':'saved';
+  const txt=stateMsg||(off?(dirty?'Offline · changes kept on this device':'Offline'):errMsg)||(saving?'Saving…':dirty?'Unsaved changes':hoursWaiting()?`Unlock ${U().icon} to sync hours`:DEMO?'Demo · not saved':lastSaved?`Saved · ${ago(lastSaved)}`:'Up to date');
   const el=$('#savestate'); if(el){ el.className='savestate '+st; el.querySelector('span').textContent=txt; }
-  const b=$('#savebtn'); if(b){ b.className='btn icon ghost '+st; b.dataset.tip=errMsg?`${errMsg} — click to retry`:saving?'Saving…':dirty?'Unsaved changes — save':'Saved'; b.dataset.kbd=`${MOD} S`; b.setAttribute('aria-label',b.dataset.tip); }
-  const t=$('#tsave'); if(t){ t.className='tsave '+st; t.querySelector('span').textContent=errMsg?'Retry':dirty?'Save':saving?'Saving…':'Saved'; }
+  const b=$('#savebtn'); if(b){ b.className='btn icon ghost '+st; b.dataset.tip=off?(dirty?'Offline — changes are kept on this device and pushed when you are back online':'Offline'):errMsg?`${errMsg} — click to retry`:saving?'Saving…':dirty?'Unsaved changes — save':'Saved'; b.dataset.kbd=`${MOD} S`; b.setAttribute('aria-label',b.dataset.tip); }
+  const t=$('#tsave'); if(t){ t.className='tsave '+st; t.querySelector('span').textContent=off?'Offline':errMsg?'Retry':dirty?'Save':saving?'Saving…':'Saved'; }
 }
 setInterval(updSave,30e3);
 function toast(msg,sub='',icon='check',cls='',action=null,persist=false){
@@ -2823,15 +2958,18 @@ document.addEventListener('keydown',e=>{
 
 /* =====================================================================
    PRIVACY SCREEN (🍦): hours, coefficients and values.
-   Not encryption: anyone with the token can read hours.json in the repo. It protects against accidental viewing.
+   In the repo hours.json is not encrypted (anyone with the token can read it): the screen protects against accidental viewing.
+   The offline copy on the device is encrypted (AES-GCM, key derived from the safe-word).
    The safe-word is stored in config.json as {salt, hash, iter} (PBKDF2-SHA256). hours.json is fetched only after unlocking.
    ===================================================================== */
 const LOCK_MS=10*60e3, PBKDF2_ITER=210000; let lastAct=Date.now();
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 const unhex=s=>new Uint8Array((String(s).match(/../g)||[]).map(h=>parseInt(h,16)));
+/* 512 bits: the first 256 are the stored hash (same as a 256-bit PBKDF2), the other 256 the AES key for the offline hours copy */
 async function derive(word,salt,iter){ const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(word),'PBKDF2',false,['deriveBits']);
-  return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(salt),iterations:iter},k,256)); }
-async function makeSafeword(word){ const salt=hex(crypto.getRandomValues(new Uint8Array(16))); return {salt,hash:await derive(word,salt,PBKDF2_ITER),iter:PBKDF2_ITER}; }
+  const bits=new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(salt),iterations:iter},k,512));
+  return {hash:hex(bits.slice(0,32)),key:await crypto.subtle.importKey('raw',bits.slice(32),'AES-GCM',false,['encrypt','decrypt'])}; }
+async function makeSafeword(word){ const salt=hex(crypto.getRandomValues(new Uint8Array(16))), d=await derive(word,salt,PBKDF2_ITER); return {rec:{salt,hash:d.hash,iter:PBKDF2_ITER},key:d.key}; }
 const hasSafeword=()=>!!(S?.config?.safeword?.hash&&S.config.safeword.salt);
 let ulMode='unlock';
 function togglePrivacy(){ if(!S) return; if(unlocked){ lock(); return; } openUnlock(hasSafeword()?'unlock':'create'); }
@@ -2858,26 +2996,34 @@ $('#unlockform').addEventListener('submit',async ev=>{ ev.preventDefault();
   if(ulMode!=='unlock'){
     if(w.length<4){ shake($('#ul-box')); msg.textContent='Use at least 4 characters.'; return; }
     if(w!==$('#ul-in2').value){ shake($('#ul-box2')); msg.textContent='The two entries are different.'; return; }
-    go_.disabled=true; S.config.safeword=await makeSafeword(w); touch('none');
-    if(ulMode==='change'){ $('#unlock').close(); toast('Safe-word changed','saved with config.json','lock'); return; }
+    go_.disabled=true; const made=await makeSafeword(w); S.config.safeword=made.rec; encKey=made.key; touch('none');
+    if(ulMode==='change'){ $('#unlock').close(); sealHours(); toast('Safe-word changed','saved with config.json','lock'); return; }
   } else {
     if(!w){ shake($('#ul-box')); msg.textContent='Type your safe-word.'; return; }
     go_.disabled=true; const sw=S.config.safeword;
-    const ok=await derive(w,sw.salt,num(sw.iter)||PBKDF2_ITER)===sw.hash;
+    const d=await derive(w,sw.salt,num(sw.iter)||PBKDF2_ITER), ok=d.hash===sw.hash;
+    if(ok) encKey=d.key;
     if(!ok){ go_.disabled=false; shake($('#ul-box')); msg.textContent='That’s not it — try again.'; $('#ul-in').select(); return; }
   }
   go_.textContent='Loading…';
-  try{ await loadHours(); }catch(err){ go_.disabled=false; go_.textContent='Unlock'; msg.textContent=`Could not load hours: ${err.message}`; return; }
+  try{ await loadHours(); }catch(err){ encKey=null; go_.disabled=false; go_.textContent='Unlock'; msg.textContent=`Could not load hours: ${isNetErr(err)?'offline, and no hours copy on this device yet':err.message}`; return; }
   $('#unlock').close(); unlocked=true; lastAct=Date.now(); render(); toast('Private data unlocked','locks after 10 min idle','unlock');
+  sealHours(); if(hoursDirty()) syncNow();
 });
 /* Fetch hours.json (only now), then move coefficients out of clients.json and fix open hours whose event changed client */
 async function loadHours(){
   if(!S.hours){
-    const txt=await Store.get('hours.json');
-    const j=txt?JSON.parse(txt):{};
-    S.hours=Object.assign({},j,{entries:j.entries||[],closures:j.closures||[],coefficients:j.coefficients||{}}); delete S.hours.version;
-    if(txt!=null){ hoursInRepo=true; saved['hours.json']=same(txt,hoursText())?hoursText():txt; }
-    else saved['hours.json']=hoursText(); // no file yet: nothing to write until something changes
+    const loc=await openHours(); let txt=null, net=true;
+    try{ txt=await Store.get('hours.json'); }catch(err){ if(!loc||!isNetErr(err)) throw err; net=false; }
+    if(net){
+      S.hours=parseH(txt);
+      if(txt!=null){ hoursInRepo=true; saved['hours.json']=same(txt,hoursText())?hoursText():txt; }
+      else saved['hours.json']=hoursText(); // no file yet: nothing to write until something changes
+      if(loc&&loc.work!==loc.base){ S.hours=mergeHours(loc.base?parseH(loc.base):{},parseH(loc.work),S.hours); touch('none'); } // hours changed offline
+    } else {
+      S.hours=parseH(loc.work); saved['hours.json']=loc.base??hoursText();
+      if(loc.work!==loc.base) dirty=true;
+    }
   }
   let moved=0;
   for(const c of S.clients){ if(!Object.prototype.hasOwnProperty.call(c,'coefficient')) continue;
@@ -2895,7 +3041,8 @@ async function lock(reason,{unload=false}={}){
   if(document.querySelector('#unlock[open]')) $('#unlock').close();
   if(route.view==='h') go('e'); else render();
   toast(reason||'Private data locked','','lock');
-  if(hoursDirty()||(unload&&dirty)) await save({unload,quiet:true}); else dropHoursIfLocked();
+  const seal=sealHours(); encKey=null; await seal;
+  if((hoursDirty()||(unload&&dirty))&&errMsg!=='Offline') await save({unload,quiet:true}); else dropHoursIfLocked();
 }
 for(const t of ['pointerdown','keydown','wheel','touchstart']) document.addEventListener(t,()=>{ lastAct=Date.now(); },{passive:true,capture:true});
 setInterval(()=>{ if(unlocked&&Date.now()-lastAct>LOCK_MS) lock('Locked after 10 minutes without activity'); },10e3);
@@ -2914,7 +3061,8 @@ async function logout(){
   if(DEMO){ toast('Demo mode: nothing to log out from','','logout'); return; }
   if(dirty) await save({quiet:true});
   if(dirty&&!confirm('Some changes could not be saved and will be lost. Log out anyway?')) return;
-  cfg.token=''; saveCfg(); dirty=false; unlocked=false; location.hash=''; location.reload();
+  if(hoursWaiting()&&!confirm('Hours changed offline have not been pushed yet (unlock to sync them). Log out anyway and lose them?')) return;
+  clearLocal(); cfg.token=''; saveCfg(); dirty=false; unlocked=false; location.hash=''; location.reload();
 }
 const dlg=$('#settings');
 function openSettings(msg=''){
@@ -2963,6 +3111,7 @@ P.refresh='<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d=
 async function saveBeforeReload(what='Reload'){
   for(let i=0;saving&&i<100;i++) await new Promise(r=>setTimeout(r,100));
   if(dirty) await save({quiet:true});
+  if(dirty&&errMsg==='Offline'){ persistLocal(); if(encKey) await sealHours(); return true; } // kept on this device
   if(dirty){ if(!confirm(`Some changes could not be saved (${errMsg||'error'}).\n\nOK: ${what} anyway and lose them.\nCancel: stay here.`)) return false; dirty=false; updSave(); }
   return true;
 }
@@ -2972,15 +3121,19 @@ let refreshing=false;
 async function refreshData(){
   if(!S||refreshing) return; refreshing=true; ptrSpin(true);
   try{
-    if(!await saveBeforeReload('Refresh')) return;
-    const wasUnlocked=unlocked;
-    const res=await loadAll();
-    if(res==='missing'){ toast('Data folder not found','check Settings','warn','err'); return; }
-    importUndo=null;
-    let note=DEMO?'demo data':'from GitHub';
-    if(wasUnlocked){ try{ await loadHours(); unlocked=true; lastAct=Date.now(); note+=' · hours too'; }catch(err){ note+=' · hours locked ('+err.message+')'; } }
-    parseRoute(); render(); toast('Data refreshed',note,'check');
-  }catch(err){ errMsg=err.message; updSave(); toast('Could not refresh',err.message,'warn','err'); }
+    if(DEMO){
+      if(!await saveBeforeReload('Refresh')) return;
+      const wasUnlocked=unlocked; await loadAll(); importUndo=null;
+      if(wasUnlocked){ try{ await loadHours(); unlocked=true; lastAct=Date.now(); }catch{} }
+      parseRoute(); render(); toast('Data refreshed','demo data','check'); return;
+    }
+    // merge GitHub into what is here (unsaved changes are kept), then push what is pending
+    await syncFromRemote(); if(errMsg==='Offline') errMsg=null; parseRoute(); render();
+    if(dirty) await save({quiet:true});
+    toast('Data refreshed',`from GitHub${S.hours?' · hours too':''}${dirty?' · some changes not saved':''}`,'check');
+  }catch(err){
+    if(isNetErr(err)){ errMsg='Offline'; updSave(); toast('Offline','showing the copy on this device','wifi','warn'); }
+    else{ errMsg=err.message; updSave(); toast('Could not refresh',err.message,'warn','err'); } }
   finally{ refreshing=false; ptrSpin(false); }
 }
 /* service worker: check for a new version on load, when the app comes back, and every 30 min while visible */
@@ -3028,8 +3181,9 @@ document.fonts?.ready.then(()=>document.querySelectorAll('textarea.auto').forEac
 (async()=>{
   parseRoute(); routeKey=location.hash; renderTop();
   if(!DEMO&&(!cfg.token||!cfg.owner)){ openSettings(); return; }
+  if(!DEMO&&bootLocal()){ parseRoute(); render(); syncNow(); if(!navigator.onLine){ errMsg='Offline'; updSave(); } return; }
   try{ const res=await loadAll(); if(res==='missing'){ openSettings(`The folder «${cfg.dir}» doesn't exist in ${cfg.owner}/${cfg.repo}. Log in to create it.`); return; } parseRoute(); render(); }
-  catch(err){ errMsg=err.message; updSave(); if(!DEMO) openSettings(err.message); }
+  catch(err){ errMsg=err.message; updSave(); if(!DEMO) openSettings(isNetErr(err)?'Offline, and there is no copy of the data on this device yet. Connect once to download it.':err.message); }
 })();
 </script>
 </body>
