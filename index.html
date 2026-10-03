@@ -1321,8 +1321,10 @@ let cfg=Object.assign({owner:'',repo:'events-tracker-data',dir:'data',token:''},
 function readLS(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}') }catch{ return {} } }
 function saveCfg(){ if(lockOn()){ writeCfgEnc(); return; } try{ localStorage.setItem(CFG_KEY,JSON.stringify(cfg)) }catch{} } // with the app lock: token encrypted
 
-const b64enc=s=>{ const b=new TextEncoder().encode(s); let o=''; for(let i=0;i<b.length;i+=0x8000) o+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(o); };
-const b64dec=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g,'')),c=>c.charCodeAt(0)));
+const toB64=u=>{ let o=''; const b=new Uint8Array(u); for(let i=0;i<b.length;i+=0x8000) o+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(o); };
+const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const b64enc=s=>toB64(new TextEncoder().encode(s));
+const b64dec=s=>new TextDecoder().decode(fromB64(s.replace(/\n/g,'')));
 
 class ConflictError extends Error{}
 const GitHubStore={
@@ -1481,7 +1483,8 @@ const raceDate=(e,c)=>{ const days=eventDays(e); return days.length?(days.includ
 const dayLabel=(e,iso)=>{ const i=eventDays(e).indexOf(iso); return i<0?'':`Day ${i+1} · ${fmtLong(iso)}`; };
 const PASTEL=['#a9c9e8','#c3b5e8','#f7c9a3','#f2e198','#9fd6d6','#ebb0cc','#f2a9a4','#b9dfb0','#d9c7a7','#b3d4f0','#e3c1f0','#c8e6a0'];
 const nextColor=e=>PASTEL.find(c=>!e.timingPoints.some(t=>t.color===c))||PASTEL[e.timingPoints.length%PASTEL.length];
-const myrrUrl=e=>/^\d+$/.test(String(e.rr14EventId||'').trim())?`https://my.raceresult.com/${String(e.rr14EventId).trim()}/`:'';
+const rrEventId=e=>{ const id=String(e.rr14EventId||'').trim(); return /^\d+$/.test(id)?id:''; }; // '' unless it is a valid EventID
+const myrrUrl=e=>rrEventId(e)?`https://my.raceresult.com/${rrEventId(e)}/`:'';
 /* RR14 identifier: upper case, letters/digits/underscore ("Start Patrimonio" → START_PATRIMONIO) */
 const rrName=n=>String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'');
 
@@ -1635,8 +1638,6 @@ function persistLocal(){
   catch{ if(!localWarned){ localWarned=true; toast('No offline copy','browser storage is full or blocked','warn','warn'); } }
 }
 function schedulePersist(){ clearTimeout(persistT); persistT=setTimeout(()=>{ persistLocal(); if(encKey&&S?.hours) sealHours(); },300); }
-const toB64=u=>{ let o=''; const b=new Uint8Array(u); for(let i=0;i<b.length;i+=0x8000) o+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(o); };
-const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 /* encrypt the hours (last saved + current) into hoursRec */
 async function sealHours(){
   if(!encKey||!S?.hours||!S.config.safeword?.salt) return;
@@ -1869,6 +1870,11 @@ const P={
   keyboard:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
   checkc:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
   doc:'<path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 13h6M9 17h4"/>',
+  plane:'<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+  away:'<path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v7a2 2 0 0 0 4 0"/>',
+  sparkle:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+  upload:'<path d="M12 15V4M7 9l5-5 5 5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>',
+  refresh:'<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/>',
 };
 const ic=(n,sw=2)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
 const SECC={general:'#64748b',rr14:'#e5484d',links:'#0ea5e9',tps:'#f59e0b',races:'#22a06b',scoring:'#8b5cf6',registration:'#ec4899',outputs:'#06b6d4',questions:'#f97316',checklist:'#3b82f6',hours:'#14b8a6',notes:'#94a3b8'};
@@ -1876,10 +1882,10 @@ const SECI={general:'info',rr14:'stopwatch',links:'link',tps:'pin',races:'flag',
 const secBadge=(k,cls='sb')=>`<span class="${cls}" style="--sc:${SECC[k]}" aria-hidden="true">${ic(SECI[k],2)}</span>`;
 /* external links of an event: my.raceresult results page and the RR14 web app */
 function evLinks(e){
-  const id=/^\d+$/.test(String(e.rr14EventId||'').trim())?String(e.rr14EventId).trim():'';
+  const id=rrEventId(e);
   const user=String(S.config.rr14User||'').trim(), cust=String(clientOf(e.clientId)?.rrCustomerId||'').trim();
   return {
-    res:{label:'Open results on my.raceresult',short:'Results',icon:'trophy',url:id?`https://my.raceresult.com/${id}/`:'',why:'Set the EventID'},
+    res:{label:'Open results on my.raceresult',short:'Results',icon:'trophy',url:myrrUrl(e),why:'Set the EventID'},
     rr:{label:'Open event in RR14',short:'RR14',icon:'monitor',url:id&&cust&&user?`https://events.raceresult.com/?eventid=${id}&user=${encodeURIComponent(`${user}@@${cust}`)}`:'',why:!id?'Set the EventID':!cust?"Set the client's RR customer ID":'Set your RR14 user in Settings'}};
 }
 const extBtn=l=>l.url?`<a class="btn icon sm ghost" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" title="${esc(l.label)}" aria-label="${esc(l.label)}">${ic(l.icon,1.8)}</a>`
@@ -1910,9 +1916,9 @@ let listOrder=[], lastEvent=null, lastClient=null;
 let OBJ=[];
 const ref=o=>{ OBJ.push(o); return OBJ.length-1; };
 let fid=0;
-function F(o,k,label,{type='text',ph='',cls='',mono=false,list='',hint='',t='',r='',attrs=''}={}){
+function F(o,k,label,{type='text',ph='',cls='',mono=false,list='',hint='',help='',t='',r='',attrs=''}={}){
   const id='f'+(++fid);
-  return `<div class="fld ${cls}"><label class="lab" for="${id}">${label}${hint?` <span class="lh">${hint}</span>`:''}</label><input class="in ${mono?'mono':''}" id="${id}" type="${type}" data-o="${ref(o)}" data-k="${esc(k)}" ${t?`data-t="${t}" inputmode="decimal"`:''} ${r?`data-r="${r}"`:''} value="${esc(o[k])}" placeholder="${esc(ph)}" ${list?`list="${list}"`:''} ${attrs}></div>`;
+  return `<div class="fld ${cls}"><label class="lab" for="${id}">${label}${hint?` <span class="lh">${hint}</span>`:''}</label><input class="in ${mono?'mono':''}" id="${id}" type="${type}" data-o="${ref(o)}" data-k="${esc(k)}" ${t?`data-t="${t}" inputmode="decimal"`:''} ${r?`data-r="${r}"`:''} value="${esc(o[k])}" placeholder="${esc(ph)}" ${list?`list="${list}"`:''} ${attrs}>${help?`<div class="help">${help}</div>`:''}</div>`;
 }
 function T(o,k,label,{ph='',cls='',hideLabel=false}={}){ const id='f'+(++fid); return `<div class="fld ${cls}"><label class="lab" for="${id}" ${hideLabel?'hidden':''}>${label}</label><textarea class="in auto" rows="2" id="${id}" data-o="${ref(o)}" data-k="${esc(k)}" placeholder="${esc(ph)}" ${hideLabel?`aria-label="${esc(label)}"`:''}>${esc(o[k])}</textarea></div>`; }
 function Sel(o,k,label,opts,{cls='',r=''}={}){ const id='f'+(++fid); return `<div class="fld ${cls}"><label class="lab" for="${id}">${label}</label><select class="in" id="${id}" data-o="${ref(o)}" data-k="${esc(k)}" ${r?`data-r="${r}"`:''}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${String(o[k]??'')===String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select></div>`; }
@@ -1928,7 +1934,7 @@ function bind(root){
       o[k]=v; touch();
       if(el.dataset.r==='detail') renderDetail();
     });
-    if(el.dataset.r==='change') el.addEventListener('change',()=>renderDetail());
+    if(el.dataset.r==='change') el.addEventListener('change',()=>setTimeout(renderDetail,0)); // after Tab has moved the focus, so renderDetail can keep it there
   });
   root.querySelectorAll('[data-addto]').forEach(el=>{
     const add=refocus=>{ const v=el.value.trim(); if(!v) return; el.value='';
@@ -2069,6 +2075,8 @@ function applyRoute(force){
 function go(v,id){ const h=id?`#/${v}/${encodeURIComponent(id)}`:`#/${v}`; if(location.hash!==h) history.pushState(null,'',h); applyRoute(true); }
 window.addEventListener('hashchange',()=>applyRoute());
 window.addEventListener('popstate',()=>applyRoute());
+/* links and buttons with data-go="e:<id>" / "c:<id>": one handler for the whole page */
+document.addEventListener('click',ev=>{ const g=ev.target.closest?.('[data-go]'); if(!g) return; ev.preventDefault(); const v=g.dataset.go, i=v.indexOf(':'); go(v.slice(0,i),v.slice(i+1)); });
 const curEvent=()=>route.view==='e'&&S?S.events.find(x=>x.id===route.id):null;
 
 function render(){
@@ -2146,14 +2154,35 @@ function renderClientList(L){
 /* =====================================================================
    DETAIL
    ===================================================================== */
+/* Re-rendering replaces every field: remember which one had the focus (the object and key it edits, or a fixed id)
+   and focus its new copy, so Tab and keyboard edits are not lost. The same object can appear twice (a task ticked in
+   Scoring and in Checklist): the copy closest to the old position wins. */
+const FOCUSABLE='input,select,textarea,button,a[href],[tabindex]';
+function focusKey(D){
+  const a=document.activeElement; if(!a||a===document.body||!D.contains(a)) return null;
+  let sel=null; try{ if(typeof a.selectionStart==='number') sel=[a.selectionStart,a.selectionEnd]; }catch{}
+  if(a.dataset.o!=null) return {o:OBJ[+a.dataset.o],k:a.dataset.k,i:[...D.querySelectorAll('[data-o]')].indexOf(a),sel};
+  if(a.id&&!/^f\d+$/.test(a.id)) return {id:a.id,sel};
+  return {n:[...D.querySelectorAll(FOCUSABLE)].indexOf(a),tag:a.tagName,sel}; // e.g. "+ Split": same position, same kind of element
+}
+function refocus(D,fk){
+  if(!fk) return; let el=null;
+  if(fk.id) el=document.getElementById(fk.id);
+  else if(fk.tag){ const x=D.querySelectorAll(FOCUSABLE)[fk.n]; if(x?.tagName===fk.tag) el=x; }
+  else{ let best=Infinity; D.querySelectorAll('[data-o]').forEach((x,i)=>{ if(OBJ[+x.dataset.o]===fk.o&&x.dataset.k===fk.k&&Math.abs(i-fk.i)<best){ best=Math.abs(i-fk.i); el=x; } }); }
+  if(!el||!D.contains(el)) return;
+  el.focus({preventScroll:true});
+  if(fk.sel) try{ el.setSelectionRange(fk.sel[0],fk.sel[1]); }catch{}
+}
 function renderDetail(){
   if(!S) return;
-  OBJ=[]; taRO.disconnect(); hsRO.disconnect(); const D=$('#detail');
-  const key=route.view+':'+(route.id||''), keep=D.dataset.k===key?[...D.querySelectorAll('.evside,.hsc,.tpwrap')].map(x=>[x.scrollTop,x.scrollLeft]):null;
+  const D=$('#detail'), key=route.view+':'+(route.id||''), same=D.dataset.k===key;
+  const keep=same?[...D.querySelectorAll('.evside,.hsc,.tpwrap')].map(x=>[x.scrollTop,x.scrollLeft]):null, fk=same?focusKey(D):null;
+  OBJ=[]; taRO.disconnect(); hsRO.disconnect();
   if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else if(route.view==='a') renderAgenda(D); else renderHours(D);
   D.dataset.k=key;
   if(keep) D.querySelectorAll('.evside,.hsc,.tpwrap').forEach((x,i)=>{ if(keep[i]){ x.scrollTop=keep[i][0]; x.scrollLeft=keep[i][1]; } });
-  bind(D); sortable(D); hscroll(D);
+  bind(D); sortable(D); hscroll(D); refocus(D,fk);
   D.querySelector('#closebtn')?.addEventListener('click',()=>go(route.view));
   D.querySelector('#backbtn')?.addEventListener('click',()=>go(route.view));
   spy();
@@ -2262,7 +2291,7 @@ function renderEvent(D){
   ${showH?`<section class="sec" id="s-hours"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Hours</h3><span class="sp"></span><span class="hint">${ic('unlock',2).replace('<svg','<svg width="12" height="12" style="display:inline;vertical-align:-1px"')} unlocked · locks after 10 min idle</span></div>
   <div class="hrsum"><div><b>${fmtN(sumH(evHours))} h</b><span>logged</span></div><div><b>${fmtN(sumH(evHours.filter(isOpen)))} h</b><span>open</span></div><div><b>${val(sumH(evHours.filter(isOpen))*coefOf(e.clientId))}</b><span>open ${esc(U().label)}</span></div></div>
   ${hoursTable(evHours,{showEvent:false,showClient:false})}
-  <div class="addrow"><button class="in trig dtrig" type="button" id="h-date" data-date="${TODAY}" aria-label="Date">${ic('cal',1.8)}<span class="tv">${esc(fmtShort(TODAY))}</span></button><input class="in" inputmode="decimal" id="h-hours" placeholder="Hours" aria-label="Hours"><input class="in grow" id="h-note" placeholder="What you did" aria-label="Activity"><button class="btn" id="addh" type="button" ${e.clientId?'':'disabled title="Assign a client first"'}>Add</button></div>
+  <div class="addrow">${dateBtn('h-date')}<input class="in" inputmode="decimal" id="h-hours" placeholder="Hours" aria-label="Hours"><input class="in grow" id="h-note" placeholder="What you did" aria-label="Activity"><button class="btn" id="h-add" type="button" ${e.clientId?'':'disabled title="Assign a client first"'}>Add</button></div>
   </section>`:''}
 
   <section class="sec" id="s-notes"><div class="sech" style="--sc:${SECC.notes}"><h3>${secBadge('notes')}Notes</h3><span class="sp"></span><span class="hint">never in the summary</span></div>
@@ -2307,14 +2336,10 @@ function renderEvent(D){
   on(D,'[data-delq]',b=>{ e.questions.splice(+b.dataset.delq,1); touch(); renderDetail(); });
   D.querySelectorAll('[data-ck]').forEach(c=>c.onchange=()=>{ e.checklist[c.dataset.ck]=c.checked; touch(); renderDetail(); });
   if(showH){
-    $('#h-date').onclick=ev=>{ const b=ev.currentTarget; openDate(b,{s:b.dataset.date,allowRange:false,onChange:s=>{ if(!s) return; b.dataset.date=s; b.querySelector('.tv').textContent=fmtShort(s); }}); };
-    $('#addh').onclick=()=>{ const h=num($('#h-hours').value); if(!h){ $('#h-hours').focus(); return; } if(!e.clientId) return;
-      S.hours.entries.push({id:uid('h'),clientId:e.clientId,eventId:e.id,date:$('#h-date').dataset.date||TODAY,hours:h,note:$('#h-note').value.trim(),closure:null}); touch(); renderDetail(); };
-    $('#h-note').onkeydown=ev=>{ if(ev.key==='Enter') $('#addh').click(); };
+    bindAddHours('h',()=>({clientId:e.clientId,eventId:e.id}));
     bindHoursTable(D);
   }
   on(D,'[data-jump]',(a,ev)=>{ ev.preventDefault(); const t=document.querySelector(a.getAttribute('href')); if(!t) return; let delay=0; if(t.closest('.evside')&&!sideOpen&&wide.matches){ toggleSide(); delay=280; } setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'start'}),delay); });
-  on(D,'[data-go]',b=>{ const [v,id]=b.dataset.go.split(':'); go(v,id); });
   $('#delev').onclick=()=>{
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this event','lock'); return; }
     if(evHours.length){ alert(`This event has ${plural(evHours.length,'hours entry','hours entries')}. Delete or move them first (Hours section).`); return; }
@@ -2428,6 +2453,15 @@ function exportTimingPoints(e){
 /* =====================================================================
    HOURS table (shared) — only rendered while unlocked
    ===================================================================== */
+/* button that looks like a date field (one day): shows fmt(date), keeps the ISO date in data-date */
+const dateBtn=(id,fmt=fmtShort,label='Date')=>`<button class="in trig dtrig" type="button" id="${id}" data-date="${TODAY}" aria-label="${label}">${ic('cal',1.8)}<span class="tv">${esc(fmt(TODAY))}</span></button>`;
+function bindDateBtn(b,fmt=fmtShort,after=null){ b.onclick=()=>openDate(b,{s:b.dataset.date,allowRange:false,onChange:s=>{ if(!s) return; b.dataset.date=s; b.querySelector('.tv').textContent=fmt(s); after?.(); }}); }
+/* "Add hours" row: #<p>-date, #<p>-hours, #<p>-note, #<p>-add; target() gives {clientId, eventId} */
+function bindAddHours(p,target){
+  const add=()=>{ const h=num($(`#${p}-hours`).value), t=target(); if(!h){ $(`#${p}-hours`).focus(); return; } if(!t.clientId) return;
+    S.hours.entries.push({id:uid('h'),clientId:t.clientId,eventId:t.eventId||null,date:$(`#${p}-date`).dataset.date||TODAY,hours:h,note:$(`#${p}-note`).value.trim(),closure:null}); touch(); renderDetail(); };
+  bindDateBtn($(`#${p}-date`)); $(`#${p}-add`).onclick=add; $(`#${p}-note`).onkeydown=ev=>{ if(ev.key==='Enter') add(); };
+}
 function hoursTable(rows,{showEvent=true,showClient=true}={}){
   if(!rows.length) return emptyBox('hours','No hours logged yet.');
   return `<div class="hs"><div class="tbox hsc"><table class="t htab"><thead><tr><th class="stk stk1">Date</th>${showClient?'<th>Client</th>':''}${showEvent?'<th>Event</th>':''}<th>Activity</th><th class="num">h</th><th class="num">${esc(U().icon)}</th><th></th><th></th></tr></thead><tbody>
@@ -2445,7 +2479,6 @@ function hoursTable(rows,{showEvent=true,showClient=true}={}){
 function bindHoursTable(D){
   on(D,'[data-delh]',b=>{ if(!confirm('Delete this hours entry?')) return; S.hours.entries=S.hours.entries.filter(h=>h.id!==b.dataset.delh); touch(); renderDetail(); });
   on(D,'[data-hdate]',b=>{ const h=OBJ[+b.dataset.hdate]; openDate(b,{s:h.date,allowRange:false,onChange:s=>{ if(!s) return; h.date=s; touch('none'); b.textContent=fmtDay(s); },onClose:()=>renderDetail()}); });
-  on(D,'a[data-go]',(a,ev)=>{ ev.preventDefault(); const [v,id]=a.dataset.go.split(':'); go(v,id); });
 }
 
 /* =====================================================================
@@ -2470,7 +2503,6 @@ function renderClient(D){
       <td class="num">${oq?`<span class="qb">${oq}?</span>`:'<span class="hint">–</span>'}</td>
       <td><div class="lks">${extBtn(L.res)}${extBtn(L.rr)}</div></td></tr>`; };
   const grp=(t,a)=>a.length?`<tr class="grph"><td colspan="8"><span class="gh">${t} · ${a.length}</span></td></tr>${a.map(row).join('')}`:'';
-  const rr=F(c,'rrCustomerId','RR customer ID',{ph:'e.g. 60788',mono:true,r:'change',attrs:'inputmode="numeric" autocomplete="off"'});
   D.innerHTML=`<div class="cview">
   <div class="chead"><span class="avatar lg">${esc((c.name||'?')[0])}</span><div class="chm">
     <div class="dtitle">${backBtn}<input class="nameinput" data-o="${ref(c)}" data-k="name" value="${esc(c.name)}" placeholder="Client name" aria-label="Client name">${closeBtn('client')}</div>
@@ -2485,7 +2517,7 @@ function renderClient(D){
   <div class="cgrid">
     <aside class="ccard"><div class="sech" style="--sc:${SECC.general}"><h3>${secBadge('general')}Details</h3></div>
       ${F(c,'contact','Contact person',{ph:'Name'})}${F(c,'email','Email',{type:'email',ph:'name@example.com'})}${F(c,'phone','Phone',{type:'tel',ph:'+33…'})}
-      ${rr.slice(0,-6)}<div class="help">Used for the “Open in RR14” links of this client's events.</div></div>
+      ${F(c,'rrCustomerId','RR customer ID',{ph:'e.g. 60788',mono:true,r:'change',attrs:'inputmode="numeric" autocomplete="off"',help:'Used for the “Open in RR14” links of this client\'s events.'})}
       ${showH?F(S.hours.coefficients,c.id,'Coefficient',{ph:'1',hint:'· hours × coefficient = '+esc(U().icon),t:'num',r:'change'}):''}
       ${T(c,'notes','Notes',{ph:'Anything about this client…'})}
     </aside>
@@ -2494,7 +2526,7 @@ function renderClient(D){
       ${showH?`<div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Open hours <span class="count">${fmtN(sumH(open))} h</span></h3></div>${hoursTable(open.sort((a,b)=>a.date.localeCompare(b.date)),{showClient:false})}</div>
       <div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Close period</h3></div>
         <p class="hint" style="margin:0 0 10px">Marks open hours up to the chosen date as closed. Today's coefficient is frozen into the closure.</p>
-        <div class="closebox"><div class="fld"><span class="lab">Up to</span><button class="in trig dtrig" type="button" id="cl-until" data-date="${TODAY}">${ic('cal',1.8)}<span class="tv">${esc(fmtDay(TODAY))}</span></button></div>
+        <div class="closebox"><div class="fld"><span class="lab">Up to</span>${dateBtn('cl-until',fmtDay,'Up to')}</div>
           <div class="fld"><label class="lab" for="cl-ref">Reference</label><input class="in" id="cl-ref" placeholder="e.g. 2026-10"></div>
           <button class="btn primary" id="cl-go" type="button" ${open.length?'':'disabled'}>Close period</button></div>
         <p class="hint" id="cl-preview" style="margin:6px 0 0"></p></div>
@@ -2504,14 +2536,13 @@ function renderClient(D){
     </section>
   </div>
   <div class="foot"><span class="mono">id: ${esc(c.id)}</span><button class="btn sm ghost del dangerous" id="delcl" type="button">Delete client</button></div></div>`;
-  on(D,'a[data-go]',(a,ev2)=>{ ev2.preventDefault(); const [v,id]=a.dataset.go.split(':'); go(v,id); });
   if(showH){
     bindHoursTable(D);
     const until=()=>$('#cl-until').dataset.date;
     const preview=()=>{ const u=until(), rows=open.filter(h=>!u||h.date<=u);
       $('#cl-preview').textContent=rows.length?`${plural(rows.length,'entry','entries')} · ${fmtN(sumH(rows))} h · ${fmtN(sumH(rows)*coef)} ${U().icon}`:'No open hours in this range.'; return rows; };
     preview();
-    $('#cl-until').onclick=ev=>{ const b=ev.currentTarget; openDate(b,{s:b.dataset.date,allowRange:false,onChange:s=>{ if(!s) return; b.dataset.date=s; b.querySelector('.tv').textContent=fmtDay(s); preview(); }}); };
+    bindDateBtn($('#cl-until'),fmtDay,preview);
     $('#cl-go').onclick=()=>{ const rows=preview(); if(!rows.length) return;
       if(!confirm(`Close ${plural(rows.length,'entry','entries')} (${fmtN(sumH(rows))} h)?`)) return;
       const h=sumH(rows), x={id:uid('cl'),clientId:c.id,date:TODAY,until:until(),ref:$('#cl-ref').value.trim(),hours:h,coefficient:coef,value:Math.round(h*coef*100)/100,entryIds:rows.map(r=>r.id)};
@@ -2544,7 +2575,7 @@ function renderHours(D){
   <div class="hoursadd">
     <select class="in" id="a-client" aria-label="Client">${S.clients.map(c=>`<option value="${esc(c.id)}" ${addC===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
     <select class="in" id="a-event" aria-label="Event"></select>
-    <button class="in trig dtrig" type="button" id="a-date" data-date="${TODAY}" aria-label="Date">${ic('cal',1.8)}<span class="tv">${esc(fmtShort(TODAY))}</span></button>
+    ${dateBtn('a-date')}
     <input class="in" id="a-hours" inputmode="decimal" placeholder="Hours" aria-label="Hours">
     <input class="in grow" id="a-note" placeholder="What you did" aria-label="Activity">
     <button class="btn primary" id="a-add" type="button" ${S.clients.length?'':'disabled'}>Add</button>
@@ -2555,10 +2586,7 @@ function renderHours(D){
   $('#hf-client').onchange=e=>{ hf.client=e.target.value; renderDetail(); };
   $('#hf-state').onchange=e=>{ hf.state=e.target.value; renderDetail(); };
   $('#hf-month').onchange=e=>{ hf.month=e.target.value; renderDetail(); };
-  $('#a-date').onclick=ev=>{ const b=ev.currentTarget; openDate(b,{s:b.dataset.date,allowRange:false,onChange:s=>{ if(!s) return; b.dataset.date=s; b.querySelector('.tv').textContent=fmtShort(s); }}); };
-  $('#a-add').onclick=()=>{ const h=num($('#a-hours').value); if(!h){ $('#a-hours').focus(); return; } if(!$('#a-client').value) return;
-    S.hours.entries.push({id:uid('h'),clientId:$('#a-client').value,eventId:$('#a-event').value||null,date:$('#a-date').dataset.date||TODAY,hours:h,note:$('#a-note').value.trim(),closure:null}); touch('none'); renderDetail(); };
-  $('#a-note').onkeydown=ev=>{ if(ev.key==='Enter') $('#a-add').click(); };
+  bindAddHours('a',()=>({clientId:$('#a-client').value,eventId:$('#a-event').value}));
   bindHoursTable(D);
 }
 
@@ -2566,8 +2594,6 @@ function renderHours(D){
    AGENDA: month calendar (events + own entries + to-dos due), clashes, to-dos, notes.
    Stored in agenda.json. Never in client summaries.
    ===================================================================== */
-P.plane='<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>';
-P.away='<path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v7a2 2 0 0 0 4 0"/>';
 const AG_TYPES={travel:{label:'Travel',icon:'plane'},away:{label:'Away',icon:'away'},other:{label:'Other',icon:'clock'}};
 let agMonth=isoOf(new Date()).slice(0,7), agSel=null, agShowDone=false, agType='travel';
 let agView=(()=>{ try{ return localStorage.getItem('events-tracker-agview')==='list'?'list':'month'; }catch{ return 'month'; } })();
@@ -3059,8 +3085,6 @@ $('#sum-png').onclick=async()=>{
    and never carry hours, rates, coefficients or money.
    ===================================================================== */
 const IMPORT_FORMAT='events-tracker-import/1';
-P.sparkle='<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>';
-P.upload='<path d="M12 15V4M7 9l5-5 5 5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>';
 const normTxt=s=>String(s??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const hwFor=t=>Object.keys(HW).filter(h=>HW[h].tech.includes(t));
 /* An event in import format (timing points referenced by name, no ids except the event's, never hours) */
@@ -3407,7 +3431,7 @@ function updImpBtn(){
   b.textContent=act.length>1?`Import ${act.length}`:'Import';
 }
 /* ---- apply / undo ---- */
-let importUndo=null;   // snapshot of events + clients before the last import; cleared by the next save
+let importUndo=null;   // what the last import touched (events before, events/clients added, hours moved); cleared by the next save
 function newEventId(inc){ const y=(inc.dateStart||'').slice(0,4), base=[slug(inc.name||'event'),y].filter(Boolean).join('-')||'event'; return base&&!S.events.some(e=>e.id===base)?base:uid('ev'); }
 function newClientId(name){ const base=slug(name||'client')||'client'; return S.clients.some(c=>c.id===base)?uid('cl'):base; }
 function buildEvent(inc,clientId){
@@ -3422,20 +3446,21 @@ function buildEvent(inc,clientId){
 function applyImport(){
   if(!IMP||IMP.an.errors.length) return;
   const cards=IMP.cards.filter(cardActive); if(!cards.length) return;
-  const snap={events:JSON.stringify(S.events),clients:JSON.stringify(S.clients)};
+  const snap={before:new Map(),added:new Set(),clients:new Set(),hours:[]};
   const made=new Map(); let nNew=0,nUpd=0,nCh=0,nCl=0,firstId=null;
   const clientFor=card=>{ const v=card.client;
     if(v.startsWith('id:')) return v.slice(3);
     if(v==='new'){ const name=card.ev.inc.clientName, key=normTxt(name);
-      if(!made.has(key)){ const c={id:newClientId(name),name,contact:'',email:'',phone:'',rrCustomerId:'',notes:''}; S.clients.push(c); made.set(key,c.id); nCl++; }
+      if(!made.has(key)){ const c={id:newClientId(name),name,contact:'',email:'',phone:'',rrCustomerId:'',notes:''}; S.clients.push(c); made.set(key,c.id); snap.clients.add(c.id); nCl++; }
       return made.get(key); }
     return null; };
   for(const card of cards){ const inc=card.ev.inc;
-    if(!card.target){ const e=buildEvent(inc,clientFor(card)); S.events.push(e); nNew++; firstId??=e.id; continue; }
+    if(!card.target){ const e=buildEvent(inc,clientFor(card)); S.events.push(e); snap.added.add(e.id); nNew++; firstId??=e.id; continue; }
     const e=S.events.find(x=>x.id===card.target); if(!e) continue;
+    if(!snap.before.has(e.id)) snap.before.set(e.id,JSON.stringify(e));
     const rows=card.rows.filter(r=>r.checked); for(const r of rows) r.fn(e); nCh+=rows.length;
     const cid=clientFor(card);
-    if(cid&&cid!==e.clientId){ e.clientId=cid; nCh++; if(priv()) for(const h of entriesOf(h=>h.eventId===e.id)) if(isOpen(h)) h.clientId=cid; }
+    if(cid&&cid!==e.clientId){ e.clientId=cid; nCh++; if(priv()) for(const h of entriesOf(h=>h.eventId===e.id)) if(isOpen(h)){ snap.hours.push([h,h.clientId]); h.clientId=cid; } }
     nUpd++; firstId??=e.id; }
   normalize();     // roles / Start / Finish rules, colours, defaults
   importUndo=snap; touch();
@@ -3445,9 +3470,14 @@ function applyImport(){
 }
 function undoImport(){
   if(!importUndo){ toast('Nothing to undo','the import was already saved','warn','warn'); return; }
-  const evs=JSON.parse(importUndo.events), ids=new Set(evs.map(e=>e.id));
-  if(priv()&&S.hours.entries.some(h=>h.eventId&&!ids.has(h.eventId))){ toast('Cannot undo','hours were logged on an imported event — delete them first','warn','warn'); return; }
-  S.events=evs; S.clients=JSON.parse(importUndo.clients); importUndo=null; touch();
+  // only what the import touched: other events and clients keep the edits made since
+  const U_=importUndo;
+  if(priv()&&S.hours.entries.some(h=>U_.added.has(h.eventId))){ toast('Cannot undo','hours were logged on an imported event — delete them first','warn','warn'); return; }
+  S.events=S.events.filter(e=>!U_.added.has(e.id)).map(e=>U_.before.has(e.id)?JSON.parse(U_.before.get(e.id)):e);
+  const used=new Set(S.events.map(e=>e.clientId));
+  S.clients=S.clients.filter(c=>!U_.clients.has(c.id)||used.has(c.id)); // a new client already used by another event stays
+  for(const [h,cid] of U_.hours) h.clientId=cid;
+  normalize(); importUndo=null; touch();
   if((route.view==='e'||route.view==='c')&&route.id&&!(route.view==='e'?S.events:S.clients).some(x=>x.id===route.id)) go(route.view); else render();
   toast('Import undone','','check');
 }
@@ -3835,7 +3865,6 @@ $('#loginform').onsubmit=async ev=>{ ev.preventDefault();
   finally{ $('#s-save').disabled=false; }
 };
 
-P.refresh='<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/>';
 /* =====================================================================
    UPDATES AND REFRESH (installed iPhone apps have no pull-to-refresh)
    ===================================================================== */
