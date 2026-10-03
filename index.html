@@ -2710,7 +2710,8 @@ function enHint(){ const f=$('#en-from').value, t=$('#en-to').value||f; if(!f){ 
   $('#en-hint').textContent=ev.length?`Events on these days: ${ev.join(', ')}${$('#en-type').dataset.t==='travel'?'':' (shown as a clash)'}`:''; }
 $('#en-type').addEventListener('click',e=>{ const b=e.target.closest('button[data-t]'); if(b){ setEnType(b.dataset.t); enHint(); } });
 /* the iPhone date wheel stays open until you tap elsewhere: close it as soon as a day is picked */
-const dropFocus=(el,to)=>{ el.blur(); to.focus({preventScroll:true}); };
+// only on touch screens: on a computer the date field fires 'change' while you type a date, and moving focus would interrupt it
+const dropFocus=(el,to)=>{ if(!matchMedia('(hover:none)').matches) return; el.blur(); to.focus({preventScroll:true}); };
 $('#en-from').addEventListener('change',e=>{ if(!$('#en-to').value||$('#en-to').value<e.target.value) $('#en-to').value=e.target.value; dropFocus(e.target,$('#en-head')); enHint(); });
 $('#en-to').addEventListener('change',e=>{ dropFocus(e.target,$('#en-head')); enHint(); });
 $('#en-cancel').onclick=()=>$('#entrydlg').close();
