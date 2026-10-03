@@ -1,5 +1,5 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v27';
+const CACHE = 'events-tracker-v28';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/management-box.png', './img/trackbox-active.png', './img/trackbox-passive.png'];
 
@@ -19,7 +19,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   e.respondWith(
     fetch(e.request).then(r => {
-      if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+      if (r.status === 200 && r.type === 'basic') { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); } // only complete replies: never an empty 204 from a blocker
       return r;
     }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || (e.request.mode === 'navigate' ? caches.match('./index.html') : Response.error())))
     // only a page load falls back to the app page; an image must never get the page instead (it shows as broken)
