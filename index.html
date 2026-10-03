@@ -1047,9 +1047,10 @@ main.agenda #detail{max-width:1560px}
 .tdrow{position:relative;display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:0 4px;align-items:center;padding:1px 0;border-radius:7px}
 .tdacts{position:absolute;right:0;top:2px;display:flex;gap:1px;padding-left:10px;background:linear-gradient(90deg,transparent,var(--panel) 10px);opacity:0;pointer-events:none;transition:opacity .12s}
 .tdrow:hover .tdacts,.tdrow:focus-within .tdacts{opacity:1;pointer-events:auto}
+.tdduebtn.set{color:var(--accent)} /* on hover the action bar covers the due chip: it has its own date button */
 @media (hover:none){ .tdrow{grid-template-columns:18px minmax(0,1fr) auto auto;padding:2px 0 4px;border-bottom:1px solid var(--line);border-radius:0} .tdrow:last-of-type{border-bottom:0}
   .tdrow .tx{grid-column:2/-1} .tdrow .tdue{grid-row:2;grid-column:3} .tdacts{grid-row:2;grid-column:4;position:static;opacity:1;pointer-events:auto;background:none;padding:0}
-  .tdrow .tdmeta{grid-row:2;grid-column:2;padding:0} .tdue:not(.set){opacity:1} .tdrow.mini .tdue{grid-row:auto} }
+  .tdrow .tdmeta{grid-row:2;grid-column:2;padding:0} .tdduebtn{display:none!important} .tdue:not(.set){opacity:1} .tdrow.mini .tdue{grid-row:auto} }
 .tdrow .cell.tx{height:30px}
 .tdrow.done .tx{color:var(--ink-3);text-decoration:line-through}
 .tdue{height:22px;border:0;border-radius:6px;background:none;color:var(--ink-3);font:500 11px "JetBrains Mono",ui-monospace,monospace;padding:0 6px;white-space:nowrap;display:inline-flex;align-items:center}
@@ -2665,7 +2666,7 @@ function agTodos(){
       <input type="checkbox" class="ck" data-o="${ref(t)}" data-k="done" data-r="detail" ${t.done?'checked':''} aria-label="Done: ${esc(t.text)}">
       <input class="cell tx" data-o="${ref(t)}" data-k="text" value="${esc(t.text)}" placeholder="To-do" aria-label="To-do">
       <button type="button" class="tdue ${dueCls(t)} ${t.due?'set':''}" data-tddue="${ref(t)}" aria-label="${t.due?'Due '+esc(fmtLong(t.due)):'Set a due date'}" title="${t.due?esc(fmtLong(t.due)):'Due date'}">${t.due?esc(dueTxt(t.due)):ic('cal',1.8)}</button>
-      <span class="tdacts"><span class="btn icon sm ghost tlink ${l?'set':''}" title="${l?'Linked to '+esc(l.name):'Link to an event or client'}">${ic('link',1.8)}${linkSel(t)}</span>
+      <span class="tdacts"><button type="button" class="btn icon sm ghost tdduebtn ${t.due?'set':''}" data-tddue="${ref(t)}" title="${t.due?'Due '+esc(fmtLong(t.due)):'Set a due date'}" aria-label="Due date">${ic('cal',1.8)}</button><span class="btn icon sm ghost tlink ${l?'set':''}" title="${l?'Linked to '+esc(l.name):'Link to an event or client'}">${ic('link',1.8)}${linkSel(t)}</span>
       <button class="btn icon sm ghost notebtn ${t.note?'set':''}" data-tnote="${ref(t)}" type="button" title="${t.note?'Edit note':'Add note'}" aria-label="Note">${ic('note',1.8)}</button>
       <button class="btn icon sm ghost del" data-tddel="${esc(t.id)}" type="button" aria-label="Delete to-do">${ic('x')}</button></span>
       ${l||t.note?`<div class="tdmeta">${l?`<a class="tag ${l.k==='e'?'ev':'cl'}" href="#/${l.k}/${encodeURIComponent(l.id)}">${ic(l.k==='e'?'flag':'user',2)}${esc(l.name)}</a>`:''}${t.note?`<span class="tdnote">${esc(t.note)}</span>`:''}</div>`:''}
