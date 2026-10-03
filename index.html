@@ -791,6 +791,9 @@ dialog::backdrop{background:var(--scrim)}
   .tabbar .tsave i{position:absolute;top:9px;left:calc(50% + 7px);width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--panel)}
   .tabbar .tsave.dirty i{background:var(--warn)} .tabbar .tsave.saving i{background:var(--accent);animation:pulse 1s infinite}
   #toasts{bottom:calc(var(--tb) + 12px)}
+  body.kb .tabbar,body.kb .agfab{display:none}
+  .top{transform:translateY(var(--vvt,0px))}
+  .tabbar,.agfab{transform:translateY(var(--vvb,0px))}
   #detail{padding-left:max(16px,var(--sal));padding-right:max(16px,var(--sar))}
   .jump{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
   .btn,.btn.sm{height:40px;font-size:14px;border-radius:9px}
@@ -2765,6 +2768,27 @@ function closePops(){
 }
 document.addEventListener('pointerdown',e=>{ if(!e.target.closest('.pop,.dtrig,#statusbtn,#morebtn,[data-pos],[data-note],[data-tnote]')) closePops(); });
 window.addEventListener('resize',()=>{ if(!narrow.matches&&document.querySelector('.pop.bsheet:not([hidden])')) closePops(); });
+// iOS: after the keyboard closes WebKit can leave the visual viewport panned (or the layout viewport short),
+// so the sticky header slides off the top and the fixed tab bar floats mid-screen. Hide the bars while typing,
+// and afterwards shift them by whatever gap visualViewport reports between what's laid out and what's on screen.
+{
+  const typing=el=>el?.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=button]):not([type=file]),textarea,select,[contenteditable="true"]');
+  const vv=window.visualViewport, rs=document.documentElement.style;
+  let kbT, raf=0;
+  const fix=()=>{ raf=0;
+    const on=narrow.matches&&vv&&!document.body.classList.contains('kb')&&Math.abs(vv.scale-1)<.01;
+    const top=on?Math.max(0,Math.round(vv.offsetTop)):0;
+    const bot=on?Math.max(0,Math.round(vv.offsetTop+vv.height-window.innerHeight)):0;
+    rs.setProperty('--vvt',top+'px'); rs.setProperty('--vvb',bot+'px');
+  };
+  const queue=()=>{ if(!raf) raf=requestAnimationFrame(fix); };
+  const relayout=()=>{ const y=window.scrollY; window.scrollTo(window.scrollX,y+1); window.scrollTo(window.scrollX,y); queue(); };
+  document.addEventListener('focusin',e=>{ if(narrow.matches&&typing(e.target)){ clearTimeout(kbT); document.body.classList.add('kb'); queue(); } });
+  document.addEventListener('focusout',()=>{ clearTimeout(kbT); kbT=setTimeout(()=>{ if(typing(document.activeElement)) return; document.body.classList.remove('kb'); relayout(); setTimeout(queue,400); },120); });
+  vv?.addEventListener('resize',()=>{ if(!document.body.classList.contains('kb')) relayout(); else queue(); });
+  vv?.addEventListener('scroll',queue);
+  window.addEventListener('scroll',queue,{passive:true});
+}
 document.addEventListener('scroll',e=>{ if(narrow.matches) return; if(!e.target.closest?.('.pop')) closePops(); },true);
 /* phone "more" sheet: theme, private data, shortcuts, settings, log out */
 function openMore(btn){
