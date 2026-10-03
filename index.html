@@ -2790,7 +2790,9 @@ window.addEventListener('resize',()=>{ if(!narrow.matches&&document.querySelecto
   vv?.addEventListener('scroll',queue);
   window.addEventListener('scroll',queue,{passive:true});
 }
-document.addEventListener('scroll',e=>{ if(narrow.matches) return; if(!e.target.closest?.('.pop')) closePops(); },true);
+// a pop-up that changes size (date picker → Multi-day) can make the page scroll a little: that must not close it
+let popTouch=0; document.addEventListener('pointerdown',e=>{ if(e.target.closest?.('.pop')) popTouch=Date.now(); },true);
+document.addEventListener('scroll',e=>{ if(narrow.matches||Date.now()-popTouch<600) return; if(!e.target.closest?.('.pop')) closePops(); },true);
 /* phone "more" sheet: theme, private data, shortcuts, settings, log out */
 function openMore(btn){
   if(!$('#menu').hidden&&popAnchor===btn){ closePops(); return; } closePops();
