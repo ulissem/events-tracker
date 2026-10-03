@@ -446,7 +446,7 @@ table.t.tps{table-layout:fixed;min-width:820px}
 table.t.tps col.c1{width:46px} table.t.tps col.c2{width:200px} table.t.tps col.c3{width:210px}
 table.t.tps col.c4,table.t.tps col.c5{width:62px} table.t.tps col.c6{width:108px} table.t.tps col.c7{width:44px} table.t.tps col.c9{width:40px}
 table.t.splits{table-layout:fixed;min-width:600px}
-table.t.splits col.s1{width:50px} table.t.splits col.s2{width:140px} table.t.splits col.s4{width:28%} table.t.splits col.s5{width:76px} table.t.splits col.s6{width:40px}
+table.t.splits col.s1{width:50px} table.t.splits col.s2{width:140px} table.t.splits col.s4{width:28%} table.t.splits col.s5{width:76px} table.t.splits.multi col.s5{width:140px} table.t.splits col.s6{width:40px}
 /* compact tables scroll sideways inside their own box: sticky first columns + edge fades */
 .hs{position:relative}
 .hsc{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
@@ -1145,6 +1145,13 @@ body.locked{overflow:hidden}
   dialog#lockdlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0}
   dialog#lockdlg .dlg{width:100%;padding-bottom:calc(22px + var(--sab))}
 }
+
+/* multisport legs on the split ruler, cumulative km in the table */
+.ruler .ln.leg{right:auto}
+.ruler .ln.leg.l0{background:linear-gradient(90deg,#7cc4e8,#3b8fd9)} .ruler .ln.leg.l1{background:linear-gradient(90deg,#f2b36d,#e07b2c)} .ruler .ln.leg.l2{background:linear-gradient(90deg,#8fd6a4,#2f9e5b)}
+.kmw{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.kmw .cell{width:64px;flex:none}
+.kmcum{font:500 10.5px "JetBrains Mono",ui-monospace,monospace;color:var(--ink-3);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1399,7 +1406,22 @@ function fixSplits(c){
 }
 const splitName=(c,x)=>x.role==='start'?'Start':x.role==='finish'?'Finish':'Split'+(c.splits.filter(y=>y.role==='split').indexOf(x)+1);
 const splitKm=(c,x)=>x.role==='start'?0:String(x.km).trim()!==''?num(x.km):x.role==='finish'&&String(c.distance||'').trim()!==''?num(c.distance):NaN;
-function splitMeta(c){ const n=c.splits.filter(x=>x.role==='split').length; if(!c.startSplit&&!n) return 'Finish only'; return [c.startSplit&&'Start',n&&plural(n,'split','splits'),'Finish'].filter(Boolean).join(' · '); }
+/* Multisport (triathlon…): an intermediate split with km 0 starts a new leg, km restart from there.
+   Returns per split {seg, km (within its leg), cum (from the start)}, the number of legs and the total distance. */
+const fmtKm=n=>isFinite(n)?String(Math.round(n*100)/100):'';
+function legInfo(c){
+  const isZero=x=>x.role==='split'&&String(x.km??'').trim()!==''&&num(x.km)===0;
+  const multi=c.splits.some(isZero), map=new Map(); let seg=0, off=0, last=0;
+  for(const x of c.splits){
+    if(isZero(x)){ seg++; off+=last; last=0; map.set(x,{seg,km:0,cum:off}); continue; }
+    let km=splitKm(c,x);
+    if(multi&&x.role==='finish'&&String(x.km??'').trim()==='') km=String(c.distance||'').trim()!==''?num(c.distance)-off:NaN; // Distance is the total: the last leg gets the rest
+    if(isFinite(km)&&x.role!=='start') last=Math.max(last,km);
+    map.set(x,{seg,km,cum:isFinite(km)?off+km:NaN});
+  }
+  return {multi,map,legs:seg+1,total:off+last};
+}
+function splitMeta(c){ const n=c.splits.filter(x=>x.role==='split').length; if(!c.startSplit&&!n) return 'Finish only'; const L=legInfo(c); return [L.multi&&plural(L.legs,'leg','legs'),c.startSplit&&'Start',n&&plural(n,'split','splits'),'Finish'].filter(Boolean).join(' · '); }
 function normalize(){
   normalizeConfig();
   const A=S.agenda=Object.assign({todos:[],entries:[],notes:''},S.agenda||{}); delete A.version;
@@ -2305,15 +2327,23 @@ function tpRow(e,t,i,dups){
 }
 
 function splitRuler(e,c){
-  const pts=c.splits.map(x=>({x,t:e.timingPoints.find(y=>y.id===x.tp),km:splitKm(c,x),nm:splitName(c,x)})).filter(p=>isFinite(p.km));
-  if(!c.startSplit) pts.unshift({gun:true,km:0,nm:'Gun start'});
+  const L=legInfo(c);
+  const pts=c.splits.map(x=>({x,t:e.timingPoints.find(y=>y.id===x.tp),km:L.map.get(x).km,seg:L.map.get(x).seg,nm:splitName(c,x)})).filter(p=>isFinite(p.km));
+  if(!c.startSplit) pts.unshift({gun:true,km:0,seg:0,nm:'Gun start'});
   if(pts.length<2) return '';
-  const max=Math.max(...pts.map(p=>p.km))||1;
-  return `<div class="hs"><div class="hsc rulerwrap"><div class="ruler" aria-hidden="true" style="min-width:${pts.length*76}px"><div class="ln"></div>${pts.map((p,i)=>`<div class="mk ${i%2?'dn':'up'} ${i===0?'first':''} ${i===pts.length-1?'last':''} ${p.gun?'gun':''}" style="left:${Math.max(0,Math.min(100,p.km/max*100))}%;--c:${esc(p.t?.color||'#ccc')}" title="${esc(p.nm+(p.t?' · '+p.t.name:'')+' · '+p.km+' km')}"><i></i><span>${p.gun?'Gun start':`<b>${esc(p.km)}</b> ${esc(p.t?.name||p.nm)}`}</span></div>`).join('')}</div></div></div>`;
+  // one stretch per leg
+  const len=[...Array(L.legs)].map((_,g)=>Math.max(0,...pts.filter(p=>p.seg===g).map(p=>p.km)));
+  const tot=len.reduce((a,b)=>a+b,0)||1, cnt=len.map((_,g)=>pts.filter(p=>p.seg===g).length);
+  // multisport: width = half by km, half by number of points, so a short leg with many points (run laps) still has room
+  const w=len.map((v,g)=>L.multi?.5*v/tot+.5*cnt[g]/pts.length:v||1), gap=L.multi?.06:0; // gap between legs, so the end of one and the start of the next don't overlap
+  const W=w.reduce((a,b)=>a+b,0)+gap*(w.length-1), x0=w.map((_,g)=>w.slice(0,g).reduce((a,b)=>a+b,0)+gap*g);
+  const pos=p=>(x0[p.seg]+(len[p.seg]?p.km/len[p.seg]:0)*w[p.seg])/W*100;
+  const lines=L.multi?w.map((v,g)=>`<div class="ln leg l${g%3}" style="left:${x0[g]/W*100}%;width:${v/W*100}%"></div>`).join(''):'<div class="ln"></div>';
+  return `<div class="hs"><div class="hsc rulerwrap"><div class="ruler" aria-hidden="true" style="min-width:${pts.length*76}px">${lines}${pts.map((p,i)=>`<div class="mk ${i%2?'dn':'up'} ${i===0?'first':''} ${i===pts.length-1?'last':''} ${p.gun?'gun':''}" style="left:${Math.max(0,Math.min(100,pos(p)))}%;--c:${esc(p.t?.color||'#ccc')}" title="${esc(p.nm+(p.t?' · '+p.t.name:'')+' · '+p.km+' km')}"><i></i><span>${p.gun?'Gun start':`<b>${esc(p.km)}</b> ${esc(p.t?.name||p.nm)}`}</span></div>`).join('')}</div></div></div>`;
 }
 function raceCard(e,c,ci,tpOpts){
   const open=openRaces.has(c.id), days=eventDays(e), rd=raceDate(e,c);
-  const meta=[['cal',days.length?(rd?dayLabel(e,rd).split(' · ')[0]:'day not set'):rd&&fmtShort(rd)],['clock',c.startTime],['ruler',c.distance&&`${c.distance} km`],['flag',c.startType&&`${c.startType} start`],['bolt',c.timeBasis&&TIME_BASIS[c.timeBasis]],['pin',splitMeta(c)]].filter(x=>x[1]);
+  const meta=[['cal',days.length?(rd?dayLabel(e,rd).split(' · ')[0]:'day not set'):rd&&fmtShort(rd)],['clock',c.startTime],['ruler',c.distance?`${c.distance} km`:legInfo(c).multi&&legInfo(c).total?`${fmtKm(legInfo(c).total)} km`:''],['flag',c.startType&&`${c.startType} start`],['bolt',c.timeBasis&&TIME_BASIS[c.timeBasis]],['pin',splitMeta(c)]].filter(x=>x[1]);
   return `<div class="race ${open?'open':''}">
     <div class="rh" data-toggle="${esc(c.id)}">
       <button class="chev" type="button" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} ${esc(c.name||'race')}">${ic('chev',2.4)}</button>
@@ -2325,21 +2355,22 @@ function raceCard(e,c,ci,tpOpts){
         ${F(c,'name','Race name',{cls:'span2',attrs:`data-racename="${esc(c.id)}"`})}
         ${days.length?Sel(c,'date','Day',[['','—'],...days.map(d=>[d,dayLabel(e,d)])],{r:'detail'}):`<div class="fld"><span class="lab">Day</span><div class="dayro">${rd?esc(fmtLong(rd)):'Set the event date'}</div></div>`}
         ${F(c,'startTime','Start time',{type:'time'})}
-        ${F(c,'distance','Distance',{ph:'21.1',hint:'km',r:'change',attrs:'inputmode="decimal"'})}${F(c,'elevation','Elevation gain',{ph:'—',hint:'m',attrs:'inputmode="numeric"'})}
+        ${(()=>{ const L=legInfo(c); return F(c,'distance','Distance',{ph:L.multi&&L.total?fmtKm(L.total):'21.1',hint:L.multi?`km · total of ${L.legs} legs`:'km',r:'change',attrs:'inputmode="decimal"'}); })()}${F(c,'elevation','Elevation gain',{ph:'—',hint:'m',attrs:'inputmode="numeric"'})}
         ${Sel(c,'startType','Start type',S.config.startTypes.map(s=>[s,s]),{r:'detail'})}
         ${Sel(c,'timeBasis','Rankings by',[['','—'],...Object.entries(TIME_BASIS)],{r:'detail'})}
         ${F(c,'eligibility','Eligibility / requirements',{ph:'e.g. born 2010 or earlier',cls:'span2'})}
       </div>
       <div class="sub">Splits <span class="count">${c.splits.length}</span><label class="switch" title="Timing mat at the start (km 0). Off = gun start."><input type="checkbox" data-startsplit="${ci}" ${c.startSplit?'checked':''} aria-describedby="sshint-${ci}"> Start split<span id="sshint-${ci}" hidden>Timing mat at the start, km 0</span></label></div>
       ${splitRuler(e,c)}
-      <div class="hs"><div class="hsc"><table class="t splits" style="--stk2:50px"><colgroup><col class="s1"><col class="s2"><col class="s3"><col class="s4"><col class="s5"><col class="s6"></colgroup><thead><tr><th class="stk stk1"></th><th class="stk stk2">Name</th><th>Label</th><th>Timing point</th><th class="num">km</th><th></th></tr></thead><tbody data-sort="${ref(c.splits)}">
-        ${c.splits.map((x,si)=>{ const t=e.timingPoints.find(y=>y.id===x.tp), nm=splitName(c,x), drag=x.role==='split', km=splitKm(c,x), miss=!drag&&!x.tp;
+      <div class="hs"><div class="hsc"><table class="t splits ${legInfo(c).multi?'multi':''}" style="--stk2:50px"><colgroup><col class="s1"><col class="s2"><col class="s3"><col class="s4"><col class="s5"><col class="s6"></colgroup><thead><tr><th class="stk stk1"></th><th class="stk stk2">Name</th><th>Label</th><th>Timing point</th><th class="num">km</th><th></th></tr></thead><tbody data-sort="${ref(c.splits)}">
+        ${(()=>{ const L=legInfo(c); return c.splits.map((x,si)=>{ const t=e.timingPoints.find(y=>y.id===x.tp), nm=splitName(c,x), drag=x.role==='split', li=L.map.get(x), km=li.km, miss=!drag&&!x.tp;
+          const cum=L.multi&&x.role!=='start'&&isFinite(li.cum)?`<span class="kmcum" title="${esc(fmtKm(li.cum))} km from the start">Σ ${esc(fmtKm(li.cum))}</span>`:'';
           return `<tr class="sp-${x.role}" ${drag?`data-si="${si}"`:''}><td class="gr stk stk1">${drag?GRIP:'<span class="grip" style="visibility:hidden"></span>'}<span class="spn">${x.role==='start'?ic('flag',2):x.role==='finish'?ic('flagc',1.8):c.splits.filter(y=>y.role==='split').indexOf(x)+1}</span></td>
           <td class="stk stk2"><span class="sname" title="${x.role==='split'?'Named automatically, renumbered when reordered':'Fixed RR14 name'}">${nm}</span></td>
           <td>${cell(x,'label',{ph:[t?.name,isFinite(km)?`${km} km`:''].filter(Boolean).join(' · ')||'Label',label:`${nm} label`})}</td>
           <td><div style="display:flex;align-items:center;gap:4px"><i class="sd" style="--c:${esc(t?.color||'transparent')};box-shadow:none;margin-left:4px"></i><select class="cell ${miss?'warnsel':''}" data-o="${ref(x)}" data-k="tp" data-r="detail" aria-label="${nm} timing point">${tpOpts.map(([v,l])=>`<option value="${esc(v)}" ${x.tp===v?'selected':''}>${esc(l)}</option>`).join('')}</select></div></td>
-          <td>${x.role==='start'?'<span class="kmro">0</span>':cell(x,'km',{ph:x.role==='finish'&&c.distance?c.distance:'km',label:`${nm} km`,r:'change',style:'text-align:right'})}</td>
-          <td class="x">${drag?`<button class="btn icon sm ghost del rowact" data-delsp="${ci}:${si}" type="button" aria-label="Remove ${nm}">${ic('x')}</button>`:''}</td></tr>`; }).join('')}
+          <td>${x.role==='start'?'<span class="kmro">0</span>':`<div class="kmw">${cum}${cell(x,'km',{ph:x.role==='finish'&&isFinite(km)?fmtKm(km):'km',label:`${nm} km`,r:'change',style:'text-align:right'})}</div>`}</td>
+          <td class="x">${drag?`<button class="btn icon sm ghost del rowact" data-delsp="${ci}:${si}" type="button" aria-label="Remove ${nm}">${ic('x')}</button>`:''}</td></tr>`; }).join(''); })()}
       </tbody></table></div></div>
       ${(()=>{ const w=c.splits.filter(x=>x.role!=='split'&&!x.tp).map(x=>`${splitName(c,x)} has no timing point`); return w.length?`<div class="spwarn">${ic('warn')}${w.join(' · ')}</div>`:''; })()}
       <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" title="Adds an intermediate split before Finish">${ic('plus',2.2)} Split</button></div>
@@ -2952,7 +2983,11 @@ function summaryHTML(e,withResolved){
   const item=t=>`${esc(t.text)}${t.note?` <span class="s-note">— ${esc(t.note)}</span>`:''}${t.children.length?`<div style="margin:2px 0 4px 14px;font-size:12.5px">${t.children.map(c=>'· '+esc(c.text)+(c.note?` <span class="s-note">— ${esc(c.note)}</span>`:'')).join('<br>')}</div>`:''}`;
   const anyBasis=e.contests.some(c=>c.timeBasis);
   const timed=e.contests.filter(c=>c.splits.some(x=>x.tp||x.label));
-  const seq=c=>[...(c.startSplit?[]:['<span class="s-dim">Gun start</span>']),...c.splits.map(x=>{ const km=splitKm(c,x); const nm=splitName(c,x), lb=x.label&&x.label.trim().toLowerCase()!==String(nm).toLowerCase()?x.label:(x.tp?tpName(x.tp):'—'); return `<span class="s-n">${nm}</span> ${esc(lb)}${isFinite(km)?` <span class="s-dim">(${esc(km)} km)</span>`:''}`; })].join(' → ');
+  // multisport: km as written in each leg, a ‖ where a new leg starts (split with km 0)
+  const seq=c=>{ const L=legInfo(c), parts=(c.startSplit?[]:['<span class="s-dim">Gun start</span>']).map(h=>({h,leg:false}));
+    for(const x of c.splits){ const km=L.map.get(x).km, nm=splitName(c,x), lb=x.label&&x.label.trim().toLowerCase()!==String(nm).toLowerCase()?x.label:(x.tp?tpName(x.tp):'—');
+      parts.push({leg:L.multi&&x.role==='split'&&km===0,h:`<span class="s-n">${nm}</span> ${esc(lb)}${isFinite(km)?` <span class="s-dim">(${esc(fmtKm(km))} km)</span>`:''}`}); }
+    return parts.map((p,i)=>(i?(p.leg?' <span class="s-dim">‖</span> ':' → '):'')+p.h).join(''); };
   return `<div class="sheet">
     <h1>${esc(e.name)}</h1>
     <div class="s-meta">${esc(rangeText(e.dateStart,e.dateEnd).main)}${e.location?' · '+esc(e.location):''}${e.website?' · '+esc(e.website):''}</div>
@@ -3057,6 +3092,7 @@ function aiPrompt(e=null){
     '- Use "startSplit": false and no start split only if the email says gun start / no timing at the start, or gives no start location at all.',
     '- If the email does not confirm a timing mat at the start, ask once per event whether there is one (chip start) or it is a gun start.',
     '- "split" = optional intermediate timing points, in course order, with their km.',
+    '- Multisport (triathlon, duathlon, aquathlon…): km restart in every leg (swim, bike, run). The split where a new leg starts (e.g. leaving T1, leaving T2) has km 0; the following splits have their km within that leg; the finish has the km of the last leg.',
     '- "timingPoint" refers to a timing point by its exact "name" from "timingPoints". Every point used in splits must be listed in "timingPoints".',
     '- "TB", "Track Box", "tapis", "tappeto", "mat", "point de contrôle chronométré" at km X are timing points. Do not choose hardware unless the email names it.','');
   L.push('SCHEMA of one event (every field optional except "name"; unknown → null or omit)',
