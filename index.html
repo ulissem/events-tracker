@@ -1162,6 +1162,11 @@ body.locked{overflow:hidden}
 .kmw{display:flex;align-items:center;justify-content:flex-end;gap:6px}
 .kmw .cell{width:64px;flex:none}
 .kmcum{font:500 10.5px "JetBrains Mono",ui-monospace,monospace;color:var(--ink-3);white-space:nowrap}
+
+.sub .rmode{text-transform:none;letter-spacing:0;font-weight:500}
+.sub .rmode button{font-size:12.5px;display:inline-flex;align-items:center;gap:6px} .sub .rmode .count{font-size:10.5px}
+.rspecial{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border:1px dashed var(--line-3);border-radius:10px;color:var(--ink-2);font-size:13px;margin:6px 0 10px}
+.rspecial svg{width:16px;height:16px;flex:none;margin-top:1px;color:var(--accent)}
 </style>
 </head>
 <body>
@@ -1431,7 +1436,7 @@ function legInfo(c){
   }
   return {multi,map,legs:seg+1,total:off+last};
 }
-function splitMeta(c){ const n=c.splits.filter(x=>x.role==='split').length; if(!c.startSplit&&!n) return 'Finish only'; const L=legInfo(c); return [L.multi&&plural(L.legs,'leg','legs'),c.startSplit&&'Start',n&&plural(n,'split','splits'),'Finish'].filter(Boolean).join(' · '); }
+function splitMeta(c){ if(c.results==='special') return 'Special results'; const n=c.splits.filter(x=>x.role==='split').length; if(!c.startSplit&&!n) return 'Finish only'; const L=legInfo(c); return [L.multi&&plural(L.legs,'leg','legs'),c.startSplit&&'Start',n&&plural(n,'split','splits'),'Finish'].filter(Boolean).join(' · '); }
 function normalize(){
   normalizeConfig();
   const A=S.agenda=Object.assign({todos:[],entries:[],notes:''},S.agenda||{}); delete A.version;
@@ -2295,6 +2300,7 @@ function renderEvent(D){
   on(D,'[data-delct]',b=>{ const c=e.contests[+b.dataset.delct]; if(confirm(`Delete the race «${c.name||'untitled'}»?`)){ e.contests.splice(+b.dataset.delct,1); touch(); renderDetail(); } });
   on(D,'[data-upct]',b=>{ const i=+b.dataset.upct; if(i>0){ [e.contests[i-1],e.contests[i]]=[e.contests[i],e.contests[i-1]]; touch(); renderDetail(); } });
   on(D,'[data-addsp]',b=>{ const c=e.contests[+b.dataset.addsp]; c.splits.splice(c.splits.length-1,0,{id:uid('s'),role:'split',label:'',tp:'',km:''}); touch(); renderDetail(); });
+  on(D,'[data-rmode]',b=>{ const [i,m]=b.dataset.rmode.split(':'), c=e.contests[+i]; if(m==='special') c.results='special'; else delete c.results; touch(); renderDetail(); });
   D.querySelectorAll('[data-startsplit]').forEach(x=>x.onchange=()=>{ const c=e.contests[+x.dataset.startsplit]; c.startSplit=x.checked; fixSplits(c); touch(); renderDetail(); });
   on(D,'[data-delsp]',b=>{ const [ci,si]=b.dataset.delsp.split(':').map(Number); if(e.contests[ci].splits[si]?.role==='split'){ e.contests[ci].splits.splice(si,1); touch(); renderDetail(); } });
   $('#addq').onclick=()=>{ const n=Math.max(0,...e.questions.map(q=>q.n||0))+1; e.questions.push({id:uid('q'),n,text:'',answer:'',resolved:false}); touch(); if(!sideOpen&&wide.matches) toggleSide(); renderDetail(); D.querySelector(`[aria-label="Question Q${n}"]`)?.focus(); };
@@ -2353,7 +2359,7 @@ function splitRuler(e,c){
   return `<div class="hs"><div class="hsc rulerwrap"><div class="ruler" aria-hidden="true" style="min-width:${pts.length*76}px">${lines}${pts.map((p,i)=>`<div class="mk ${i%2?'dn':'up'} ${i===0?'first':''} ${i===pts.length-1?'last':''} ${p.gun?'gun':''}" style="left:${Math.max(0,Math.min(100,pos(p)))}%;--c:${esc(p.t?.color||'#ccc')}" title="${esc(p.nm+(p.t?' · '+p.t.name:'')+' · '+p.km+' km')}"><i></i><span>${p.gun?'Gun start':`<b>${esc(p.km)}</b> ${esc(p.t?.name||p.nm)}`}</span></div>`).join('')}</div></div></div>`;
 }
 function raceCard(e,c,ci,tpOpts){
-  const open=openRaces.has(c.id), days=eventDays(e), rd=raceDate(e,c);
+  const special=c.results==='special', open=openRaces.has(c.id), days=eventDays(e), rd=raceDate(e,c);
   const meta=[['cal',days.length?(rd?dayLabel(e,rd).split(' · ')[0]:'day not set'):rd&&fmtShort(rd)],['clock',c.startTime],['ruler',c.distance?`${c.distance} km`:legInfo(c).multi&&legInfo(c).total?`${fmtKm(legInfo(c).total)} km`:''],['flag',c.startType&&`${c.startType} start`],['bolt',c.timeBasis&&TIME_BASIS[c.timeBasis]],['pin',splitMeta(c)]].filter(x=>x[1]);
   return `<div class="race ${open?'open':''}">
     <div class="rh" data-toggle="${esc(c.id)}">
@@ -2371,8 +2377,8 @@ function raceCard(e,c,ci,tpOpts){
         ${Sel(c,'timeBasis','Rankings by',[['','—'],...Object.entries(TIME_BASIS)],{r:'detail'})}
         ${F(c,'eligibility','Eligibility / requirements',{ph:'e.g. born 2010 or earlier',cls:'span2'})}
       </div>
-      <div class="sub">Splits <span class="count">${c.splits.length}</span><label class="switch" title="Timing mat at the start (km 0). Off = gun start."><input type="checkbox" data-startsplit="${ci}" ${c.startSplit?'checked':''} aria-describedby="sshint-${ci}"> Start split<span id="sshint-${ci}" hidden>Timing mat at the start, km 0</span></label></div>
-      ${splitRuler(e,c)}
+      <div class="sub"><span class="agseg rmode" role="group" aria-label="Results"><button type="button" data-rmode="${ci}:splits" aria-pressed="${!special}">Splits <span class="count">${c.splits.length}</span></button><button type="button" data-rmode="${ci}:special" aria-pressed="${special}">Special results</button></span>${special?'':`<label class="switch" title="Timing mat at the start (km 0). Off = gun start."><input type="checkbox" data-startsplit="${ci}" ${c.startSplit?'checked':''} aria-describedby="sshint-${ci}"> Start split<span id="sshint-${ci}" hidden>Timing mat at the start, km 0</span></label>`}</div>
+      ${special?`<div class="rspecial">${ic('info',1.8)}<span>Results computed in RR14 with <b>Special results</b> — no splits here. The splits entered before are kept: switch back to see them.</span></div>`:`${splitRuler(e,c)}
       <div class="hs"><div class="hsc"><table class="t splits ${legInfo(c).multi?'multi':''}" style="--stk2:50px"><colgroup><col class="s1"><col class="s2"><col class="s3"><col class="s4"><col class="s5"><col class="s6"></colgroup><thead><tr><th class="stk stk1"></th><th class="stk stk2">Name</th><th>Label</th><th>Timing point</th><th class="num">km</th><th></th></tr></thead><tbody data-sort="${ref(c.splits)}">
         ${(()=>{ const L=legInfo(c); return c.splits.map((x,si)=>{ const t=e.timingPoints.find(y=>y.id===x.tp), nm=splitName(c,x), drag=x.role==='split', li=L.map.get(x), km=li.km, miss=!drag&&!x.tp;
           const cum=L.multi&&x.role!=='start'&&isFinite(li.cum)?`<span class="kmcum" title="${esc(fmtKm(li.cum))} km from the start">Σ ${esc(fmtKm(li.cum))}</span>`:'';
@@ -2384,7 +2390,7 @@ function raceCard(e,c,ci,tpOpts){
           <td class="x">${drag?`<button class="btn icon sm ghost del rowact" data-delsp="${ci}:${si}" type="button" aria-label="Remove ${nm}">${ic('x')}</button>`:''}</td></tr>`; }).join(''); })()}
       </tbody></table></div></div>
       ${(()=>{ const w=c.splits.filter(x=>x.role!=='split'&&!x.tp).map(x=>`${splitName(c,x)} has no timing point`); return w.length?`<div class="spwarn">${ic('warn')}${w.join(' · ')}</div>`:''; })()}
-      <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" title="Adds an intermediate split before Finish">${ic('plus',2.2)} Split</button></div>
+      <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" title="Adds an intermediate split before Finish">${ic('plus',2.2)} Split</button></div>`}
       <div class="two" style="margin-top:14px">${T(c,'relay','Relay',{ph:'Legs, changeover points…'})}${T(c,'notes','Race notes')}</div>
     </div>`:''}
   </div>`;
@@ -2993,7 +2999,7 @@ function summaryHTML(e,withResolved){
   const sub=c=>[routeOf(c),c.startType&&`${c.startType} start`,c.relay&&`Relay: ${c.relay}`].filter(Boolean).map(esc).join(' · ');
   const item=t=>`${esc(t.text)}${t.note?` <span class="s-note">— ${esc(t.note)}</span>`:''}${t.children.length?`<div style="margin:2px 0 4px 14px;font-size:12.5px">${t.children.map(c=>'· '+esc(c.text)+(c.note?` <span class="s-note">— ${esc(c.note)}</span>`:'')).join('<br>')}</div>`:''}`;
   const anyBasis=e.contests.some(c=>c.timeBasis);
-  const timed=e.contests.filter(c=>c.splits.some(x=>x.tp||x.label));
+  const timed=e.contests.filter(c=>c.results!=='special'&&c.splits.some(x=>x.tp||x.label));
   // one table per race: a row per timing point, grouped by leg (multisport), km in the leg and from the start; no RR14 split names
   const splitTable=c=>{ const L=legInfo(c), dot=x=>{ const t=e.timingPoints.find(y=>y.id===x.tp); return t?`<span class="s-sw" style="background:${esc(t.color||'#ccc')}"></span>${esc(t.name)}`:'<span class="s-dim">—</span>'; };
     const start=[c.startSplit?'Start mat (chip time at the start line)':`${c.startType||'mass'} start`,c.startTime,c.timeBasis&&TIME_BASIS[c.timeBasis]].filter(Boolean).join(' · ');
@@ -3067,7 +3073,7 @@ function eventToImport(e){
   const out=clean({id:e.id,name:e.name,client:c?{name:c.name}:null,clientId:c?c.id:null,status:e.status,dateStart:e.dateStart,dateEnd:e.dateEnd,location:e.location,type:e.type,website:e.website,rr14EventId:e.rr14EventId,technology:e.technology||null,
     links:e.links.map(l=>clean({label:l.label,url:l.url})),
     timingPoints:e.timingPoints.map(t=>clean({name:t.name,hardware:t.hardware,ch:n(t.ch),loop:n(t.loop),mode:t.mode,position:t.position,notes:t.notes})),
-    contests:e.contests.map(c=>clean({name:c.name,date:c.date,startTime:c.startTime,distance:n(c.distance),elevation:n(c.elevation),startType:c.startType,timeBasis:c.timeBasis||null,eligibility:c.eligibility,relay:c.relay,notes:c.notes,startSplit:!!c.startSplit,
+    contests:e.contests.map(c=>clean({name:c.name,date:c.date,startTime:c.startTime,distance:n(c.distance),elevation:n(c.elevation),startType:c.startType,timeBasis:c.timeBasis||null,eligibility:c.eligibility,relay:c.relay,notes:c.notes,results:c.results==='special'?'special':undefined,startSplit:!!c.startSplit,
       splits:c.splits.map(x=>clean({role:x.role,label:x.label,timingPoint:tpName(x.tp),km:x.role==='start'?0:n(x.km)}))})),
     ...Object.fromEntries(EVENT_LISTS.map(([k])=>[k,e[k].map(task)])),
     questions:e.questions.map(q=>clean({n:q.n,text:q.text,answer:q.answer,resolved:q.resolved||null})),
@@ -3127,6 +3133,7 @@ function aiPrompt(e=null){
     "name": "race name as written", "date": "YYYY-MM-DD (multi-day events: which day)", "startTime": "HH:MM",
     "distance": 21.1, "elevation": 950, "startType": "mass | wave | individual", "timeBasis": "gun | chip | null",
     "eligibility": "age / licence rules", "relay": "legs, changeover points", "notes": "string",
+    "results": "splits | special (RR14 Special Results: no splits; only if the email says so)",
     "startSplit": false,
     "splits": [ { "role": "start | split | finish", "label": "string or null", "timingPoint": "name from timingPoints", "km": 5 } ]
   } ],
@@ -3262,6 +3269,7 @@ function cleanEvent(x,p){
     if(fins.length>1) W(q+'.splits','several finish splits — only the last stays Finish, the others become intermediates');
     if(fins.length&&sp[sp.length-1].role!=='finish') W(q+'.splits','finish is not last — it will be moved to the end');
     if(starts.length>1) W(q+'.splits','several start splits — only the first is kept as Start');
+    r.results=c.results==='special'?'special':'';
     r.startSplit=typeof c.startSplit==='boolean'?c.startSplit:starts.length>0;
     if(c.startSplit===false&&starts.length) W(q+'.startSplit','false, but a start split is given — the start split is dropped');
     if(c.startSplit===true&&!starts.length) W(q+'.startSplit','true without a start split — an empty Start will be added');
@@ -3299,7 +3307,7 @@ const tpIdByName=(e,name)=>name?(e.timingPoints.find(t=>rrName(t.name)===rrName(
 const seqText=r=>[...(r.startSplit?[]:['Gun start']),...r.splits.filter(s=>r.startSplit||s.role!=='start').map(s=>`${s.role==='start'?'Start':s.role==='finish'?'Finish':'Split'}${s.timingPoint?' '+s.timingPoint:''}${s.km!==''?` (${s.km} km)`:''}`)].join(' → ')+(r.splits.some(s=>s.role==='finish')?'':' → Finish');
 function mkRace(r,e){
   return {id:uid('c'),name:r.name,date:r.date,startTime:r.startTime,distance:r.distance,elevation:r.elevation,startType:r.startType||'mass',timeBasis:r.timeBasis,eligibility:r.eligibility,relay:r.relay,notes:[r.route&&'Route: '+r.route,r.notes].filter(Boolean).join('\n'),
-    startSplit:r.startSplit,splits:r.splits.map(s=>({id:uid('s'),role:s.role,label:s.label,tp:tpIdByName(e,s.timingPoint),km:s.role==='start'?'0':s.km}))};
+    ...(r.results==='special'?{results:'special'}:{}),startSplit:r.startSplit,splits:r.splits.map(s=>({id:uid('s'),role:s.role,label:s.label,tp:tpIdByName(e,s.timingPoint),km:s.role==='start'?'0':s.km}))};
 }
 /* existing race without intermediates: fill Start/Finish where empty, add the intermediates before Finish */
 function mergeSplits(ex,r,e){
