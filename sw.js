@@ -1,6 +1,7 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v25';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
+const CACHE = 'events-tracker-v26';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
+  './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/management-box.png', './img/trackbox-active.png', './img/trackbox-passive.png'];
 
 // A new version installs and then waits; the page shows "New version available" and asks it to take over.
 self.addEventListener('install', e => {
@@ -20,6 +21,7 @@ self.addEventListener('fetch', e => {
     fetch(e.request).then(r => {
       if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
       return r;
-    }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match('./index.html')))
+    }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || (e.request.mode === 'navigate' ? caches.match('./index.html') : Response.error())))
+    // only a page load falls back to the app page; an image must never get the page instead (it shows as broken)
   );
 });
