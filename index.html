@@ -1434,7 +1434,7 @@ function normalize(){
     if(LEGACY[e.status]) e.status=LEGACY[e.status];
     if(e.myrrUrl!==undefined&&(!e.myrrUrl||e.myrrUrl===myrrUrl(e))) delete e.myrrUrl; // now derived from EventID
     e.technology=e.technology||''; e.checklistExtra=toTasks(e.checklistExtra); e.dateStart=e.dateStart||''; e.dateEnd=e.dateEnd||'';
-    for(const t of e.timingPoints){ t.hardware=t.hardware||''; t.ch=t.ch||''; t.loop=t.loop||''; t.mode=t.mode||''; t.position=t.position||''; t.notes=t.notes||''; if(!t.color) t.color=nextColor(e); }
+    for(const t of e.timingPoints){ t.mode={'Tracking START':'T Start','Tracking STOP':'T Stop'}[t.mode]||t.mode; t.hardware=t.hardware||''; t.ch=t.ch||''; t.loop=t.loop||''; t.mode=t.mode||''; t.position=t.position||''; t.notes=t.notes||''; if(!t.color) t.color=nextColor(e); }
     for(const c of e.contests){
       if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; c.startType=c.startType||'mass'; c.timeBasis=c.timeBasis||''; c.date=c.date||'';
       if(c.route){ const r='Route: '+c.route; if(!(c.notes||'').includes(r)) c.notes=[r,c.notes].filter(Boolean).join('\n'); } delete c.route; // route is derived from Start/Finish now
@@ -1450,13 +1450,14 @@ const HW={
   'Loop Box':{tech:['active'],ch:[1,8],loop:[2,8],modes:['store','repeat'],img:'loop-box'},
   'Track Box Passive':{tech:['passive'],img:'trackbox-passive'},
   'Track Box Active':{tech:['active'],ch:[1,8],img:'trackbox-active'},
-  'Management Box':{tech:['active'],ch:[1,8],modes:['Tracking START','Tracking STOP','Kiosk'],notTP:true,img:'management-box'},
+  'Management Box':{tech:['active'],ch:[1,8],modes:['T Start','T Stop','Kiosk'],notTP:true,img:'mbox'},
 };
 const hwImg=h=>HW[h]?.img?`img/${HW[h].img}.png`:'';
 const TECH={active:{label:'Active',img:'img/active.png'},passive:{label:'Passive',img:'img/passive.png'}};
 /* Ch./L. identity of a device (active only). Loop-capable devices need both, channel-only ones just Ch. */
 function idKey(e,t){ const hw=HW[t.hardware]; if(e.technology==='passive'||!hw?.ch||!t.ch) return null; if(hw.loop) return t.loop?`${t.ch}/${t.loop}`:null; return `${t.ch}/–`; }
-function duplicates(e){ const m={}; for(const t of e.timingPoints){ const k=idKey(e,t); if(k)(m[k]=m[k]||[]).push(t); } return Object.entries(m).filter(([,v])=>v.length>1); }
+/* only Ch./L. devices (Decoder, Loop Box) must be unique; channel-only ones (Track Box Active, Management Box) can share a channel */
+function duplicates(e){ const m={}; for(const t of e.timingPoints){ if(!HW[t.hardware]?.loop) continue; const k=idKey(e,t); if(k)(m[k]=m[k]||[]).push(t); } return Object.entries(m).filter(([,v])=>v.length>1); }
 /* A Loop Box in repeat sends its reads over WiFi to the Decoder with the same Ch. and L. 1 */
 const repeatTarget=(e,t)=>t.hardware==='Loop Box'&&t.mode==='repeat'?e.timingPoints.find(d=>d.hardware==='Decoder'&&String(d.ch)===String(t.ch)&&String(d.loop)==='1')||null:undefined;
 /* Race day: the event date for single-day events, otherwise one of the event's days */

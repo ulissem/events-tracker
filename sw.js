@@ -1,7 +1,7 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v29';
+const CACHE = 'events-tracker-v30';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
-  './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/management-box.png', './img/trackbox-active.png', './img/trackbox-passive.png'];
+  './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/mbox.png', './img/trackbox-active.png', './img/trackbox-passive.png'];
 
 // A new version installs and then waits; the page shows "New version available" and asks it to take over.
 self.addEventListener('install', e => {
