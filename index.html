@@ -1222,16 +1222,8 @@ main.mapv #detail{display:flex;flex-direction:column;height:calc(100vh - var(--h
 .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:12px;box-shadow:var(--shadow-pop);border:1px solid var(--line);padding:0}
 .leaflet-popup-content{margin:0;width:auto!important;line-height:1.4}
 .leaflet-popup-tip{background:var(--panel);box-shadow:none}
-.mcard{padding:10px 12px;min-width:220px;max-width:300px;font-size:13px}
-.mcard b{display:block;font-size:13.5px;letter-spacing:-.01em}
-.mcard .m{color:var(--ink-2);font-size:12px;margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.mcard .m .sd{width:7px;height:7px;box-shadow:none}
-.mcard .r{display:flex;align-items:center;gap:8px;margin-top:8px}
-.mcard a{color:var(--accent);font-weight:500;text-decoration:none;font-size:12.5px;margin-left:auto;display:inline-flex;align-items:center;gap:3px}
-.mcard a svg{width:12px;height:12px}
 .mapcard{position:absolute;left:0;right:0;bottom:0;z-index:600;background:var(--panel);border-radius:16px 16px 0 0;border-top:1px solid var(--line);box-shadow:0 -10px 30px -10px rgba(16,24,40,.25);padding:8px 16px 14px;animation:sheetin .2s ease-out}
 .mapcard::before{content:'';display:block;width:36px;height:4px;border-radius:999px;background:var(--line-3);margin:0 auto 8px}
-.mapcard .mcard{padding:0;min-width:0;max-width:none}
 @media (max-width:860px){
   /* phone: the list head takes the same two rows as the map toolbar — search, then clients · statuses · past · List | Map */
   .lhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px}
@@ -1432,7 +1424,7 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
    REDESIGN STAGE 2 — hero with map, tint, next-up card, film strip,
    road to race day, equipment shelf
    ===================================================================== */
-.hero,.nextup{--tint-soft:color-mix(in srgb,var(--tint,var(--accent)) 14%,transparent);--tint-glow:color-mix(in srgb,var(--tint,var(--accent)) 38%,transparent)}
+.hero,.nextup,.mcard{--tint-soft:color-mix(in srgb,var(--tint,var(--accent)) 14%,transparent);--tint-glow:color-mix(in srgb,var(--tint,var(--accent)) 38%,transparent)}
 .hero{position:relative;border-radius:24px;background:var(--panel);box-shadow:var(--shadow-sm);overflow:hidden;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate}
 .hero::before{content:'';position:absolute;inset:-40px;background:radial-gradient(60% 50% at 70% 10%,var(--tint-glow),transparent 70%);z-index:0;pointer-events:none}
 .htiles{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);aspect-ratio:2/1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;z-index:0;filter:saturate(.9)}
@@ -1795,6 +1787,25 @@ main.mapv #detail{padding:0;position:relative}
 .mstrip .film{padding:8px 14px 4px;mask-image:none;-webkit-mask-image:none}
 .mstrip .grip,.mstrip .msh,.mstrip .mrows{display:none}
 .mapcard{z-index:640}
+/* pin card = a small Next up (desktop: Leaflet popup without its own box; phone: floating at the bottom) */
+.leaflet-container .evpop .leaflet-popup-content-wrapper{background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:18px;padding:0}
+.leaflet-container .evpop .leaflet-popup-tip-container{display:none}
+.mpin.popped .mlbl{display:none!important} /* the card already says the name */
+.mcard{width:300px;padding:14px 14px 12px 16px;border-radius:18px;color:#fff;background:linear-gradient(135deg,var(--tint,var(--accent)) 0%,var(--tint-2,var(--accent-hover)) 100%);box-shadow:0 18px 40px -14px var(--tint-glow),0 2px 8px rgba(0,0,0,.3);position:relative;overflow:hidden;font-size:13px;line-height:1.35}
+.mcard::before{content:'';position:absolute;top:-50%;right:-25%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.26),transparent 70%);pointer-events:none}
+.mcard > *{position:relative}
+.mc-top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center}
+.mc-cd{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1;text-align:center;min-width:34px;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif}
+.mc-cd small{display:block;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.8);margin-top:3px;font-family:-apple-system,system-ui,sans-serif}
+.mc-cd .live,.mc-cd .pst{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:800;letter-spacing:-.01em;font-family:-apple-system,system-ui,sans-serif}
+.mc-cd .live i{width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.3)}
+.mc-n{min-width:0} .mc-n b{display:block;font-size:15.5px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-n span{display:block;font-size:12px;color:rgba(255,255,255,.82);margin-top:1px}
+.mcard .ring .rt{stroke:rgba(255,255,255,.25)} .mcard .ring .rv,.mcard .ring.full .rv{stroke:#fff}
+.mc-m{margin-top:8px;font-size:12px;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mc-m + .mc-m{margin-top:2px} .mc-m b{color:#fff}
+.mcard .mc-go{margin-top:12px;display:flex;justify-content:center;align-items:center;gap:4px;height:34px;border-radius:10px;background:rgba(255,255,255,.18);color:#fff;font-weight:600;font-size:13px;text-decoration:none}
+.mcard .mc-go:hover{background:rgba(255,255,255,.28);text-decoration:none} .mcard .mc-go svg{width:13px;height:13px}
+.mapcard{background:none;border:0;box-shadow:none;padding:0 12px calc(12px + var(--sab,0px));animation:sheetin .2s ease-out} .mapcard::before{display:none} .mapcard .mcard{width:auto}
 @media (max-width:860px){
   .maphead{top:10px;left:10px;right:10px;padding:0;gap:6px}
   .maphead .msrch{width:100%}
@@ -3858,9 +3869,14 @@ function cdShort(e){
   if(d>0) return d<=7?{t:`${d}d`,c:'soon'}:{t:'',c:'later'}; // only the next 7 days get a number: the others are plain rings
   return {t:'',c:'past'};
 }
-function mapCard(e){ const cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd);
-  return `<div class="mcard"><b>${esc(e.name)||'<i>untitled</i>'}</b><div class="m">${esc(rt.main)}${e.location?`<i class="dot"></i>${esc(e.location)}`:''}</div><div class="m"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i>${esc(e.status)}<i class="dot"></i>${esc(clientName(e.clientId))}</div>
-    <div class="r"><span class="cd ${cd.c||''}">${cd.t}</span><a href="#/e/${encodeURIComponent(e.id)}" data-go="e:${esc(e.id)}">Open event ${ic('chev',2.4)}</a></div></div>`; }
+/* the pin's card: a small Next up — days to go, name, date, place, ring, the key counts, one button */
+function mapCard(e){ const cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd), d=e.dateStart?diff(TODAY,e.dateStart):null, p=progress(e), oq=openQ(e).length;
+  const big=cd.c==='now'?`<span class="live"><i></i>${cd.t==='today'?'Race day':esc(cd.t)}</span>`:d===null?'–':isPast(e)?'<span class="pst">Past</span>':`${d}<small>${d===1?'day':'days'}</small>`;
+  return `<div class="mcard" style="${tintStyle(e)}">
+    <div class="mc-top"><div class="mc-cd">${big}</div><div class="mc-n"><b>${esc(e.name)||'untitled'}</b><span>${esc(rt.main)}</span></div><span class="rpc" title="${Math.round(p*100)}% prepared">${ring(p,40,3)}<b>${p>=1?ic('check',3):`${Math.round(p*100)}<small>%</small>`}</b></span></div>
+    <div class="mc-m">${esc([e.location,clientName(e.clientId),e.status].filter(Boolean).join(' · '))}</div>
+    <div class="mc-m"><b>${e.contests.length}</b> ${e.contests.length===1?'race':'races'} · <b>${e.timingPoints.length}</b> timing ${e.timingPoints.length===1?'point':'points'}${oq?` · <b>${oq}</b> open ${oq===1?'question':'questions'}`:''}</div>
+    <a class="mc-go" href="#/e/${encodeURIComponent(e.id)}" data-go="e:${esc(e.id)}">Open event ${ic('chev',2.4)}</a></div>`; }
 function renderMap(D){
   if(MAP){ MAP.remove(); MAP=null; MAPL=null; }
   D.innerHTML=`${narrow.matches?`<div class="maphead">
@@ -3927,7 +3943,7 @@ function mapRefreshInner(fit){
     const html=`<span class="mpk ${e===next?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''} ${side.get(e.id)?'L':''} ${nudge.get(e.id)}"><i></i><span class="mlbl"><b>${esc(e.name)||'untitled'}</b><small>${when}${past?'':` · ${pct}%`}</small></span></span>`;
     const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html,iconSize:[0,0],iconAnchor:[0,0]}),riseOnHover:true,keyboard:false,title:''});
     if(narrow.matches) mk.on('click',()=>{ card.innerHTML=mapCard(e); card.hidden=false; });
-    else mk.bindPopup(mapCard(e),{closeButton:false,offset:[0,-10],maxWidth:320});
+    else { mk.bindPopup(mapCard(e),{className:'evpop',closeButton:false,offset:[0,-12],maxWidth:320}); mk.on('popupopen',()=>mk.getElement()?.classList.add('popped')).on('popupclose',()=>mk.getElement()?.classList.remove('popped')); }
     mk.on('click',()=>{ mapFocusId=e.id; if(!narrow.matches) renderList(); });
     MAPM.set(e.id,mk); MAPL.addLayer(mk); }
   const fs=$('#mstrip .film'); if(fs){ fs.outerHTML=filmStrip(); placeFilms($('#mstrip')); bindDays($('#mstrip')); $('#mstrip').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>go('e',b.dataset.id)); }
