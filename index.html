@@ -828,7 +828,7 @@ dialog::backdrop{background:var(--scrim)}
   .addrow .in.trig{font-size:15px}
   .palette .pi{height:46px}
   .grip,table.t .rowact{opacity:.8}
-  #dp.bsheet,#menu.bsheet,#pinpop.bsheet,#notepop.bsheet,#geopop.bsheet{position:fixed;left:0!important;right:0;top:auto!important;bottom:0;width:auto!important;min-width:0!important;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;border-bottom:0;padding:8px 14px calc(14px + var(--sab));animation:sheetin .26s cubic-bezier(.2,.8,.2,1)}
+  #dp.bsheet,#menu.bsheet,#pinpop.bsheet,#notepop.bsheet,#geopop.bsheet,#geoinfo.bsheet{position:fixed;left:0!important;right:0;top:auto!important;bottom:0;width:auto!important;min-width:0!important;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;border-bottom:0;padding:8px 14px calc(14px + var(--sab));animation:sheetin .26s cubic-bezier(.2,.8,.2,1)}
   .pop.bsheet::before{content:'';display:block;width:38px;height:5px;border-radius:5px;background:var(--line-3);margin:0 auto 12px}
   #dp.bsheet .day{height:46px} #dp.bsheet .day span{width:40px;height:40px;font-size:15px}
   #dp.bsheet .dpseg button{height:36px;font-size:14px}
@@ -1331,7 +1331,14 @@ input[type=checkbox].ck:checked{background-color:var(--accent);border-color:var(
 .sec > .grid > .fld .help,.sec > .grid > .fld .geoline{margin-top:4px}
 .sec > .grid > .fld .in.group .geobtn,.sec > .grid > .fld .in.group .geomap{width:28px;height:28px;border-radius:8px;flex:none}
 .geoline{flex-wrap:nowrap} .geoline.warn{flex-wrap:wrap}
-.lab .geook{display:inline-flex;align-items:center;gap:4px;min-width:0;overflow:hidden;color:var(--ink-3)}
+.lab .geook{display:inline-flex;align-items:center;gap:4px;min-width:0;overflow:hidden;color:var(--ok);border:0;background:none;padding:0;font:inherit;cursor:pointer;font-weight:500}
+.lab .geook:hover{text-decoration:underline}
+#geoinfo{width:340px;max-width:calc(100vw - 16px);padding:12px 14px}
+#geoinfo .lab{margin-bottom:8px}
+.gi-addr{font-size:14px;line-height:1.45;user-select:text;-webkit-user-select:text}
+.gi-coord{margin-top:4px;color:var(--ink-2);user-select:text;-webkit-user-select:text}
+.gi-acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px}
+.gi-acts .btn{justify-content:center}
 .lab .geook svg{width:11px;height:11px;color:var(--ok);flex:none}
 .lab .geook span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fld.geo .lab{flex-wrap:nowrap;min-width:0}
@@ -1640,6 +1647,12 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
   <span class="lab" id="gp-title">Find on map</span>
   <div class="gp-list" id="gp-list"></div>
   <div class="gp-foot"><span>OpenStreetMap · Nominatim</span><button class="btn sm ghost del" id="gp-clear" type="button" hidden>Clear position</button></div>
+</div>
+<div id="geoinfo" class="pop" hidden role="dialog" aria-label="Linked position">
+  <span class="lab" id="gi-title">Linked position</span>
+  <div class="gi-addr" id="gi-addr"></div>
+  <div class="gi-coord mono" id="gi-coord"></div>
+  <div class="gi-acts"><button class="btn sm" type="button" id="gi-copy">Copy address</button><button class="btn sm" type="button" id="gi-copyc">Copy coordinates</button><a class="btn sm" id="gi-map" target="_blank" rel="noopener noreferrer">Open map</a><button class="btn sm" type="button" id="gi-find">Find again</button></div>
 </div>
 <div id="pinpop" class="pop" hidden role="dialog" aria-label="Timing point position">
   <label class="lab" for="pp-in" id="pp-title">Position</label>
@@ -2891,7 +2904,8 @@ function renderEvent(D){
     for(const c of used){ c.splits=c.splits.filter(s=>s.tp!==t.id||s.role!=='split'); for(const s of c.splits) if(s.tp===t.id) s.tp=''; }
     e.timingPoints.splice(+b.dataset.deltp,1); touch(); renderDetail(); });
   on(D,'[data-pos]',b=>openPin(b,OBJ[+b.dataset.pos]));
-  $('#geobtn').onclick=()=>geoSearch($('#geobtn'),e);
+  $('#geobtn').onclick=()=>geoState(e)==='linked'?openGeoInfo($('#geobtn'),e):geoSearch($('#geobtn'),e);
+  D.querySelector('.fld.geo .lab').addEventListener('click',ev=>{ const h=ev.target.closest('#geohint'); if(h&&geoState(e)==='linked'){ ev.preventDefault(); openGeoInfo($('#geobtn'),e); } });
   $('#f-loc').addEventListener('input',()=>setTimeout(()=>geoLineUpdate(e),0)); // after bind() has stored the new text
   $('#f-loc').addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); geoSearch($('#geobtn'),e); } });
   D.querySelector('.fld.geo').addEventListener('click',ev=>{ const b=ev.target.closest('[data-geokeep],[data-geofind]'); if(!b) return; if(b.hasAttribute('data-geokeep')){ e.geo.text=(e.location||'').trim(); touch('none'); renderDetail(); } else geoSearch($('#geobtn'),e); });
@@ -3414,10 +3428,10 @@ let popAnchor=null;
 function closePops(){
   $('#scrim').hidden=true;
   if(!$('#notepop').hidden){ $('#notepop').hidden=true; if(noteT){ noteT=null; renderDetail(); } }
-  for(const id of ['dp','menu','pinpop','geopop']){ const p=document.getElementById(id); if(!p.hidden){ p.hidden=true; if(id==='dp'&&DP.onClose&&DP.changed){ const f=DP.onClose; DP.onClose=null; f(); } if(id==='pinpop'&&pinT){ pinT=null; renderDetail(); } } }
+  for(const id of ['dp','menu','pinpop','geopop','geoinfo']){ const p=document.getElementById(id); if(!p.hidden){ p.hidden=true; if(id==='dp'&&DP.onClose&&DP.changed){ const f=DP.onClose; DP.onClose=null; f(); } if(id==='pinpop'&&pinT){ pinT=null; renderDetail(); } } }
   popAnchor?.classList.remove('on'); popAnchor=null;
 }
-document.addEventListener('pointerdown',e=>{ if(!e.target.closest('.pop,.dtrig,#statusbtn,#morebtn,#geobtn,#nopos,[data-pos],[data-note],[data-tnote]')) closePops(); });
+document.addEventListener('pointerdown',e=>{ if(!e.target.closest('.pop,.dtrig,#statusbtn,#morebtn,#geobtn,#geohint,#nopos,[data-pos],[data-note],[data-tnote]')) closePops(); });
 window.addEventListener('resize',()=>{ if(!narrow.matches&&document.querySelector('.pop.bsheet:not([hidden])')) closePops(); });
 // iOS: after the keyboard closes WebKit can leave the visual viewport panned (or the layout viewport short),
 // so the sticky header slides off the top and the fixed tab bar floats mid-screen. Hide the bars while typing,
@@ -3507,16 +3521,16 @@ function geoLineHTML(e){
 function locationField(e){
   const gs=geoState(e);
   return `<div class="fld geo"><label class="lab" for="f-loc">Location ${geoHint(e)}</label>
-    <div class="in group"><input class="bare" id="f-loc" data-o="${ref(e)}" data-k="location" value="${esc(e.location)}" placeholder="Town, venue" autocomplete="off"><button class="btn icon sm ghost geobtn ${gs==='linked'?'on':''}" id="geobtn" type="button" data-tip="${gs==='linked'?'Position linked · search again':'Find on map'}" aria-label="Find on map">${ic(gs==='linked'?'pinfill':'pin',1.9)}</button>${geoMapBtn(e)}</div>
+    <div class="in group"><input class="bare" id="f-loc" data-o="${ref(e)}" data-k="location" value="${esc(e.location)}" placeholder="Town, venue" autocomplete="off"><button class="btn icon sm ghost geobtn ${gs==='linked'?'on':''}" id="geobtn" type="button" data-tip="${gs==='linked'?'Linked position':'Find on map'}" aria-label="${gs==='linked'?'Linked position':'Find on map'}">${ic(gs==='linked'?'pinfill':'pin',1.9)}</button>${geoMapBtn(e)}</div>
     ${geoLineHTML(e)}</div>`;
 }
-const geoHint=e=>{ const g=e.geo; return geoState(e)==='linked'?`<span class="lh geook" id="geohint" title="${esc(g.label)} · ${g.lat}, ${g.lon}">${ic('check',2.8)}<span>${esc(g.label||g.text)}</span></span>`:`<span class="lh" id="geohint">· street or town</span>`; };
-const geoMapBtn=e=>geoState(e)==='linked'?`<a class="btn icon sm ghost geomap" id="geomap" href="${esc(mapsUrl(e.geo))}" target="_blank" rel="noopener noreferrer" data-tip="Open map · ${e.geo.lat}, ${e.geo.lon}" aria-label="Open map">${ic('ext',1.9)}</a>`:'';
+const geoHint=e=>geoState(e)==='linked'?`<button type="button" class="lh geook" id="geohint" title="${esc(e.geo.label)} · ${e.geo.lat}, ${e.geo.lon}">${ic('check',2.8)}<span>linked</span></button>`:`<span class="lh" id="geohint">· street or town</span>`;
+const geoMapBtn=()=>'';
 /* typing in Location only refreshes the line and the pin, never the input itself (it keeps the focus) */
 function geoLineUpdate(e){ const gs=geoState(e), b=$('#geobtn'); $('#geoline')?.insertAdjacentHTML('afterend',geoLineHTML(e)); $('#geoline')?.remove();
   $('#geomap')?.remove(); if(b&&gs==='linked') b.insertAdjacentHTML('afterend',geoMapBtn(e));
   $('#geohint')?.insertAdjacentHTML('afterend',geoHint(e)); $('#geohint')?.remove();
-  if(b){ b.classList.toggle('on',gs==='linked'); b.innerHTML=ic(gs==='linked'?'pinfill':'pin',1.9); b.dataset.tip=gs==='linked'?'Position linked · search again':'Find on map'; } }
+  if(b){ b.classList.toggle('on',gs==='linked'); b.innerHTML=ic(gs==='linked'?'pinfill':'pin',1.9); b.dataset.tip=gs==='linked'?'Linked position':'Find on map'; } }
 let geoE=null;
 async function geoSearch(btn,e){
   const q=(e.location||'').trim();
@@ -3536,6 +3550,15 @@ async function geoSearch(btn,e){
   list.innerHTML=rs.map((r,i)=>`<button type="button" data-gi="${i}">${ic('pin',1.8)}<span><b>${esc(geoText(r))}</b><small>${esc(r.display_name||'')}</small></span><em>${esc(String(r.addresstype||r.type||'').replace(/_/g,' '))}</em></button>`).join('');
   on(list,'[data-gi]',b=>geoApply(e,rs[+b.dataset.gi]));
 }
+function openGeoInfo(btn,e){
+  closePops(); geoE=e; const g=e.geo;
+  $('#gi-addr').textContent=g.label||g.text||''; $('#gi-coord').textContent=`${g.lat}, ${g.lon}`; $('#gi-map').href=mapsUrl(g);
+  place($('#geoinfo'),btn,'right'); popAnchor=btn; btn.classList.add('on');
+}
+const giCopy=(t,what)=>navigator.clipboard?.writeText(t).then(()=>toast(`${what} copied`,t,'copy'),()=>toast('Could not copy','','warn','warn'));
+$('#gi-copy').onclick=()=>{ if(geoE?.geo) giCopy(geoE.geo.label||geoE.geo.text,'Address'); };
+$('#gi-copyc').onclick=()=>{ if(geoE?.geo) giCopy(`${geoE.geo.lat}, ${geoE.geo.lon}`,'Coordinates'); };
+$('#gi-find').onclick=()=>{ const e=geoE; closePops(); if(e) geoSearch($('#geobtn'),e); };
 function geoApply(e,r){
   const text=geoText(r);
   e.geo={lat:+(+r.lat).toFixed(5),lon:+(+r.lon).toFixed(5),label:r.display_name||text,osm:r.osm_type&&r.osm_id?`${r.osm_type}/${r.osm_id}`:'',text};
