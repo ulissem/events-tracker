@@ -4679,12 +4679,16 @@ document.addEventListener('click',e=>{ if(e.target.closest('[data-keys]')) openK
   document.addEventListener('pointerdown',hide,true); document.addEventListener('scroll',hide,true); document.addEventListener('keydown',hide,true); }
 
 /* ---- section scroll-spy for the section bar ---- */
+/* the bar scrolls sideways so the current chip stays in view (centred), without touching the page's vertical scroll */
+function jumpTo(a){ const bar=a.closest('#jump'); if(!bar||bar.scrollWidth<=bar.clientWidth) return;
+  const r=a.getBoundingClientRect(), br=bar.getBoundingClientRect(); bar.scrollTo({left:bar.scrollLeft+r.left+r.width/2-(br.left+br.width/2),behavior:'smooth'}); }
 let spyObs=null;
 function spy(){
   spyObs?.disconnect(); const links=[...document.querySelectorAll('#jump a')]; if(!links.length) return;
   const vis=new Map();
   spyObs=new IntersectionObserver(ents=>{ for(const en of ents) vis.set(en.target.id,en.isIntersecting); const firstVis=links.find(a=>vis.get(a.getAttribute('href').slice(1)));
-    links.forEach(a=>a.classList.toggle('cur',a===firstVis)); },{rootMargin:`-${($('#top')?.offsetHeight||52)+50}px 0px -55% 0px`});
+    if(!firstVis) return; // between two sections: keep the last one lit
+    if(!firstVis.classList.contains('cur')){ links.forEach(a=>a.classList.toggle('cur',a===firstVis)); jumpTo(firstVis); } },{rootMargin:`-${($('#top')?.offsetHeight||52)+50}px 0px -55% 0px`});
   links.forEach(a=>{ const s=document.querySelector(a.getAttribute('href')); if(s) spyObs.observe(s); });
 }
 
