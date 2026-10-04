@@ -1772,7 +1772,7 @@ main.mapv #detail{padding:0;position:relative}
 .leaflet-control-attribution{border-radius:6px;padding:1px 6px!important}
 .nopos{top:58px;bottom:auto;left:16px;height:30px;border:0;border-radius:10px;background:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 0 .5px var(--warn);z-index:610}
 .mpin{background:none;border:0}
-.mpk{position:absolute;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap;transform:translate(-7px,-50%);cursor:pointer}
+.mpk{--c:var(--accent);position:absolute;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap;transform:translate(-7px,-50%);cursor:pointer}
 .mpk.L{flex-direction:row-reverse;transform:translate(calc(-100% + 7px),-50%)}
 .mpk i{width:14px;height:14px;border-radius:50%;background:var(--c);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);flex:none}
 .mpk .mlbl{display:flex;flex-direction:column;line-height:1.15;padding:5px 9px;border-radius:10px;background:color-mix(in srgb,var(--panel) 76%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2),0 6px 16px -8px rgba(0,0,0,.4)}
@@ -3917,7 +3917,7 @@ function mapRefreshInner(fit){
       if(!done){ side.set(e.id,def); nudge.set(e.id,'nolbl'); } } }
   for(const e of withPos){ const d=e.dateStart?diff(TODAY,e.dateStart):null, de=e.dateStart?diff(TODAY,e.dateEnd||e.dateStart):null, past=isPast(e);
     const when=d===null?'no date':past?`${-de}d ago`:d<=0?'Today':`T−${d}`, pct=Math.round(progress(e)*100);
-    const html=`<span class="mpk ${e===next?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''} ${side.get(e.id)?'L':''} ${nudge.get(e.id)}" style="--c:${tintOf(e).a}"><i></i><span class="mlbl"><b>${esc(e.name)||'untitled'}</b><small>${when}${past?'':` · ${pct}%`}</small></span></span>`;
+    const html=`<span class="mpk ${e===next?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''} ${side.get(e.id)?'L':''} ${nudge.get(e.id)}"><i></i><span class="mlbl"><b>${esc(e.name)||'untitled'}</b><small>${when}${past?'':` · ${pct}%`}</small></span></span>`;
     const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html,iconSize:[0,0],iconAnchor:[0,0]}),riseOnHover:true,keyboard:false,title:''});
     if(narrow.matches) mk.on('click',()=>{ card.innerHTML=mapCard(e); card.hidden=false; });
     else mk.bindPopup(mapCard(e),{closeButton:false,offset:[0,-10],maxWidth:320});
