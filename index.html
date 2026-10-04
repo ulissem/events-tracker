@@ -3257,7 +3257,7 @@ function renderEvent(D){
     bindAddHours('h',()=>({clientId:e.clientId,eventId:e.id}));
     bindHoursTable(D);
   }
-  on(D,'[data-jump]',(a,ev)=>{ ev.preventDefault(); const t=document.querySelector(a.getAttribute('href')); if(!t) return; let delay=0; if(t.closest('.evside')&&!sideOpen&&wide.matches){ toggleSide(); delay=280; } setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'start'}),delay); });
+  on(D,'[data-jump]',(a,ev)=>{ ev.preventDefault(); const t=document.querySelector(a.getAttribute('href')); if(!t) return; let delay=0; if(t.closest('.evside')&&!sideOpen&&wide.matches){ toggleSide(); delay=280; } spyPick(a.getAttribute('href')); setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'start'}),delay); });
   $('#delev').onclick=()=>{
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this event','lock'); return; }
     if(evHours.length){ alert(`This event has ${plural(evHours.length,'hours entry','hours entries')}. Delete or move them first (Hours section).`); return; }
@@ -4682,15 +4682,23 @@ document.addEventListener('click',e=>{ if(e.target.closest('[data-keys]')) openK
 /* the bar scrolls sideways so the current chip stays in view (centred), without touching the page's vertical scroll */
 function jumpTo(a){ const bar=a.closest('#jump'); if(!bar||bar.scrollWidth<=bar.clientWidth) return;
   const r=a.getBoundingClientRect(), br=bar.getBoundingClientRect(); bar.scrollTo({left:bar.scrollLeft+r.left+r.width/2-(br.left+br.width/2),behavior:'smooth'}); }
-let spyObs=null;
+let spyObs=null, spyHold=0, spyT=0;
+function spyCur(a){ if(!a||a.classList.contains('cur')) return; document.querySelectorAll('#jump a').forEach(x=>x.classList.toggle('cur',x===a)); jumpTo(a); }
+/* a tapped chip lights at once and stays lit while the page scrolls there (the spy waits until the scroll has settled) */
+function spyPick(href){ const a=document.querySelector(`#jump a[href="${href}"]`); if(!a) return; spyCur(a); spyHold=1; clearTimeout(spyT); spyT=setTimeout(()=>{ spyHold=0; },1200); }
 function spy(){
   spyObs?.disconnect(); const links=[...document.querySelectorAll('#jump a')]; if(!links.length) return;
   const vis=new Map();
-  spyObs=new IntersectionObserver(ents=>{ for(const en of ents) vis.set(en.target.id,en.isIntersecting); const firstVis=links.find(a=>vis.get(a.getAttribute('href').slice(1)));
-    if(!firstVis) return; // between two sections: keep the last one lit
-    if(!firstVis.classList.contains('cur')){ links.forEach(a=>a.classList.toggle('cur',a===firstVis)); jumpTo(firstVis); } },{rootMargin:`-${($('#top')?.offsetHeight||52)+50}px 0px -55% 0px`});
+  spyObs=new IntersectionObserver(ents=>{ for(const en of ents) vis.set(en.target.id,en.isIntersecting); if(spyHold) return;
+    const firstVis=links.find(a=>vis.get(a.getAttribute('href').slice(1)));
+    if(firstVis) spyCur(firstVis); /* between two sections: keep the last one lit */ },{rootMargin:`-${($('#top')?.offsetHeight||52)+50}px 0px -55% 0px`});
   links.forEach(a=>{ const s=document.querySelector(a.getAttribute('href')); if(s) spyObs.observe(s); });
 }
+/* while a tapped chip's scroll is running, every scroll event pushes the hold a bit further; at the very bottom the last
+   section on screen wins (the last sections can't reach the top band) */
+window.addEventListener('scroll',()=>{ if(spyHold){ clearTimeout(spyT); spyT=setTimeout(()=>{ spyHold=0; },250); return; }
+  if(innerHeight+scrollY<document.documentElement.scrollHeight-4) return;
+  const links=[...document.querySelectorAll('#jump a')]; for(let i=links.length-1;i>=0;i--){ const s=document.querySelector(links[i].getAttribute('href')); if(s&&s.getBoundingClientRect().top<innerHeight-80){ spyCur(links[i]); break; } } },{passive:true});
 
 /* =====================================================================
    KEYBOARD
