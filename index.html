@@ -2891,8 +2891,10 @@ function filmStrip(){
     h+=`<div class="fw"><div class="wh"><span class="whl"><b>Week ${isoWeek(addDays(ws,3))}</b>${short?'':`<span>${esc(fmtShort(ws).slice(4))} – ${esc(fmtShort(we).slice(4))}</span>`}</span></div><div class="days">${days}</div></div>`; }
   return h+'</div>';
 }
-/* the strip opens on today (the week's earlier days sit to the left) */
-function placeFilms(root){ root?.querySelectorAll('.film').forEach(f=>{ const t=f.querySelector('.fd.today'); if(t) f.scrollLeft+=t.getBoundingClientRect().left-f.getBoundingClientRect().left-14; }); }
+/* the strip opens on today (the week's earlier days sit to the left); a picked day stays in view, centred, across re-draws */
+function placeFilms(root){ root?.querySelectorAll('.film').forEach(f=>{ const s=f.querySelector('.fd.sel'), t=f.querySelector('.fd.today'), fr=f.getBoundingClientRect();
+  if(s){ const r=s.getBoundingClientRect(); f.scrollLeft+=r.left+r.width/2-(fr.left+fr.width/2); }
+  else if(t) f.scrollLeft+=t.getBoundingClientRect().left-fr.left-14; }); }
 /* Road to race day: the event's own to-dos and trips on one line that ends on race day */
 function roadToRace(e){
   if(!e.dateStart) return '';
@@ -4003,7 +4005,7 @@ function mapRefreshInner(fit){
 function bindMapStrip(){
   const M=$('#mstrip'); if(!M) return; bindDays(M);
   M.querySelectorAll('.film [data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); }); });
-  M.querySelectorAll('.film [data-id]').forEach(b=>b.onclick=()=>mapFocus(b.dataset.id));
+  M.querySelectorAll('.film [data-id]').forEach(b=>b.onclick=()=>{ const d=b.closest('.fd')?.querySelector('.fdh')?.dataset.day; if(d) selDay=d; mapFocus(b.dataset.id); }); // a race picks its day too: the strip stays there instead of jumping back to today
   M.querySelectorAll('.mrows [data-id]').forEach(b=>b.onclick=()=>go('e',b.dataset.id));
 }
 /* a day picked in the strip: bring its placed events into view (one → fly to it, several → fit them all) */
