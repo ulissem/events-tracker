@@ -3928,6 +3928,12 @@ function renderMap(D){
       <div class="mapcard" id="mapcard" hidden></div>
     </div>`;
   $('#mgrip').onclick=()=>$('#mstrip').classList.toggle('tall'); bindMapStrip();
+  { /* phone sheet gestures, like Apple Maps: swipe down (content at the top) lowers a tall strip, swipe up raises a low one */
+    const M=$('#mstrip'); let g=null;
+    M.addEventListener('touchstart',e=>{ g=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY,top:M.scrollTop}:null; },{passive:true});
+    M.addEventListener('touchend',e=>{ if(!g||!narrow.matches) return; const t=e.changedTouches[0], dy=t.clientY-g.y, dx=Math.abs(t.clientX-g.x), tall=M.classList.contains('tall');
+      if(Math.abs(dy)>40&&Math.abs(dy)>dx*1.5&&g.top<=0){ if(dy>0&&tall) M.classList.remove('tall'); else if(dy<0&&!tall) M.classList.add('tall'); }
+      g=null; },{passive:true}); }
   const refit=()=>{ MAPV=null; mapRefresh(true); };
   $('#fm-q')?.addEventListener('input',e=>{ flt.q=e.target.value; refit(); });
   $('#fm-client')?.addEventListener('change',e=>{ flt.client=e.target.value; refit(); });
@@ -5060,7 +5066,7 @@ let ptrY=null, ptrX=0, ptrD=0;
 function ptrSpin(on){ const p=$('#ptr'); if(!p) return; if(on){ p.hidden=false; p.classList.add('spin'); p.style.transform=`translate(-50%,${PTR_GO}px)`; p.style.opacity=1; } else { p.classList.remove('spin','go'); p.style.opacity=0; p.style.transform='translate(-50%,0)'; setTimeout(()=>{ if(!refreshing) p.hidden=true; },200); } }
 const ptrBlocked=t=>!narrow.matches||refreshing||window.scrollY>0||!S||document.body.classList.contains('drawer')||document.body.classList.contains('sorting')
   ||document.querySelector('dialog[open]')||!$('#scrim').hidden||!$('#cmdk').hidden||!$('#keys').hidden
-  ||t.closest?.('.hsc,.pop,.grip,input,textarea,select,.tabbar,.overlay,.jump');
+  ||t.closest?.('.hsc,.pop,.grip,input,textarea,select,.tabbar,.overlay,.jump,.leaflet-container,.mstrip.tall'); // map: panning; tall strip: a pull lowers it first
 document.addEventListener('touchstart',e=>{ ptrY=null; if(e.touches.length!==1||ptrBlocked(e.target)) return; ptrY=e.touches[0].clientY; ptrX=e.touches[0].clientX; ptrD=0; },{passive:true});
 document.addEventListener('touchmove',e=>{ if(ptrY===null) return; const t=e.touches[0], dy=t.clientY-ptrY, dx=Math.abs(t.clientX-ptrX);
   if(window.scrollY>0||dy<0||(dx>12&&dx>dy)){ ptrY=null; ptrSpin(false); return; }
