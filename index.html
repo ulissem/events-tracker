@@ -1632,6 +1632,61 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
   .fi{height:20px;font-size:10.5px}
   .fi.td .ck{width:12px;height:12px}
 }
+/* =====================================================================
+   REDESIGN STAGE 3 — Home
+   ===================================================================== */
+.home{max-width:1080px;margin:0 auto;padding:4px 0 40px}
+.hm-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.hm-head h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-.03em}
+.hm-date{font-size:15px;color:var(--ink-2)}
+.hm-head .btn{margin-left:auto}
+.home .nextup{margin:18px 0 0;padding:18px 20px 14px 22px}
+.home .nextup .cdn{font-size:44px}
+.home .nextup .n{font-size:20px}
+.home .film{padding:0;margin-top:18px}
+.home .fw{flex:1 1 0;min-width:560px}
+.home .fw .days{grid-template-columns:repeat(7,minmax(72px,1fr))}
+.hm-grid{display:grid;grid-template-columns:1.15fr 1fr .95fr;gap:14px;margin-top:18px}
+@media (max-width:1180px){ .hm-grid{grid-template-columns:1fr 1fr} .hm-grid .hm-card:last-child{grid-column:1 / -1} }
+.hm-card{background:var(--panel);border-radius:18px;box-shadow:var(--shadow-sm);padding:14px 16px 10px;display:flex;flex-direction:column;min-width:0}
+.hm-card h4{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);display:flex;gap:8px;align-items:baseline}
+.hm-card h4 b{margin-left:auto;font-size:13px;letter-spacing:0;color:var(--ink-2)} .hm-card h4 b.w{color:var(--warn)}
+.hm-card h4.hm-sub{margin-top:14px}
+.hm-ft{margin:auto -6px 0;padding-top:8px;display:flex;gap:4px}
+.tbtn{white-space:nowrap;height:30px;padding:0 10px;border:0;background:none;border-radius:8px;color:var(--accent);font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.tbtn svg{width:14px;height:14px}
+.tbtn:hover{background:var(--accent-soft)}
+.tbtn.quiet{color:var(--ink-2)} .tbtn.quiet:hover{background:var(--sunken);color:var(--ink)}
+.hm-q{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:9px 0 8px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;width:100%;color:inherit;cursor:pointer;border-radius:0}
+.hm-q:last-of-type{border-bottom:0}
+.hm-q:hover .n{color:var(--accent)}
+.hm-q .n{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hm-q .c{font-size:13px;font-weight:700;color:var(--warn)}
+.hm-q .bar{grid-column:1 / -1;height:3px;border-radius:2px;background:var(--ink-4);overflow:hidden}
+.hm-q .bar i{display:block;height:100%;background:var(--warn);border-radius:2px}
+.hm-t{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;color:inherit;text-decoration:none;min-width:0;cursor:pointer}
+.hm-t:last-of-type{border-bottom:0}
+.hm-t:hover{text-decoration:none}
+.hm-t .ck{width:22px;height:22px}
+.hm-t .tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hm-t .tx small{display:block;font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hm-t .tx b{font-weight:600}
+.hm-t .when{margin-left:auto;font-size:12px;font-weight:600;color:var(--ink-2);white-space:nowrap;flex:none}
+.hm-t.soon .when{color:var(--warn)} .hm-t.late .when{color:var(--danger)}
+.hm-t:has(.ck:checked) .tx{text-decoration:line-through;color:var(--ink-3)}
+.hm-t > svg{width:16px;height:16px;color:var(--ink-3);flex:none}
+.hm-t.warn > svg{color:var(--danger)}
+.hm-t.warn .tx{white-space:normal;line-height:1.35}
+.hm-t .tag{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;color:#fff;background:var(--ag-other);height:auto;border:0}
+.hm-t .tag.travel{background:var(--ag-travel)} .hm-t .tag.away{background:var(--ag-away)}
+.hm-empty{font-size:13px;color:var(--ink-3);padding:10px 0 6px}
+.hm-hours{display:flex;align-items:center;gap:12px;padding:8px 0 4px;color:var(--ink-2);font-size:13px;line-height:1.4}
+.hm-hours .big{font-size:26px}
+.hm-hours b{color:var(--ink)}
+.hm-keys{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--ink-3);margin-top:26px}
+.hm-keys span{display:flex;gap:4px;align-items:center}
+/* while the Home is open the left column is just the list */
+@media (min-width:861px){ body:not(.showing-detail) #list .nextup,body:not(.showing-detail) #list .film{display:none} }
 </style>
 </head>
 <body>
@@ -2753,11 +2808,56 @@ function linkBtn(url){ const ok=/^https?:\/\//.test(url||''); return `<a class="
 const emptyBox=(icon,text)=>`<div class="empty">${ic(icon,1.7)}<span>${text}</span></div>`;
 const focusName=()=>setTimeout(()=>$('#detail .nameinput')?.focus(),0);
 
+/* =====================================================================
+   REDESIGN STAGE 3 — Home: the right pane when no event is selected
+   ===================================================================== */
+function renderHome(D){
+  const h=new Date().getHours(), greet=h<5?'Good night':h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  const end=addDays(TODAY,27), scope=e=>!flt.client||e.clientId===flt.client;
+  const soon=S.events.filter(e=>scope(e)&&e.dateStart&&e.dateStart<=end&&(e.dateEnd||e.dateStart)>=TODAY);
+  const qEv=S.events.filter(e=>scope(e)&&!isPast(e)&&openQ(e).length).sort((a,b)=>openQ(b).length-openQ(a).length||(a.dateStart||'9').localeCompare(b.dateStart||'9'));
+  const qTot=qEv.reduce((a,e)=>a+openQ(e).length,0), qMax=Math.max(1,...qEv.map(e=>openQ(e).length));
+  const tds=S.agenda.todos.filter(t=>!t.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,8);
+  const ens=agEntries().filter(i=>i.e>=TODAY&&i.s<=end).sort((a,b)=>a.s.localeCompare(b.s));
+  const clashes=[]; { let prev=null; for(let d=TODAY,i=0;i<28;i++,d=addDays(d,1)){ const c=clashOn(d); if(c&&prev&&prev.key===c.key){ prev.to=d; continue; } prev=c?{...c,from:d,to:d}:null; if(prev) clashes.push(prev); } }
+  const showH=priv(), openHours=showH?sumH(entriesOf(isOpen)):0;
+  const cName=flt.client?clientName(flt.client):'';
+  D.innerHTML=`<div class="home">
+    <div class="hm-head"><h1>${greet}</h1><span class="hm-date">${esc(DOWL[parse(TODAY).getDay()])} ${esc(fmtLong(TODAY).slice(4))} · ${plural(soon.length,'event','events')} in the next 4 weeks${cName?` · ${esc(cName)}`:''}</span><button class="btn primary" type="button" id="hm-new">${ic('plus',2.4)} New event</button></div>
+    ${nextUpCard()}
+    ${filmStrip()}
+    <div class="hm-grid">
+      <div class="hm-card"><h4>Open questions <b class="w">${qTot||''}</b></h4>
+        ${qEv.length?qEv.map(e=>`<button type="button" class="hm-q" data-id="${esc(e.id)}"><span class="n">${esc(e.name)||'untitled'}</span><span class="c">${openQ(e).length}</span><span class="bar"><i style="width:${Math.round(openQ(e).length/qMax*100)}%"></i></span></button>`).join(''):`<div class="hm-empty">No open questions. Nice.</div>`}
+        ${qTot?`<div class="hm-ft"><button class="tbtn" type="button" id="hm-copyq">${ic('copy',2)} Copy all${cName?' for '+esc(cName):''}</button></div>`:''}
+      </div>
+      <div class="hm-card"><h4>To-dos <b>${tds.length||''}</b></h4>
+        ${tds.length?tds.map(t=>{ const l=linkOf(t); return `<label class="hm-t ${dueCls(t)}"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}${l?`<small>${esc(l.name)}</small>`:''}</span>${t.due?`<span class="when">${esc(dueTxt(t.due))}</span>`:''}</label>`; }).join(''):`<div class="hm-empty">Nothing to do. Add one for the next event.</div>`}
+        <div class="hm-ft"><button class="tbtn" type="button" id="hm-addtd">${ic('plus',2.4)} To-do</button><button class="tbtn quiet" type="button" data-go="a">${ic('cal',2)} Open Agenda</button></div>
+      </div>
+      <div class="hm-card"><h4>Travel &amp; away</h4>
+        ${ens.length||clashes.length?`${ens.map(i=>`<a class="hm-t" href="#/a">${ic(AG_TYPES[i.o.type]?.icon||'clock',1.9)}<span class="tx">${esc(i.o.title||AG_TYPES[i.o.type]?.label||'')}</span><span class="tag ${esc(i.o.type)}">${esc(AG_TYPES[i.o.type]?.label||i.o.type)}</span><span class="when">${esc(fmtShort(i.s))}${i.e>i.s?' – '+esc(fmtShort(i.e)):''}</span></a>`).join('')}
+        ${clashes.map(c=>`<a class="hm-t warn" href="#/a">${ic('warn',2)}<span class="tx">${c.html}</span><span class="when">${esc(fmtShort(c.from))}${c.to>c.from?' – '+esc(fmtShort(c.to)):''}</span></a>`).join('')}`:`<div class="hm-empty">No trips, no clashes in the next 4 weeks.</div>`}
+        <h4 class="hm-sub">Hours</h4>
+        <div class="hm-hours"><span class="big">${esc(U().icon)}</span>${showH?`<span><b>${fmtN(openHours)} h</b> open · ${val(openHours)}<br>never in the summary</span><button class="tbtn" type="button" data-go="h" style="margin-left:auto">Open</button>`:`<span>Locked · safe-word required.<br>Never in the summary.</span><button class="tbtn" type="button" id="hm-unlock" style="margin-left:auto">Unlock</button>`}</div>
+      </div>
+    </div>
+    <div class="hm-keys"><span><kbd>${MOD}</kbd><kbd>K</kbd> jump to…</span><span><kbd>J</kbd><kbd>K</kbd> next / previous</span><span><kbd>?</kbd> all shortcuts</span><span><kbd>/</kbd> search</span></div>
+  </div>`;
+  $('#hm-new').onclick=newItem;
+  on(D,'[data-id]',b=>go('e',b.dataset.id));
+  on(D,'[data-go]',b=>go(b.dataset.go));
+  D.querySelectorAll('[data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); renderList(); setTimeout(renderDetail,350); }); });
+  $('#hm-addtd')?.addEventListener('click',()=>{ const t={...mkTask(''),id:uid('td'),due:'',link:''}; S.agenda.todos.push(t); touch('none'); openTodo(t); });
+  $('#hm-unlock')?.addEventListener('click',togglePrivacy);
+  $('#hm-copyq')?.addEventListener('click',()=>{
+    const txt=qEv.map(e=>`${e.name||'untitled'}${e.dateStart?` · ${fmtLong(e.dateStart)}`:''}\n${openQ(e).map(q=>`  Q${q.n}: ${q.text}`).join('\n')}`).join('\n\n');
+    navigator.clipboard?.writeText(txt).then(()=>toast('Open questions copied',plural(qTot,'question','questions'),'copy'),()=>toast('Could not copy','','warn','warn'));
+  });
+}
 function renderEvent(D){
   const e=curEvent();
-  if(!e){ D.innerHTML=`<div class="bigempty"><div class="ill">${ic('flag',1.8)}</div><h2>Pick an event</h2><p>Choose one on the left, or create one. Each event has its races, timing points, questions for the client and hours.</p>
-    <p><button class="btn primary" type="button" id="be-new">${ic('plus',2.4)} New event</button></p><div class="keys"><span><kbd>${MOD}</kbd><kbd>K</kbd> jump to…</span><span><kbd>J</kbd><kbd>K</kbd> next / previous</span><span><kbd>?</kbd> all shortcuts</span><span><kbd>/</kbd> search</span></div></div>`;
-    $('#be-new').onclick=newItem; return; }
+  if(!e){ renderHome(D); return; }
   const tpOpts=[['','— point —'],...e.timingPoints.map(t=>[t.id,t.name||'(untitled)'])];
   const showH=priv(), evHours=showH?entriesOf(h=>h.eventId===e.id).sort((a,b)=>a.date.localeCompare(b.date)):[];
   const oq=openQ(e).length, p=progress(e), pct=Math.round(p*100), dups=duplicates(e), ck=checklistItems(e), cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd);
