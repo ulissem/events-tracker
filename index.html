@@ -1293,7 +1293,7 @@ body.locked{overflow:hidden}
   </form>
 </dialog>
 <dialog id="sumdlg" aria-label="Client summary">
-  <div class="sumbar"><label class="chk"><input type="checkbox" class="ck" id="sum-res"> include resolved questions</label><button class="btn" type="button" id="sum-copy">Copy PNG</button><button class="btn" type="button" id="sum-png">Download PNG</button><button class="btn" type="button" id="sum-pdf">Print / PDF</button><button class="btn primary" type="button" id="sum-close">Close</button></div>
+  <div class="sumbar"><label class="chk"><input type="checkbox" class="ck" id="sum-res"> include resolved questions</label><span class="hint" id="sum-save" role="status"></span><button class="btn" type="button" id="sum-copy">Copy PNG</button><button class="btn" type="button" id="sum-png">Download PNG</button><button class="btn" type="button" id="sum-pdf">Print / PDF</button><button class="btn primary" type="button" id="sum-close">Close</button></div>
   <div class="sumwrap"><div id="sumsheet"></div></div>
 </dialog>
 <dialog id="impdlg" aria-label="Import from AI">
@@ -3063,11 +3063,21 @@ function summaryHTML(e,withResolved){
     <div class="s-foot"><span>${esc(clientName(e.clientId))}</span><span>Updated ${esc(fmtLong(TODAY))}</span></div>
   </div>`;
 }
-function openSummary(e){ closePops(); sumEvent=e; $('#sum-res').checked=false; $('#sumsheet').innerHTML=summaryHTML(e,false); $('#sumdlg').showModal(); }
-$('#sum-res').onchange=ev=>{ $('#sumsheet').innerHTML=summaryHTML(sumEvent,ev.target.checked); };
+function openSummary(e){ closePops(); sumEvent=e; $('#sum-res').checked=false; $('#sumsheet').innerHTML=summaryHTML(e,false); $('#sumdlg').showModal(); saveForSummary(); }
+/* opening the summary is the moment before sharing it (and on a phone, switching app): save pending changes now */
+async function saveForSummary(){
+  const st=$('#sum-save'); st.textContent='';
+  for(let i=0;saving&&i<100;i++) await new Promise(r=>setTimeout(r,100)); // a save already running
+  if(!dirty&&!needRemote) return;
+  st.textContent='Saving…'; await save({quiet:true});
+  st.textContent=!dirty?(DEMO?'Demo · not saved':'Saved'):errMsg==='Offline'?'Offline · changes kept on this device':'Not saved — use Save after closing';
+}
+/* a merge while saving can replace the event object: always read the current one */
+const sumEv=()=>S.events.find(x=>x.id===sumEvent.id)||sumEvent;
+$('#sum-res').onchange=ev=>{ $('#sumsheet').innerHTML=summaryHTML(sumEv(),ev.target.checked); };
 $('#sum-close').onclick=()=>$('#sumdlg').close();
 $('#sum-pdf').onclick=()=>{
-  $('#printarea').innerHTML=summaryHTML(sumEvent,$('#sum-res').checked);
+  $('#printarea').innerHTML=summaryHTML(sumEv(),$('#sum-res').checked);
   $('#sumdlg').close(); document.body.classList.add('printing');
   const done=()=>{ document.body.classList.remove('printing'); $('#printarea').innerHTML=''; window.removeEventListener('afterprint',done); };
   window.addEventListener('afterprint',done); setTimeout(()=>window.print(),50);
@@ -3087,7 +3097,7 @@ async function sumAction(b,label,fn){
   finally{ b.disabled=false; b.textContent=msg; if(msg!==label) setTimeout(()=>{ b.textContent=label; },1800); }
 }
 $('#sum-png').onclick=()=>sumAction($('#sum-png'),'Download PNG',async()=>{
-  const canvas=await sumCanvas(), a=document.createElement('a'); a.download=`summary-${slug(sumEvent.name||'event')}-${TODAY}.png`; a.href=canvas.toDataURL('image/png'); a.click(); });
+  const canvas=await sumCanvas(), a=document.createElement('a'); a.download=`summary-${slug(sumEv().name||'event')}-${TODAY}.png`; a.href=canvas.toDataURL('image/png'); a.click(); });
 $('#sum-copy').onclick=()=>{
   if(!navigator.clipboard?.write||!window.ClipboardItem){ alert('Copying images is not supported in this browser. Use Download PNG.'); return; }
   // Safari wants the clipboard write started right in the tap: hand it the image still being drawn
