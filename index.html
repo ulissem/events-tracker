@@ -1243,6 +1243,14 @@ main.mapv #detail{display:flex;flex-direction:column;height:calc(100vh - var(--h
 .mapcard::before{content:'';display:block;width:36px;height:4px;border-radius:999px;background:var(--line-3);margin:0 auto 8px}
 .mapcard .mcard{padding:0;min-width:0;max-width:none}
 @media (max-width:860px){
+  /* phone: the list head takes the same two rows as the map toolbar — search, then clients · statuses · past · List | Map */
+  .lhead{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px}
+  .lhead .group{width:100%}
+  .lhead .in.sm{flex:1;min-width:0}
+  .lhead .lrow{display:contents}
+  .lhead .switch{flex:none;gap:6px} .lhead .switch .count{display:none}
+  .lhead .swl,.maphead .swl{font-size:0} .lhead .swl::after,.maphead .swl::after{content:attr(data-short);font-size:12.5px}
+  .vseg .vl{display:none} .vseg button{padding:0 9px;height:26px} .vseg button svg{width:15px;height:15px}
   .maphead{padding:8px 12px;gap:6px}
   .maphead .msrch{width:100%}
   .maphead .in.sm{flex:1;min-width:0}
@@ -2214,7 +2222,7 @@ function renderEventList(L){
       <div class="in group">${ic('search')}<input class="bare" type="search" id="fl-q" placeholder="Search event, place, client" value="${esc(flt.q)}" aria-label="Search"><kbd style="margin-right:4px">/</kbd></div>
       <select class="in sm" id="fl-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="in sm" id="fl-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
-      <div class="lrow"><label class="switch"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> Show past events <span class="count">${hidden}</span></label>${viewSeg('e')}</div>
+      <div class="lrow"><label class="switch"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Show past events</span> <span class="count">${hidden}</span></label>${viewSeg('e')}</div>
     </div>
     <div class="lscroll">
       ${!flt.q&&!flt.client&&!flt.status?week:''}
@@ -3082,7 +3090,7 @@ function mapTiles(){
   if(key) return L.tileLayer(`https://basemaps.cartocdn.com/rastertiles/${dark?'dark_all':'light_all'}/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(key)}`,{maxZoom:20,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'});
   return L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${dark?'World_Dark_Gray_Base':'World_Light_Gray_Base'}/MapServer/tile/{z}/{y}/{x}`,{maxZoom:16,attribution:'Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors'});
 }
-const viewSeg=cur=>`<span class="vseg" role="group" aria-label="View"><button type="button" ${cur==='e'?'aria-pressed="true"':'data-mv="e"'}>${ic('list',2.2)}List</button><button type="button" id="fl-map" ${cur==='m'?'aria-pressed="true"':''}>${ic('pin',2.2)}Map</button></span>`;
+const viewSeg=cur=>`<span class="vseg" role="group" aria-label="View"><button type="button" ${cur==='e'?'aria-pressed="true"':'data-mv="e"'}>${ic('list',2.2)}<span class="vl">List</span></button><button type="button" id="fl-map" ${cur==='m'?'aria-pressed="true"':''}>${ic('pin',2.2)}<span class="vl">Map</span></button></span>`;
 function mapEvents(){ const q=flt.q.toLowerCase();
   return S.events.filter(e=>(!flt.client||e.clientId===flt.client)&&(!flt.status||e.status===flt.status)&&(flt.past||!isPast(e))
     &&(!q||[e.name,e.location,e.type,clientName(e.clientId)].join(' ').toLowerCase().includes(q))).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9')); }
@@ -3103,7 +3111,7 @@ function renderMap(D){
       <div class="in group msrch">${ic('search')}<input class="bare" type="search" id="fm-q" placeholder="Search event, place, client" value="${esc(flt.q)}" aria-label="Search"></div>
       <select class="in sm" id="fm-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="in sm" id="fm-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
-      <label class="switch"><input type="checkbox" id="fm-past" ${flt.past?'checked':''}> Past events</label>
+      <label class="switch"><input type="checkbox" id="fm-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Past events</span></label>
       <span class="mcount" id="mapcount"></span>${viewSeg('m')}
     </div>
     <div class="mapwrap"><div id="map" class="mapel"></div><div class="mapload" id="maploading">Loading the map…</div>
