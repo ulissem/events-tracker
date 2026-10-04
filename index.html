@@ -876,6 +876,7 @@ table.t.cltab{min-width:520px}
 .sheet td,.sheet th{padding:5px 8px 5px 0;border-bottom:1px solid #f0f1f4;text-align:left;vertical-align:top}
 .sheet th{font-size:11px;color:#8a909b;font-weight:500}
 .sheet .s-route{font-size:12.5px;color:#596170}
+.sheet .s-rnote{font-size:12.5px;color:#16191e;margin-top:3px;white-space:pre-wrap}
 .sheet .s-seq{font-size:12.5px;margin:2px 0 8px}
 .sheet .s-seq .s-n{font-weight:500}
 .sheet .s-dim{color:#8a909b}
@@ -2418,7 +2419,7 @@ function raceCard(e,c,ci,tpOpts){
       </tbody></table></div></div>
       ${(()=>{ const w=c.splits.filter(x=>x.role!=='split'&&!x.tp).map(x=>`${splitName(c,x)} has no timing point`); return w.length?`<div class="spwarn">${ic('warn')}${w.join(' · ')}</div>`:''; })()}
       <div class="toolbar"><button class="btn sm" data-addsp="${ci}" type="button" title="Adds an intermediate split before Finish">${ic('plus',2.2)} Split</button></div>`}
-      <div class="two" style="margin-top:14px">${T(c,'relay','Relay',{ph:'Legs, changeover points…'})}${T(c,'notes','Race notes')}</div>
+      <div class="two" style="margin-top:14px">${T(c,'relay','Relay',{ph:'Legs, changeover points…'})}${T(c,'notes','Race notes <span class="lh">· shown in the client summary</span>')}</div>
     </div>`:''}
   </div>`;
 }
@@ -3016,7 +3017,7 @@ $('#cmdin').addEventListener('keydown',e=>{
 $('#cmdk').addEventListener('pointerdown',e=>{ if(e.target.id==='cmdk') closeCmd(); });
 
 /* =====================================================================
-   CLIENT SUMMARY (light, fixed palette) — never contains hours or internal notes
+   CLIENT SUMMARY (light, fixed palette) — never contains hours or the event's internal notes (race notes are shown)
    ===================================================================== */
 let sumEvent=null;
 function summaryHTML(e,withResolved){
@@ -3024,7 +3025,7 @@ function summaryHTML(e,withResolved){
   const pct=Math.round(progress(e)*100), oq=openQ(e), rq=e.questions.filter(q=>q.resolved);
   const multi=eventDays(e).length>0, anyDate=multi&&e.contests.some(c=>raceDate(e,c)), anyTime=e.contests.some(c=>c.startTime), anyEl=e.contests.some(c=>c.elevation), anyElig=e.contests.some(c=>c.eligibility);
   const routeOf=c=>{ const n=r=>{ const sp=c.splits.find(x=>x.role===r); return sp?.tp?tpName(sp.tp):''; }, a=c.startSplit?n('start'):'', b=n('finish'); return a&&b&&a!==b?`${a} → ${b}`:''; };
-  const sub=c=>[routeOf(c),c.startType&&`${c.startType} start`,c.relay&&`Relay: ${c.relay}`].filter(Boolean).map(esc).join(' · ');
+  const sub=c=>[routeOf(c),c.startType&&`${c.startType} start`,c.relay&&`Relay: ${c.relay}`,c.results==='special'&&'Special results'].filter(Boolean).map(esc).join(' · ');
   const item=t=>`${esc(t.text)}${t.note?` <span class="s-note">— ${esc(t.note)}</span>`:''}${t.children.length?`<div style="margin:2px 0 4px 14px;font-size:12.5px">${t.children.map(c=>'· '+esc(c.text)+(c.note?` <span class="s-note">— ${esc(c.note)}</span>`:'')).join('<br>')}</div>`:''}`;
   const anyBasis=e.contests.some(c=>c.timeBasis);
   const timed=e.contests.filter(c=>c.results!=='special'&&c.splits.some(x=>x.tp||x.label));
@@ -3045,7 +3046,7 @@ function summaryHTML(e,withResolved){
     <div><span class="s-pill" style="background:${esc(statusColor(e.status))}">${esc(e.status)}</span><span class="s-prog"><i style="width:${pct}%"></i></span>${pct}% prepared${oq.length?` · <b style="color:#c0650b">${plural(oq.length,'open question','open questions')}</b>`:''}</div>
     ${oq.length?`<h2>Open questions</h2><ul class="s-qs">${oq.map(q=>`<li><b>Q${q.n}</b><span>${esc(q.text)}</span></li>`).join('')}</ul>`:''}
     ${e.contests.length?`<h2>Races</h2><table><thead><tr><th>Race</th>${anyDate?'<th>Day</th>':''}${anyTime?'<th>Start</th>':''}<th>Distance</th>${anyEl?'<th>Elev. gain</th>':''}${anyElig?'<th>Eligibility</th>':''}${anyBasis?'<th>Rankings by</th>':''}</tr></thead><tbody>
-      ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="s-route">${sub(c)}</div>`:''}</td>${anyDate?`<td>${esc(dayLabel(e,raceDate(e,c)))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}${anyBasis?`<td>${esc(TIME_BASIS[c.timeBasis]||'')}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
+      ${e.contests.map(c=>`<tr><td><b>${esc(c.name)}</b>${sub(c)?`<div class="s-route">${sub(c)}</div>`:''}${c.notes?`<div class="s-rnote">${esc(c.notes)}</div>`:''}</td>${anyDate?`<td>${esc(dayLabel(e,raceDate(e,c)))}</td>`:''}${anyTime?`<td>${esc(c.startTime)}</td>`:''}<td>${c.distance?esc(c.distance)+' km':'—'}</td>${anyEl?`<td>${c.elevation?esc(c.elevation)+' m':''}</td>`:''}${anyElig?`<td>${esc(c.eligibility)}</td>`:''}${anyBasis?`<td>${esc(TIME_BASIS[c.timeBasis]||'')}</td>`:''}</tr>`).join('')}</tbody></table>`:''}
     ${timed.length?`<h2>Timing points per race</h2>${timed.map(splitTable).join('')}`:''}
     ${e.timingPoints.length?`<h2>Timing points${e.technology?` · ${esc(TECH[e.technology].label)} timing <img class="s-hw" src="${TECH[e.technology].img}" alt="">`:''}</h2><table><thead><tr><th></th><th>Timing point</th><th>Hardware</th><th>Ch. / L.</th><th>Position</th></tr></thead><tbody>${e.timingPoints.map(t=>{ const rt=repeatTarget(e,t);
       return `<tr><td style="width:34px">${hwImg(t.hardware)?`<img class="s-hw" src="${hwImg(t.hardware)}" alt="">`:''}</td><td><span class="s-sw" style="background:${esc(t.color||'#ccc')}"></span>${esc(t.name)}</td><td>${esc(t.hardware||'—')}${t.mode?` · ${esc(t.mode)}`:''}${rt?` <span class="s-rep">→ ${esc(rt.name)}</span>`:''}</td><td>${idKey(e,t)?esc((t.ch?'Ch. '+t.ch:'')+(t.loop&&HW[t.hardware]?.loop?' / L. '+t.loop:'')):''}</td><td>${esc(t.position)}</td></tr>`; }).join('')}</tbody></table>`:''}
