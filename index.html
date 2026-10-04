@@ -4687,19 +4687,18 @@ let spyObs=null, spyHold=0, spyT=0;
 function spyCur(a){ if(!a||a.classList.contains('cur')) return; document.querySelectorAll('#jump a').forEach(x=>x.classList.toggle('cur',x===a)); jumpTo(a); }
 /* a tapped chip lights at once and stays lit while the page scrolls there (the spy waits until the scroll has settled) */
 function spyPick(href){ const a=document.querySelector(`#jump a[href="${href}"]`); if(!a) return; spyCur(a); spyHold=1; clearTimeout(spyT); spyT=setTimeout(()=>{ spyHold=0; },1200); }
-function spy(){
-  spyObs?.disconnect(); const links=[...document.querySelectorAll('#jump a')]; if(!links.length) return;
-  const vis=new Map();
-  spyObs=new IntersectionObserver(ents=>{ for(const en of ents) vis.set(en.target.id,en.isIntersecting); if(spyHold) return;
-    const firstVis=links.find(a=>vis.get(a.getAttribute('href').slice(1)));
-    if(firstVis) spyCur(firstVis); /* between two sections: keep the last one lit */ },{rootMargin:`-${($('#top')?.offsetHeight||52)+50}px 0px -55% 0px`});
-  links.forEach(a=>{ const s=document.querySelector(a.getAttribute('href')); if(s) spyObs.observe(s); });
-}
-/* while a tapped chip's scroll is running, every scroll event pushes the hold a bit further; at the very bottom the last
-   section on screen wins (the last sections can't reach the top band) */
+/* the current section = the last one whose top has passed under the section bar; at the very bottom of the page the last
+   section on screen (the last sections can't reach the bar). Computed on every scroll, so scrolling back up always updates. */
+function spyNow(){ if(spyHold) return; const links=[...document.querySelectorAll('#jump a')]; if(!links.length) return;
+  const bar=$('#jump'), band=(bar?bar.getBoundingClientRect().bottom:120)+24, secs=links.map(a=>{ const x=document.querySelector(a.getAttribute('href')); return x&&!(wide.matches&&x.closest('.evside'))?x:null; }); // wide screens: the side column is sticky, its sections are always 'at the top'
+  let k=-1;
+  if(innerHeight+scrollY>=document.documentElement.scrollHeight-4){ for(let i=secs.length-1;i>=0;i--) if(secs[i]&&secs[i].getBoundingClientRect().top<innerHeight-80){ k=i; break; } }
+  else for(let i=0;i<secs.length;i++) if(secs[i]&&secs[i].getBoundingClientRect().top<=band) k=i;
+  spyCur(links[Math.max(0,k)]); }
+function spy(){ spyObs?.disconnect(); spyNow(); }
+let spyRaf=0;
 window.addEventListener('scroll',()=>{ if(spyHold){ clearTimeout(spyT); spyT=setTimeout(()=>{ spyHold=0; },250); return; }
-  if(innerHeight+scrollY<document.documentElement.scrollHeight-4) return;
-  const links=[...document.querySelectorAll('#jump a')]; for(let i=links.length-1;i>=0;i--){ const s=document.querySelector(links[i].getAttribute('href')); if(s&&s.getBoundingClientRect().top<innerHeight-80){ spyCur(links[i]); break; } } },{passive:true});
+  if(!spyRaf) spyRaf=requestAnimationFrame(()=>{ spyRaf=0; spyNow(); }); },{passive:true});
 
 /* =====================================================================
    KEYBOARD
