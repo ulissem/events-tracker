@@ -1637,6 +1637,7 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .nuwrap{display:grid;grid-template-rows:1fr}
 .nuwrap > *{min-height:0}
 @keyframes nuin{from{grid-template-rows:0fr;opacity:0;transform:translateY(-6px)}to{grid-template-rows:1fr;opacity:1;transform:none}}
+@keyframes nuout{from{grid-template-rows:1fr;opacity:1}to{grid-template-rows:0fr;opacity:0;transform:translateY(-6px)}}
 @keyframes mapin{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
 @keyframes stripin{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes viewin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -1648,14 +1649,12 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .paneghost.back{animation-name:ghostout-back}
 .paneghost-in{min-width:0;display:flex;flex-direction:column;height:100%}
 .paneghost .mapwrap{flex:1;min-height:0}
-/* leaving the map: the map fades in place and the strip leaves the way it came, downwards */
-@keyframes ghostfade{to{opacity:0}}
-@keyframes stripout{to{opacity:0;transform:translateY(28px)}}
-.paneghost.frommap{animation-name:ghostfade;animation-duration:.45s}
-.paneghost.frommap .mstrip{animation:stripout .38s cubic-bezier(.4,0,.8,.4) forwards}
+/* leaving the map: the pane slides away like any other; the strip fades out first */
+@keyframes fadeout{to{opacity:0}}
+.paneghost.frommap .mstrip{animation:fadeout .18s ease-out forwards}
 .paneghost .leaflet-control-container{display:none}
 body.viewswap main.mapv .nuwrap{animation:nuin .5s cubic-bezier(.2,.8,.2,1)}
-body.viewswap main.mapv .nuwrap > *{overflow:hidden}
+body.viewswap .nuwrap > *{overflow:hidden}
 body.viewswap.swap-fwd #detail > *{animation:slidein-fwd .45s cubic-bezier(.2,.8,.2,1) both}
 body.viewswap.swap-back #detail > *{animation:slidein-back .45s cubic-bezier(.2,.8,.2,1) both}
 body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
@@ -1728,7 +1727,8 @@ body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
 .hm-keys span{display:flex;gap:4px;align-items:center}
 /* while the Home is open the left column is just the list */
 @media (min-width:861px){
-  #list .nextup{display:none} main.mapv #list .nextup{display:grid}                      /* the green card on the left only next to the map */
+  #list .nuwrap{display:none} main.mapv #list .nuwrap{display:grid}                      /* the green card on the left only next to the map */
+  body.viewswap.swap-back main:not(.mapv) #list .nuwrap{display:grid;animation:nuout .45s cubic-bezier(.2,.8,.2,1) forwards} /* …and folds back up when leaving it */
   #list .film{display:none} body.showing-detail main:not(.mapv) #list .film{display:flex} /* the strip on the left only while an event is open */
 }
 /* =====================================================================
