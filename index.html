@@ -1687,7 +1687,7 @@ body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
 .row.dim{opacity:.38}
 .row.dim:hover{opacity:.7}
 .mpk.dim{opacity:.22} .mpk.dim .mlbl{display:none}
-.mpk.dim:hover{opacity:1} .mpk.dim:hover .mlbl{display:flex}
+.mpk.dim:hover{opacity:1}
 
 /* =====================================================================
    REDESIGN STAGE 3 — Home
@@ -1781,7 +1781,6 @@ main.mapv #detail{padding:0;position:relative}
 @keyframes mpulse{0%{box-shadow:0 0 0 1.5px var(--bg),0 0 0 1.5px color-mix(in srgb,var(--c) 60%,transparent)}100%{box-shadow:0 0 0 1.5px var(--bg),0 0 0 12px transparent}}
 .mpk.up .mlbl{transform:translateY(-14px)} .mpk.dn .mlbl{transform:translateY(14px)}
 .mpk.nolbl .mlbl{display:none} /* not named (or no free spot at this zoom): just the dot, the label on hover */
-.mpk.nolbl:hover .mlbl{display:flex}
 .leaflet-container .leaflet-popup-content-wrapper{background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:var(--ink);border-radius:16px;box-shadow:0 0 0 .5px var(--line-2),0 18px 40px -16px rgba(0,0,0,.5);border:0}
 .leaflet-container .leaflet-popup-tip{background:var(--panel);box-shadow:none}
 .mpk.past{opacity:.55} .mpk.past i{width:7px;height:7px;box-shadow:0 0 0 1.5px var(--bg)} .mpk.past .mlbl small{display:none}
@@ -3927,15 +3926,17 @@ function mapRefresh(fit){
 }
 const MAPM=new Map();
 function mapRefreshInner(fit){
-  MAPL.clearLayers(); MAPM.clear(); const card=$('#mapcard'); if(card) card.hidden=true;
+  MAP.closePopup(); MAPL.clearLayers(); MAPM.clear(); const card=$('#mapcard'); if(card) card.hidden=true;
   const evs=mapEvents(), withPos=evs.filter(e=>e.geo), noPos=evs.filter(e=>!e.geo);
   const lons=withPos.map(e=>+e.geo.lon).sort((a,b)=>a-b), median=lons.length?lons[Math.floor(lons.length/2)]:0;
-  const next=withPos.filter(e=>e.dateStart&&(e.dateEnd||e.dateStart)>=TODAY).sort((a,b)=>a.dateStart.localeCompare(b.dateStart))[0];
+  /* the next race day, like the Next up card: every event on that first day pulses */
+  const up=evs.filter(e=>e.dateStart&&(e.dateEnd||e.dateStart)>=TODAY).sort((a,b)=>a.dateStart.localeCompare(b.dateStart)), nday=up[0]?(up[0].dateStart<TODAY?TODAY:up[0].dateStart):null;
+  const isNext=e=>!!nday&&!!e.dateStart&&e.dateStart<=nday&&(e.dateEnd||e.dateStart)>=nday;
   if(fit){ if(MAPV) MAP.setView(MAPV.c,MAPV.z);
     else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),narrow.matches?{paddingTopLeft:[40,110],paddingBottomRight:[40,Math.round(innerHeight*.42)],maxZoom:10}:{paddingTopLeft:[100,50],paddingBottomRight:[100,210],maxZoom:10});
     else MAP.setView([42.6,9.4],6); }
-  /* names only where they help: the next event, the picked day, the event chosen in the list; the rest on hover */
-  const named=e=>e===next||(selDay&&onSelDay(e))||e.id===mapFocusId;
+  /* names only where they help: the next race day, the picked day, the event chosen in the list; the rest show their card on hover */
+  const named=e=>isNext(e)||(selDay&&onSelDay(e))||e.id===mapFocusId;
   /* label placement: pixel boxes, no two labels overlapping, none off the edge; side flips, then nudges up / down */
   const side=new Map(), nudge=new Map(); { const W=innerWidth, boxes=[], hit=b=>b.x<4||b.x+b.w>MAP.getSize().x-4||boxes.some(o=>b.x<o.x+o.w&&b.x+b.w>o.x&&b.y<o.y+o.h&&b.y+b.h>o.y);
     for(const e of withPos) if(!named(e)){ side.set(e.id,+e.geo.lon>median); nudge.set(e.id,'nolbl'); }
@@ -3945,10 +3946,15 @@ function mapRefreshInner(fit){
       if(!done){ side.set(e.id,def); nudge.set(e.id,'nolbl'); } } }
   for(const e of withPos){ const d=e.dateStart?diff(TODAY,e.dateStart):null, de=e.dateStart?diff(TODAY,e.dateEnd||e.dateStart):null, past=isPast(e);
     const when=d===null?'no date':past?`${-de}d ago`:d<=0?'Today':`T−${d}`, pct=Math.round(progress(e)*100);
-    const html=`<span class="mpk ${e===next?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''} ${side.get(e.id)?'L':''} ${nudge.get(e.id)}"><i></i><span class="mlbl"><b>${esc(e.name)||'untitled'}</b><small>${when}${past?'':` · ${pct}%`}</small></span></span>`;
+    const html=`<span class="mpk ${isNext(e)?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''} ${side.get(e.id)?'L':''} ${nudge.get(e.id)}"><i></i><span class="mlbl"><b>${esc(e.name)||'untitled'}</b><small>${when}${past?'':` · ${pct}%`}</small></span></span>`;
     const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html,iconSize:[0,0],iconAnchor:[0,0]}),riseOnHover:true,keyboard:false,title:''});
     if(narrow.matches) mk.on('click',()=>{ card.innerHTML=mapCard(e); card.hidden=false; });
-    else { mk.bindPopup(mapCard(e),{className:'evpop',closeButton:false,offset:[0,-3],maxWidth:320}); mk.on('popupopen',()=>mk.getElement()?.classList.add('popped')).on('popupclose',()=>mk.getElement()?.classList.remove('popped')); }
+    else { /* desktop: the card opens on hover (and closes when the pointer leaves pin and card); a click keeps it open */
+      const ll=[+e.geo.lat,+e.geo.lon], pop=L.popup({className:'evpop',closeButton:false,offset:[0,-3],maxWidth:320,autoPan:false}).setContent(mapCard(e)); let t=0, pinned=false;
+      const show=pan=>{ clearTimeout(t); pop.options.autoPan=pan; if(!pop.isOpen()) pop.setLatLng(ll).openOn(MAP); }, shut=()=>{ clearTimeout(t); if(!pinned) t=setTimeout(()=>MAP.closePopup(pop),220); };
+      pop.on('add',()=>{ mk.getElement()?.classList.add('popped'); const el=pop.getElement(); if(el){ el.onmouseenter=()=>clearTimeout(t); el.onmouseleave=shut; } }).on('remove',()=>{ mk.getElement()?.classList.remove('popped'); pinned=false; });
+      mk.on('mouseover',()=>show(false)).on('mouseout',shut).on('click',()=>{ pinned=true; show(true); });
+      mk.openCard=()=>{ pinned=true; show(true); }; }
     mk.on('click',()=>{ mapFocusId=e.id; if(!narrow.matches) renderList(); });
     MAPM.set(e.id,mk); MAPL.addLayer(mk); }
   const fs=$('#mstrip .film'); if(fs){ fs.outerHTML=filmStrip(); placeFilms($('#mstrip')); bindDays($('#mstrip')); $('#mstrip').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>go('e',b.dataset.id)); }
@@ -3975,7 +3981,7 @@ function mapFocus(id){
   const e=S.events.find(x=>x.id===id); if(!e) return; mapFocusId=id; renderList();
   if(!e.geo){ toast('No position yet',`Link «${e.name||'untitled'}» in its Location field`,'pin','warn',{label:'Open event',run:()=>go('e',id)}); return; }
   if(!MAP) return; const ll=[+e.geo.lat,+e.geo.lon]; mapRefresh(false); // its name shows at once
-  MAP.once('moveend',()=>{ mapRefresh(false); setTimeout(()=>MAPM.get(id)?.openPopup(),50); }); // the zoom re-creates the markers: look it up again
+  MAP.once('moveend',()=>{ mapRefresh(false); setTimeout(()=>MAPM.get(id)?.openCard?.(),50); }); // the zoom re-creates the markers: look it up again
   MAP.flyTo(ll,Math.max(MAP.getZoom(),10),{duration:.7});
 }
 /* date picker: single day or multi-day range, month grid, dots on days with other events */
