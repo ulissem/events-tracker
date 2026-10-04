@@ -480,6 +480,8 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .rh .rmeta{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--ink-2);margin-top:1px}
 .rh .rmeta span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .rh .rmeta svg{width:12px;height:12px;color:var(--ink-3)}
+.rh .rmeta > span{max-width:100%;min-width:0}
+.rh .rmeta .rnote{display:block;flex-basis:100%;overflow:hidden;text-overflow:ellipsis;color:var(--ink-3)} /* race notes: one line, full text when the race is open */
 .rh .ract{display:flex;gap:2px;opacity:0;transition:opacity .12s}
 .rh:hover .ract,.rh .ract:focus-within{opacity:1}
 .rbody{padding:14px 16px 16px}
@@ -2389,7 +2391,7 @@ function raceCard(e,c,ci,tpOpts){
   return `<div class="race ${open?'open':''}">
     <div class="rh" data-toggle="${esc(c.id)}">
       <button class="chev" type="button" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} ${esc(c.name||'race')}">${ic('chev',2.4)}</button>
-      <span class="rt"><b>${esc(c.name)||'<i>untitled race</i>'}</b><span class="rmeta">${meta.map(([i,t])=>`<span>${ic(i,1.8)}${esc(t)}</span>`).join('')}${c.notes?`<span style="color:var(--ink-3)">${esc(c.notes)}</span>`:''}</span></span>
+      <span class="rt"><b>${esc(c.name)||'<i>untitled race</i>'}</b><span class="rmeta">${meta.map(([i,t])=>`<span>${ic(i,1.8)}${esc(t)}</span>`).join('')}${c.notes?`<span class="rnote" title="${esc(c.notes)}">${esc(c.notes)}</span>`:''}</span></span>
       <span class="ract">${ci?`<button class="btn icon sm ghost" data-upct="${ci}" type="button" aria-label="Move up" title="Move up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>`:''}<button class="btn icon sm ghost del" data-delct="${ci}" type="button" aria-label="Delete race">${ic('x')}</button></span>
     </div>
     ${open?`<div class="rbody">
