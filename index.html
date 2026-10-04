@@ -1836,7 +1836,8 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .leaflet-control-attribution{max-width:44vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mstrip{left:0;right:0;bottom:0;border-radius:22px 22px 0 0;padding:6px 0 calc(10px + var(--sab));max-height:44%;overflow:auto;transition:max-height .35s cubic-bezier(.2,.8,.2,1)}
   .mstrip.tall{max-height:84%}
-  html:has(main.mapv),body:has(main.mapv){overflow:hidden;overscroll-behavior:none} main.mapv{min-height:0} /* the map view never scrolls the page (main's min-height ignored the tab bar: 58 px of page scroll) */
+  html:has(main.mapv),body:has(main.mapv){overflow:hidden;overscroll-behavior:none} main.mapv{min-height:0}
+  main{min-height:calc(100vh - var(--hh) - var(--tb))} /* the tab bar is already in body's padding: no 58 px of phantom scroll */ /* the map view never scrolls the page (main's min-height ignored the tab bar: 58 px of page scroll) */
   .mstrip:not(.tall){max-height:calc(var(--mlow,44%) + 10px);overflow:hidden} .mstrip:not(.tall) .mrows{opacity:0} .mstrip .mrows{transition:opacity .25s}
   /* the strip sits above the tab bar (which owns the safe area): no home-indicator padding to count, and the rows can't peek into the padding */ /* low = header + days only, the map gets the room; the event rows come with the tall strip */
   .mstrip .grip{display:block;width:36px;height:5px;border-radius:3px;background:var(--line-3);margin:4px auto 8px;cursor:pointer}
@@ -2999,7 +3000,7 @@ function renderEventList(L){
   const mapMode=route.view==='m';
   on(L,'[data-id]',b=>mapMode&&!b.closest('.film')?mapFocus(b.dataset.id):go('e',b.dataset.id));
   const refl=()=>{ renderList(); if(mapMode){ MAPV=null; mapRefresh(true); } };
-  $('#fl-q').oninput=e=>{ flt.q=e.target.value; refl(); };
+  $('#fl-q').oninput=e=>{ flt.q=e.target.value; refl(); if(narrow.matches) window.scrollTo(0,0); }; // phone: results always from the first one
   $('#fl-client').onchange=e=>{ flt.client=e.target.value; refl(); };
   $('#fl-status').onchange=e=>{ flt.status=e.target.value; refl(); };
   $('#fl-past').onchange=e=>{ flt.past=e.target.checked; refl(); };
