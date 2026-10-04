@@ -1686,7 +1686,8 @@ body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
 .fd.sel .fwd{color:var(--accent)}
 .row.dim{opacity:.38}
 .row.dim:hover{opacity:.7}
-.mpk.dim{opacity:.22} .mpk.dim .mlbl{display:none}
+.mpk.dim{opacity:.22}
+.mpk i{position:relative} .mpk i::after{content:'';position:absolute;inset:-8px;border-radius:50%} /* a finger-sized target around the small dot */
 .mpk.dim:hover{opacity:1}
 
 /* =====================================================================
@@ -1770,20 +1771,12 @@ main.mapv #detail{padding:0;position:relative}
 .nopos{top:58px;bottom:auto;left:16px;height:30px;border:0;border-radius:10px;background:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 0 .5px var(--warn);z-index:610}
 .mpin{background:none;border:0}
 .mpk{--c:var(--accent);position:absolute;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap;transform:translate(-4.5px,-50%);cursor:pointer}
-.mpk.L{flex-direction:row-reverse;transform:translate(calc(-100% + 4.5px),-50%)}
 .mpk i{width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1.5px var(--bg),0 0 8px color-mix(in srgb,var(--c) 55%,transparent);flex:none}
-.mpk .mlbl{display:flex;flex-direction:column;line-height:1.15;padding:5px 9px;border-radius:10px;background:color-mix(in srgb,var(--panel) 76%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2),0 6px 16px -8px rgba(0,0,0,.4)}
-.mpk .mlbl b{font-size:12.5px;font-weight:600;letter-spacing:-.005em}
-.mpk .mlbl small{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.mpk:hover .mlbl{background:var(--panel)}
 .mpk.focus i{animation:mpulse 2.2s ease-out infinite}
-.mpk.focus .mlbl{box-shadow:0 0 0 1.5px var(--c),0 6px 16px -8px rgba(0,0,0,.4)}
 @keyframes mpulse{0%{box-shadow:0 0 0 1.5px var(--bg),0 0 0 1.5px color-mix(in srgb,var(--c) 60%,transparent)}100%{box-shadow:0 0 0 1.5px var(--bg),0 0 0 12px transparent}}
-.mpk.up .mlbl{transform:translateY(-14px)} .mpk.dn .mlbl{transform:translateY(14px)}
-.mpk.nolbl .mlbl{display:none} /* not named (or no free spot at this zoom): just the dot, the label on hover */
 .leaflet-container .leaflet-popup-content-wrapper{background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:var(--ink);border-radius:16px;box-shadow:0 0 0 .5px var(--line-2),0 18px 40px -16px rgba(0,0,0,.5);border:0}
 .leaflet-container .leaflet-popup-tip{background:var(--panel);box-shadow:none}
-.mpk.past{opacity:.55} .mpk.past i{width:7px;height:7px;box-shadow:0 0 0 1.5px var(--bg)} .mpk.past .mlbl small{display:none}
+.mpk.past{opacity:.55} .mpk.past i{width:7px;height:7px;box-shadow:0 0 0 1.5px var(--bg)}
 .mstrip{position:absolute;left:16px;right:16px;bottom:16px;z-index:620;border-radius:18px;background:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 0 0 .5px var(--line-2),0 20px 40px -20px rgba(0,0,0,.6);padding:4px 0 6px}
 .mstrip .film{padding:8px 14px 4px;mask-image:none;-webkit-mask-image:none}
 .mstrip .grip,.mstrip .msh,.mstrip .mrows{display:none}
@@ -1792,7 +1785,6 @@ main.mapv #detail{padding:0;position:relative}
 .leaflet-container .evpop .leaflet-popup-content-wrapper{background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:18px;padding:0}
 .leaflet-container .evpop .leaflet-popup-tip-container{display:none}
 .leaflet-container .leaflet-popup.evpop{margin-bottom:0} /* sits just above the pin */
-.mpin.popped .mlbl{display:none!important} /* the card already says the name */
 .mcard{width:300px;padding:14px 14px 12px 16px;border-radius:18px;color:var(--ink);background:color-mix(in srgb,var(--panel) 82%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 0 0 .5px var(--line-2),0 18px 40px -14px rgba(0,0,0,.55);position:relative;overflow:hidden;font-size:13px;line-height:1.35} /* neutral glass on the map; the type keeps its colour in the label */
 .mcard::before{content:'';position:absolute;top:-55%;right:-25%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tint) 30%,transparent),transparent 70%);pointer-events:none}
 .mcard > *{position:relative}
@@ -3928,25 +3920,14 @@ const MAPM=new Map();
 function mapRefreshInner(fit){
   MAP.closePopup(); MAPL.clearLayers(); MAPM.clear(); const card=$('#mapcard'); if(card) card.hidden=true;
   const evs=mapEvents(), withPos=evs.filter(e=>e.geo), noPos=evs.filter(e=>!e.geo);
-  const lons=withPos.map(e=>+e.geo.lon).sort((a,b)=>a-b), median=lons.length?lons[Math.floor(lons.length/2)]:0;
   /* the next race day, like the Next up card: every event on that first day pulses */
   const up=evs.filter(e=>e.dateStart&&(e.dateEnd||e.dateStart)>=TODAY).sort((a,b)=>a.dateStart.localeCompare(b.dateStart)), nday=up[0]?(up[0].dateStart<TODAY?TODAY:up[0].dateStart):null;
   const isNext=e=>!!nday&&!!e.dateStart&&e.dateStart<=nday&&(e.dateEnd||e.dateStart)>=nday;
   if(fit){ if(MAPV) MAP.setView(MAPV.c,MAPV.z);
     else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),narrow.matches?{paddingTopLeft:[40,110],paddingBottomRight:[40,Math.round(innerHeight*.42)],maxZoom:10}:{paddingTopLeft:[100,50],paddingBottomRight:[100,210],maxZoom:10});
     else MAP.setView([42.6,9.4],6); }
-  /* names only where they help: the next race day, the picked day, the event chosen in the list; the rest show their card on hover */
-  const named=e=>isNext(e)||(selDay&&onSelDay(e))||e.id===mapFocusId;
-  /* label placement: pixel boxes, no two labels overlapping, none off the edge; side flips, then nudges up / down */
-  const side=new Map(), nudge=new Map(); { const W=innerWidth, boxes=[], hit=b=>b.x<4||b.x+b.w>MAP.getSize().x-4||boxes.some(o=>b.x<o.x+o.w&&b.x+b.w>o.x&&b.y<o.y+o.h&&b.y+b.h>o.y);
-    for(const e of withPos) if(!named(e)){ side.set(e.id,+e.geo.lon>median); nudge.set(e.id,'nolbl'); }
-    const pts=withPos.filter(named).map(e=>({e,p:MAP.latLngToContainerPoint([+e.geo.lat,+e.geo.lon]),w:Math.min(240,22+(e.name||'untitled').length*6.8)})).sort((a,b)=>a.p.y-b.p.y);
-    for(const {e,p,w} of pts){ const def=+e.geo.lon>median; let done=false;
-      for(const [L,n] of [[def,''],[!def,''],[def,'up'],[!def,'up'],[def,'dn'],[!def,'dn']]){ const b={x:L?p.x-7-w:p.x+7,y:p.y-17+(n==='up'?-14:n==='dn'?14:0),w,h:40}; if(!hit(b)){ boxes.push(b); side.set(e.id,L); nudge.set(e.id,n); done=true; break; } }
-      if(!done){ side.set(e.id,def); nudge.set(e.id,'nolbl'); } } }
-  for(const e of withPos){ const d=e.dateStart?diff(TODAY,e.dateStart):null, de=e.dateStart?diff(TODAY,e.dateEnd||e.dateStart):null, past=isPast(e);
-    const when=d===null?'no date':past?`${-de}d ago`:d<=0?'Today':`T−${d}`, pct=Math.round(progress(e)*100);
-    const html=`<span class="mpk ${isNext(e)?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''} ${side.get(e.id)?'L':''} ${nudge.get(e.id)}"><i></i><span class="mlbl"><b>${esc(e.name)||'untitled'}</b><small>${when}${past?'':` · ${pct}%`}</small></span></span>`;
+  for(const e of withPos){ const past=isPast(e);
+    const html=`<span class="mpk ${isNext(e)?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''}" aria-label="${esc(e.name)||'untitled'}"><i></i></span>`; // just the dot: name and details in the card (hover / click)
     const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html,iconSize:[0,0],iconAnchor:[0,0]}),riseOnHover:true,keyboard:false,title:''});
     if(narrow.matches) mk.on('click',()=>{ card.innerHTML=mapCard(e); card.hidden=false; });
     else { /* desktop: the card opens on hover (and closes when the pointer leaves pin and card); a click keeps it open */
