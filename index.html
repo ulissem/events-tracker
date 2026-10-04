@@ -1786,7 +1786,7 @@ main.mapv #detail{padding:0;position:relative}
 .mpk.focus .mlbl{box-shadow:0 0 0 1.5px var(--c),0 6px 16px -8px rgba(0,0,0,.4)}
 @keyframes mpulse{0%{box-shadow:0 0 0 1.5px var(--bg),0 0 0 1.5px color-mix(in srgb,var(--c) 60%,transparent)}100%{box-shadow:0 0 0 1.5px var(--bg),0 0 0 12px transparent}}
 .mpk.up .mlbl{transform:translateY(-14px)} .mpk.dn .mlbl{transform:translateY(14px)}
-.mpk.nolbl .mlbl{display:none} /* no free spot at this zoom: just the dot, the label returns when zooming in */
+.mpk.nolbl .mlbl{display:none} /* not named (or no free spot at this zoom): just the dot, the label on hover */
 .mpk.nolbl:hover .mlbl{display:flex}
 .leaflet-container .leaflet-popup-content-wrapper{background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:var(--ink);border-radius:16px;box-shadow:0 0 0 .5px var(--line-2),0 18px 40px -16px rgba(0,0,0,.5);border:0}
 .leaflet-container .leaflet-popup-tip{background:var(--panel);box-shadow:none}
@@ -3913,9 +3913,12 @@ function mapRefreshInner(fit){
   if(fit){ if(MAPV) MAP.setView(MAPV.c,MAPV.z);
     else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),narrow.matches?{paddingTopLeft:[40,110],paddingBottomRight:[40,Math.round(innerHeight*.42)],maxZoom:10}:{paddingTopLeft:[100,50],paddingBottomRight:[100,210],maxZoom:10});
     else MAP.setView([42.6,9.4],6); }
+  /* names only where they help: the next event, the picked day, the event chosen in the list; the rest on hover */
+  const named=e=>e===next||(selDay&&onSelDay(e))||e.id===mapFocusId;
   /* label placement: pixel boxes, no two labels overlapping, none off the edge; side flips, then nudges up / down */
   const side=new Map(), nudge=new Map(); { const W=innerWidth, boxes=[], hit=b=>b.x<4||b.x+b.w>MAP.getSize().x-4||boxes.some(o=>b.x<o.x+o.w&&b.x+b.w>o.x&&b.y<o.y+o.h&&b.y+b.h>o.y);
-    const pts=withPos.map(e=>({e,p:MAP.latLngToContainerPoint([+e.geo.lat,+e.geo.lon]),w:Math.min(240,22+(e.name||'untitled').length*6.8)})).sort((a,b)=>a.p.y-b.p.y);
+    for(const e of withPos) if(!named(e)){ side.set(e.id,+e.geo.lon>median); nudge.set(e.id,'nolbl'); }
+    const pts=withPos.filter(named).map(e=>({e,p:MAP.latLngToContainerPoint([+e.geo.lat,+e.geo.lon]),w:Math.min(240,22+(e.name||'untitled').length*6.8)})).sort((a,b)=>a.p.y-b.p.y);
     for(const {e,p,w} of pts){ const def=+e.geo.lon>median; let done=false;
       for(const [L,n] of [[def,''],[!def,''],[def,'up'],[!def,'up'],[def,'dn'],[!def,'dn']]){ const b={x:L?p.x-7-w:p.x+7,y:p.y-17+(n==='up'?-14:n==='dn'?14:0),w,h:40}; if(!hit(b)){ boxes.push(b); side.set(e.id,L); nudge.set(e.id,n); done=true; break; } }
       if(!done){ side.set(e.id,def); nudge.set(e.id,'nolbl'); } } }
@@ -3950,8 +3953,8 @@ function mapShowDay(){
 function mapFocus(id){
   const e=S.events.find(x=>x.id===id); if(!e) return; mapFocusId=id; renderList();
   if(!e.geo){ toast('No position yet',`Link «${e.name||'untitled'}» in its Location field`,'pin','warn',{label:'Open event',run:()=>go('e',id)}); return; }
-  if(!MAP) return; const ll=[+e.geo.lat,+e.geo.lon];
-  MAP.once('moveend',()=>{ setTimeout(()=>MAPM.get(id)?.openPopup(),50); }); // the zoom re-creates the markers: look it up again
+  if(!MAP) return; const ll=[+e.geo.lat,+e.geo.lon]; mapRefresh(false); // its name shows at once
+  MAP.once('moveend',()=>{ mapRefresh(false); setTimeout(()=>MAPM.get(id)?.openPopup(),50); }); // the zoom re-creates the markers: look it up again
   MAP.flyTo(ll,Math.max(MAP.getZoom(),10),{duration:.7});
 }
 /* date picker: single day or multi-day range, month grid, dots on days with other events */
