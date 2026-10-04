@@ -820,6 +820,7 @@ dialog::backdrop{background:var(--scrim)}
   .tabbar .tsave.dirty i{background:var(--warn)} .tabbar .tsave.saving i{background:var(--accent);animation:pulse 1s infinite}
   #toasts{bottom:calc(var(--tb) + 12px)}
   body.kb .tabbar,body.kb .agfab{display:none}
+  body.kb #list .mh{position:relative;top:auto} /* while the keyboard is up iOS pans the visual viewport: a sticky month header slid over the first result */
   .top{transform:translateY(var(--vvt,0px))}
   .tabbar,.agfab{transform:translateY(var(--vvb,0px))}
   #detail{padding-left:max(16px,var(--sal));padding-right:max(16px,var(--sar))}
