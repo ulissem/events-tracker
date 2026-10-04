@@ -1617,6 +1617,7 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .fi.td .ck{width:11px;height:11px;border-width:1.2px;background-size:8px}
 .fi.td:has(.ck:checked) span{text-decoration:line-through;color:var(--ink-3)}
 .fi:hover{filter:brightness(1.08)}
+.fi.more{background:none;color:var(--ink-2);justify-content:center;box-shadow:inset 0 0 0 1px var(--line-2)} .fi.more:hover{color:var(--ink);background:var(--sunken)}
 
 @media (max-width:860px){
   .hero{margin:0 -4px;border-radius:22px;min-height:380px}
@@ -1773,22 +1774,22 @@ main.mapv #detail{padding:0;position:relative}
 .leaflet-control-attribution{border-radius:6px;padding:1px 6px!important}
 .nopos{top:58px;bottom:auto;left:16px;height:30px;border:0;border-radius:10px;background:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 0 .5px var(--warn);z-index:610}
 .mpin{background:none;border:0}
-.mpk{--c:var(--accent);position:absolute;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap;transform:translate(-7px,-50%);cursor:pointer}
-.mpk.L{flex-direction:row-reverse;transform:translate(calc(-100% + 7px),-50%)}
-.mpk i{width:14px;height:14px;border-radius:50%;background:var(--c);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);flex:none}
+.mpk{--c:var(--accent);position:absolute;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap;transform:translate(-4.5px,-50%);cursor:pointer}
+.mpk.L{flex-direction:row-reverse;transform:translate(calc(-100% + 4.5px),-50%)}
+.mpk i{width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1.5px var(--bg),0 0 8px color-mix(in srgb,var(--c) 55%,transparent);flex:none}
 .mpk .mlbl{display:flex;flex-direction:column;line-height:1.15;padding:5px 9px;border-radius:10px;background:color-mix(in srgb,var(--panel) 76%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2),0 6px 16px -8px rgba(0,0,0,.4)}
 .mpk .mlbl b{font-size:12.5px;font-weight:600;letter-spacing:-.005em}
 .mpk .mlbl small{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
 .mpk:hover .mlbl{background:var(--panel)}
-.mpk.focus i{box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 22%,transparent),0 2px 8px rgba(0,0,0,.35);animation:mpulse 2.2s ease-out infinite}
+.mpk.focus i{animation:mpulse 2.2s ease-out infinite}
 .mpk.focus .mlbl{box-shadow:0 0 0 1.5px var(--c),0 6px 16px -8px rgba(0,0,0,.4)}
-@keyframes mpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c) 45%,transparent),0 2px 8px rgba(0,0,0,.35)}100%{box-shadow:0 0 0 14px transparent,0 2px 8px rgba(0,0,0,.35)}}
+@keyframes mpulse{0%{box-shadow:0 0 0 1.5px var(--bg),0 0 0 1.5px color-mix(in srgb,var(--c) 60%,transparent)}100%{box-shadow:0 0 0 1.5px var(--bg),0 0 0 12px transparent}}
 .mpk.up .mlbl{transform:translateY(-14px)} .mpk.dn .mlbl{transform:translateY(14px)}
 .mpk.nolbl .mlbl{display:none} /* no free spot at this zoom: just the dot, the label returns when zooming in */
 .mpk.nolbl:hover .mlbl{display:flex}
 .leaflet-container .leaflet-popup-content-wrapper{background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:var(--ink);border-radius:16px;box-shadow:0 0 0 .5px var(--line-2),0 18px 40px -16px rgba(0,0,0,.5);border:0}
 .leaflet-container .leaflet-popup-tip{background:var(--panel);box-shadow:none}
-.mpk.past{opacity:.55} .mpk.past i{width:10px;height:10px;border-width:2px} .mpk.past .mlbl small{display:none}
+.mpk.past{opacity:.55} .mpk.past i{width:7px;height:7px;box-shadow:0 0 0 1.5px var(--bg)} .mpk.past .mlbl small{display:none}
 .mstrip{position:absolute;left:16px;right:16px;bottom:16px;z-index:620;border-radius:18px;background:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 0 0 .5px var(--line-2),0 20px 40px -20px rgba(0,0,0,.6);padding:4px 0 6px}
 .mstrip .film{padding:8px 14px 4px;mask-image:none;-webkit-mask-image:none}
 .mstrip .grip,.mstrip .msh,.mstrip .mrows{display:none}
@@ -2838,6 +2839,7 @@ function filmStrip(){
       const bands=wEns.map(x=>!onDay(x,d)?'<span class="fb none"></span>':`<a class="fb ${esc(x.o.type)} ${d===x.s?'s':''} ${d===x.e?'e':''}" href="#/a" title="${esc(enLabel(x.o))}">${d===x.s||i===0?`<span>${ic(AG_TYPES[x.o.type]?.icon||'clock',2.2)}${esc(x.o.title||AG_TYPES[x.o.type]?.label||'')}</span>`:''}</a>`).join('');
       const its=[...es.map(e=>`<button type="button" class="fi ev ${e.id===route.id&&route.view==='e'?'on':''}" data-id="${esc(e.id)}" title="${esc(e.name)}">${d>e.dateStart?'<i>↳</i>':''}<span>${esc(e.name)||'untitled'}</span></button>`),
         ...td.map(t=>`<label class="fi td" title="${esc(t.text)}"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span>${esc(t.text||'To-do')}</span></label>`)];
+      if(its.length>3) its.splice(2,its.length,`<button type="button" class="fi more" data-day="${d}" aria-label="Show all on ${esc(fmtLong(d))}">+${its.length-2} more</button>`); // at most 3 lines: the strip keeps its height, the rest is one tap away
       days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''} ${d<TODAY?'past':''} ${d===selDay?'sel':''}"><button type="button" class="fdh" data-day="${d}" aria-pressed="${d===selDay}" aria-label="${esc(fmtLong(d))}"><span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span></button>${bands?`<div class="fbs">${bands}</div>`:''}<div class="its">${its.join('')}</div></div>`; }
     const short=w===0&&diff(TODAY,we)<2; // only Sat/Sun of this week left on screen: no room for the dates
     h+=`<div class="fw"><div class="wh"><span class="whl"><b>Week ${isoWeek(addDays(ws,3))}</b>${short?'':`<span>${esc(fmtShort(ws).slice(4))} – ${esc(fmtShort(we).slice(4))}</span>`}</span></div><div class="days">${days}</div></div>`; }
