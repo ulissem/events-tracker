@@ -3930,7 +3930,7 @@ function mapRefreshInner(fit){
   for(const e of withPos){ const past=isPast(e);
     const html=`<span class="mpk ${isNext(e)?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''}" aria-label="${esc(e.name)||'untitled'}"><i></i></span>`; // just the dot: name and details in the card (hover / click)
     const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html,iconSize:[0,0],iconAnchor:[0,0]}),riseOnHover:true,keyboard:false,title:''});
-    if(narrow.matches) mk.on('click',()=>{ card.innerHTML=mapCard(e); card.hidden=false; });
+    if(narrow.matches){ mk.openCard=()=>{ card.innerHTML=mapCard(e); card.hidden=false; }; mk.on('click',mk.openCard); }
     else { /* desktop: the card opens on hover (and closes when the pointer leaves pin and card); a click keeps it open */
       const ll=[+e.geo.lat,+e.geo.lon], pop=L.popup({className:'evpop',closeButton:false,offset:[0,-3],maxWidth:320,autoPan:false}).setContent(mapCard(e)); let t=0, pinned=false;
       const show=pan=>{ clearTimeout(t); pop.options.autoPan=pan; if(!pop.isOpen()) pop.setLatLng(ll).openOn(MAP); }, shut=()=>{ clearTimeout(t); if(!pinned) t=setTimeout(()=>MAP.closePopup(pop),220); };
@@ -3955,7 +3955,7 @@ function mapShowDay(){
   if(!MAP||!selDay) return;
   const es=mapEvents().filter(e=>e.geo&&onSelDay(e)); if(!es.length) return;
   const pts=es.map(e=>[+e.geo.lat,+e.geo.lon]);
-  if(pts.length===1) MAP.flyTo(pts[0],Math.max(MAP.getZoom(),10),{duration:.7});
+  if(pts.length===1){ const id=es[0].id; MAP.once('moveend',()=>setTimeout(()=>MAPM.get(id)?.openCard?.(),60)); MAP.flyTo(pts[0],Math.max(MAP.getZoom(),10),{duration:.7}); } // one race that day: its card opens too
   else MAP.flyToBounds(L.latLngBounds(pts),{paddingTopLeft:[120,60],paddingBottomRight:[120,narrow.matches?Math.round(innerHeight*.45):220],maxZoom:11,duration:.7});
 }
 /* desktop map mode: a row in the list flies the map to its pin and opens the card */
