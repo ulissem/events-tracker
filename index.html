@@ -1810,6 +1810,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .leaflet-control-attribution{max-width:44vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mstrip{left:0;right:0;bottom:0;border-radius:22px 22px 0 0;padding:6px 0 calc(10px + var(--sab));max-height:44%;overflow:auto;transition:max-height .35s cubic-bezier(.2,.8,.2,1)}
   .mstrip.tall{max-height:84%}
+  html:has(main.mapv),body:has(main.mapv){overflow:hidden;overscroll-behavior:none} main.mapv{min-height:0} /* the map view never scrolls the page (main's min-height ignored the tab bar: 58 px of page scroll) */
   .mstrip:not(.tall){max-height:calc(var(--mlow,44%) + 10px);overflow:hidden} .mstrip:not(.tall) .mrows{opacity:0} .mstrip .mrows{transition:opacity .25s}
   /* the strip sits above the tab bar (which owns the safe area): no home-indicator padding to count, and the rows can't peek into the padding */ /* low = header + days only, the map gets the room; the event rows come with the tall strip */
   .mstrip .grip{display:block;width:36px;height:5px;border-radius:3px;background:var(--line-3);margin:4px auto 8px;cursor:pointer}
@@ -3933,6 +3934,8 @@ function renderMap(D){
   { /* phone sheet gestures, like Apple Maps: swipe down (content at the top) lowers a tall strip, swipe up raises a low one */
     const M=$('#mstrip'); let g=null;
     M.addEventListener('touchstart',e=>{ g=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY,top:M.scrollTop}:null; },{passive:true});
+    M.addEventListener('touchmove',e=>{ if(!g||!narrow.matches) return; const t=e.touches[0], dy=t.clientY-g.y, dx=Math.abs(t.clientX-g.x); // vertical drags belong to the sheet: iOS must not scroll the page behind it
+      if(Math.abs(dy)>dx&&(!M.classList.contains('tall')||(dy>0&&M.scrollTop<=0))) e.preventDefault(); },{passive:false});
     M.addEventListener('touchend',e=>{ if(!g||!narrow.matches) return; const t=e.changedTouches[0], dy=t.clientY-g.y, dx=Math.abs(t.clientX-g.x), tall=M.classList.contains('tall');
       if(Math.abs(dy)>40&&Math.abs(dy)>dx*1.5&&g.top<=0){ if(dy>0&&tall) M.classList.remove('tall'); else if(dy<0&&!tall) M.classList.add('tall'); }
       g=null; },{passive:true}); }
