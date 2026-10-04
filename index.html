@@ -1698,7 +1698,10 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .hm-keys{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--ink-3);margin-top:26px}
 .hm-keys span{display:flex;gap:4px;align-items:center}
 /* while the Home is open the left column is just the list */
-@media (min-width:861px){ body:not(.showing-detail) #list .nextup,body:not(.showing-detail) #list .film{display:none} }
+@media (min-width:861px){
+  #list .nextup{display:none} main.mapv #list .nextup{display:grid}                      /* the green card on the left only next to the map */
+  #list .film{display:none} body.showing-detail main:not(.mapv) #list .film{display:flex} /* the strip on the left only while an event is open */
+}
 /* =====================================================================
    REDESIGN STAGE 4 — Atlas-style map: glass toolbar, glass labels, strip
    ===================================================================== */
@@ -2905,7 +2908,7 @@ function renderHome(D){
   const showH=priv(), openHours=showH?sumH(entriesOf(isOpen)):0;
   const cName=flt.client?clientName(flt.client):'';
   D.innerHTML=`<div class="home">
-    <div class="hm-head"><h1>${greet}</h1><span class="hm-date">${esc(DOWL[parse(TODAY).getDay()])} ${esc(fmtLong(TODAY).slice(4))} · ${plural(soon.length,'event','events')} in the next 4 weeks${cName?` · ${esc(cName)}`:''}</span><button class="btn primary" type="button" id="hm-new">${ic('plus',2.4)} New event</button></div>
+    <div class="hm-head"><h1>${greet}</h1><span class="hm-date">${esc(DOWL[parse(TODAY).getDay()])} ${esc(fmtLong(TODAY).slice(4))} · ${plural(soon.length,'event','events')} in the next 4 weeks${cName?` · ${esc(cName)}`:''}</span></div>
     ${nextUpCard()}
     ${filmStrip()}
     <div class="hm-grid">
@@ -2926,7 +2929,7 @@ function renderHome(D){
     </div>
     <div class="hm-keys"><span><kbd>${MOD}</kbd><kbd>K</kbd> jump to…</span><span><kbd>J</kbd><kbd>K</kbd> next / previous</span><span><kbd>?</kbd> all shortcuts</span><span><kbd>/</kbd> search</span></div>
   </div>`;
-  $('#hm-new').onclick=newItem; bindDays(D);
+  bindDays(D);
   on(D,'[data-id]',b=>go('e',b.dataset.id));
   on(D,'[data-go]',b=>go(b.dataset.go));
   D.querySelectorAll('[data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); renderList(); setTimeout(renderDetail,350); }); });
