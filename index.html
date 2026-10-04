@@ -2503,7 +2503,7 @@ function renderEvent(D){
   <section class="sec" id="s-rr14"><div class="sech" style="--sc:${SECC.rr14}"><h3>${secBadge('rr14')}RR14 and my.raceresult</h3></div>
   <div class="grid">
     <div class="fld mfull"><label class="lab" for="f-rrid">EventID <span class="lh">· copy, results, RR14</span></label><div class="in group"><span class="mono" style="color:var(--ink-3)">#</span><input class="bare mono" style="font-size:13px;min-width:56px" id="f-rrid" data-o="${ref(e)}" data-k="rr14EventId" data-r="change" value="${esc(e.rr14EventId)}" inputmode="numeric" placeholder="e.g. 409986"><span class="gbtns" style="display:flex;align-items:center;gap:1px"><button class="btn icon sm ghost" id="cpid" type="button" title="Copy EventID" aria-label="Copy EventID" ${e.rr14EventId?'':'aria-disabled="true"'}>${ic('copy',1.8)}</button><i class="gsep"></i>${extBtn(LK.res)}${extBtn(LK.rr)}</span></div></div>
-    <div class="fld span2"><span class="lab">Timing technology</span><div class="seg" role="radiogroup" aria-label="Timing technology">${Object.entries(TECH).map(([k,v])=>`<button type="button" role="radio" data-tech="${k}" aria-checked="${e.technology===k}"><img class="hwimg" src="${v.img}" alt="">${v.label}</button>`).join('')}</div></div>
+    <div class="fld"><span class="lab">Timing technology</span><div class="seg" role="radiogroup" aria-label="Timing technology">${Object.entries(TECH).map(([k,v])=>`<button type="button" role="radio" data-tech="${k}" aria-checked="${e.technology===k}"><img class="hwimg" src="${v.img}" alt="">${v.label}</button>`).join('')}</div></div>
   </div></section>
 
   <section class="sec" id="s-links"><div class="sech" style="--sc:${SECC.links}"><h3>${secBadge('links')}Links and documents ${e.links.length?`<span class="count">${e.links.length}</span>`:''}</h3><span class="sp"></span><button class="btn sm" id="addlink" type="button">${ic('plus',2.2)} Link</button></div>
@@ -3205,7 +3205,7 @@ function geoLineHTML(e){
 }
 function locationField(e){
   const gs=geoState(e);
-  return `<div class="fld geo span2"><label class="lab" for="f-loc">Location <span class="lh">· street or town</span></label>
+  return `<div class="fld geo"><label class="lab" for="f-loc">Location <span class="lh">· street or town</span></label>
     <div class="in group"><input class="bare" id="f-loc" data-o="${ref(e)}" data-k="location" value="${esc(e.location)}" placeholder="Town, venue" autocomplete="off"><button class="btn icon sm ghost geobtn ${gs==='linked'?'on':''}" id="geobtn" type="button" data-tip="${gs==='linked'?'Position linked · search again':'Find on map'}" aria-label="Find on map">${ic(gs==='linked'?'pinfill':'pin',1.9)}</button></div>
     ${geoLineHTML(e)}</div>`;
 }
