@@ -1554,7 +1554,16 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .nextup .td.more{font-size:12px;opacity:.85}
 .nextup .nfoot{grid-column:1 / -1;display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12px;color:rgba(255,255,255,.85);margin-top:8px}
 .nextup .nfoot b{color:#fff} .nextup .nfoot .r{margin-left:auto}
-.nextup.multi .nmeta{grid-column:2 / -1}
+.nuhead{grid-column:1 / -1;display:flex;align-items:baseline;gap:4px 12px;flex-wrap:wrap;position:relative}
+.nuhead .big{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.nuhead .date{font-size:15px;font-weight:600;color:rgba(255,255,255,.85);letter-spacing:-.01em}
+.nuhead .live{display:inline-flex;align-items:center;gap:9px}
+.nuhead .live i{width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.3);animation:hlive 1.6s ease-out infinite}
+.home .nuhead .big{font-size:38px} .home .nuhead .date{font-size:24px}
+.home .nuhead .live{gap:14px} .home .nuhead .live i{width:14px;height:14px;box-shadow:0 0 0 5px rgba(255,255,255,.3)}
+.rpc{position:relative;display:inline-grid;place-items:center;flex:none}
+.rpc > b{position:absolute;font-size:12.5px;font-weight:700;letter-spacing:-.02em;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif}
+.rpc > b small{font-size:8px;font-weight:700;margin-left:1px}
 .nextup .nus{grid-column:1 / -1;display:flex;flex-direction:column;gap:4px;margin-top:8px;position:relative}
 .nur{display:flex;align-items:center;gap:10px;border:0;border-radius:10px;padding:7px 8px 7px 10px;background:rgba(255,255,255,.14);color:#fff;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer;min-width:0}
 .nur:hover{background:rgba(255,255,255,.24)}
@@ -2807,11 +2816,10 @@ function nuDay(grp,day,wide){
     ...trips.slice(0,2).map(i=>`<a class="td" href="#/a">${ic('plane',1.8)}<span class="tx">Travel${i.o.title?' · '+esc(i.o.title):''}</span><span class="when">${esc(dueTxt(i.s))}${i.o.time?' '+esc(i.o.time):''}</span></a>`)];
   const km=e=>e.contests.reduce((a,c)=>a+num(c.distance),0);
   const races=grp.reduce((a,e)=>a+e.contests.length,0), oq=grp.reduce((a,e)=>a+openQ(e).length,0);
-  const dn=live?`<span class="live"><i></i>Race day</span>`:`${d}<small>${d===1?'day':'days'}</small>`;
+  const big=live?`<span class="live"><i></i>Race day</span>`:d===1?'Tomorrow':`In ${d} days`;
   return `<div class="nextup multi" style="${tintStyle(grp[0])}">
-    <div class="cdn">${dn}</div>
-    <div class="nmeta"><div class="ovl">${live?'Now':'Next up'} · ${esc(fmtShort(day))}</div><div class="n">${grp.length} events</div></div>
-    <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" style="--c:${tintOf(e).a}" aria-label="Open ${esc(e.name)}"><i></i><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small>${wide?`<small>${plural(e.contests.length,'race','races')}${km(e)?' · '+fmtN(km(e))+' km':''} · ${plural(e.timingPoints.length,'timing point','timing points')}${openQ(e).length?' · '+plural(openQ(e).length,'open question','open questions'):''}</small>`:''}</span><span title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),wide?30:22,wide?3:2.5)}</span></button>`).join('')}</div>
+    <div class="nuhead"><span class="big">${big}</span><span class="date">${esc(DOWL[parse(day).getDay()])} ${esc(fmtShort(day).slice(4))}</span></div>
+    <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" style="--c:${tintOf(e).a}" aria-label="Open ${esc(e.name)}"><i></i><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small>${wide?`<small>${plural(e.contests.length,'race','races')}${km(e)?' · '+fmtN(km(e))+' km':''} · ${plural(e.timingPoints.length,'timing point','timing points')}${openQ(e).length?' · '+plural(openQ(e).length,'open question','open questions'):''}</small>`:''}</span>${wide?`<span class="rpc" title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),48,3.5)}<b>${Math.round(progress(e)*100)}<small>%</small></b></span>`:`<span title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),22,2.5)}</span>`}</button>`).join('')}</div>
     ${items.length?`<div class="due">${items.join('')}</div>`:''}
     <div class="nfoot"><span><b>${races}</b> ${races===1?'race':'races'}</span><span class="r">${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
   </div>`;
