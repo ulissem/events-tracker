@@ -1427,12 +1427,13 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .hero,.nextup,.mcard{--tint-soft:color-mix(in srgb,var(--tint,var(--accent)) 14%,transparent);--tint-glow:color-mix(in srgb,var(--tint,var(--accent)) 38%,transparent)}
 .hero{position:relative;border-radius:24px;background:var(--panel);box-shadow:var(--shadow-sm);overflow:hidden;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate}
 .hero::before{content:'';position:absolute;inset:-40px;background:radial-gradient(60% 50% at 70% 10%,var(--tint-glow),transparent 70%);z-index:0;pointer-events:none}
-.htiles{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);aspect-ratio:2/1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;z-index:0;filter:saturate(.9)}
+.hero{--fx:.7;--fy:.45;--tw:25%} /* where the place lands in the hero (right of the title, clear of the ring), tile width as a share of the hero width */
+.htiles{position:absolute;left:calc(var(--fx)*100% - var(--px)*var(--tw));top:calc(var(--fy)*100%);margin-top:calc(var(--py)*var(--tw)*-1);width:calc(5*var(--tw));aspect-ratio:5/4;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(4,1fr);z-index:0;filter:saturate(.9)}
 .htiles img{width:100%;height:100%;display:block;object-fit:cover}
-.htiles .hs2{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;mix-blend-mode:multiply;opacity:.55}
+.htiles .hs2{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(4,1fr);mix-blend-mode:multiply;opacity:.55}
 :root[data-theme="dark"] .htiles .hs2{mix-blend-mode:soft-light;opacity:.9}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .htiles .hs2{mix-blend-mode:soft-light;opacity:.9} }
-.hpin{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--tint);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);transform:translate(-50%,-50%);z-index:2}
+.hpin{position:absolute;left:calc(var(--fx)*100%);top:calc(var(--fy)*100%);width:14px;height:14px;border-radius:50%;background:var(--tint);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);transform:translate(-50%,-50%);z-index:2;pointer-events:none}
 .hpin::after{content:'';position:absolute;inset:-10px;border-radius:50%;border:2px solid var(--tint);opacity:0;animation:hpulse 2.4s ease-out infinite}
 @keyframes hpulse{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.6);opacity:0}}
 .hscrim{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 45%,var(--panel) 82%),linear-gradient(90deg,var(--panel) 0%,rgba(255,255,255,0) 55%)}
@@ -1625,10 +1626,7 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
   .hdate .num{font-size:22px}
   .hr{flex-direction:row;justify-content:space-between;align-items:center}
   .ringbox{width:84px;height:84px}
-  .htiles{top:0;transform:none;aspect-ratio:auto;height:62%;grid-template-columns:repeat(2,1fr);grid-template-rows:1fr 1fr}
-  .htiles > img:nth-child(n+3):nth-child(-n+4),.htiles > img:nth-child(n+7){display:none}
-  .htiles .hs2{grid-template-columns:repeat(2,1fr)}
-  .htiles .hs2 img:nth-child(n+3):nth-child(-n+4),.htiles .hs2 img:nth-child(n+7){display:none}
+  .hero{--tw:50%;--fx:.5;--fy:.3} /* phone: bigger tiles, the place in the upper half, above the title */
   .hpin{display:none}
   .hscrim{background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.2) 35%,var(--panel) 62%)!important}
   .road{margin:12px -4px 0;padding:12px 14px}
@@ -2785,13 +2783,13 @@ function isoWeek(s){ const d=parse(s), t=new Date(Date.UTC(d.getFullYear(),d.get
 function heroTiles(e){
   const g=e.geo; if(!g||!isFinite(+g.lat)||!isFinite(+g.lon)) return '';
   const z=11, n=2**z, la=+g.lat*Math.PI/180, x=(+g.lon+180)/360*n, y=(1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n;
-  const x0=Math.floor(x)-1, y0=(y%1)>=.5?Math.floor(y):Math.floor(y)-1;
+  const C=5, R=4, x0=Math.floor(x-.7*4), y0=Math.floor(y)-1; // a 5×4 mosaic shifted (in CSS) so the place lands at the hero's --fx/--fy
   const dark=isDark(), key=String(S.config.cartoKey||'').trim(), E='https://server.arcgisonline.com/ArcGIS/rest/services/';
   const url=(tx,ty)=>key?`https://basemaps.cartocdn.com/rastertiles/${dark?'dark_all':'light_all'}/${z}/${tx}/${ty}@2x.png?key=${encodeURIComponent(key)}`:`${E}Canvas/${dark?'World_Dark_Gray_Base':'World_Light_Gray_Base'}/MapServer/tile/${z}/${ty}/${tx}`;
-  let h='<div class="htiles" aria-hidden="true">';
-  for(let r=0;r<2;r++) for(let c=0;c<4;c++) h+=`<img alt="" src="${url(x0+c,y0+r)}" onerror="this.style.visibility='hidden'">`;
-  if(!key){ h+='<div class="hs2">'; for(let r=0;r<2;r++) for(let c=0;c<4;c++) h+=`<img alt="" src="${E}Elevation/World_Hillshade/MapServer/tile/${z}/${y0+r}/${x0+c}" onerror="this.remove()">`; h+='</div>'; }
-  return h+`<span class="hpin" style="left:${((x-x0)/4*100).toFixed(1)}%;top:${((y-y0)/2*100).toFixed(1)}%"></span></div>`;
+  let h=`<div class="htiles" aria-hidden="true" style="--px:${(x-x0).toFixed(3)};--py:${(y-y0).toFixed(3)}">`;
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++) h+=`<img alt="" src="${url(x0+c,y0+r)}" onerror="this.style.visibility='hidden'">`;
+  if(!key){ h+='<div class="hs2">'; for(let r=0;r<R;r++) for(let c=0;c<C;c++) h+=`<img alt="" src="${E}Elevation/World_Hillshade/MapServer/tile/${z}/${y0+r}/${x0+c}" onerror="this.remove()">`; h+='</div>'; }
+  return h+'</div><span class="hpin"></span>'; // the pin sits above the scrim, at the same spot
 }
 /* Next up: the first event still to come — days to go, what is due before it, the trip, the key counts */
 function nextUpCard(home){
