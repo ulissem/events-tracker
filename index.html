@@ -1331,6 +1331,10 @@ input[type=checkbox].ck:checked{background-color:var(--accent);border-color:var(
 .sec > .grid > .fld .help,.sec > .grid > .fld .geoline{margin-top:4px}
 .sec > .grid > .fld .in.group .geobtn,.sec > .grid > .fld .in.group .geomap{width:28px;height:28px;border-radius:8px;flex:none}
 .geoline{flex-wrap:nowrap} .geoline.warn{flex-wrap:wrap}
+.lab .geook{display:inline-flex;align-items:center;gap:4px;min-width:0;overflow:hidden;color:var(--ink-3)}
+.lab .geook svg{width:11px;height:11px;color:var(--ok);flex:none}
+.lab .geook span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fld.geo .lab{flex-wrap:nowrap;min-width:0}
 .geomap{color:var(--ink-3)} .geomap:hover{color:var(--accent)}
 
 /* sections: title outside, cards inside */
@@ -3496,20 +3500,22 @@ function geoText(r){
 }
 function geoLineHTML(e){
   const gs=geoState(e), g=e.geo;
-  if(gs==='linked') return `<div class="geoline ok" id="geoline">${ic('check',2.6)}<span class="gl" title="${esc(g.label)} · ${g.lat}, ${g.lon}">${esc(g.label||g.text)}</span></div>`;
+  if(gs==='linked') return `<div class="geoline" id="geoline" hidden></div>`;
   if(gs==='stale') return `<div class="geoline warn" id="geoline">${ic('warn',2.2)}<span class="gl">Position still points to ${esc(g.text||g.label)}</span><i class="dot"></i><button type="button" class="lnk" data-geokeep>Keep</button><i class="dot"></i><button type="button" class="lnk" data-geofind>Find again</button></div>`;
   return `<div class="geoline" id="geoline" hidden></div>`;
 }
 function locationField(e){
   const gs=geoState(e);
-  return `<div class="fld geo"><label class="lab" for="f-loc">Location <span class="lh">· street or town</span></label>
+  return `<div class="fld geo"><label class="lab" for="f-loc">Location ${geoHint(e)}</label>
     <div class="in group"><input class="bare" id="f-loc" data-o="${ref(e)}" data-k="location" value="${esc(e.location)}" placeholder="Town, venue" autocomplete="off"><button class="btn icon sm ghost geobtn ${gs==='linked'?'on':''}" id="geobtn" type="button" data-tip="${gs==='linked'?'Position linked · search again':'Find on map'}" aria-label="Find on map">${ic(gs==='linked'?'pinfill':'pin',1.9)}</button>${geoMapBtn(e)}</div>
     ${geoLineHTML(e)}</div>`;
 }
+const geoHint=e=>{ const g=e.geo; return geoState(e)==='linked'?`<span class="lh geook" id="geohint" title="${esc(g.label)} · ${g.lat}, ${g.lon}">${ic('check',2.8)}<span>${esc(g.label||g.text)}</span></span>`:`<span class="lh" id="geohint">· street or town</span>`; };
 const geoMapBtn=e=>geoState(e)==='linked'?`<a class="btn icon sm ghost geomap" id="geomap" href="${esc(mapsUrl(e.geo))}" target="_blank" rel="noopener noreferrer" data-tip="Open map · ${e.geo.lat}, ${e.geo.lon}" aria-label="Open map">${ic('ext',1.9)}</a>`:'';
 /* typing in Location only refreshes the line and the pin, never the input itself (it keeps the focus) */
 function geoLineUpdate(e){ const gs=geoState(e), b=$('#geobtn'); $('#geoline')?.insertAdjacentHTML('afterend',geoLineHTML(e)); $('#geoline')?.remove();
   $('#geomap')?.remove(); if(b&&gs==='linked') b.insertAdjacentHTML('afterend',geoMapBtn(e));
+  $('#geohint')?.insertAdjacentHTML('afterend',geoHint(e)); $('#geohint')?.remove();
   if(b){ b.classList.toggle('on',gs==='linked'); b.innerHTML=ic(gs==='linked'?'pinfill':'pin',1.9); b.dataset.tip=gs==='linked'?'Position linked · search again':'Find on map'; } }
 let geoE=null;
 async function geoSearch(btn,e){
