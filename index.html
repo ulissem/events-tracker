@@ -3888,9 +3888,7 @@ function renderMap(D){
       <div class="mstrip" id="mstrip"><div class="grip" id="mgrip" role="button" aria-label="Expand"></div><div class="msh"><span>Next weeks</span><span class="mc" id="mapcount"></span><span class="mq" id="mapq"></span></div>${filmStrip()}<div class="mrows" id="mrows"></div></div>
       <div class="mapcard" id="mapcard" hidden></div>
     </div>`;
-  D.querySelectorAll('#mstrip [data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); }); });
-  on(D,'#mstrip [data-id]',b=>go('e',b.dataset.id));
-  $('#mgrip').onclick=()=>$('#mstrip').classList.toggle('tall'); bindDays(D);
+  $('#mgrip').onclick=()=>$('#mstrip').classList.toggle('tall'); bindMapStrip();
   const refit=()=>{ MAPV=null; mapRefresh(true); };
   $('#fm-q')?.addEventListener('input',e=>{ flt.q=e.target.value; refit(); });
   $('#fm-client')?.addEventListener('change',e=>{ flt.client=e.target.value; refit(); });
@@ -3943,8 +3941,9 @@ function mapRefreshInner(fit){
       mk.openCard=()=>{ pinned=true; show(true); }; }
     mk.on('click',()=>{ mapFocusId=e.id; if(!narrow.matches) renderList(); });
     MAPM.set(e.id,mk); MAPL.addLayer(mk); }
-  const fs=$('#mstrip .film'); if(fs){ fs.outerHTML=filmStrip(); placeFilms($('#mstrip')); bindDays($('#mstrip')); $('#mstrip').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>go('e',b.dataset.id)); }
+  const fs=$('#mstrip .film'); if(fs){ fs.outerHTML=filmStrip(); placeFilms($('#mstrip')); }
   const mr=$('#mrows'); if(mr) mr.innerHTML=evs.filter(e=>!isPast(e)).map(e=>{ const c=countdown(e), sd=e.dateStart?parse(e.dateStart):null; return `<button class="mrow" type="button" data-id="${esc(e.id)}"><span class="rd"><b>${sd?sd.getDate():'–'}</b><small>${sd?DOW[sd.getDay()]:''}</small></span><span class="rm"><span class="rn"><span>${esc(e.name)||'untitled'}</span></span><span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span>${esc(e.status)}</span><span>· ${esc(e.location||'no location')}</span></span></span><span class="rr"><span class="cd ${c.c}">${c.t}</span>${e.geo?'':`<span class="ri">${ic('warn',2.2)}</span>`}</span></button>`; }).join('');
+  bindMapStrip();
   const mq=$('#mapq'); if(mq){ const n=evs.reduce((a,e)=>a+openQ(e).length,0); mq.textContent=n?plural(n,'open question','open questions'):''; }
   const np=$('#nopos'); np.hidden=!noPos.length;
   np.innerHTML=`${ic('pin',2.2)}<b>${noPos.length}</b> ${noPos.length===1?'event':'events'} without position`;
@@ -3954,6 +3953,13 @@ function mapRefreshInner(fit){
   const mc=$('#mapcount'); if(mc) mc.textContent=`${plural(evs.length,'event','events')} · ${withPos.length} on the map`;
 }
 
+/* the map's strip is re-drawn on every refresh: (re)bind days, to-dos, races (fly + card) and the phone rows (open the event) */
+function bindMapStrip(){
+  const M=$('#mstrip'); if(!M) return; bindDays(M);
+  M.querySelectorAll('.film [data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); }); });
+  M.querySelectorAll('.film [data-id]').forEach(b=>b.onclick=()=>mapFocus(b.dataset.id));
+  M.querySelectorAll('.mrows [data-id]').forEach(b=>b.onclick=()=>go('e',b.dataset.id));
+}
 /* a day picked in the strip: bring its placed events into view (one → fly to it, several → fit them all) */
 function mapShowDay(){
   if(!MAP||!selDay) return;
@@ -3966,7 +3972,7 @@ function mapShowDay(){
 function mapFocus(id){
   const e=S.events.find(x=>x.id===id); if(!e) return; mapFocusId=id; renderList();
   if(!e.geo){ toast('No position yet',`Link «${e.name||'untitled'}» in its Location field`,'pin','warn',{label:'Open event',run:()=>go('e',id)}); return; }
-  if(!MAP) return; const ll=[+e.geo.lat,+e.geo.lon]; mapRefresh(false); // its name shows at once
+  if(!MAP) return; const ll=[+e.geo.lat,+e.geo.lon]; mapRefresh(false); // its row and pin update at once
   MAP.once('moveend',()=>{ mapRefresh(false); setTimeout(()=>MAPM.get(id)?.openCard?.(),50); }); // the zoom re-creates the markers: look it up again
   MAP.flyTo(ll,Math.max(MAP.getZoom(),10),{duration:.7});
 }
