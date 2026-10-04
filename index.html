@@ -1759,7 +1759,7 @@ body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
 .maphead .switch{height:34px;padding:0 12px;border-radius:10px}
 .maphead .msrch{width:300px}
 .mapwrap{background:var(--bg)}
-main.mapv #detail{padding:0;position:relative}
+main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + strip z-indexes (600+) stay inside: bottom sheets and their scrim go above */
 .mapel{z-index:0}
 .leaflet-container{background:var(--bg)}
 .leaflet-top.leaflet-right{top:58px}
@@ -3721,7 +3721,7 @@ function closePops(){
   for(const id of ['dp','menu','pinpop','geopop','geoinfo']){ const p=document.getElementById(id); if(!p.hidden){ p.hidden=true; if(id==='dp'&&DP.onClose&&DP.changed){ const f=DP.onClose; DP.onClose=null; f(); } if(id==='pinpop'&&pinT){ pinT=null; renderDetail(); } } }
   popAnchor?.classList.remove('on'); popAnchor=null;
 }
-document.addEventListener('pointerdown',e=>{ if(!e.target.closest('.pop,.dtrig,#statusbtn,#morebtn,#geobtn,#geohint,#nopos,[data-pos],[data-note],[data-tnote]')) closePops(); });
+document.addEventListener('pointerdown',e=>{ if(!e.target.closest('#scrim,.pop,.dtrig,#statusbtn,#morebtn,#geobtn,#geohint,#nopos,[data-pos],[data-note],[data-tnote]')) closePops(); });
 window.addEventListener('resize',()=>{ if(!narrow.matches&&document.querySelector('.pop.bsheet:not([hidden])')) closePops(); });
 // iOS: after the keyboard closes WebKit can leave the visual viewport panned (or the layout viewport short),
 // so the sticky header slides off the top and the fixed tab bar floats mid-screen. Hide the bars while typing,
@@ -5043,7 +5043,7 @@ document.addEventListener('touchend',ptrEnd,{passive:true}); document.addEventLi
 
 
 $('#dscrim').addEventListener('pointerdown',()=>closeDrawer());
-$('#scrim').addEventListener('pointerdown',()=>closePops());
+$('#scrim').addEventListener('click',()=>closePops()); // on click, not pointerdown: the tap must not fall through to what lies under the scrim
 { let sx=null; const L=$('#list');
   L.addEventListener('touchstart',e=>{ sx=document.body.classList.contains('drawer')?e.touches[0].clientX:null; },{passive:true});
   L.addEventListener('touchmove',e=>{ if(sx!==null&&e.touches[0].clientX-sx<-60){ sx=null; closeDrawer(); } },{passive:true}); }
