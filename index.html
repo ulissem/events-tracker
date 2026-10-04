@@ -609,6 +609,29 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .menu button .mk svg{width:14px;height:14px}
 .menu button > svg{width:16px;height:16px;color:var(--ink-2)}
 .menu .mlab{font-size:11px;color:var(--ink-3);padding:6px 9px 4px;font-weight:500}
+/* More menu, iOS-settings style */
+#menu.more{width:320px;padding:10px;background:var(--bg)}
+#menu.more .msave{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--panel)}
+#menu.more .msave > i{width:8px;height:8px;border-radius:50%;flex:none;background:var(--ok)}
+#menu.more .msave.dirty > i,#menu.more .msave.saving > i{background:var(--warn)} #menu.more .msave.err > i{background:var(--danger)}
+#menu.more .msave > div{flex:1;min-width:0;display:flex;flex-direction:column} #menu.more .msave b{font-size:14px;font-weight:600}
+#menu.more .msave small{font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#menu.more .msave button{width:auto;height:30px;padding:0 10px;gap:5px;color:var(--accent);font-weight:600;font-size:13px;border-radius:8px;flex:none}
+#menu.more .msave button svg{width:14px;height:14px}
+#menu.more .mtiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+#menu.more .mtiles button{height:auto;flex-direction:column;align-items:flex-start;gap:0;padding:12px;border-radius:12px;background:var(--panel)}
+#menu.more .mtiles b{font-size:14px;font-weight:600;margin-top:8px} #menu.more .mtiles small{font-size:12px;color:var(--ink-2)}
+#menu.more .mi{width:28px;height:28px;border-radius:8px;flex:none;display:grid;place-items:center;font-size:16px;color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent)}
+#menu.more .mi svg{width:17px;height:17px}
+#menu.more .mtiles .mi{width:30px;height:30px}
+#menu.more .mglab{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:14px 4px 6px}
+#menu.more .mgrp{border-radius:12px;background:var(--panel);margin-top:10px;overflow:hidden} #menu.more .mglab + .mgrp{margin-top:0}
+#menu.more .mgrp button{height:46px;gap:12px;padding:0 12px;border-radius:0;font-size:14px;position:relative}
+#menu.more .mgrp button + button::before{content:'';position:absolute;left:52px;right:0;top:0;height:.5px;background:var(--line-2)}
+#menu.more .mgrp .ml{flex:1;min-width:0} #menu.more .mc{color:var(--ink-4);display:flex} #menu.more .mc svg{width:14px;height:14px}
+#menu.more .mv{font-size:12px;color:var(--ink-3)}
+#menu.more .mgrp .mout{justify-content:center;color:var(--danger);font-weight:500}
+#menu.more button:hover{background:color-mix(in srgb,var(--ink) 6%,var(--panel))}
 #pinpop{width:290px;padding:12px}
 #pinpop .acts{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:6px}
 
@@ -2706,10 +2729,14 @@ function sortable(root){
    SAVE STATE + TOAST
    ===================================================================== */
 function ago(t){ const s=Math.round((Date.now()-t)/1000); if(s<45) return 'just now'; const m=Math.round(s/60); if(m<60) return `${m} min ago`; return `${Math.round(m/60)} h ago`; }
-function updSave(){
+function saveInfo(){
   const off=errMsg==='Offline';
   const st=off?'dirty':errMsg?'err':saving?'saving':dirty||hoursWaiting()?'dirty':'saved';
   const txt=stateMsg||(off?(dirty?'Offline · changes kept on this device':'Offline'):errMsg)||(saving?'Saving…':dirty?'Unsaved changes':hoursWaiting()?`Unlock ${U().icon} to sync hours`:DEMO?'Demo · not saved':lastSaved?`Saved · ${ago(lastSaved)}`:'Up to date');
+  return {off,st,txt};
+}
+function updSave(){
+  const {off,st,txt}=saveInfo();
   const el=$('#savestate'); if(el){ el.className='savestate '+st; el.querySelector('span').textContent=txt; }
   const b=$('#savebtn'); if(b){ b.className='btn icon ghost '+st; b.dataset.tip=off?(dirty?'Offline — changes are kept on this device and pushed when you are back online':'Offline'):errMsg?`${errMsg} — click to retry`:saving?'Saving…':dirty?'Unsaved changes — save':'Saved'; b.dataset.kbd=`${MOD} S`; b.setAttribute('aria-label',b.dataset.tip); }
   const t=$('#tsave'); if(t){ t.className='tsave '+st; t.querySelector('span').textContent=off?'Offline':errMsg?'Retry':dirty?'Save':saving?'Saving…':'Saved'; }
@@ -3755,7 +3782,7 @@ function place(pop,anchor,align='left'){
 }
 let popAnchor=null;
 function closePops(){
-  $('#scrim').hidden=true;
+  $('#scrim').hidden=true; $('#menu').classList.remove('more');
   if(!$('#notepop').hidden){ $('#notepop').hidden=true; if(noteT){ noteT=null; renderDetail(); } }
   for(const id of ['dp','menu','pinpop','geopop','geoinfo']){ const p=document.getElementById(id); if(!p.hidden){ p.hidden=true; if(id==='dp'&&DP.onClose&&DP.changed){ const f=DP.onClose; DP.onClose=null; f(); } if(id==='pinpop'&&pinT){ pinT=null; renderDetail(); } } }
   popAnchor?.classList.remove('on'); popAnchor=null;
@@ -3787,20 +3814,24 @@ window.addEventListener('resize',()=>{ if(!narrow.matches&&document.querySelecto
 let popTouch=0; document.addEventListener('pointerdown',e=>{ if(e.target.closest?.('.pop')) popTouch=Date.now(); },true);
 document.addEventListener('scroll',e=>{ if(narrow.matches||Date.now()-popTouch<600) return; if(!e.target.closest?.('.pop')) closePops(); },true);
 /* phone "more" sheet: theme, private data, shortcuts, settings, log out */
+/* More menu (sheet on phones, popover on desktop) = iOS-settings style: save state, two toggle tiles, grouped rows */
 function openMore(btn){
   if(!$('#menu').hidden&&popAnchor===btn){ closePops(); return; } closePops();
-  const m=$('#menu');
-  m.innerHTML=`<div class="mlab">More</div>
-    <button type="button" data-mm="theme">${ic(isDark()?'sun':'moon',1.9)}${isDark()?'Light theme':'Dark theme'}</button>
-    <button type="button" data-mm="values"><span style="width:19px;text-align:center">${esc(U().icon)}</span>${priv()?'Lock private data':'Unlock private data…'}</button>
-    <button type="button" data-mm="prompt">${ic('sparkle',1.8)}Copy AI prompt</button>
-    <button type="button" data-mm="import">${ic('upload',1.8)}Import from AI (JSON)</button>
-    <button type="button" data-mm="refresh">${ic('refresh',1.8)}Refresh data</button>
-    <button type="button" data-mm="reload">${ic('refresh',1.8)}Reload app</button>
-    <button type="button" data-mm="keys">${ic('keyboard',1.8)}Keyboard shortcuts</button>
-    <button type="button" data-mm="settings">${ic('gear',1.8)}Settings</button>
-    <button type="button" data-mm="logout">${ic('logout',1.9)}Log out</button>`;
-  on(m,'[data-mm]',b=>{ const k=b.dataset.mm; closePops(); if(k==='theme') toggleTheme(); else if(k==='values') togglePrivacy(); else if(k==='settings') openSettings(); else if(k==='keys') openKeys(); else if(k==='prompt') openPrompt(); else if(k==='refresh') refreshData(); else if(k==='reload') reloadApp(); else if(k==='import') openImport(); else logout(); });
+  const m=$('#menu'), {st,txt}=saveInfo(), needSave=st==='dirty'||st==='err';
+  const row=(k,icon,label,c,end='')=>`<button type="button" data-mm="${k}"><span class="mi" style="--c:${c}">${ic(icon,1.9)}</span><span class="ml">${label}</span>${end||`<span class="mc">${ic('chev',2.2)}</span>`}</button>`;
+  m.classList.add('more');
+  m.innerHTML=`<div class="msave ${st}"><i></i><div><b>${st==='saved'?'All saved':st==='saving'?'Saving…':st==='err'?'Not saved':'Unsaved changes'}</b><small>${esc(txt)}</small></div>
+      <button type="button" data-mm="${needSave?'save':'refresh'}">${ic(needSave?'save':'refresh',2)}${needSave?'Save':'Refresh'}</button></div>
+    <div class="mtiles">
+      <button type="button" data-mm="theme"><span class="mi" style="--c:#7a5af5">${ic(isDark()?'sun':'moon',1.9)}</span><b>${isDark()?'Light theme':'Dark theme'}</b><small>now ${isDark()?'dark':'light'}</small></button>
+      <button type="button" data-mm="values"><span class="mi" style="--c:#ff9500">${esc(U().icon)}</span><b>Private data</b><small>${priv()?'unlocked · tap to lock':'locked · tap to unlock'}</small></button>
+    </div>
+    <div class="mglab">AI import</div>
+    <div class="mgrp">${row('prompt','sparkle','Copy AI prompt','var(--accent)')}${row('import','upload','Import from AI (JSON)','var(--accent)')}</div>
+    <div class="mgrp">${row('settings','gear','Settings','#30b0c7')}${narrow.matches?'':row('keys','keyboard','Keyboard shortcuts','#30b0c7')}${row('reload','refresh','Reload app','#30b0c7','<span class="mv" id="mver"></span>')}</div>
+    <div class="mgrp"><button type="button" data-mm="logout" class="mout">Log out</button></div>`;
+  caches?.keys?.().then(k=>{ const v=k.map(x=>(x.match(/-v(\d+)$/)||[])[1]).filter(Boolean).sort((a,b)=>b-a)[0]; const e=$('#mver'); if(e&&v) e.textContent='v'+v; }).catch(()=>{}); // the installed version, from the service worker cache name
+  on(m,'[data-mm]',b=>{ const k=b.dataset.mm; closePops(); if(k==='theme') toggleTheme(); else if(k==='values') togglePrivacy(); else if(k==='settings') openSettings(); else if(k==='keys') openKeys(); else if(k==='prompt') openPrompt(); else if(k==='refresh') refreshData(); else if(k==='save') doSave(); else if(k==='reload') reloadApp(); else if(k==='import') openImport(); else logout(); });
   popAnchor=btn; place(m,btn,'right');
 }
 function openStatusMenu(btn,e){
