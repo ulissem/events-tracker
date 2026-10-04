@@ -1646,7 +1646,13 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 @keyframes ghostout-back{to{opacity:0;transform:translateX(28px)}}
 .paneghost{position:fixed;z-index:30;overflow:hidden;pointer-events:none;background:var(--bg);animation:ghostout-fwd .4s cubic-bezier(.2,.8,.2,1) forwards}
 .paneghost.back{animation-name:ghostout-back}
-.paneghost-in{min-width:0}
+.paneghost-in{min-width:0;display:flex;flex-direction:column;height:100%}
+.paneghost .mapwrap{flex:1;min-height:0}
+/* leaving the map: the map fades in place and the strip leaves the way it came, downwards */
+@keyframes ghostfade{to{opacity:0}}
+@keyframes stripout{to{opacity:0;transform:translateY(28px)}}
+.paneghost.frommap{animation-name:ghostfade;animation-duration:.45s}
+.paneghost.frommap .mstrip{animation:stripout .38s cubic-bezier(.4,0,.8,.4) forwards}
 .paneghost .leaflet-control-container{display:none}
 body.viewswap main.mapv .nuwrap{animation:nuin .5s cubic-bezier(.2,.8,.2,1)}
 body.viewswap main.mapv .nuwrap > *{overflow:hidden}
@@ -2903,7 +2909,7 @@ function refocus(D,fk){
 function ghostPane(D){
   if(!document.body.classList.contains('viewswap')||!D.firstElementChild||narrow.matches) return;
   const r=D.getBoundingClientRect(), hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||52, top=Math.max(r.top,hh);
-  const g=document.createElement('div'); g.className='paneghost '+(document.body.classList.contains('swap-fwd')?'fwd':'back');
+  const g=document.createElement('div'); g.className='paneghost '+(document.body.classList.contains('swap-fwd')?'fwd':'back')+(D.querySelector('.mapwrap')?' frommap':'');
   g.style.cssText=`left:${r.left}px;top:${top}px;width:${r.width}px;height:${innerHeight-top}px`;
   const inner=D.cloneNode(true); inner.removeAttribute('id'); inner.className='paneghost-in'; inner.style.cssText=`padding:${getComputedStyle(D).padding};transform:translateY(${Math.min(r.top-hh,0)}px)`;
   inner.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
