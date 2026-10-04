@@ -742,7 +742,7 @@ dialog::backdrop{background:var(--scrim)}
   table.t.resp td.wide2{grid-column:1/-1}
 }
 /* ---------- phone: app bar, bottom tab bar, tap targets, bottom sheets ---------- */
-.ptitle,.morebtn,.tabbar{display:none}
+.ptitle,.morebtn,.tabbar,.topback{display:none}
 #scrim{position:fixed;inset:0;z-index:55;background:var(--scrim);animation:fade .15s}
 @keyframes sheetin{from{transform:translateY(100%)}}
 @keyframes drawerin{from{transform:translateX(-100%)}}
@@ -1828,6 +1828,8 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
    iOS auto-zooms a focused field under 16 px unless the viewport has maximum-scale=1 — it has, so fields can go to 14 px. */
 @media (max-width:860px){
   body{font-size:13px}
+  .topback{display:inline-flex;width:40px;height:40px;margin-left:-6px} .top:has(.topback) #listbtn{display:none}
+  .row.last{background:var(--accent-soft)} .row.last .rn{color:var(--accent)} /* the event you just left */
   html,body{overscroll-behavior-y:none} /* no iOS rubber band on the page: it dragged the top bar and the tab bar along; pull-to-refresh is our own JS */
   input:not([type=checkbox]):not([type=radio]):not([type=color]),select,textarea,textarea.in,.q textarea.in{font-size:14px}
   .top > .ptitle{font-size:15px}
@@ -2734,6 +2736,7 @@ function renderTop(){
   const tabOn=v=>route.view===v||(v==='e'&&route.view==='m');
   const nv=route.view==='c'?'client':route.view==='h'?'hours':route.view==='a'?'agenda entry':'event';
   $('#top').innerHTML=`
+    ${route.id&&(route.view==='e'||route.view==='c')?`<button id="topback" class="btn icon ghost topback" type="button" aria-label="Back to the list">${ic('back',2)}</button>`:''}
     ${route.view!=='h'&&route.view!=='a'&&route.view!=='m'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
     <div class="brand"><span class="logo">${ic('flag',2.4)}</span><b>Events tracker</b></div><span class="ptitle">${vt}</span>
     <nav class="tabs" aria-label="Sections">${[['e','Events'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
@@ -2756,6 +2759,7 @@ function renderTop(){
   const doSave=()=>{ document.activeElement?.blur?.(); save(); };
   $('#tsave').onclick=doSave; $('#savebtn').onclick=doSave;
   $('#listbtn')?.addEventListener('click',toggleList);
+  $('#topback')?.addEventListener('click',()=>go(route.view));
   $('#morebtn').onclick=ev=>openMore(ev.currentTarget);
   $('#cmdtrig').onclick=openCmd;
   $('#unitbtn').onclick=togglePrivacy;
@@ -2784,7 +2788,9 @@ function parseRoute(){
 let routeKey='';
 function applyRoute(force){
   const k=location.hash; if(!force&&k===routeKey) return; routeKey=k;
+  const from=route?.view==='e'&&route.id?route.id:null;
   closePops(); closeDrawer(true); parseRoute(); render(); window.scrollTo(0,0);
+  if(from&&!route.id&&route.view==='e'&&narrow.matches) $('#list .row.last')?.scrollIntoView({block:'center'}); // back on the phone list: the event you came from is in view, one tap reopens it
 }
 function go(v,id){ const h=id?`#/${v}/${encodeURIComponent(id)}`:`#/${v}`; if(location.hash!==h) history.pushState(null,'',h); applyRoute(true); }
 window.addEventListener('hashchange',()=>applyRoute());
@@ -2941,7 +2947,7 @@ function renderEventList(L){
   const row=e=>{ const c=countdown(e), past=isPast(e), oq=openQ(e).length, p=progress(e), h=showH?sumH(entriesOf(x=>x.eventId===e.id)):0;
     const s=e.dateStart?parse(e.dateStart):null, multi=e.dateEnd&&e.dateEnd>e.dateStart, en=multi?parse(e.dateEnd):null;
     const dn=!s?'–':multi?`${s.getDate()}–${en.getDate()}`:s.getDate(), dw=!s?'':multi?`${DOW[s.getDay()].slice(0,2)}–${DOW[en.getDay()].slice(0,2)}`:DOW[s.getDay()];
-    return `<button class="row ${(e.id===route.id&&route.view==='e')||(route.view==='m'&&e.id===mapFocusId)?'active':''} ${past?'past':''} ${selDay?(onSelDay(e)?'hit':'dim'):''}" data-id="${esc(e.id)}" type="button">
+    return `<button class="row ${(e.id===route.id&&route.view==='e')||(route.view==='m'&&e.id===mapFocusId)?'active':''} ${!route.id&&e.id===lastEvent?'last':''} ${past?'past':''} ${selDay?(onSelDay(e)?'hit':'dim'):''}" data-id="${esc(e.id)}" type="button">
       <span class="rd ${multi?'rg':''}"><b>${dn}</b><small>${dw}</small></span>
       <span class="rm"><span class="rn"><span>${esc(e.name)||'<i>untitled</i>'}</span></span>
         <span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span class="rst">${esc(e.status)}</span><span class="rcl">${flt.client?'':'· '+esc(clientName(e.clientId))}${e.location?(flt.client?'· ':' · ')+esc(e.location):''}</span></span></span>
@@ -3109,7 +3115,7 @@ function renderEvent(D){
   const tpc=tpCols(e);
   const tpTools=`<button class="btn sm ghost" type="button" data-tpcolors>Auto colours</button><button class="btn sm ghost" type="button" data-tpexport title="Timing Points.lvs for RR14">${ic('file',1.8)} Export .lvs</button>`;
   D.innerHTML=`
-  <div class="hero ${e.geo?.lat?'hasmap':''}" style="${tintStyle(e)}">
+  <div class="hero ${e.geo?.lat?'hasmap':''}" id="s-top" style="${tintStyle(e)}">
     ${heroTiles(e)}<div class="hscrim"></div>
     ${backBtn}
     <div class="hacts">
@@ -3134,7 +3140,7 @@ function renderEvent(D){
   </div>
   ${roadToRace(e)}
   <nav class="jump" id="jump" aria-label="Sections">
-    <a href="#s-general" data-jump>${secBadge('general','ji')}General</a><a href="#s-rr14" data-jump>${secBadge('rr14','ji')}RR14</a><a href="#s-links" data-jump>${secBadge('links','ji')}Links <em>${e.links.length||''}</em></a><a href="#s-tps" data-jump>${secBadge('tps','ji')}Timing points <em>${e.timingPoints.length}</em></a><a href="#s-races" data-jump>${secBadge('races','ji')}Races <em>${e.contests.length}</em></a><a href="#s-registration" data-jump>${secBadge('registration','ji')}Registration <em>${regN||''}</em></a><a href="#s-scoring" data-jump>${secBadge('scoring','ji')}Scoring <em>${scoreN||''}</em></a><a href="#s-outputs" data-jump>${secBadge('outputs','ji')}Outputs <em>${outN||''}</em></a>
+    <a href="#s-top" data-jump><span class="ji" style="--sc:var(--accent)" aria-hidden="true">${ic('flag',2)}</span>Overview</a><a href="#s-general" data-jump>${secBadge('general','ji')}General</a><a href="#s-rr14" data-jump>${secBadge('rr14','ji')}RR14</a><a href="#s-links" data-jump>${secBadge('links','ji')}Links <em>${e.links.length||''}</em></a><a href="#s-tps" data-jump>${secBadge('tps','ji')}Timing points <em>${e.timingPoints.length}</em></a><a href="#s-races" data-jump>${secBadge('races','ji')}Races <em>${e.contests.length}</em></a><a href="#s-registration" data-jump>${secBadge('registration','ji')}Registration <em>${regN||''}</em></a><a href="#s-scoring" data-jump>${secBadge('scoring','ji')}Scoring <em>${scoreN||''}</em></a><a href="#s-outputs" data-jump>${secBadge('outputs','ji')}Outputs <em>${outN||''}</em></a>
     <a href="#s-questions" data-jump>${secBadge('questions','ji')}Questions <em class="${oq?'w':''}">${oq||''}</em></a><a href="#s-checklist" data-jump>${secBadge('checklist','ji')}Checklist <em>${pct}%</em></a>${showH?`<a href="#s-hours" data-jump>${secBadge('hours','ji')}Hours <em>${fmtN(sumH(evHours))}</em></a>`:''}<a href="#s-notes" data-jump>${secBadge('notes','ji')}Notes</a>
   </nav>
   <div class="evgrid ${sideOpen?'':'collapsed'}"><div class="evmain">
@@ -3268,7 +3274,7 @@ function renderEvent(D){
     bindAddHours('h',()=>({clientId:e.clientId,eventId:e.id}));
     bindHoursTable(D);
   }
-  on(D,'[data-jump]',(a,ev)=>{ ev.preventDefault(); const t=document.querySelector(a.getAttribute('href')); if(!t) return; let delay=0; if(t.closest('.evside')&&!sideOpen&&wide.matches){ toggleSide(); delay=280; } spyPick(a.getAttribute('href')); setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'start'}),delay); });
+  on(D,'[data-jump]',(a,ev)=>{ ev.preventDefault(); const t=document.querySelector(a.getAttribute('href')); if(!t) return; let delay=0; if(t.closest('.evside')&&!sideOpen&&wide.matches){ toggleSide(); delay=280; } spyPick(a.getAttribute('href')); setTimeout(()=>t.id==='s-top'?window.scrollTo({top:0,behavior:'smooth'}):t.scrollIntoView({behavior:'smooth',block:'start'}),delay); }); // Overview = back to the very top
   $('#delev').onclick=()=>{
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this event','lock'); return; }
     if(evHours.length){ alert(`This event has ${plural(evHours.length,'hours entry','hours entries')}. Delete or move them first (Hours section).`); return; }
