@@ -1173,7 +1173,9 @@ body.locked{overflow:hidden}
 /* =====================================================================
    LOCATION LOOKUP (Nominatim) + MAP VIEW (Leaflet)
    ===================================================================== */
-.geobtn.on{color:var(--accent)}
+.in.group .geobtn{flex:none;width:26px;height:26px;border-radius:6px}
+.geobtn.on{color:var(--accent);background:var(--accent-soft)}
+@media (max-width:860px){ .in.group .geobtn{width:34px;height:34px;border-radius:7px} .in.group .geobtn svg{width:18px;height:18px} }
 .geoline{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:6px;font-size:11.5px;color:var(--ink-3);line-height:1.3;min-width:0}
 .geoline svg{width:13px;height:13px;flex:none}
 .geoline.ok{color:var(--ink-2)} .geoline.ok > svg{color:var(--ok)}
@@ -1211,11 +1213,13 @@ main.mapv #detail{display:flex;flex-direction:column;height:calc(100vh - var(--h
 .mlegend{position:absolute;right:12px;bottom:26px;z-index:500;background:var(--panel);border:1px solid var(--line-2);border-radius:10px;padding:6px 10px;font-size:11.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow-sm)}
 .mlegend span{display:flex;align-items:center;gap:7px}
 .mlegend .mpill{position:static;transform:none;width:40px;cursor:default}
+.mlegend .mpill.later{width:14px;margin:0 13px}
 .mlegend .mpill.past{width:10px;margin:0 15px}
 .mpin{background:none;border:0}
 .mpill{position:absolute;transform:translate(-50%,-50%);display:inline-flex;align-items:center;justify-content:center;height:20px;min-width:20px;padding:0 6px;border-radius:999px;background:var(--panel);color:var(--ink);font:600 11px/1 Inter,system-ui,sans-serif;letter-spacing:-.01em;border:1.5px solid var(--accent);box-shadow:var(--shadow-sm);white-space:nowrap;cursor:pointer}
 .mpill.soon{background:var(--accent-soft);color:var(--accent)}
 .mpill.now{background:var(--accent);color:var(--accent-ink)}
+.mpill.later{height:14px;min-width:14px;padding:0}
 .mpill.past{height:10px;min-width:10px;padding:0;border-color:var(--ink-3);opacity:.6}
 .leaflet-container{font:inherit;background:var(--sunken)}
 .leaflet-container a{color:var(--accent)}
@@ -3082,12 +3086,12 @@ const viewSeg=cur=>`<span class="vseg" role="group" aria-label="View"><button ty
 function mapEvents(){ const q=flt.q.toLowerCase();
   return S.events.filter(e=>(!flt.client||e.clientId===flt.client)&&(!flt.status||e.status===flt.status)&&(flt.past||!isPast(e))
     &&(!q||[e.name,e.location,e.type,clientName(e.clientId)].join(' ').toLowerCase().includes(q))).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9')); }
-/* compact countdown for the pins: 6d · 3w · 2mo · today */
+/* countdown for the pins: today · 1d…7d · ring (later) · small grey dot (past) */
 function cdShort(e){
   const s=e.dateStart; if(!s) return {t:'?',c:''};
   const en=e.dateEnd&&e.dateEnd>s?e.dateEnd:s, d=diff(TODAY,s), de=diff(TODAY,en);
   if(d<=0&&de>=0) return {t:'today',c:'now'};
-  if(d>0) return {t:d<14?`${d}d`:d<60?`${Math.round(d/7)}w`:`${Math.round(d/30.4)}mo`,c:d<=7?'soon':''};
+  if(d>0) return d<=7?{t:`${d}d`,c:'soon'}:{t:'',c:'later'}; // only the next 7 days get a number: the others are plain rings
   return {t:'',c:'past'};
 }
 function mapCard(e){ const cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd);
@@ -3104,7 +3108,7 @@ function renderMap(D){
     </div>
     <div class="mapwrap"><div id="map" class="mapel"></div><div class="mapload" id="maploading">Loading the map…</div>
       <button class="nopos" id="nopos" type="button" hidden></button>
-      <div class="mlegend"><span><span class="mpill">3w</span>Days to go</span><span><span class="mpill soon">6d</span>Within 7 days</span><span><span class="mpill now">today</span>Today</span><span><span class="mpill past"></span>Past</span></div>
+      <div class="mlegend"><span><span class="mpill now">today</span>Today</span><span><span class="mpill soon">6d</span>Days to go, within a week</span><span><span class="mpill later"></span>Later</span><span><span class="mpill past"></span>Past</span></div>
       <div class="mapcard" id="mapcard" hidden></div>
     </div>`;
   const refit=()=>{ MAPV=null; mapRefresh(true); };
