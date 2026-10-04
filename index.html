@@ -1573,6 +1573,9 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .nur .t{flex:1;min-width:0;display:flex;flex-direction:column}
 .nur b,.nur small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nur b{font-size:14px;font-weight:600} .nur small{font-size:11.5px;color:rgba(255,255,255,.8)}
+.home .nextup.multi .nus{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin-top:12px}
+.home .nextup.multi .nur{padding:12px 12px 12px 14px;align-items:flex-start;border-radius:12px} .home .nextup.multi .nur > i{margin-top:5px}
+.home .nextup.multi .nur b{font-size:16px} .home .nextup.multi .nur small + small{margin-top:4px;color:rgba(255,255,255,.9);white-space:normal}
 .nugrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:18px}
 :root{--check-dark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%231c1c1e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8.5l2.6 2.5L12 5.5'/%3E%3C/svg%3E")}
 
@@ -1585,8 +1588,6 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .fw .whl{position:sticky;left:0;display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
 .fd.past{opacity:.4}
 .film{scroll-padding-left:14px} .fd.today{scroll-snap-align:start} /* the strip can rest on today, not only on a Monday */
-.fw .wh .clash{margin-left:auto;color:var(--danger);display:inline-flex;align-items:center;gap:3px;font-weight:700}
-.fw .wh .clash svg{width:11px;height:11px}
 .fw .days{display:grid;grid-template-columns:repeat(7,72px);gap:3px}
 .fd{border-radius:12px;padding:6px 4px 5px;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:112px;position:relative}
 .fd.we{background:var(--sunken)}
@@ -2787,7 +2788,7 @@ function nextUpCard(home){
   if(!evs.length) return '';
   const day=evs[0].dateStart<TODAY?TODAY:evs[0].dateStart, grp=evs.filter(e=>e.dateStart<=day&&(e.dateEnd||e.dateStart)>=day);
   if(grp.length<2) return nuCard(evs[0]);
-  return home?`<div class="nugrid">${grp.map(e=>nuCard(e,true)).join('')}</div>`:nuDay(grp,day);
+  return home&&NU_HOME_GRID?`<div class="nugrid">${grp.map(e=>nuCard(e,true)).join('')}</div>`:nuDay(grp,day,home);
 }
 /* one event (several = Home shows one card each; then only its own to-dos, no trips) */
 function nuCard(e,several){
@@ -2808,32 +2809,39 @@ function nuCard(e,several){
   </div>`;
 }
 /* several events on the same day, left column: one card, one row per event */
-function nuDay(grp,day){
+const NU_HOME_GRID=false; // Home with several events on a day: true = one card per event, false = one card listing them (trial, Oct 2026)
+function nuDay(grp,day,wide){
   const live=grp.some(e=>countdown(e).c==='now'), d=diff(TODAY,day);
+  const ids=grp.map(e=>'e:'+e.id), tds=wide?S.agenda.todos.filter(t=>!t.done&&(ids.includes(t.link)||(t.due&&t.due<=day))).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')):[];
+  const trips=wide?agEntries().filter(i=>i.o.type==='travel'&&i.s<=day&&i.e>=TODAY):[];
+  const items=[...tds.slice(0,3).map(t=>`<label class="td"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}</span>${t.due?`<span class="when ${t.due<=TODAY?'now':''}">${esc(dueTxt(t.due))}</span>`:''}</label>`),
+    ...trips.slice(0,2).map(i=>`<a class="td" href="#/a">${ic('plane',1.8)}<span class="tx">Travel${i.o.title?' · '+esc(i.o.title):''}</span><span class="when">${esc(dueTxt(i.s))}${i.o.time?' '+esc(i.o.time):''}</span></a>`)];
+  const km=e=>e.contests.reduce((a,c)=>a+num(c.distance),0);
   const races=grp.reduce((a,e)=>a+e.contests.length,0), oq=grp.reduce((a,e)=>a+openQ(e).length,0);
   const dn=live?`<span class="live"><i></i>Race day</span>`:`${d}<small>${d===1?'day':'days'}</small>`;
   return `<div class="nextup multi" style="${tintStyle(grp[0])}">
     <div class="cdn">${dn}</div>
     <div class="nmeta"><div class="ovl">${live?'Now':'Next up'} · ${esc(fmtShort(day))}</div><div class="n">${grp.length} events</div></div>
-    <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" style="--c:${tintOf(e).a}" aria-label="Open ${esc(e.name)}"><i></i><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small></span><span title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),22,2.5)}</span></button>`).join('')}</div>
+    <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" style="--c:${tintOf(e).a}" aria-label="Open ${esc(e.name)}"><i></i><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small>${wide?`<small>${plural(e.contests.length,'race','races')}${km(e)?' · '+fmtN(km(e))+' km':''} · ${plural(e.timingPoints.length,'timing point','timing points')}${openQ(e).length?' · '+plural(openQ(e).length,'open question','open questions'):''}</small>`:''}</span><span title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),wide?30:22,wide?3:2.5)}</span></button>`).join('')}</div>
+    ${items.length?`<div class="due">${items.join('')}</div>`:''}
     <div class="nfoot"><span><b>${races}</b> ${races===1?'race':'races'}</span><span class="r">${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
   </div>`;
 }
-/* Film strip: the next four weeks — events in their type colour, to-dos (tickable), travel / away, clash flags */
+/* Film strip: the next four weeks — events in their type colour, to-dos (tickable), travel / away */
 function filmStrip(){
   const evs=S.events.filter(e=>e.dateStart&&(!flt.client||e.clientId===flt.client)&&(!flt.status||e.status===flt.status));
   const tds=S.agenda.todos.filter(t=>t.due&&!t.done), ens=agEntries();
   const mon=addDays(TODAY,-((parse(TODAY).getDay()+6)%7)), nW=mon===TODAY?4:5; // weeks run Monday → Sunday; past days of this week dimmed
   let h='<div class="film" id="film" aria-label="Next weeks">';
-  for(let w=0;w<nW;w++){ const ws=addDays(mon,w*7), we=addDays(ws,6), wEns=ens.filter(x=>x.s<=we&&x.e>=ws).sort((a,b)=>a.s.localeCompare(b.s)); let clash=false, days='';
+  for(let w=0;w<nW;w++){ const ws=addDays(mon,w*7), we=addDays(ws,6), wEns=ens.filter(x=>x.s<=we&&x.e>=ws).sort((a,b)=>a.s.localeCompare(b.s)); let days='';
     for(let i=0;i<7;i++){ const d=addDays(ws,i), dt=parse(d), wkend=dt.getDay()%6===0;
-      const es=evs.filter(e=>d>=e.dateStart&&d<=(e.dateEnd||e.dateStart)), td=tds.filter(t=>t.due===d), c=d>=TODAY&&clashOn(d); if(c) clash=true;
+      const es=evs.filter(e=>d>=e.dateStart&&d<=(e.dateEnd||e.dateStart)), td=tds.filter(t=>t.due===d);
       const bands=wEns.map(x=>!onDay(x,d)?'<span class="fb none"></span>':`<a class="fb ${esc(x.o.type)} ${d===x.s?'s':''} ${d===x.e?'e':''}" href="#/a" title="${esc(enLabel(x.o))}">${d===x.s||i===0?`<span>${ic(AG_TYPES[x.o.type]?.icon||'clock',2.2)}${esc(x.o.title||AG_TYPES[x.o.type]?.label||'')}</span>`:''}</a>`).join('');
       const its=[...es.map(e=>`<button type="button" class="fi ev ${e.id===route.id&&route.view==='e'?'on':''}" style="--c:${tintOf(e).a}" data-id="${esc(e.id)}" title="${esc(e.name)}">${d>e.dateStart?'<i>↳</i>':''}<span>${esc(e.name)||'untitled'}</span></button>`),
         ...td.map(t=>`<label class="fi td" title="${esc(t.text)}"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span>${esc(t.text||'To-do')}</span></label>`)];
-      days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''} ${d<TODAY?'past':''} ${d===selDay?'sel':''}">${c?`<span class="flag" title="${esc(c.html.replace(/<[^>]+>/g,''))}">${ic('warn',2.2)}</span>`:''}<button type="button" class="fdh" data-day="${d}" aria-pressed="${d===selDay}" aria-label="${esc(fmtLong(d))}"><span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span></button>${bands?`<div class="fbs">${bands}</div>`:''}<div class="its">${its.join('')}</div></div>`; }
+      days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''} ${d<TODAY?'past':''} ${d===selDay?'sel':''}"><button type="button" class="fdh" data-day="${d}" aria-pressed="${d===selDay}" aria-label="${esc(fmtLong(d))}"><span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span></button>${bands?`<div class="fbs">${bands}</div>`:''}<div class="its">${its.join('')}</div></div>`; }
     const short=w===0&&diff(TODAY,we)<2; // only Sat/Sun of this week left on screen: no room for the dates
-    h+=`<div class="fw"><div class="wh"><span class="whl"><b>Week ${isoWeek(addDays(ws,3))}</b>${short?'':`<span>${esc(fmtShort(ws).slice(4))} – ${esc(fmtShort(we).slice(4))}</span>`}</span>${clash?`<span class="clash" title="Clash this week">${ic('warn',2.2)}${short?'':' clash'}</span>`:''}</div><div class="days">${days}</div></div>`; }
+    h+=`<div class="fw"><div class="wh"><span class="whl"><b>Week ${isoWeek(addDays(ws,3))}</b>${short?'':`<span>${esc(fmtShort(ws).slice(4))} – ${esc(fmtShort(we).slice(4))}</span>`}</span></div><div class="days">${days}</div></div>`; }
   return h+'</div>';
 }
 /* the strip opens on today (the week's earlier days sit to the left) */
@@ -2990,7 +2998,6 @@ function renderHome(D){
   const qTot=qEv.reduce((a,e)=>a+openQ(e).length,0), qMax=Math.max(1,...qEv.map(e=>openQ(e).length));
   const tds=S.agenda.todos.filter(t=>!t.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,8);
   const ens=agEntries().filter(i=>i.e>=TODAY&&i.s<=end).sort((a,b)=>a.s.localeCompare(b.s));
-  const clashes=[]; { let prev=null; for(let d=TODAY,i=0;i<28;i++,d=addDays(d,1)){ const c=clashOn(d); if(c&&prev&&prev.key===c.key){ prev.to=d; continue; } prev=c?{...c,from:d,to:d}:null; if(prev) clashes.push(prev); } }
   const showH=priv(), openHours=showH?sumH(entriesOf(isOpen)):0;
   const cName=flt.client?clientName(flt.client):'';
   D.innerHTML=`<div class="home">
@@ -3007,8 +3014,7 @@ function renderHome(D){
         <div class="hm-ft"><button class="tbtn" type="button" id="hm-addtd">${ic('plus',2.4)} To-do</button><button class="tbtn quiet" type="button" data-go="a">${ic('cal',2)} Open Agenda</button></div>
       </div>
       <div class="hm-card"><h4>Travel &amp; away</h4>
-        ${ens.length||clashes.length?`${ens.map(i=>`<a class="hm-t" href="#/a">${ic(AG_TYPES[i.o.type]?.icon||'clock',1.9)}<span class="tx">${esc(i.o.title||AG_TYPES[i.o.type]?.label||'')}<small>${esc(fmtShort(i.s))}${i.e>i.s?' – '+esc(fmtShort(i.e)):''}${i.o.time?' · '+esc(i.o.time):''}</small></span><span class="tag ${esc(i.o.type)}">${esc(AG_TYPES[i.o.type]?.label||i.o.type)}</span></a>`).join('')}
-        ${clashes.map(c=>`<a class="hm-t warn" href="#/a">${ic('warn',2)}<span class="tx">${c.html}</span><span class="when">${esc(fmtShort(c.from))}${c.to>c.from?' – '+esc(fmtShort(c.to)):''}</span></a>`).join('')}`:`<div class="hm-empty">No trips, no clashes in the next 4 weeks.</div>`}
+        ${ens.length?`${ens.map(i=>`<a class="hm-t" href="#/a">${ic(AG_TYPES[i.o.type]?.icon||'clock',1.9)}<span class="tx">${esc(i.o.title||AG_TYPES[i.o.type]?.label||'')}<small>${esc(fmtShort(i.s))}${i.e>i.s?' – '+esc(fmtShort(i.e)):''}${i.o.time?' · '+esc(i.o.time):''}</small></span><span class="tag ${esc(i.o.type)}">${esc(AG_TYPES[i.o.type]?.label||i.o.type)}</span></a>`).join('')}`:`<div class="hm-empty">No trips in the next 4 weeks.</div>`}
         <h4 class="hm-sub">Hours</h4>
         <div class="hm-hours"><span class="big">${esc(U().icon)}</span>${showH?`<span><b>${fmtN(openHours)} h</b> open · ${val(openHours)}<br>never in the summary</span><button class="tbtn" type="button" data-go="h" style="margin-left:auto">Open</button>`:`<span>Locked · safe-word required.<br>Never in the summary.</span><button class="tbtn" type="button" id="hm-unlock" style="margin-left:auto">Unlock</button>`}</div>
       </div>
