@@ -1633,6 +1633,17 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
   .fi{height:20px;font-size:10.5px}
   .fi.td .ck{width:12px;height:12px}
 }
+/* film strip: pick a day */
+.fdh{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;padding:2px 6px 0;border-radius:10px;color:inherit;cursor:pointer;font:inherit;letter-spacing:inherit;width:100%}
+.fdh:hover{background:var(--hover)}
+.fd.sel{background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.fd.sel .dn{background:var(--accent);color:#fff}
+.fd.sel .fwd{color:var(--accent)}
+.row.dim{opacity:.38}
+.row.dim:hover{opacity:.7}
+.mpk.dim{opacity:.22} .mpk.dim .mlbl{display:none}
+.mpk.dim:hover{opacity:1} .mpk.dim:hover .mlbl{display:flex}
+
 /* =====================================================================
    REDESIGN STAGE 3 — Home
    ===================================================================== */
@@ -2685,6 +2696,14 @@ function render(){
    ===================================================================== */
 function renderList(){ if(!S) return; const L=$('#list'); if(route.view==='e'||(route.view==='m'&&!narrow.matches)) renderEventList(L); else if(route.view==='c') renderClientList(L); else L.innerHTML=''; }
 let mapFocusId=null; // map mode on the desktop: the event the list points at on the map
+let selDay=null;      // a day picked in the film strip: its events stay lit, the others dim (list, map, strip)
+const onSelDay=e=>!selDay||(e.dateStart&&selDay>=e.dateStart&&selDay<=(e.dateEnd||e.dateStart));
+function selectDay(d){
+  selDay=selDay===d?null:d;
+  renderList(); if(route.view==='m') mapRefresh(false); else if(route.view==='e'&&!route.id) renderDetail();
+  if(selDay){ const r=document.querySelector('#list .row.hit'); r?.scrollIntoView({block:'center',behavior:'smooth'}); }
+}
+function bindDays(root){ on(root,'[data-day]',b=>selectDay(b.dataset.day)); }
 /* =====================================================================
    REDESIGN STAGE 2 — ambient tint per event type, hero map, Next up card,
    film strip, road to race day, equipment shelf
@@ -2737,7 +2756,7 @@ function filmStrip(){
       const its=[...es.map(e=>`<button type="button" class="fi ev ${e.id===route.id&&route.view==='e'?'on':''}" style="--c:${tintOf(e).a}" data-id="${esc(e.id)}" title="${esc(e.name)}">${d>e.dateStart?'<i>↳</i>':''}<span>${esc(e.name)||'untitled'}</span></button>`),
         ...en.map(x=>`<a class="fi ${esc(x.o.type)}" href="#/a" title="${esc(enLabel(x.o))}">${ic(AG_TYPES[x.o.type]?.icon||'clock',2.2)}<span>${esc(x.o.title||AG_TYPES[x.o.type]?.label||'')}</span></a>`),
         ...td.map(t=>`<label class="fi td" title="${esc(t.text)}"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span>${esc(t.text||'To-do')}</span></label>`)];
-      days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''}">${c?`<span class="flag" title="${esc(c.html.replace(/<[^>]+>/g,''))}">${ic('warn',2.2)}</span>`:''}<span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span><div class="its">${its.join('')}</div></div>`; }
+      days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''} ${d===selDay?'sel':''}">${c?`<span class="flag" title="${esc(c.html.replace(/<[^>]+>/g,''))}">${ic('warn',2.2)}</span>`:''}<button type="button" class="fdh" data-day="${d}" aria-pressed="${d===selDay}" aria-label="${esc(fmtLong(d))}"><span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span></button><div class="its">${its.join('')}</div></div>`; }
     h+=`<div class="fw"><div class="wh"><b>Week ${isoWeek(addDays(ws,3))}</b><span>${esc(fmtShort(ws).slice(4))} – ${esc(fmtShort(we).slice(4))}</span>${clash?`<span class="clash">${ic('warn',2.2)} clash</span>`:''}</div><div class="days">${days}</div></div>`; }
   return h+'</div>';
 }
@@ -2782,7 +2801,7 @@ function renderEventList(L){
   const row=e=>{ const c=countdown(e), past=isPast(e), oq=openQ(e).length, p=progress(e), h=showH?sumH(entriesOf(x=>x.eventId===e.id)):0;
     const s=e.dateStart?parse(e.dateStart):null, multi=e.dateEnd&&e.dateEnd>e.dateStart, en=multi?parse(e.dateEnd):null;
     const dn=!s?'–':multi?`${s.getDate()}–${en.getDate()}`:s.getDate(), dw=!s?'':multi?`${DOW[s.getDay()].slice(0,2)}–${DOW[en.getDay()].slice(0,2)}`:DOW[s.getDay()];
-    return `<button class="row ${(e.id===route.id&&route.view==='e')||(route.view==='m'&&e.id===mapFocusId)?'active':''} ${past?'past':''}" data-id="${esc(e.id)}" type="button">
+    return `<button class="row ${(e.id===route.id&&route.view==='e')||(route.view==='m'&&e.id===mapFocusId)?'active':''} ${past?'past':''} ${selDay?(onSelDay(e)?'hit':'dim'):''}" data-id="${esc(e.id)}" type="button">
       <span class="rd ${multi?'rg':''}"><b>${dn}</b><small>${dw}</small></span>
       <span class="rm"><span class="rn"><span>${esc(e.name)||'<i>untitled</i>'}</span></span>
         <span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span class="rst">${esc(e.status)}</span><span class="rcl">${flt.client?'':'· '+esc(clientName(e.clientId))}${e.location?(flt.client?'· ':' · ')+esc(e.location):''}</span></span></span>
@@ -2812,6 +2831,7 @@ function renderEventList(L){
   $('#fl-import').onclick=openImport;
   $('#fl-map')?.addEventListener('click',()=>{ if(!mapMode) go('m'); });
   on(L,'[data-mv]',()=>go('e',narrow.matches?null:lastEvent));
+  bindDays(L);
   $('#fl-reset')?.addEventListener('click',()=>{ flt.q='';flt.client='';flt.status=''; renderList(); });
   L.querySelectorAll('[data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); renderList(); if(route.view==='e'&&route.id) renderDetail(); }); });
   L.querySelectorAll('.nextup').forEach(n=>n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); go('e',n.dataset.id); } }));
@@ -2906,7 +2926,7 @@ function renderHome(D){
     </div>
     <div class="hm-keys"><span><kbd>${MOD}</kbd><kbd>K</kbd> jump to…</span><span><kbd>J</kbd><kbd>K</kbd> next / previous</span><span><kbd>?</kbd> all shortcuts</span><span><kbd>/</kbd> search</span></div>
   </div>`;
-  $('#hm-new').onclick=newItem;
+  $('#hm-new').onclick=newItem; bindDays(D);
   on(D,'[data-id]',b=>go('e',b.dataset.id));
   on(D,'[data-go]',b=>go(b.dataset.go));
   D.querySelectorAll('[data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); renderList(); setTimeout(renderDetail,350); }); });
@@ -3778,7 +3798,7 @@ function renderMap(D){
     </div>`;
   D.querySelectorAll('#mstrip [data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); }); });
   on(D,'#mstrip [data-id]',b=>go('e',b.dataset.id));
-  $('#mgrip').onclick=()=>$('#mstrip').classList.toggle('tall');
+  $('#mgrip').onclick=()=>$('#mstrip').classList.toggle('tall'); bindDays(D);
   const refit=()=>{ MAPV=null; mapRefresh(true); };
   $('#fm-q')?.addEventListener('input',e=>{ flt.q=e.target.value; refit(); });
   $('#fm-client')?.addEventListener('change',e=>{ flt.client=e.target.value; refit(); });
@@ -3822,12 +3842,13 @@ function mapRefreshInner(fit){
       if(!done){ side.set(e.id,def); nudge.set(e.id,'nolbl'); } } }
   for(const e of withPos){ const d=e.dateStart?diff(TODAY,e.dateStart):null, de=e.dateStart?diff(TODAY,e.dateEnd||e.dateStart):null, past=isPast(e);
     const when=d===null?'no date':past?`${-de}d ago`:d<=0?'Today':`T−${d}`, pct=Math.round(progress(e)*100);
-    const html=`<span class="mpk ${e===next?'focus':''} ${past?'past':''} ${side.get(e.id)?'L':''} ${nudge.get(e.id)}" style="--c:${tintOf(e).a}"><i></i><span class="mlbl"><b>${esc(e.name)||'untitled'}</b><small>${when}${past?'':` · ${pct}%`}</small></span></span>`;
+    const html=`<span class="mpk ${e===next?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''} ${side.get(e.id)?'L':''} ${nudge.get(e.id)}" style="--c:${tintOf(e).a}"><i></i><span class="mlbl"><b>${esc(e.name)||'untitled'}</b><small>${when}${past?'':` · ${pct}%`}</small></span></span>`;
     const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html,iconSize:[0,0],iconAnchor:[0,0]}),riseOnHover:true,keyboard:false,title:''});
     if(narrow.matches) mk.on('click',()=>{ card.innerHTML=mapCard(e); card.hidden=false; });
     else mk.bindPopup(mapCard(e),{closeButton:false,offset:[0,-10],maxWidth:320});
     mk.on('click',()=>{ mapFocusId=e.id; if(!narrow.matches) renderList(); });
     MAPM.set(e.id,mk); MAPL.addLayer(mk); }
+  const fs=$('#mstrip .film'); if(fs){ fs.outerHTML=filmStrip(); bindDays($('#mstrip')); $('#mstrip').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>go('e',b.dataset.id)); }
   const mr=$('#mrows'); if(mr) mr.innerHTML=evs.filter(e=>!isPast(e)).map(e=>{ const c=countdown(e), sd=e.dateStart?parse(e.dateStart):null; return `<button class="mrow" type="button" data-id="${esc(e.id)}"><span class="rd"><b>${sd?sd.getDate():'–'}</b><small>${sd?DOW[sd.getDay()]:''}</small></span><span class="rm"><span class="rn"><span>${esc(e.name)||'untitled'}</span></span><span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span>${esc(e.status)}</span><span>· ${esc(e.location||'no location')}</span></span></span><span class="rr"><span class="cd ${c.c}">${c.t}</span>${e.geo?'':`<span class="ri">${ic('warn',2.2)}</span>`}</span></button>`; }).join('');
   const mq=$('#mapq'); if(mq){ const n=evs.reduce((a,e)=>a+openQ(e).length,0); mq.textContent=n?plural(n,'open question','open questions'):''; }
   const np=$('#nopos'); np.hidden=!noPos.length;
@@ -4509,6 +4530,7 @@ document.addEventListener('keydown',e=>{
     if(!$('#notepop').hidden||!$('#dp').hidden||!$('#menu').hidden||!$('#pinpop').hidden||!$('#geopop').hidden){ closePops(); return; }
     if(document.body.classList.contains('drawer')){ closeDrawer(); return; }
     if(typing){ e.target.blur(); return; }
+    if(selDay){ selectDay(selDay); return; }
     if(route.id) go(route.view);
     return; }
   if(typing||e.metaKey||e.ctrlKey||e.altKey||!$('#cmdk').hidden||document.querySelector('dialog[open]')) return;
