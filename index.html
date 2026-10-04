@@ -1425,6 +1425,197 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
   .seg{border-radius:10px}
   .lhead{padding:8px 12px}
 }
+/* =====================================================================
+   REDESIGN STAGE 2 — hero with map, tint, next-up card, film strip,
+   road to race day, equipment shelf
+   ===================================================================== */
+.hero,.nextup{--tint-soft:color-mix(in srgb,var(--tint,var(--accent)) 14%,transparent);--tint-glow:color-mix(in srgb,var(--tint,var(--accent)) 38%,transparent)}
+.hero{position:relative;border-radius:24px;background:var(--panel);box-shadow:var(--shadow-sm);overflow:hidden;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate}
+.hero::before{content:'';position:absolute;inset:-40px;background:radial-gradient(60% 50% at 70% 10%,var(--tint-glow),transparent 70%);z-index:0;pointer-events:none}
+.htiles{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);aspect-ratio:2/1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;z-index:0;filter:saturate(.9)}
+.htiles img{width:100%;height:100%;display:block;object-fit:cover}
+.htiles .hs2{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;mix-blend-mode:multiply;opacity:.55}
+:root[data-theme="dark"] .htiles .hs2{mix-blend-mode:soft-light;opacity:.9}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .htiles .hs2{mix-blend-mode:soft-light;opacity:.9} }
+.hpin{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--tint);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);transform:translate(-50%,-50%);z-index:2}
+.hpin::after{content:'';position:absolute;inset:-10px;border-radius:50%;border:2px solid var(--tint);opacity:0;animation:hpulse 2.4s ease-out infinite}
+@keyframes hpulse{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+.hscrim{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 45%,var(--panel) 82%),linear-gradient(90deg,var(--panel) 0%,rgba(255,255,255,0) 55%)}
+:root[data-theme="dark"] .hscrim{background:linear-gradient(180deg,rgba(0,0,0,.05) 0%,rgba(28,28,30,.45) 45%,var(--panel) 84%),linear-gradient(90deg,var(--panel) 0%,rgba(28,28,30,0) 55%)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .hscrim{background:linear-gradient(180deg,rgba(0,0,0,.05) 0%,rgba(28,28,30,.45) 45%,var(--panel) 84%),linear-gradient(90deg,var(--panel) 0%,rgba(28,28,30,0) 55%)} }
+.hero:not(.hasmap){min-height:240px}
+.hero:not(.hasmap) .hscrim{background:linear-gradient(135deg,var(--tint-soft),transparent 60%)}
+.hero .back{display:none;position:absolute;top:12px;left:12px;z-index:3}
+.hacts{position:absolute;top:12px;right:12px;z-index:3;display:flex;gap:6px;align-items:center}
+.hacts .btn{background:color-mix(in srgb,var(--panel) 72%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2);color:var(--ink)}
+.hacts .btn:hover{background:var(--panel)}
+.hacts .btn.on{color:var(--accent)}
+.hlay{position:relative;z-index:2;padding:22px 24px 20px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end}
+.hmain{min-width:0}
+.hovl{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tint);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hovl button{border:0;background:none;padding:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer}
+.hovl button:hover{text-decoration:underline}
+.hovl .sep{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.6}
+#detail .hero .nameinput{display:block;width:100%;font-size:40px;font-weight:800;letter-spacing:-.034em;line-height:1.05;margin:6px 0 0 -6px;padding:2px 6px;border-radius:10px}
+#detail .hero .nameinput:hover{background:var(--hover)}
+#detail .hero .nameinput:focus{background:var(--hover);box-shadow:0 0 0 3px var(--tint-soft)}
+.hdate{display:flex;align-items:baseline;gap:12px;margin-top:10px;flex-wrap:wrap}
+.hdate .num{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.hin{font-size:16px;font-weight:700;color:var(--tint);letter-spacing:-.01em;display:inline-flex;align-items:center;gap:7px}
+.hin .live{width:8px;height:8px;border-radius:50%;background:var(--tint);box-shadow:0 0 0 4px var(--tint-soft)}
+.hin.past{color:var(--ink-3)} .hin.past .live{background:var(--ink-3);box-shadow:none}
+.hin.now .live{animation:hlive 1.6s ease-out infinite}
+@keyframes hlive{0%{box-shadow:0 0 0 0 var(--tint-glow)}100%{box-shadow:0 0 0 9px transparent}}
+.hplace{display:flex;align-items:center;gap:7px;color:var(--ink-2);font-size:15px;margin-top:6px}
+.hplace svg{width:15px;height:15px;color:var(--ink-3);flex:none}
+.facts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.fact{height:30px;padding:0 11px;border-radius:999px;border:0;background:color-mix(in srgb,var(--panel) 72%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2);display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--ink);cursor:pointer;text-decoration:none;transition:background .15s,transform .15s}
+.fact:hover{background:var(--panel);transform:translateY(-1px);text-decoration:none}
+.fact b{font-weight:700}
+.fact svg{width:14px;height:14px;color:var(--ink-2)}
+.fact.warn{color:var(--warn);box-shadow:0 0 0 .5px var(--warn)} .fact.warn svg{color:var(--warn)}
+.fact.st{padding-left:9px} .fact.st .sd{width:9px;height:9px}
+.fact.st svg:last-child{width:10px;height:10px;color:var(--ink-3);margin-left:-2px}
+.facts .mlink{font-size:12.5px}
+.hr{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px}
+.ringbox{position:relative;width:96px;height:96px;border-radius:50%;background:color-mix(in srgb,var(--panel) 72%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 0 .5px var(--line-2),0 10px 30px -10px rgba(0,0,0,.4);display:grid;place-items:center;text-decoration:none;color:var(--ink)}
+.ringbox:hover{text-decoration:none;background:var(--panel)}
+.ringbox .ring{position:absolute;inset:6px;width:auto;height:auto}
+.ringbox .ring .rv{stroke:var(--tint)} .ringbox .ring.full .rv{stroke:var(--ok)}
+.ringv{position:relative;display:flex;flex-direction:column;align-items:center;font-size:21px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.ringv small{font-size:9px;font-weight:600;color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.hr .hlab{font-size:12px;color:var(--ink-2);font-weight:500;margin:0}
+.evgrid .sec.first{margin-top:26px}
+
+/* road to race day */
+.road{margin-top:14px;border-radius:18px;background:var(--panel);box-shadow:var(--shadow-sm);padding:12px 16px}
+.rh2{display:flex;align-items:baseline;gap:8px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.rh2 .n{text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink-3)}
+.rh2 .act{margin-left:auto;text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--accent);border:0;background:none;display:inline-flex;align-items:center;gap:4px;padding:0}
+.rh2 .act svg{width:14px;height:14px}
+.road .track{display:flex;align-items:flex-start;margin-top:12px;position:relative;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.road .track::before{content:'';position:absolute;left:12px;right:12px;top:7px;height:2px;background:linear-gradient(90deg,var(--ink-4) 0%,var(--ink-4) 70%,var(--tint,var(--accent)) 100%)}
+.rdn{flex:1 1 0;min-width:150px;position:relative;padding-right:10px}
+.rdn .dot{width:16px;height:16px;border-radius:50%;background:var(--panel);border:2px solid var(--ink-3);position:relative;display:grid;place-items:center;color:var(--teal,#30b0c7);cursor:pointer}
+.rdn .dot svg{width:9px;height:9px}
+.rdn .dot input.ck{position:absolute;inset:-2px;width:16px;height:16px;margin:0;border-color:var(--ink-3)}
+.rdn .dot input.ck:checked{background-color:var(--accent);border-color:var(--accent)}
+.rdn .d{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin-top:8px}
+.rdn .d em{font-style:normal;color:var(--ink-2)} .rdn .d em.soon{color:var(--warn)} .rdn .d em.late{color:var(--danger)}
+.rdn .t{display:block;border:0;background:none;padding:0;text-align:left;font-size:14px;font-weight:500;margin-top:2px;line-height:1.3;color:var(--ink);cursor:pointer;text-decoration:none}
+.rdn button.t:hover{color:var(--accent)}
+.rdn.on .t{text-decoration:line-through;color:var(--ink-3)}
+.rdn.tr .dot{border-color:var(--ag-travel)} .rdn.tr .dot svg{color:var(--ag-travel)}
+.rdn.last{flex:0 0 auto;min-width:0;padding-right:0}
+.rdn.last .dot{background:var(--tint,var(--accent));border-color:var(--tint,var(--accent));color:#fff;width:22px;height:22px;margin:-3px 0 0 -3px;box-shadow:0 0 0 6px var(--tint-soft,var(--accent-soft));cursor:default}
+.rdn.last .dot svg{width:12px;height:12px}
+.rdn.last .d{color:var(--tint,var(--accent))}
+.rdn.last .t{font-weight:700;cursor:default}
+.road{--tint-soft:color-mix(in srgb,var(--tint,var(--accent)) 14%,transparent)}
+
+/* equipment shelf */
+.kit{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.kt{position:relative;border-radius:16px;background:var(--panel);box-shadow:var(--shadow-sm);padding:12px 12px 10px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.kt::before{content:'';position:absolute;right:-30%;bottom:-60%;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,var(--accent-soft),transparent 70%)}
+.kt img{width:56px;height:56px;object-fit:contain;border-radius:12px;background:#fff;box-shadow:0 6px 16px -8px rgba(0,0,0,.4);position:relative}
+.kt .t{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.kt .s{font-size:12px;color:var(--ink-2);line-height:1.4}
+.kt .n{position:absolute;top:10px;right:12px;font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--accent)}
+.kt .n small{font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase;margin-left:3px}
+.kt.todo{justify-content:center;background:transparent;box-shadow:inset 0 0 0 1.5px var(--warn-soft)}
+.kt.todo::before{display:none}
+.kt.todo .n{position:static;color:var(--warn)} .kt.todo .t{color:var(--warn)}
+
+/* next up card */
+.nextup{margin:12px 14px 4px;padding:14px 14px 12px 18px;border-radius:18px;color:#fff;background:linear-gradient(135deg,var(--tint,var(--accent)) 0%,var(--tint-2,var(--accent-hover)) 100%);box-shadow:0 14px 30px -14px var(--tint-glow),var(--shadow-sm);display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center;cursor:pointer;position:relative;overflow:hidden;transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.nextup:hover{transform:translateY(-1px)}
+.nextup::before{content:'';position:absolute;top:-40%;right:-20%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 70%);pointer-events:none}
+.nextup .cdn{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1;align-self:center}
+.nextup .cdn small{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.8);margin-top:2px}
+.nextup .cdn .live{display:inline-flex;align-items:center;gap:8px;font-size:18px;font-weight:800;letter-spacing:-.01em}
+.nextup .cdn .live i{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.3);animation:hlive 1.6s ease-out infinite}
+.nextup .ovl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.85);margin-bottom:2px}
+.nextup .n{font-size:16px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nextup .s{font-size:13px;color:rgba(255,255,255,.8);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nextup .nring{align-self:start}
+.nextup .ring .rt{stroke:rgba(255,255,255,.25)} .nextup .ring .rv,.nextup .ring.full .rv{stroke:#fff}
+.nextup .due{grid-column:1 / -1;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.22);display:flex;flex-direction:column;gap:6px;position:relative}
+.nextup .td{display:flex;align-items:center;gap:9px;font-size:13px;min-height:24px;color:#fff;text-decoration:none;cursor:pointer}
+.nextup .td svg{width:16px;height:16px;flex:none;opacity:.9}
+.nextup .td .tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nextup .td .ck{width:20px;height:20px;border-color:rgba(255,255,255,.65);background-color:transparent}
+.nextup .td .ck:checked{background-color:#fff;border-color:#fff;background-image:var(--check-dark)}
+.nextup .td:has(.ck:checked) .tx{text-decoration:line-through;opacity:.7}
+.nextup .td .when{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.9;white-space:nowrap}
+.nextup .td .when.now{background:rgba(255,255,255,.22);padding:2px 7px;border-radius:999px;opacity:1}
+.nextup .td.more{font-size:12px;opacity:.85}
+.nextup .nfoot{grid-column:1 / -1;display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12px;color:rgba(255,255,255,.85);margin-top:8px}
+.nextup .nfoot b{color:#fff} .nextup .nfoot .r{margin-left:auto}
+.nextup.raceday{background:linear-gradient(135deg,#111 0%,#2a2a2e 100%);box-shadow:0 14px 30px -14px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08)}
+.nextup.raceday .cdn{color:var(--tint,var(--accent))}
+.nextup.raceday .cdn .live i{background:var(--tint,var(--accent))}
+:root{--check-dark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%231c1c1e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8.5l2.6 2.5L12 5.5'/%3E%3C/svg%3E")}
+
+/* film strip */
+.film{display:flex;gap:10px;overflow-x:auto;padding:12px 14px 4px;scroll-snap-type:x proximity;scrollbar-width:none;mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+.film::-webkit-scrollbar{display:none}
+.fw{flex:none;scroll-snap-align:start}
+.fw .wh{display:flex;align-items:baseline;gap:6px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:0 4px 6px}
+.fw .wh b{color:var(--ink-2)}
+.fw .wh .clash{margin-left:auto;color:var(--danger);display:inline-flex;align-items:center;gap:3px;font-weight:700}
+.fw .wh .clash svg{width:11px;height:11px}
+.fw .days{display:grid;grid-template-columns:repeat(7,72px);gap:3px}
+.fd{border-radius:12px;padding:6px 4px 5px;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:112px;position:relative}
+.fd.we{background:var(--sunken)}
+.fd .fwd{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.fd .dn{font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1;height:28px;width:28px;display:grid;place-items:center;border-radius:50%;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif}
+.fd.today .dn{background:var(--ink);color:var(--bg)}
+.fd .its{display:flex;flex-direction:column;gap:3px;width:100%;margin-top:3px}
+.fd .flag{position:absolute;top:4px;right:4px;color:var(--danger)} .fd .flag svg{width:11px;height:11px}
+.fi{height:19px;border-radius:5px;font-size:10px;font-weight:600;display:flex;align-items:center;gap:3px;padding:0 4px;white-space:nowrap;overflow:hidden;width:100%;cursor:pointer;background:var(--sunken);color:var(--ink);border:0;text-decoration:none;text-align:left;font-family:inherit;letter-spacing:inherit}
+.fi span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fi i{font-style:normal;opacity:.7}
+.fi svg{width:10px;height:10px;flex:none}
+.fi.ev{background:var(--c,var(--accent));color:#fff}
+.fi.ev.on{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--c)}
+.fi.travel{background:var(--ag-travel);color:#fff} .fi.away{background:var(--ag-away);color:#fff} .fi.other{background:var(--ag-other);color:#fff}
+.fi.td .ck{width:11px;height:11px;border-width:1.2px;background-size:8px}
+.fi.td:has(.ck:checked) span{text-decoration:line-through;color:var(--ink-3)}
+.fi:hover{filter:brightness(1.08)}
+
+@media (max-width:860px){
+  .hero{margin:0 -4px;border-radius:22px;min-height:380px}
+  .hero:not(.hasmap){min-height:220px}
+  .hero .back{display:inline-flex;background:color-mix(in srgb,var(--panel) 72%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2);color:var(--ink)}
+  .hacts .sumtxt{display:none}
+  .hacts #sumbtn{width:40px;padding:0}
+  .hlay{padding:18px 18px 18px;grid-template-columns:1fr;gap:14px}
+  #detail .hero .nameinput{font-size:32px}
+  .hdate .num{font-size:22px}
+  .hr{flex-direction:row;justify-content:space-between;align-items:center}
+  .ringbox{width:84px;height:84px}
+  .htiles{top:0;transform:none;aspect-ratio:auto;height:62%;grid-template-columns:repeat(2,1fr);grid-template-rows:1fr 1fr}
+  .htiles > img:nth-child(n+3):nth-child(-n+4),.htiles > img:nth-child(n+7){display:none}
+  .htiles .hs2{grid-template-columns:repeat(2,1fr)}
+  .htiles .hs2 img:nth-child(n+3):nth-child(-n+4),.htiles .hs2 img:nth-child(n+7){display:none}
+  .hpin{display:none}
+  .hscrim{background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.2) 35%,var(--panel) 62%)!important}
+  .road{margin:12px -4px 0;padding:12px 14px}
+  .road .track{flex-direction:column;overflow:visible}
+  .road .track::before{left:7px;right:auto;top:8px;bottom:8px;width:2px;height:auto;background:linear-gradient(var(--ink-4) 0%,var(--ink-4) 70%,var(--tint,var(--accent)) 100%)}
+  .rdn{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:0 12px;align-items:center;min-width:0;padding:7px 0}
+  .rdn .d{margin:0;grid-column:3;font-size:11px}
+  .rdn .t{grid-column:2;grid-row:1;margin:0;font-size:16px}
+  .rdn .dot{grid-column:1;grid-row:1}
+  .rdn.last .dot{margin:0 0 0 -3px}
+  .kit{grid-template-columns:1fr 1fr}
+  .nextup{margin:10px 12px 4px}
+  .nextup .td{min-height:28px;font-size:14px}
+  .nextup .td .ck{width:22px;height:22px}
+  .fw .days{grid-template-columns:repeat(7,66px)}
+  .fi{height:20px;font-size:10.5px}
+  .fi.td .ck{width:12px;height:12px}
+}
 </style>
 </head>
 <body>
@@ -2284,7 +2475,7 @@ try{ const th=localStorage.getItem(THEME_KEY); if(th==='light'||th==='dark') doc
 const isDark=()=>document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':sysDark.matches;
 /* Toggling back to what the system uses returns to "follow the system" */
 function toggleTheme(){ const want=isDark()?'light':'dark'; if((want==='dark')===sysDark.matches){ delete document.documentElement.dataset.theme; try{ localStorage.removeItem(THEME_KEY) }catch{} }
-  else{ document.documentElement.dataset.theme=want; try{ localStorage.setItem(THEME_KEY,want) }catch{} } renderTop(); if(route.view==='m') renderDetail(); }
+  else{ document.documentElement.dataset.theme=want; try{ localStorage.setItem(THEME_KEY,want) }catch{} } renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); }
 function renderTop(){
   const vt={e:'Events',c:'Clients',a:'Agenda',h:'Hours',m:'Map'}[route.view];
   const tabOn=v=>route.view===v||(v==='e'&&route.view==='m');
@@ -2320,7 +2511,7 @@ function renderTop(){
   $('#setbtn').onclick=()=>openSettings();
   $('#logoutbtn').onclick=logout;
 }
-sysDark.addEventListener('change',()=>{ renderTop(); if(route.view==='m') renderDetail(); });
+sysDark.addEventListener('change',()=>{ renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); });
 
 /* =====================================================================
    ROUTING  #/e  #/e/<id>  #/c  #/c/<id>  #/h
@@ -2358,6 +2549,83 @@ function render(){
    LEFT LIST
    ===================================================================== */
 function renderList(){ if(!S) return; const L=$('#list'); if(route.view==='e') renderEventList(L); else if(route.view==='c') renderClientList(L); else L.innerHTML=''; }
+/* =====================================================================
+   REDESIGN STAGE 2 — ambient tint per event type, hero map, Next up card,
+   film strip, road to race day, equipment shelf
+   ===================================================================== */
+const DOWL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const TYPE_TINTS=[[/vertical|hill|climb|skyrun|km verticale/i,'#a855f7','#6d28d9'],[/tri|duath|aquath|swim/i,'#30b0c7','#0e7490'],[/multi|relay|staffett/i,'#7a5af5','#4c35b5'],[/cycl|bike|mtb|gravel|velo|cicl/i,'#ff9500','#c2410c'],[/trail|ultra/i,'#2fb36d','#0b7a4a'],[/road|run|marath|half|semi|10 ?k|corsa/i,'#0a7aff','#0050b3']];
+function tintOf(e){ const t=e?.type||''; for(const [re,a,b] of TYPE_TINTS) if(re.test(t)) return {a,b}; return {a:'#0a7aff',b:'#0050b3'}; }
+const tintStyle=e=>{ const t=tintOf(e); return `--tint:${t.a};--tint-2:${t.b}`; };
+function isoWeek(s){ const d=parse(s), t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())), day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1)); return Math.ceil(((t-y0)/864e5+1)/7); }
+/* 4×2 tile mosaic around the event's coordinates (CARTO with a key, else Esri grey canvas + hillshade relief) */
+function heroTiles(e){
+  const g=e.geo; if(!g||!isFinite(+g.lat)||!isFinite(+g.lon)) return '';
+  const z=11, n=2**z, la=+g.lat*Math.PI/180, x=(+g.lon+180)/360*n, y=(1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n;
+  const x0=Math.floor(x)-1, y0=(y%1)>=.5?Math.floor(y):Math.floor(y)-1;
+  const dark=isDark(), key=String(S.config.cartoKey||'').trim(), E='https://server.arcgisonline.com/ArcGIS/rest/services/';
+  const url=(tx,ty)=>key?`https://basemaps.cartocdn.com/rastertiles/${dark?'dark_all':'light_all'}/${z}/${tx}/${ty}@2x.png?key=${encodeURIComponent(key)}`:`${E}Canvas/${dark?'World_Dark_Gray_Base':'World_Light_Gray_Base'}/MapServer/tile/${z}/${ty}/${tx}`;
+  let h='<div class="htiles" aria-hidden="true">';
+  for(let r=0;r<2;r++) for(let c=0;c<4;c++) h+=`<img alt="" src="${url(x0+c,y0+r)}" onerror="this.style.visibility='hidden'">`;
+  if(!key){ h+='<div class="hs2">'; for(let r=0;r<2;r++) for(let c=0;c<4;c++) h+=`<img alt="" src="${E}Elevation/World_Hillshade/MapServer/tile/${z}/${y0+r}/${x0+c}" onerror="this.remove()">`; h+='</div>'; }
+  return h+`<span class="hpin" style="left:${((x-x0)/4*100).toFixed(1)}%;top:${((y-y0)/2*100).toFixed(1)}%"></span></div>`;
+}
+/* Next up: the first event still to come — days to go, what is due before it, the trip, the key counts */
+function nextUpCard(){
+  const e=S.events.filter(e=>e.dateStart&&(e.dateEnd||e.dateStart)>=TODAY&&(!flt.client||e.clientId===flt.client)).sort((a,b)=>a.dateStart.localeCompare(b.dateStart)||(a.dateEnd||'').localeCompare(b.dateEnd||''))[0];
+  if(!e) return '';
+  const cd=countdown(e), live=cd.c==='now', d=diff(TODAY,e.dateStart), p=progress(e), ck=checklistItems(e), ex=countTasks(e.checklistExtra), ckOpen=ck.filter(x=>!x.done).length+ex[0]-ex[1], oq=openQ(e).length;
+  const tds=S.agenda.todos.filter(t=>!t.done&&(t.link==='e:'+e.id||(t.due&&t.due<=e.dateStart))).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
+  const trips=agEntries().filter(i=>i.o.type==='travel'&&i.s<=e.dateStart&&i.e>=TODAY);
+  const items=[...tds.slice(0,3).map(t=>`<label class="td"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}</span>${t.due?`<span class="when ${t.due<=TODAY?'now':''}">${esc(dueTxt(t.due))}</span>`:''}</label>`),
+    ...trips.slice(0,2).map(i=>`<a class="td" href="#/a">${ic('plane',1.8)}<span class="tx">Travel${i.o.title?' · '+esc(i.o.title):''}</span><span class="when">${esc(dueTxt(i.s))}${i.o.time?' '+esc(i.o.time):''}</span></a>`)];
+  if(tds.length>3) items.push(`<a class="td more" href="#/a">+${tds.length-3} more to-dos</a>`);
+  const km=e.contests.reduce((a,c)=>a+num(c.distance),0);
+  const dn=live?`<span class="live"><i></i>${cd.t==='today'?'Race day':esc(cd.t)}</span>`:`${d}<small>${d===1?'day':'days'}</small>`;
+  return `<div class="nextup ${live?'raceday':''}" style="${tintStyle(e)}" data-id="${esc(e.id)}" role="link" tabindex="0" aria-label="Open ${esc(e.name)}">
+    <div class="cdn">${dn}</div>
+    <div class="nmeta"><div class="ovl">${live?'Now':'Next up'} · ${esc(fmtShort(e.dateStart))}</div><div class="n">${esc(e.name)||'untitled'}</div><div class="s">${esc([clientName(e.clientId),e.location,e.status].filter(Boolean).join(' · '))}</div></div>
+    <span class="nring" title="${Math.round(p*100)}% prepared">${ring(p,34,3)}</span>
+    ${items.length?`<div class="due">${items.join('')}</div>`:''}
+    <div class="nfoot"><span><b>${e.contests.length}</b> ${e.contests.length===1?'race':'races'}${km?` · ${fmtN(km)} km`:''}</span><span><b>${e.timingPoints.length}</b> timing ${e.timingPoints.length===1?'point':'points'}</span><span><b>${ckOpen}</b> checklist open</span><span class="r">${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
+  </div>`;
+}
+/* Film strip: the next four weeks — events in their type colour, to-dos (tickable), travel / away, clash flags */
+function filmStrip(){
+  const evs=S.events.filter(e=>e.dateStart&&(!flt.client||e.clientId===flt.client)&&(!flt.status||e.status===flt.status));
+  const tds=S.agenda.todos.filter(t=>t.due&&!t.done), ens=agEntries();
+  let h='<div class="film" id="film" aria-label="Next weeks">';
+  for(let w=0;w<4;w++){ const ws=addDays(TODAY,w*7), we=addDays(ws,6); let clash=false, days='';
+    for(let i=0;i<7;i++){ const d=addDays(ws,i), dt=parse(d), wkend=dt.getDay()%6===0;
+      const es=evs.filter(e=>d>=e.dateStart&&d<=(e.dateEnd||e.dateStart)), td=tds.filter(t=>t.due===d), en=ens.filter(x=>onDay(x,d)), c=clashOn(d); if(c) clash=true;
+      const its=[...es.map(e=>`<button type="button" class="fi ev ${e.id===route.id&&route.view==='e'?'on':''}" style="--c:${tintOf(e).a}" data-id="${esc(e.id)}" title="${esc(e.name)}">${d>e.dateStart?'<i>↳</i>':''}<span>${esc(e.name)||'untitled'}</span></button>`),
+        ...en.map(x=>`<a class="fi ${esc(x.o.type)}" href="#/a" title="${esc(enLabel(x.o))}">${ic(AG_TYPES[x.o.type]?.icon||'clock',2.2)}<span>${esc(x.o.title||AG_TYPES[x.o.type]?.label||'')}</span></a>`),
+        ...td.map(t=>`<label class="fi td" title="${esc(t.text)}"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span>${esc(t.text||'To-do')}</span></label>`)];
+      days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''}">${c?`<span class="flag" title="${esc(c.html.replace(/<[^>]+>/g,''))}">${ic('warn',2.2)}</span>`:''}<span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span><div class="its">${its.join('')}</div></div>`; }
+    h+=`<div class="fw"><div class="wh"><b>Week ${isoWeek(addDays(ws,3))}</b><span>${esc(fmtShort(ws).slice(4))} – ${esc(fmtShort(we).slice(4))}</span>${clash?`<span class="clash">${ic('warn',2.2)} clash</span>`:''}</div><div class="days">${days}</div></div>`; }
+  return h+'</div>';
+}
+/* Road to race day: the event's own to-dos and trips on one line that ends on race day */
+function roadToRace(e){
+  if(!e.dateStart) return '';
+  const tds=S.agenda.todos.filter(t=>t.link==='e:'+e.id), trips=agEntries().filter(i=>i.o.type==='travel'&&i.s<=(e.dateEnd||e.dateStart)&&i.e>=addDays(e.dateStart,-10));
+  const t0=e.contests.map(c=>c.startTime).filter(Boolean).sort()[0];
+  const nodes=[...tds.map(t=>({d:t.due||'',h:`<div class="rdn ${t.done?'on':''}"><label class="dot"><input type="checkbox" class="ck" data-o="${ref(t)}" data-k="done" data-r="detail" ${t.done?'checked':''} aria-label="Done: ${esc(t.text)}"></label><div class="d">${t.due?esc(fmtShort(t.due))+(!t.done&&t.due>=TODAY?` · <em class="${dueCls(t)}">${esc(countdown({dateStart:t.due}).t)}</em>`:!t.done&&t.due<TODAY?' · <em class="late">overdue</em>':''):'no date'}</div><button type="button" class="t" data-todo="${esc(t.id)}">${esc(t.text||'To-do')}</button></div>`})),
+    ...trips.map(i=>({d:i.s,h:`<div class="rdn tr"><span class="dot">${ic('plane',2.4)}</span><div class="d">${esc(fmtShort(i.s))}${i.o.time?' · '+esc(i.o.time):''}</div><a class="t" href="#/a">Travel${i.o.title?' → '+esc(i.o.title):''}</a></div>`}))].sort((a,b)=>(a.d||'9').localeCompare(b.d||'9'));
+  return `<div class="road"><div class="rh2">Road to race day${nodes.length?`<span class="n">· ${plural(tds.length,'to-do','to-dos')}${trips.length?`, ${plural(trips.length,'trip','trips')}`:''}</span>`:''}<button type="button" class="act" id="roadadd">${ic('plus',2.4)} To-do</button></div>
+    <div class="track">${nodes.map(n=>n.h).join('')}<div class="rdn last"><span class="dot">${ic('flag',2.4)}</span><div class="d">${esc(fmtShort(e.dateStart))}</div><div class="t">Race day${t0?' · '+esc(t0):''}</div></div></div></div>`;
+}
+/* Equipment shelf: the hardware kit of the event, with counts and channels, and the points still without hardware */
+function kitShelf(e){
+  if(!e.timingPoints.length) return '';
+  const tpc=tpCols(e), groups=new Map();
+  for(const t of e.timingPoints){ if(!t.hardware) continue; const g=groups.get(t.hardware)||{n:0,lines:[]}; g.n++; g.lines.push([tpc.ch&&t.ch?`Ch ${t.ch}`:'',tpc.loop&&t.loop?`L${t.loop}`:'',t.mode?(t.mode==='repeat'?'→ L1':t.mode):'',t.name||'untitled'].filter(Boolean).join(' · ')); groups.set(t.hardware,g); }
+  const missing=e.timingPoints.filter(t=>!t.hardware).length;
+  if(!groups.size) return '';
+  return `<div class="kit">${[...groups].map(([h,g])=>`<div class="kt"><img src="${hwImg(h)}" alt=""><div><div class="t">${esc(h)}</div><div class="s">${g.lines.slice(0,3).map(esc).join('<br>')}${g.lines.length>3?`<br>+${g.lines.length-3} more`:''}</div></div><span class="n">${g.n}</span></div>`).join('')}
+    ${missing?`<div class="kt todo"><span class="n">${missing}<small>${missing===1?'point':'points'}</small></span><div class="t">without hardware</div><div class="s">Assign in the table below</div></div>`:''}</div>`;
+}
+
 function renderEventList(L){
   const focus=document.activeElement?.id, scroll=L.querySelector('.lscroll')?.scrollTop||0;
   const q=flt.q.toLowerCase();
@@ -2392,7 +2660,7 @@ function renderEventList(L){
       <div class="lrow"><label class="switch"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Show past events</span> <span class="count">${hidden}</span></label>${viewSeg('e')}</div>
     </div>
     <div class="lscroll">
-      ${!flt.q&&!flt.client&&!flt.status?week:''}
+      ${!flt.q&&!flt.status?nextUpCard()+filmStrip():''}
       ${groups.map(g=>{ const oq=g.items.reduce((a,e)=>a+openQ(e).length,0); return `<section class="mg"><div class="mh"><span>${ym(g.k)}</span><span class="mc">· ${plural(g.items.length,'event','events')}</span>${oq?`<span class="mp">${plural(oq,'open question','open questions')}</span>`:''}</div>${g.items.map(row).join('')}</section>`; }).join('')
         ||`<div class="lempty">${S.events.length?'No events match.':'No events yet.'}<br>${S.events.length?'<button class="btn sm" style="margin-top:10px" id="fl-reset" type="button">Clear filters</button>':''}</div>`}
     </div>
@@ -2406,6 +2674,8 @@ function renderEventList(L){
   $('#fl-import').onclick=openImport;
   $('#fl-map').onclick=()=>go('m');
   $('#fl-reset')?.addEventListener('click',()=>{ flt.q='';flt.client='';flt.status=''; renderList(); });
+  L.querySelectorAll('[data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); renderList(); if(route.view==='e'&&route.id) renderDetail(); }); });
+  L.querySelectorAll('.nextup').forEach(n=>n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); go('e',n.dataset.id); } }));
   if(focus==='fl-q'){ const i=$('#fl-q'); i.focus(); i.setSelectionRange(i.value.length,i.value.length); }
 }
 function renderClientList(L){
@@ -2476,12 +2746,30 @@ function renderEvent(D){
   const tpc=tpCols(e);
   const tpTools=`<button class="btn sm ghost" type="button" data-tpcolors>Auto colours</button><button class="btn sm ghost" type="button" data-tpexport title="Timing Points.lvs for RR14">${ic('file',1.8)} Export .lvs</button>`;
   D.innerHTML=`
-  <div class="crumbs">${e.clientId&&clientOf(e.clientId)?`<button type="button" data-go="c:${esc(e.clientId)}">${esc(clientName(e.clientId))}</button>`:`<span>${esc(clientName(e.clientId))}</span>`}</div>
-  <div class="dtitle">${backBtn}<input class="nameinput" data-o="${ref(e)}" data-k="name" value="${esc(e.name)}" placeholder="Event name" aria-label="Event name">
-    <button class="btn icon ghost" id="aibtn" type="button" data-tip="Copy AI prompt to update this event" aria-label="Copy AI prompt to update this event">${ic('sparkle',1.8)}</button>
-    <button class="btn" id="sumbtn" type="button" data-tip="Client summary (PNG / PDF)">${ic('doc',1.8)}<span class="sumtxt">Summary</span></button>
-    <button class="btn icon ghost sidebtn ${sideOpen?'on':''}" id="sidebtn" type="button" aria-pressed="${sideOpen}" data-tip="${sideOpen?'Collapse':'Show'} side panel" data-kbd="]" aria-label="Side panel">${ic('side',1.9)}</button>${closeBtn('event')}</div>
-  <div class="dmeta"><span class="cd ${cd.c||''}" style="${cd.c?'':'padding:0 7px;border-radius:999px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)'}">${cd.t}</span><span>${esc(rt.main)}</span><span class="dot"></span><span>${esc(e.location||'no location')}</span><span class="dot"></span><span style="display:flex;align-items:center;gap:6px">${ring(p,14,2.2)} ${pct}% prepared</span>${oq?`<span class="dot"></span><span class="qb">${plural(oq,'open question','open questions')}</span>`:''}<span class="deskonly" style="display:contents"><span class="dot"></span>${metaLink(LK.res)}${metaLink(LK.rr)}</span></div>
+  <div class="hero ${e.geo?.lat?'hasmap':''}" style="${tintStyle(e)}">
+    ${heroTiles(e)}<div class="hscrim"></div>
+    ${backBtn}
+    <div class="hacts">
+      <button class="btn icon ghost" id="aibtn" type="button" data-tip="Copy AI prompt to update this event" aria-label="Copy AI prompt to update this event">${ic('sparkle',1.8)}</button>
+      <button class="btn" id="sumbtn" type="button" data-tip="Client summary (PNG / PDF)">${ic('doc',1.8)}<span class="sumtxt">Summary</span></button>
+      <button class="btn icon ghost sidebtn ${sideOpen?'on':''}" id="sidebtn" type="button" aria-pressed="${sideOpen}" data-tip="${sideOpen?'Collapse':'Show'} side panel" data-kbd="]" aria-label="Side panel">${ic('side',1.9)}</button>${closeBtn('event')}
+    </div>
+    <div class="hlay"><div class="hmain">
+      <div class="hovl">${e.clientId&&clientOf(e.clientId)?`<button type="button" data-go="c:${esc(e.clientId)}">${esc(clientName(e.clientId))}</button>`:`<span>${esc(clientName(e.clientId))}</span>`}${e.type?`<i class="sep"></i><span>${esc(e.type)}</span>`:''}${e.dateStart?`<i class="sep"></i><span>${DOWL[parse(e.dateStart).getDay()]}${rt.sub&&rt.sub!=='1 day'?' · '+esc(rt.sub):''}</span>`:''}</div>
+      <input class="nameinput" data-o="${ref(e)}" data-k="name" value="${esc(e.name)}" placeholder="Event name" aria-label="Event name">
+      <div class="hdate"><span class="num">${esc(rt.main)}</span>${e.dateStart?`<span class="hin ${cd.c||''}"><i class="live"></i>${esc(cd.t)}</span>`:''}</div>
+      <div class="hplace">${ic('pin',1.8)}<span>${esc(e.location||'no location')}</span></div>
+      <div class="facts">
+        <button type="button" class="fact st" data-statuspill><i class="sd" style="--c:${esc(statusColor(e.status))}"></i>${esc(e.status||'no status')}${ic('chevd',2.4)}</button>
+        <a class="fact" href="#s-races" data-jump>${ic('flag',2)}<b>${e.contests.length}</b> ${e.contests.length===1?'race':'races'}</a>
+        <a class="fact" href="#s-tps" data-jump>${ic('pin',2)}<b>${e.timingPoints.length}</b> timing ${e.timingPoints.length===1?'point':'points'}</a>
+        ${oq?`<a class="fact warn" href="#s-questions" data-jump>${ic('inbox',2)}<b>${oq}</b> open ${oq===1?'question':'questions'}</a>`:''}
+        <span class="deskonly" style="display:contents">${metaLink(LK.res)}${metaLink(LK.rr)}</span>
+      </div></div>
+      <div class="hr"><a class="ringbox" href="#s-checklist" data-jump title="Checklist">${ring(p,84,7)}<span class="ringv">${pct}%<small>prepared</small></span></a><span class="hlab">${ckDone} of ${ckTot} checklist items</span></div>
+    </div>
+  </div>
+  ${roadToRace(e)}
   <nav class="jump" id="jump" aria-label="Sections">
     <a href="#s-general" data-jump>${secBadge('general','ji')}General</a><a href="#s-rr14" data-jump>${secBadge('rr14','ji')}RR14</a><a href="#s-links" data-jump>${secBadge('links','ji')}Links <em>${e.links.length||''}</em></a><a href="#s-tps" data-jump>${secBadge('tps','ji')}Timing points <em>${e.timingPoints.length}</em></a><a href="#s-races" data-jump>${secBadge('races','ji')}Races <em>${e.contests.length}</em></a><a href="#s-registration" data-jump>${secBadge('registration','ji')}Registration <em>${regN||''}</em></a><a href="#s-scoring" data-jump>${secBadge('scoring','ji')}Scoring <em>${scoreN||''}</em></a><a href="#s-outputs" data-jump>${secBadge('outputs','ji')}Outputs <em>${outN||''}</em></a>
     <a href="#s-questions" data-jump>${secBadge('questions','ji')}Questions <em class="${oq?'w':''}">${oq||''}</em></a><a href="#s-checklist" data-jump>${secBadge('checklist','ji')}Checklist <em>${pct}%</em></a>${showH?`<a href="#s-hours" data-jump>${secBadge('hours','ji')}Hours <em>${fmtN(sumH(evHours))}</em></a>`:''}<a href="#s-notes" data-jump>${secBadge('notes','ji')}Notes</a>
@@ -2511,6 +2799,7 @@ function renderEvent(D){
   </section>
 
   <section class="sec" id="s-tps"><div class="sech" style="--sc:${SECC.tps}"><h3>${secBadge('tps')}Timing points <span class="count">${e.timingPoints.length}</span></h3><span class="sp"></span>${e.timingPoints.length?`<span class="deskonly" style="display:contents">${tpTools}</span>`:''}<button class="btn sm" id="addtp" type="button">${ic('plus',2.2)} Point</button></div>
+  ${kitShelf(e)}
   ${e.timingPoints.length?`<div class="hs"><div class="tbox hsc"><table class="t tps" style="min-width:${820-(tpc.ch?0:62)-(tpc.loop?0:62)-(tpc.mode?0:108)}px"><colgroup><col class="c1"><col class="c2"><col class="c3">${tpc.ch?'<col class="c4">':''}${tpc.loop?'<col class="c5">':''}${tpc.mode?'<col class="c6">':''}<col class="c7">${narrow.matches?'':'<col class="c8">'}<col class="c9"></colgroup><thead><tr><th class="stk stk1"></th><th class="stk stk2">Name</th><th>Hardware</th>${tpc.ch?'<th>Ch.</th>':''}${tpc.loop?'<th>L.</th>':''}${tpc.mode?'<th>Mode</th>':''}<th title="Position (lat, lon)${narrow.matches?' and note':''}">${narrow.matches?'Pos. · Note':'Pos.'}</th>${narrow.matches?'':'<th>Notes</th>'}<th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${e.timingPoints.map((t,i)=>tpRow(e,t,i,dups,tpc)).join('')}</tbody></table></div></div>
   ${dups.length?`<div class="empty" style="border-color:var(--danger);color:var(--danger);margin-top:8px">${ic('warn')}<span>${dups.map(([k,v])=>`Ch. ${esc(k.split('/')[0])}${k.endsWith('–')?'':` / L. ${esc(k.split('/')[1])}`} is used ${v.length} times: ${v.map(t=>esc(t.name||'untitled')).join(', ')}`).join('<br>')}</span></div>`:''}
   <div class="toolbar phoneonly">${tpTools}</div>`:emptyBox('pin','The hardware on the course: start, finish, intermediate points. Races use them in their splits.')}
@@ -2577,6 +2866,9 @@ function renderEvent(D){
   $('#cpid').onclick=()=>{ if(!e.rr14EventId) return; navigator.clipboard?.writeText(e.rr14EventId).then(()=>toast('EventID copied',e.rr14EventId,'copy'),()=>toast('Could not copy','','warn','warn')); };
   on(D,'[data-tech]',b=>{ e.technology=e.technology===b.dataset.tech?'':b.dataset.tech; touch(); renderDetail(); });
   $('#statusbtn').onclick=ev=>openStatusMenu(ev.currentTarget,e);
+  on(D,'[data-statuspill]',b=>openStatusMenu(b,e));
+  on(D,'[data-todo]',b=>{ const t=S.agenda.todos.find(x=>x.id===b.dataset.todo); if(t) openTodo(t); });
+  $('#roadadd')?.addEventListener('click',()=>{ const t={...mkTask(''),id:uid('td'),due:'',link:'e:'+e.id}; S.agenda.todos.push(t); touch('none'); openTodo(t); });
   $('#datebtn').onclick=ev=>openDate(ev.currentTarget,{s:e.dateStart,e:e.dateEnd,allowRange:true,excludeId:e.id,onChange:(s,en)=>{ e.dateStart=s; e.dateEnd=en||''; touch(); const r=rangeText(s,en); const b=$('#datebtn'); if(b){ b.querySelector('.tv').textContent=r.main; b.querySelector('.ts').textContent=r.sub; } },onClose:()=>renderDetail()});
   // moving the event to another client moves its open hours too (only possible while they are loaded; otherwise fixed on unlock)
   D.querySelector('[data-k=clientId]')?.addEventListener('change',ev=>{ if(priv()) for(const h of entriesOf(h=>h.eventId===e.id)) if(isOpen(h)) h.clientId=ev.target.value; });
@@ -3424,11 +3716,11 @@ function renderCmd(){
   let g='';
   $('#cmdlist').innerHTML=cmdItems.map((it,i)=>`${it.g!==g?`<div class="pg">${(g=it.g)}</div>`:''}<button type="button" class="pi ${i===cmdHl?'hl':''}" data-i="${i}" role="option"><span class="pic">${ic(it.icon,2)}</span><span class="pt">${esc(it.t)}${it.sub?`<small>${esc(it.sub)}</small>`:''}</span><span class="pr">${it.right||''}</span></button>`).join('')||'<div class="pnone">No results</div>';
   on($('#cmdlist'),'[data-i]',b=>{ const it=cmdItems[+b.dataset.i]; closeCmd(); it.run(); });
-  $('#cmdlist').querySelectorAll('[data-i]').forEach(b=>b.addEventListener('mousemove',()=>{ if(cmdHl!==+b.dataset.i){ cmdHl=+b.dataset.i; $('#cmdlist .hl')?.classList.remove('hl'); b.classList.add('hl'); } }));
+  $('#cmdlist').querySelectorAll('[data-i]').forEach(b=>b.addEventListener('mousemove',()=>{ if(cmdHl!==+b.dataset.i){ cmdHl=+b.dataset.i; $('#cmdlist .hlay')?.classList.remove('hl'); b.classList.add('hl'); } }));
 }
 $('#cmdin').addEventListener('input',()=>{ cmdHl=0; renderCmd(); });
 $('#cmdin').addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); cmdHl=(cmdHl+(e.key==='ArrowDown'?1:-1)+cmdItems.length)%Math.max(1,cmdItems.length); renderCmd(); $('#cmdlist .hl')?.scrollIntoView({block:'nearest'}); }
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); cmdHl=(cmdHl+(e.key==='ArrowDown'?1:-1)+cmdItems.length)%Math.max(1,cmdItems.length); renderCmd(); $('#cmdlist .hlay')?.scrollIntoView({block:'nearest'}); }
   else if(e.key==='Enter'){ e.preventDefault(); const it=cmdItems[cmdHl]; if(it){ closeCmd(); it.run(); } }
 });
 $('#cmdk').addEventListener('pointerdown',e=>{ if(e.target.id==='cmdk') closeCmd(); });
