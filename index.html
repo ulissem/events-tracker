@@ -695,6 +695,8 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .palette .pf{display:flex;gap:14px;padding:8px 14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-3);background:var(--panel-2)}
 .palette .pf span{display:flex;align-items:center;gap:5px}
 .palette .pnone{padding:28px;text-align:center;color:var(--ink-3)}
+.palette .cmdx{display:none;border:0;background:none;padding:0 2px;color:var(--accent);font-size:15px;font-weight:500;flex:none}
+@media (max-width:860px){ .palette .cmdx{display:block} .palette .pin2 kbd,.palette .pi .pr kbd,.palette .pf{display:none} } /* touch: no keyboard hints, a Cancel button instead of esc */
 
 #toasts{position:fixed;z-index:1200;left:50%;bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 .toast{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 10px;border-radius:10px;background:var(--ink);color:var(--panel);font-size:13px;box-shadow:var(--shadow-pop);animation:toastin .18s ease-out;pointer-events:auto}
@@ -1922,7 +1924,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 </div>
 <div id="cmdk" class="overlay" hidden>
   <div class="palette" role="dialog" aria-label="Command palette">
-    <div class="pin2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="cmdin" placeholder="Jump to an event, client or action…" autocomplete="off" spellcheck="false" aria-label="Search events, clients and actions"><kbd>esc</kbd></div>
+    <div class="pin2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="cmdin" placeholder="Jump to an event, client or action…" autocomplete="off" spellcheck="false" aria-label="Search events, clients and actions"><kbd>esc</kbd><button type="button" class="cmdx" id="cmdx">Cancel</button></div>
     <div class="pl" id="cmdlist" role="listbox"></div>
     <div class="pf"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div>
   </div>
@@ -4149,6 +4151,7 @@ function commitDP(){ DP.changed=true; DP.onChange?.(DP.s,DP.e); }
 let cmdItems=[], cmdHl=0;
 function openCmd(){ if(!S) return; closePops(); $('#cmdk').hidden=false; const i=$('#cmdin'); i.value=''; cmdHl=0; renderCmd(); i.focus(); }
 function closeCmd(){ $('#cmdk').hidden=true; }
+$('#cmdx').addEventListener('click',closeCmd); // phones: no Esc key
 function renderCmd(){
   const q=$('#cmdin').value.trim().toLowerCase();
   const match=s=>!q||q.split(/\s+/).every(w=>s.toLowerCase().includes(w));
