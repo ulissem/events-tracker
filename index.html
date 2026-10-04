@@ -509,7 +509,7 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .tnote svg{width:13px;height:13px;flex:none;margin-top:2px;color:var(--ink-3)}
 .task.done + .tnote{color:var(--ink-3)}
 .task .notebtn.set{opacity:1;color:var(--accent)}
-#tip{position:fixed;z-index:95;pointer-events:none;display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;background:var(--ink);color:var(--panel);font-size:12px;font-weight:500;box-shadow:var(--shadow-pop);white-space:nowrap;animation:fade .12s}
+#tip{position:fixed;z-index:1150;pointer-events:none;display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;background:var(--ink);color:var(--panel);font-size:12px;font-weight:500;box-shadow:var(--shadow-pop);white-space:nowrap;animation:fade .12s}
 #tip kbd{background:color-mix(in srgb,var(--panel) 16%,transparent);color:inherit;border-color:color-mix(in srgb,var(--panel) 30%,transparent)}
 #tip .kk{display:flex;gap:3px}
 .kpanel{width:720px;max-width:100%;max-height:calc(100vh - 24vh);overflow:auto;background:var(--panel);border:1px solid var(--line-2);border-radius:14px;box-shadow:var(--shadow-pop);animation:popin .14s ease-out}
@@ -673,7 +673,7 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .palette .pf span{display:flex;align-items:center;gap:5px}
 .palette .pnone{padding:28px;text-align:center;color:var(--ink-3)}
 
-#toasts{position:fixed;z-index:90;left:50%;bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+#toasts{position:fixed;z-index:1200;left:50%;bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 .toast{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 10px;border-radius:10px;background:var(--ink);color:var(--panel);font-size:13px;box-shadow:var(--shadow-pop);animation:toastin .18s ease-out;pointer-events:auto}
 .toast.out{animation:toastout .2s ease-in forwards}
 .toast .ti{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--ok);color:#fff}
