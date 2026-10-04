@@ -1288,7 +1288,7 @@ body.locked{overflow:hidden}
   </form>
 </dialog>
 <dialog id="sumdlg" aria-label="Client summary">
-  <div class="sumbar"><label class="chk"><input type="checkbox" class="ck" id="sum-res"> include resolved questions</label><button class="btn" type="button" id="sum-png">Download PNG</button><button class="btn" type="button" id="sum-pdf">Print / PDF</button><button class="btn primary" type="button" id="sum-close">Close</button></div>
+  <div class="sumbar"><label class="chk"><input type="checkbox" class="ck" id="sum-res"> include resolved questions</label><button class="btn" type="button" id="sum-copy">Copy PNG</button><button class="btn" type="button" id="sum-png">Download PNG</button><button class="btn" type="button" id="sum-pdf">Print / PDF</button><button class="btn primary" type="button" id="sum-close">Close</button></div>
   <div class="sumwrap"><div id="sumsheet"></div></div>
 </dialog>
 <dialog id="impdlg" aria-label="Import from AI">
@@ -3072,13 +3072,21 @@ function loadH2C(){ return h2c||(h2c=new Promise((ok,ko)=>{ const s=document.cre
   s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
   s.integrity='sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H'; s.crossOrigin='anonymous';
   s.onload=()=>ok(window.html2canvas); s.onerror=()=>{ h2c=null; ko(new Error('Could not load html2canvas')); }; document.head.appendChild(s); })); }
-$('#sum-png').onclick=async()=>{
-  const b=$('#sum-png'); b.disabled=true; b.textContent='Preparing…';
-  try{ const html2canvas=await loadH2C(); await document.fonts?.ready;
-    const canvas=await html2canvas($('#sumsheet .sheet'),{scale:2,backgroundColor:'#ffffff',logging:false});
-    const a=document.createElement('a'); a.download=`summary-${slug(sumEvent.name||'event')}-${TODAY}.png`; a.href=canvas.toDataURL('image/png'); a.click();
-  }catch(err){ alert(err.message); }
-  finally{ b.disabled=false; b.textContent='Download PNG'; }
+/* the summary sheet as a PNG (2× for sharp text) */
+async function sumCanvas(){ const html2canvas=await loadH2C(); await document.fonts?.ready; return html2canvas($('#sumsheet .sheet'),{scale:2,backgroundColor:'#ffffff',logging:false}); }
+const sumBlob=async()=>{ const canvas=await sumCanvas(); return new Promise((ok,ko)=>canvas.toBlob(b=>b?ok(b):ko(new Error('Could not make the image')),'image/png')); };
+/* busy state and result on the button itself: toasts would sit behind the dialog */
+async function sumAction(b,label,fn){
+  b.disabled=true; b.textContent='Preparing…'; let msg=label;
+  try{ msg=await fn()||label; }catch(err){ msg=label; alert(err?.name==='NotAllowedError'?'The browser did not allow copying the image. Use Download PNG.':err.message); }
+  finally{ b.disabled=false; b.textContent=msg; if(msg!==label) setTimeout(()=>{ b.textContent=label; },1800); }
+}
+$('#sum-png').onclick=()=>sumAction($('#sum-png'),'Download PNG',async()=>{
+  const canvas=await sumCanvas(), a=document.createElement('a'); a.download=`summary-${slug(sumEvent.name||'event')}-${TODAY}.png`; a.href=canvas.toDataURL('image/png'); a.click(); });
+$('#sum-copy').onclick=()=>{
+  if(!navigator.clipboard?.write||!window.ClipboardItem){ alert('Copying images is not supported in this browser. Use Download PNG.'); return; }
+  // Safari wants the clipboard write started right in the tap: hand it the image still being drawn
+  sumAction($('#sum-copy'),'Copy PNG',async()=>{ await navigator.clipboard.write([new ClipboardItem({'image/png':sumBlob()})]); return 'Copied ✓'; });
 };
 
 /* =====================================================================
