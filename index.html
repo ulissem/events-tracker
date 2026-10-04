@@ -1565,9 +1565,15 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .nextup .td.more{font-size:12px;opacity:.85}
 .nextup .nfoot{grid-column:1 / -1;display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12px;color:rgba(255,255,255,.85);margin-top:8px}
 .nextup .nfoot b{color:#fff} .nextup .nfoot .r{margin-left:auto}
-.nextup.raceday{background:linear-gradient(135deg,#111 0%,#2a2a2e 100%);box-shadow:0 14px 30px -14px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08)}
-.nextup.raceday .cdn{color:var(--tint,var(--accent))}
-.nextup.raceday .cdn .live i{background:var(--tint,var(--accent))}
+.nextup.multi .nmeta{grid-column:2 / -1}
+.nextup .nus{grid-column:1 / -1;display:flex;flex-direction:column;gap:4px;margin-top:8px;position:relative}
+.nur{display:flex;align-items:center;gap:10px;border:0;border-radius:10px;padding:7px 8px 7px 10px;background:rgba(255,255,255,.14);color:#fff;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer;min-width:0}
+.nur:hover{background:rgba(255,255,255,.24)}
+.nur > i{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c);box-shadow:0 0 0 2px #fff}
+.nur .t{flex:1;min-width:0;display:flex;flex-direction:column}
+.nur b,.nur small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nur b{font-size:14px;font-weight:600} .nur small{font-size:11.5px;color:rgba(255,255,255,.8)}
+.nugrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:18px}
 :root{--check-dark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%231c1c1e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8.5l2.6 2.5L12 5.5'/%3E%3C/svg%3E")}
 
 /* film strip */
@@ -1593,6 +1599,16 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .fi.ev{background:var(--c,var(--accent));color:#fff}
 .fi.ev.on{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--c)}
 .fi.travel{background:var(--ag-travel);color:#fff} .fi.away{background:var(--ag-away);color:#fff} .fi.other{background:var(--ag-other);color:#fff}
+/* travel / away / other: a thin band across the days, the name only on the first day (and where a week starts) */
+.fbs{display:flex;flex-direction:column;gap:1px;width:calc(100% + 11px);margin:1px -5.5px 0}
+.fb{display:block;height:14px;position:relative;color:var(--c);text-decoration:none}
+.fb::after{content:'';position:absolute;left:0;right:0;bottom:2px;height:3px;background:var(--c);opacity:.85}
+.fb.s::after{left:5.5px;border-radius:3px 0 0 3px} .fb.e::after{right:5.5px;border-top-right-radius:3px;border-bottom-right-radius:3px} .fb.s.e::after{border-radius:3px}
+.fb.travel{--c:var(--ag-travel)} .fb.away{--c:var(--ag-away)} .fb.other{--c:var(--ag-other)}
+.fb.none{pointer-events:none} .fb.none::after{display:none}
+.fb span{position:absolute;left:6px;bottom:6px;z-index:1;display:flex;align-items:center;gap:3px;font-size:10px;font-weight:600;line-height:1;white-space:nowrap}
+.fb span svg{width:10px;height:10px}
+.fb:hover::after{opacity:1;height:4px}
 .fi.td .ck{width:11px;height:11px;border-width:1.2px;background-size:8px}
 .fi.td:has(.ck:checked) span{text-decoration:line-through;color:var(--ink-3)}
 .fi:hover{filter:brightness(1.08)}
@@ -1681,6 +1697,8 @@ body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
 .hm-date{font-size:15px;color:var(--ink-2)}
 .hm-head .btn{margin-left:auto}
 .home .nextup{margin:18px 0 0;padding:18px 20px 14px 22px}
+.home .nugrid .nextup{margin:0;padding:16px 16px 12px 18px}
+.home .nugrid .nextup .cdn{font-size:30px} .home .nugrid .nextup .n{font-size:17px}
 .home .nextup .cdn{font-size:44px}
 .home .nextup .n{font-size:20px}
 .home .film{padding:0;margin-top:18px}
@@ -2761,18 +2779,24 @@ function heroTiles(e){
   return h+`<span class="hpin" style="left:${((x-x0)/4*100).toFixed(1)}%;top:${((y-y0)/2*100).toFixed(1)}%"></span></div>`;
 }
 /* Next up: the first event still to come — days to go, what is due before it, the trip, the key counts */
-function nextUpCard(){
-  const e=S.events.filter(e=>e.dateStart&&(e.dateEnd||e.dateStart)>=TODAY&&(!flt.client||e.clientId===flt.client)).sort((a,b)=>a.dateStart.localeCompare(b.dateStart)||(a.dateEnd||'').localeCompare(b.dateEnd||''))[0];
-  if(!e) return '';
+function nextUpCard(home){
+  const evs=S.events.filter(e=>e.dateStart&&(e.dateEnd||e.dateStart)>=TODAY&&(!flt.client||e.clientId===flt.client)).sort((a,b)=>a.dateStart.localeCompare(b.dateStart)||(a.dateEnd||'').localeCompare(b.dateEnd||''));
+  if(!evs.length) return '';
+  const day=evs[0].dateStart<TODAY?TODAY:evs[0].dateStart, grp=evs.filter(e=>e.dateStart<=day&&(e.dateEnd||e.dateStart)>=day);
+  if(grp.length<2) return nuCard(evs[0]);
+  return home?`<div class="nugrid">${grp.map(e=>nuCard(e,true)).join('')}</div>`:nuDay(grp,day);
+}
+/* one event (several = Home shows one card each; then only its own to-dos, no trips) */
+function nuCard(e,several){
   const cd=countdown(e), live=cd.c==='now', d=diff(TODAY,e.dateStart), p=progress(e), ck=checklistItems(e), ex=countTasks(e.checklistExtra), ckOpen=ck.filter(x=>!x.done).length+ex[0]-ex[1], oq=openQ(e).length;
-  const tds=S.agenda.todos.filter(t=>!t.done&&(t.link==='e:'+e.id||(t.due&&t.due<=e.dateStart))).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
-  const trips=agEntries().filter(i=>i.o.type==='travel'&&i.s<=e.dateStart&&i.e>=TODAY);
+  const tds=S.agenda.todos.filter(t=>!t.done&&(t.link==='e:'+e.id||(!several&&t.due&&t.due<=e.dateStart))).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
+  const trips=several?[]:agEntries().filter(i=>i.o.type==='travel'&&i.s<=e.dateStart&&i.e>=TODAY);
   const items=[...tds.slice(0,3).map(t=>`<label class="td"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}</span>${t.due?`<span class="when ${t.due<=TODAY?'now':''}">${esc(dueTxt(t.due))}</span>`:''}</label>`),
     ...trips.slice(0,2).map(i=>`<a class="td" href="#/a">${ic('plane',1.8)}<span class="tx">Travel${i.o.title?' · '+esc(i.o.title):''}</span><span class="when">${esc(dueTxt(i.s))}${i.o.time?' '+esc(i.o.time):''}</span></a>`)];
   if(tds.length>3) items.push(`<a class="td more" href="#/a">+${tds.length-3} more to-dos</a>`);
   const km=e.contests.reduce((a,c)=>a+num(c.distance),0);
   const dn=live?`<span class="live"><i></i>${cd.t==='today'?'Race day':esc(cd.t)}</span>`:`${d}<small>${d===1?'day':'days'}</small>`;
-  return `<div class="nextup ${live?'raceday':''}" style="${tintStyle(e)}" data-id="${esc(e.id)}" role="link" tabindex="0" aria-label="Open ${esc(e.name)}">
+  return `<div class="nextup" style="${tintStyle(e)}" data-id="${esc(e.id)}" role="link" tabindex="0" aria-label="Open ${esc(e.name)}">
     <div class="cdn">${dn}</div>
     <div class="nmeta"><div class="ovl">${live?'Now':'Next up'} · ${esc(fmtShort(e.dateStart))}</div><div class="n">${esc(e.name)||'untitled'}</div><div class="s">${esc([clientName(e.clientId),e.location,e.status].filter(Boolean).join(' · '))}</div></div>
     <span class="nring" title="${Math.round(p*100)}% prepared">${ring(p,34,3)}</span>
@@ -2780,18 +2804,30 @@ function nextUpCard(){
     <div class="nfoot"><span><b>${e.contests.length}</b> ${e.contests.length===1?'race':'races'}${km?` · ${fmtN(km)} km`:''}</span><span><b>${e.timingPoints.length}</b> timing ${e.timingPoints.length===1?'point':'points'}</span><span><b>${ckOpen}</b> checklist open</span><span class="r">${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
   </div>`;
 }
+/* several events on the same day, left column: one card, one row per event */
+function nuDay(grp,day){
+  const live=grp.some(e=>countdown(e).c==='now'), d=diff(TODAY,day);
+  const races=grp.reduce((a,e)=>a+e.contests.length,0), oq=grp.reduce((a,e)=>a+openQ(e).length,0);
+  const dn=live?`<span class="live"><i></i>Race day</span>`:`${d}<small>${d===1?'day':'days'}</small>`;
+  return `<div class="nextup multi" style="${tintStyle(grp[0])}">
+    <div class="cdn">${dn}</div>
+    <div class="nmeta"><div class="ovl">${live?'Now':'Next up'} · ${esc(fmtShort(day))}</div><div class="n">${grp.length} events</div></div>
+    <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" style="--c:${tintOf(e).a}" aria-label="Open ${esc(e.name)}"><i></i><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small></span><span title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),22,2.5)}</span></button>`).join('')}</div>
+    <div class="nfoot"><span><b>${races}</b> ${races===1?'race':'races'}</span><span class="r">${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
+  </div>`;
+}
 /* Film strip: the next four weeks — events in their type colour, to-dos (tickable), travel / away, clash flags */
 function filmStrip(){
   const evs=S.events.filter(e=>e.dateStart&&(!flt.client||e.clientId===flt.client)&&(!flt.status||e.status===flt.status));
   const tds=S.agenda.todos.filter(t=>t.due&&!t.done), ens=agEntries();
   let h='<div class="film" id="film" aria-label="Next weeks">';
-  for(let w=0;w<4;w++){ const ws=addDays(TODAY,w*7), we=addDays(ws,6); let clash=false, days='';
+  for(let w=0;w<4;w++){ const ws=addDays(TODAY,w*7), we=addDays(ws,6), wEns=ens.filter(x=>x.s<=we&&x.e>=ws).sort((a,b)=>a.s.localeCompare(b.s)); let clash=false, days='';
     for(let i=0;i<7;i++){ const d=addDays(ws,i), dt=parse(d), wkend=dt.getDay()%6===0;
-      const es=evs.filter(e=>d>=e.dateStart&&d<=(e.dateEnd||e.dateStart)), td=tds.filter(t=>t.due===d), en=ens.filter(x=>onDay(x,d)), c=clashOn(d); if(c) clash=true;
+      const es=evs.filter(e=>d>=e.dateStart&&d<=(e.dateEnd||e.dateStart)), td=tds.filter(t=>t.due===d), c=clashOn(d); if(c) clash=true;
+      const bands=wEns.map(x=>!onDay(x,d)?'<span class="fb none"></span>':`<a class="fb ${esc(x.o.type)} ${d===x.s?'s':''} ${d===x.e?'e':''}" href="#/a" title="${esc(enLabel(x.o))}">${d===x.s||i===0?`<span>${ic(AG_TYPES[x.o.type]?.icon||'clock',2.2)}${esc(x.o.title||AG_TYPES[x.o.type]?.label||'')}</span>`:''}</a>`).join('');
       const its=[...es.map(e=>`<button type="button" class="fi ev ${e.id===route.id&&route.view==='e'?'on':''}" style="--c:${tintOf(e).a}" data-id="${esc(e.id)}" title="${esc(e.name)}">${d>e.dateStart?'<i>↳</i>':''}<span>${esc(e.name)||'untitled'}</span></button>`),
-        ...en.map(x=>`<a class="fi ${esc(x.o.type)}" href="#/a" title="${esc(enLabel(x.o))}">${ic(AG_TYPES[x.o.type]?.icon||'clock',2.2)}<span>${esc(x.o.title||AG_TYPES[x.o.type]?.label||'')}</span></a>`),
         ...td.map(t=>`<label class="fi td" title="${esc(t.text)}"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span>${esc(t.text||'To-do')}</span></label>`)];
-      days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''} ${d===selDay?'sel':''}">${c?`<span class="flag" title="${esc(c.html.replace(/<[^>]+>/g,''))}">${ic('warn',2.2)}</span>`:''}<button type="button" class="fdh" data-day="${d}" aria-pressed="${d===selDay}" aria-label="${esc(fmtLong(d))}"><span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span></button><div class="its">${its.join('')}</div></div>`; }
+      days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''} ${d===selDay?'sel':''}">${c?`<span class="flag" title="${esc(c.html.replace(/<[^>]+>/g,''))}">${ic('warn',2.2)}</span>`:''}<button type="button" class="fdh" data-day="${d}" aria-pressed="${d===selDay}" aria-label="${esc(fmtLong(d))}"><span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span></button>${bands?`<div class="fbs">${bands}</div>`:''}<div class="its">${its.join('')}</div></div>`; }
     h+=`<div class="fw"><div class="wh"><b>Week ${isoWeek(addDays(ws,3))}</b><span>${esc(fmtShort(ws).slice(4))} – ${esc(fmtShort(we).slice(4))}</span>${clash?`<span class="clash">${ic('warn',2.2)} clash</span>`:''}</div><div class="days">${days}</div></div>`; }
   return h+'</div>';
 }
@@ -2869,7 +2905,7 @@ function renderEventList(L){
   bindDays(L);
   $('#fl-reset')?.addEventListener('click',()=>{ flt.q='';flt.client='';flt.status=''; renderList(); });
   L.querySelectorAll('[data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); renderList(); if(route.view==='e'&&route.id) renderDetail(); }); });
-  L.querySelectorAll('.nextup').forEach(n=>n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); go('e',n.dataset.id); } }));
+  L.querySelectorAll('.nextup[data-id]').forEach(n=>n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); go('e',n.dataset.id); } }));
   if(focus==='fl-q'){ const i=$('#fl-q'); i.focus(); i.setSelectionRange(i.value.length,i.value.length); }
 }
 function renderClientList(L){
@@ -2952,7 +2988,7 @@ function renderHome(D){
   const cName=flt.client?clientName(flt.client):'';
   D.innerHTML=`<div class="home">
     <div class="hm-head"><h1>${greet}</h1><span class="hm-date">${esc(DOWL[parse(TODAY).getDay()])} ${esc(fmtLong(TODAY).slice(4))} · ${plural(soon.length,'event','events')} in the next 4 weeks${cName?` · ${esc(cName)}`:''}</span></div>
-    ${nextUpCard()}
+    ${nextUpCard(true)}
     ${filmStrip()}
     <div class="hm-grid">
       <div class="hm-card"><h4>Open questions <b class="w">${qTot||''}</b></h4>
