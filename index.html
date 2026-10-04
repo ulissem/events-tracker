@@ -1687,6 +1687,63 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .hm-keys span{display:flex;gap:4px;align-items:center}
 /* while the Home is open the left column is just the list */
 @media (min-width:861px){ body:not(.showing-detail) #list .nextup,body:not(.showing-detail) #list .film{display:none} }
+/* =====================================================================
+   REDESIGN STAGE 4 — Atlas-style map: glass toolbar, glass labels, strip
+   ===================================================================== */
+.maphead{position:absolute;top:12px;left:16px;right:16px;z-index:620;border:0;background:transparent;padding:0;gap:8px;pointer-events:none}
+.maphead > *{pointer-events:auto}
+.maphead .msrch,.maphead .in.sm,.maphead .switch,.maphead .vseg{background:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -14px rgba(0,0,0,.5)}
+.maphead .switch{height:34px;padding:0 12px;border-radius:10px}
+.maphead .msrch{width:300px}
+.mapwrap{background:var(--bg)}
+main.mapv #detail{padding:0;position:relative}
+.mapel{z-index:0}
+.leaflet-container{background:var(--bg)}
+.leaflet-top.leaflet-right{top:58px}
+.leaflet-bottom.leaflet-left{bottom:198px}
+.leaflet-bar{border:0!important;box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -14px rgba(0,0,0,.5)!important;border-radius:10px!important;background:color-mix(in srgb,var(--panel) 78%,transparent)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.leaflet-bar a{background:transparent!important;border-bottom-color:var(--line)!important}
+.leaflet-control-attribution{border-radius:6px;padding:1px 6px!important}
+.nopos{top:58px;bottom:auto;left:16px;height:30px;border:0;border-radius:10px;background:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 0 .5px var(--warn);z-index:610}
+.mpin{background:none;border:0}
+.mpk{position:absolute;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap;transform:translate(-7px,-50%);cursor:pointer}
+.mpk.L{flex-direction:row-reverse;transform:translate(calc(-100% + 7px),-50%)}
+.mpk i{width:14px;height:14px;border-radius:50%;background:var(--c);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);flex:none}
+.mpk .mlbl{display:flex;flex-direction:column;line-height:1.15;padding:5px 9px;border-radius:10px;background:color-mix(in srgb,var(--panel) 76%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2),0 6px 16px -8px rgba(0,0,0,.4)}
+.mpk .mlbl b{font-size:12.5px;font-weight:600;letter-spacing:-.005em}
+.mpk .mlbl small{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.mpk:hover .mlbl{background:var(--panel)}
+.mpk.focus i{box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 22%,transparent),0 2px 8px rgba(0,0,0,.35);animation:mpulse 2.2s ease-out infinite}
+.mpk.focus .mlbl{box-shadow:0 0 0 1.5px var(--c),0 6px 16px -8px rgba(0,0,0,.4)}
+@keyframes mpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c) 45%,transparent),0 2px 8px rgba(0,0,0,.35)}100%{box-shadow:0 0 0 14px transparent,0 2px 8px rgba(0,0,0,.35)}}
+.mpk.up .mlbl{transform:translateY(-14px)} .mpk.dn .mlbl{transform:translateY(14px)}
+.mpk.nolbl .mlbl{display:none} /* no free spot at this zoom: just the dot, the label returns when zooming in */
+.mpk.nolbl:hover .mlbl{display:flex}
+.leaflet-container .leaflet-popup-content-wrapper{background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:var(--ink);border-radius:16px;box-shadow:0 0 0 .5px var(--line-2),0 18px 40px -16px rgba(0,0,0,.5);border:0}
+.leaflet-container .leaflet-popup-tip{background:var(--panel);box-shadow:none}
+.mpk.past{opacity:.55} .mpk.past i{width:10px;height:10px;border-width:2px} .mpk.past .mlbl small{display:none}
+.mstrip{position:absolute;left:16px;right:16px;bottom:16px;z-index:620;border-radius:18px;background:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 0 0 .5px var(--line-2),0 20px 40px -20px rgba(0,0,0,.6);padding:4px 0 6px}
+.mstrip .film{padding:8px 14px 4px;mask-image:none;-webkit-mask-image:none}
+.mstrip .grip,.mstrip .msh,.mstrip .mrows{display:none}
+.mapcard{z-index:640}
+@media (max-width:860px){
+  .maphead{top:10px;left:10px;right:10px;padding:0;gap:6px}
+  .maphead .msrch{width:100%}
+  .nopos{top:100px;left:10px}
+  .leaflet-top.leaflet-right{top:98px}
+  .leaflet-control-attribution{max-width:44vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mstrip{left:0;right:0;bottom:0;border-radius:22px 22px 0 0;padding:6px 0 calc(10px + var(--sab));max-height:44%;overflow:auto;transition:max-height .35s cubic-bezier(.2,.8,.2,1)}
+  .mstrip.tall{max-height:84%}
+  .mstrip .grip{display:block;width:36px;height:5px;border-radius:3px;background:var(--line-3);margin:4px auto 8px;cursor:pointer}
+  .mstrip .msh{display:flex;align-items:baseline;gap:8px;padding:0 16px 4px;font-size:15px;font-weight:700}
+  .mstrip .msh .mc{font-size:13px;color:var(--ink-2);font-weight:500}
+  .mstrip .msh .mq{margin-left:auto;font-size:13px;color:var(--warn);font-weight:600}
+  .mstrip .mrows{display:block;padding:4px 8px 0}
+  .mrow{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:0 12px;align-items:center;width:100%;padding:10px 8px;border:0;background:none;text-align:left;color:inherit;border-radius:12px;position:relative}
+  .mrow + .mrow::before{content:'';position:absolute;left:64px;right:8px;top:-.5px;height:1px;background:var(--line)}
+  .mrow .ri{color:var(--warn)} .mrow .ri svg{width:14px;height:14px}
+  .mapcard{bottom:0}
+}
 </style>
 </head>
 <body>
@@ -3707,13 +3764,16 @@ function renderMap(D){
       <select class="in sm" id="fm-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="in sm" id="fm-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
       <label class="switch"><input type="checkbox" id="fm-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Past events</span></label>
-      <span class="mcount" id="mapcount"></span>${viewSeg('m')}
+      ${viewSeg('m')}
     </div>
     <div class="mapwrap"><div id="map" class="mapel"></div><div class="mapload" id="maploading">Loading the map…</div>
       <button class="nopos" id="nopos" type="button" hidden></button>
-      <div class="mlegend"><span><span class="mpill now">today</span>Today</span><span><span class="mpill soon">6d</span>Days to go, within a week</span><span><span class="mpill later"></span>Later</span><span><span class="mpill past"></span>Past</span></div>
+      <div class="mstrip" id="mstrip"><div class="grip" id="mgrip" role="button" aria-label="Expand"></div><div class="msh"><span>Next weeks</span><span class="mc" id="mapcount"></span><span class="mq" id="mapq"></span></div>${filmStrip()}<div class="mrows" id="mrows"></div></div>
       <div class="mapcard" id="mapcard" hidden></div>
     </div>`;
+  D.querySelectorAll('#mstrip [data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); }); });
+  on(D,'#mstrip [data-id]',b=>go('e',b.dataset.id));
+  $('#mgrip').onclick=()=>$('#mstrip').classList.toggle('tall');
   const refit=()=>{ MAPV=null; mapRefresh(true); };
   $('#fm-q').oninput=e=>{ flt.q=e.target.value; refit(); };
   $('#fm-client').onchange=e=>{ flt.client=e.target.value; refit(); };
@@ -3725,33 +3785,50 @@ function renderMap(D){
 }
 function initMap(){
   $('#maploading').hidden=true;
-  MAP=L.map('map',{zoomControl:!narrow.matches,attributionControl:false,worldCopyJump:true});
-  L.control.attribution({prefix:false,position:'bottomright'}).addTo(MAP);
+  MAP=L.map('map',{zoomControl:false,attributionControl:false,worldCopyJump:true});
+  if(!narrow.matches) L.control.zoom({position:'topright'}).addTo(MAP);
+  L.control.attribution({prefix:false,position:narrow.matches?'topright':'bottomleft'}).addTo(MAP);
   mapTiles().addTo(MAP);
   MAPL=L.layerGroup().addTo(MAP);
   MAP.on('moveend',()=>{ MAPV={c:MAP.getCenter(),z:MAP.getZoom()}; });
+  MAP.on('zoomend',()=>{ if(!mapRefresh.busy) mapRefresh(false); });
   MAP.on('click',()=>{ const c=$('#mapcard'); if(c) c.hidden=true; });
   mapRO.disconnect(); mapRO.observe($('#map')); // list toggle, drawer, rotation: Leaflet must re-measure its box
   mapRefresh(true);
 }
 const mapRO=new ResizeObserver(()=>{ if(MAP) MAP.invalidateSize({pan:false}); });
 function mapRefresh(fit){
-  if(!MAP||!MAPL) return; MAPL.clearLayers(); const card=$('#mapcard'); if(card) card.hidden=true;
+  if(!MAP||!MAPL||mapRefresh.busy) return; mapRefresh.busy=true; try{ mapRefreshInner(fit); } finally{ mapRefresh.busy=false; }
+}
+function mapRefreshInner(fit){
+  MAPL.clearLayers(); const card=$('#mapcard'); if(card) card.hidden=true;
   const evs=mapEvents(), withPos=evs.filter(e=>e.geo), noPos=evs.filter(e=>!e.geo);
-  for(const e of withPos){ const cd=cdShort(e);
-    const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html:`<span class="mpill ${cd.c}">${esc(cd.t)}</span>`,iconSize:null}),riseOnHover:true,keyboard:false,title:''});
+  const lons=withPos.map(e=>+e.geo.lon).sort((a,b)=>a-b), median=lons.length?lons[Math.floor(lons.length/2)]:0;
+  const next=withPos.filter(e=>e.dateStart&&(e.dateEnd||e.dateStart)>=TODAY).sort((a,b)=>a.dateStart.localeCompare(b.dateStart))[0];
+  if(fit){ if(MAPV) MAP.setView(MAPV.c,MAPV.z);
+    else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),narrow.matches?{paddingTopLeft:[40,110],paddingBottomRight:[40,Math.round(innerHeight*.42)],maxZoom:10}:{paddingTopLeft:[120,80],paddingBottomRight:[120,210],maxZoom:10});
+    else MAP.setView([42.6,9.4],6); }
+  /* label placement: pixel boxes, no two labels overlapping, none off the edge; side flips, then nudges up / down */
+  const side=new Map(), nudge=new Map(); { const W=innerWidth, boxes=[], hit=b=>b.x<4||b.x+b.w>MAP.getSize().x-4||boxes.some(o=>b.x<o.x+o.w&&b.x+b.w>o.x&&b.y<o.y+o.h&&b.y+b.h>o.y);
+    const pts=withPos.map(e=>({e,p:MAP.latLngToContainerPoint([+e.geo.lat,+e.geo.lon]),w:Math.min(240,22+(e.name||'untitled').length*6.8)})).sort((a,b)=>a.p.y-b.p.y);
+    for(const {e,p,w} of pts){ const def=+e.geo.lon>median; let done=false;
+      for(const [L,n] of [[def,''],[!def,''],[def,'up'],[!def,'up'],[def,'dn'],[!def,'dn']]){ const b={x:L?p.x-7-w:p.x+7,y:p.y-17+(n==='up'?-14:n==='dn'?14:0),w,h:40}; if(!hit(b)){ boxes.push(b); side.set(e.id,L); nudge.set(e.id,n); done=true; break; } }
+      if(!done){ side.set(e.id,def); nudge.set(e.id,'nolbl'); } } }
+  for(const e of withPos){ const d=e.dateStart?diff(TODAY,e.dateStart):null, de=e.dateStart?diff(TODAY,e.dateEnd||e.dateStart):null, past=isPast(e);
+    const when=d===null?'no date':past?`${-de}d ago`:d<=0?'Today':`T−${d}`, pct=Math.round(progress(e)*100);
+    const html=`<span class="mpk ${e===next?'focus':''} ${past?'past':''} ${side.get(e.id)?'L':''} ${nudge.get(e.id)}" style="--c:${tintOf(e).a}"><i></i><span class="mlbl"><b>${esc(e.name)||'untitled'}</b><small>${when}${past?'':` · ${pct}%`}</small></span></span>`;
+    const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html,iconSize:[0,0],iconAnchor:[0,0]}),riseOnHover:true,keyboard:false,title:''});
     if(narrow.matches) mk.on('click',()=>{ card.innerHTML=mapCard(e); card.hidden=false; });
-    else{ mk.bindTooltip(esc(e.name||'untitled'),{direction:'top',offset:[0,-12],className:'mtip'}); mk.bindPopup(mapCard(e),{closeButton:false,offset:[0,-10],maxWidth:320}); mk.on('click',()=>mk.closeTooltip()); }
+    else mk.bindPopup(mapCard(e),{closeButton:false,offset:[0,-10],maxWidth:320});
     MAPL.addLayer(mk); }
+  const mr=$('#mrows'); if(mr) mr.innerHTML=evs.filter(e=>!isPast(e)).map(e=>{ const c=countdown(e), sd=e.dateStart?parse(e.dateStart):null; return `<button class="mrow" type="button" data-id="${esc(e.id)}"><span class="rd"><b>${sd?sd.getDate():'–'}</b><small>${sd?DOW[sd.getDay()]:''}</small></span><span class="rm"><span class="rn"><span>${esc(e.name)||'untitled'}</span></span><span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span>${esc(e.status)}</span><span>· ${esc(e.location||'no location')}</span></span></span><span class="rr"><span class="cd ${c.c}">${c.t}</span>${e.geo?'':`<span class="ri">${ic('warn',2.2)}</span>`}</span></button>`; }).join('');
+  const mq=$('#mapq'); if(mq){ const n=evs.reduce((a,e)=>a+openQ(e).length,0); mq.textContent=n?plural(n,'open question','open questions'):''; }
   const np=$('#nopos'); np.hidden=!noPos.length;
   np.innerHTML=`${ic('pin',2.2)}<b>${noPos.length}</b> ${noPos.length===1?'event':'events'} without position`;
   np.onclick=()=>{ if(!$('#menu').hidden&&popAnchor===np){ closePops(); return; } closePops(); if(card) card.hidden=true; const m=$('#menu');
     m.innerHTML=`<div class="mlab">Without position · link them in the event's Location field</div>`+noPos.map(e=>`<button type="button" data-go="e:${esc(e.id)}">${ic('flag',1.8)}<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name)||'<i>untitled</i>'}<small style="color:var(--ink-3)"> · ${esc(e.location||'no location')}</small></span></button>`).join('');
     place(m,np,'left'); popAnchor=np; };
-  const mc=$('#mapcount'); if(mc) mc.textContent=`${plural(withPos.length,'event','events')} on the map`;
-  if(fit){ if(MAPV) MAP.setView(MAPV.c,MAPV.z);
-    else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),{padding:[56,56],maxZoom:10});
-    else MAP.setView([42.6,9.4],6); }
+  const mc=$('#mapcount'); if(mc) mc.textContent=`${plural(evs.length,'event','events')} · ${withPos.length} on the map`;
 }
 
 /* date picker: single day or multi-day range, month grid, dots on days with other events */
