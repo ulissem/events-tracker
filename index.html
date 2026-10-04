@@ -1582,6 +1582,9 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .fw{flex:none;scroll-snap-align:start}
 .fw .wh{display:flex;align-items:baseline;gap:6px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:0 4px 6px}
 .fw .wh b{color:var(--ink-2)}
+.fw .whl{position:sticky;left:0;display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
+.fd.past{opacity:.4}
+.film{scroll-padding-left:14px} .fd.today{scroll-snap-align:start} /* the strip can rest on today, not only on a Monday */
 .fw .wh .clash{margin-left:auto;color:var(--danger);display:inline-flex;align-items:center;gap:3px;font-weight:700}
 .fw .wh .clash svg{width:11px;height:11px}
 .fw .days{display:grid;grid-template-columns:repeat(7,72px);gap:3px}
@@ -2820,17 +2823,21 @@ function nuDay(grp,day){
 function filmStrip(){
   const evs=S.events.filter(e=>e.dateStart&&(!flt.client||e.clientId===flt.client)&&(!flt.status||e.status===flt.status));
   const tds=S.agenda.todos.filter(t=>t.due&&!t.done), ens=agEntries();
+  const mon=addDays(TODAY,-((parse(TODAY).getDay()+6)%7)), nW=mon===TODAY?4:5; // weeks run Monday → Sunday; past days of this week dimmed
   let h='<div class="film" id="film" aria-label="Next weeks">';
-  for(let w=0;w<4;w++){ const ws=addDays(TODAY,w*7), we=addDays(ws,6), wEns=ens.filter(x=>x.s<=we&&x.e>=ws).sort((a,b)=>a.s.localeCompare(b.s)); let clash=false, days='';
+  for(let w=0;w<nW;w++){ const ws=addDays(mon,w*7), we=addDays(ws,6), wEns=ens.filter(x=>x.s<=we&&x.e>=ws).sort((a,b)=>a.s.localeCompare(b.s)); let clash=false, days='';
     for(let i=0;i<7;i++){ const d=addDays(ws,i), dt=parse(d), wkend=dt.getDay()%6===0;
-      const es=evs.filter(e=>d>=e.dateStart&&d<=(e.dateEnd||e.dateStart)), td=tds.filter(t=>t.due===d), c=clashOn(d); if(c) clash=true;
+      const es=evs.filter(e=>d>=e.dateStart&&d<=(e.dateEnd||e.dateStart)), td=tds.filter(t=>t.due===d), c=d>=TODAY&&clashOn(d); if(c) clash=true;
       const bands=wEns.map(x=>!onDay(x,d)?'<span class="fb none"></span>':`<a class="fb ${esc(x.o.type)} ${d===x.s?'s':''} ${d===x.e?'e':''}" href="#/a" title="${esc(enLabel(x.o))}">${d===x.s||i===0?`<span>${ic(AG_TYPES[x.o.type]?.icon||'clock',2.2)}${esc(x.o.title||AG_TYPES[x.o.type]?.label||'')}</span>`:''}</a>`).join('');
       const its=[...es.map(e=>`<button type="button" class="fi ev ${e.id===route.id&&route.view==='e'?'on':''}" style="--c:${tintOf(e).a}" data-id="${esc(e.id)}" title="${esc(e.name)}">${d>e.dateStart?'<i>↳</i>':''}<span>${esc(e.name)||'untitled'}</span></button>`),
         ...td.map(t=>`<label class="fi td" title="${esc(t.text)}"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span>${esc(t.text||'To-do')}</span></label>`)];
-      days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''} ${d===selDay?'sel':''}">${c?`<span class="flag" title="${esc(c.html.replace(/<[^>]+>/g,''))}">${ic('warn',2.2)}</span>`:''}<button type="button" class="fdh" data-day="${d}" aria-pressed="${d===selDay}" aria-label="${esc(fmtLong(d))}"><span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span></button>${bands?`<div class="fbs">${bands}</div>`:''}<div class="its">${its.join('')}</div></div>`; }
-    h+=`<div class="fw"><div class="wh"><b>Week ${isoWeek(addDays(ws,3))}</b><span>${esc(fmtShort(ws).slice(4))} – ${esc(fmtShort(we).slice(4))}</span>${clash?`<span class="clash">${ic('warn',2.2)} clash</span>`:''}</div><div class="days">${days}</div></div>`; }
+      days+=`<div class="fd ${wkend?'we':''} ${d===TODAY?'today':''} ${d<TODAY?'past':''} ${d===selDay?'sel':''}">${c?`<span class="flag" title="${esc(c.html.replace(/<[^>]+>/g,''))}">${ic('warn',2.2)}</span>`:''}<button type="button" class="fdh" data-day="${d}" aria-pressed="${d===selDay}" aria-label="${esc(fmtLong(d))}"><span class="fwd">${d===TODAY?'Today':DOW[dt.getDay()]}</span><span class="dn">${dt.getDate()}</span></button>${bands?`<div class="fbs">${bands}</div>`:''}<div class="its">${its.join('')}</div></div>`; }
+    const short=w===0&&diff(TODAY,we)<2; // only Sat/Sun of this week left on screen: no room for the dates
+    h+=`<div class="fw"><div class="wh"><span class="whl"><b>Week ${isoWeek(addDays(ws,3))}</b>${short?'':`<span>${esc(fmtShort(ws).slice(4))} – ${esc(fmtShort(we).slice(4))}</span>`}</span>${clash?`<span class="clash" title="Clash this week">${ic('warn',2.2)}${short?'':' clash'}</span>`:''}</div><div class="days">${days}</div></div>`; }
   return h+'</div>';
 }
+/* the strip opens on today (the week's earlier days sit to the left) */
+function placeFilms(root){ root?.querySelectorAll('.film').forEach(f=>{ const t=f.querySelector('.fd.today'); if(t) f.scrollLeft+=t.getBoundingClientRect().left-f.getBoundingClientRect().left-14; }); }
 /* Road to race day: the event's own to-dos and trips on one line that ends on race day */
 function roadToRace(e){
   if(!e.dateStart) return '';
@@ -2891,7 +2898,7 @@ function renderEventList(L){
         ||`<div class="lempty">${S.events.length?'No events match.':'No events yet.'}<br>${S.events.length?'<button class="btn sm" style="margin-top:10px" id="fl-reset" type="button">Clear filters</button>':''}</div>`}
     </div>
     <div class="listfoot"><span>${plural(ev.length,'event','events')} · ${plural(S.events.reduce((a,e)=>a+openQ(e).length,0),'open question','open questions')}</span><span class="lfa"><button type="button" class="keysbtn" id="fl-import" data-tip="Import from AI (JSON)" aria-label="Import from AI (JSON)">${ic('upload',1.8)}<span>Import</span></button><button type="button" class="keysbtn kh" data-keys data-tip="Keyboard shortcuts" data-kbd="?" aria-label="Keyboard shortcuts">${ic('keyboard',1.8)}<kbd>?</kbd></button></span></div>`;
-  L.querySelector('.lscroll').scrollTop=scroll;
+  L.querySelector('.lscroll').scrollTop=scroll; placeFilms(L);
   const mapMode=route.view==='m';
   on(L,'[data-id]',b=>mapMode&&!b.closest('.film')?mapFocus(b.dataset.id):go('e',b.dataset.id));
   const refl=()=>{ renderList(); if(mapMode){ MAPV=null; mapRefresh(true); } };
@@ -2961,7 +2968,7 @@ function renderDetail(){
   if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else if(route.view==='a') renderAgenda(D); else if(route.view==='m') renderMap(D); else renderHours(D);
   D.dataset.k=key;
   if(keep) D.querySelectorAll('.evside,.hsc,.tpwrap').forEach((x,i)=>{ if(keep[i]){ x.scrollTop=keep[i][0]; x.scrollLeft=keep[i][1]; } });
-  bind(D); sortable(D); hscroll(D); refocus(D,fk);
+  bind(D); sortable(D); hscroll(D); refocus(D,fk); placeFilms(D);
   D.querySelector('#closebtn')?.addEventListener('click',()=>go(route.view));
   D.querySelector('#backbtn')?.addEventListener('click',()=>go(route.view));
   spy();
@@ -3000,7 +3007,7 @@ function renderHome(D){
         <div class="hm-ft"><button class="tbtn" type="button" id="hm-addtd">${ic('plus',2.4)} To-do</button><button class="tbtn quiet" type="button" data-go="a">${ic('cal',2)} Open Agenda</button></div>
       </div>
       <div class="hm-card"><h4>Travel &amp; away</h4>
-        ${ens.length||clashes.length?`${ens.map(i=>`<a class="hm-t" href="#/a">${ic(AG_TYPES[i.o.type]?.icon||'clock',1.9)}<span class="tx">${esc(i.o.title||AG_TYPES[i.o.type]?.label||'')}</span><span class="tag ${esc(i.o.type)}">${esc(AG_TYPES[i.o.type]?.label||i.o.type)}</span><span class="when">${esc(fmtShort(i.s))}${i.e>i.s?' – '+esc(fmtShort(i.e)):''}</span></a>`).join('')}
+        ${ens.length||clashes.length?`${ens.map(i=>`<a class="hm-t" href="#/a">${ic(AG_TYPES[i.o.type]?.icon||'clock',1.9)}<span class="tx">${esc(i.o.title||AG_TYPES[i.o.type]?.label||'')}<small>${esc(fmtShort(i.s))}${i.e>i.s?' – '+esc(fmtShort(i.e)):''}${i.o.time?' · '+esc(i.o.time):''}</small></span><span class="tag ${esc(i.o.type)}">${esc(AG_TYPES[i.o.type]?.label||i.o.type)}</span></a>`).join('')}
         ${clashes.map(c=>`<a class="hm-t warn" href="#/a">${ic('warn',2)}<span class="tx">${c.html}</span><span class="when">${esc(fmtShort(c.from))}${c.to>c.from?' – '+esc(fmtShort(c.to)):''}</span></a>`).join('')}`:`<div class="hm-empty">No trips, no clashes in the next 4 weeks.</div>`}
         <h4 class="hm-sub">Hours</h4>
         <div class="hm-hours"><span class="big">${esc(U().icon)}</span>${showH?`<span><b>${fmtN(openHours)} h</b> open · ${val(openHours)}<br>never in the summary</span><button class="tbtn" type="button" data-go="h" style="margin-left:auto">Open</button>`:`<span>Locked · safe-word required.<br>Never in the summary.</span><button class="tbtn" type="button" id="hm-unlock" style="margin-left:auto">Unlock</button>`}</div>
@@ -3930,7 +3937,7 @@ function mapRefreshInner(fit){
     else mk.bindPopup(mapCard(e),{closeButton:false,offset:[0,-10],maxWidth:320});
     mk.on('click',()=>{ mapFocusId=e.id; if(!narrow.matches) renderList(); });
     MAPM.set(e.id,mk); MAPL.addLayer(mk); }
-  const fs=$('#mstrip .film'); if(fs){ fs.outerHTML=filmStrip(); bindDays($('#mstrip')); $('#mstrip').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>go('e',b.dataset.id)); }
+  const fs=$('#mstrip .film'); if(fs){ fs.outerHTML=filmStrip(); placeFilms($('#mstrip')); bindDays($('#mstrip')); $('#mstrip').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>go('e',b.dataset.id)); }
   const mr=$('#mrows'); if(mr) mr.innerHTML=evs.filter(e=>!isPast(e)).map(e=>{ const c=countdown(e), sd=e.dateStart?parse(e.dateStart):null; return `<button class="mrow" type="button" data-id="${esc(e.id)}"><span class="rd"><b>${sd?sd.getDate():'–'}</b><small>${sd?DOW[sd.getDay()]:''}</small></span><span class="rm"><span class="rn"><span>${esc(e.name)||'untitled'}</span></span><span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span>${esc(e.status)}</span><span>· ${esc(e.location||'no location')}</span></span></span><span class="rr"><span class="cd ${c.c}">${c.t}</span>${e.geo?'':`<span class="ri">${ic('warn',2.2)}</span>`}</span></button>`; }).join('');
   const mq=$('#mapq'); if(mq){ const n=evs.reduce((a,e)=>a+openQ(e).length,0); mq.textContent=n?plural(n,'open question','open questions'):''; }
   const np=$('#nopos'); np.hidden=!noPos.length;
