@@ -1635,7 +1635,7 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 }
 /* view change choreography: the green card unfolds, the map fades in, the strip rises, Home and event fade in */
 .nuwrap{display:grid;grid-template-rows:1fr}
-.nuwrap > *{min-height:0}
+.nuwrap > .nuc{min-height:0} /* the card (margins + padding) sits inside .nuc, so 0fr really folds to 0 px */
 @keyframes nuin{from{grid-template-rows:0fr;opacity:0;transform:translateY(-6px)}to{grid-template-rows:1fr;opacity:1;transform:none}}
 @keyframes nuout{from{grid-template-rows:1fr;opacity:1}to{grid-template-rows:0fr;opacity:0;transform:translateY(-6px)}}
 @keyframes mapin{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
@@ -2850,7 +2850,7 @@ function renderEventList(L){
       <div class="lrow"><label class="switch"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Show past events</span> <span class="count">${hidden}</span></label>${viewSeg(route.view==='m'?'m':'e')}</div>
     </div>
     <div class="lscroll">
-      ${!flt.q&&!flt.status?`<div class="nuwrap">${nextUpCard()}</div>`+filmStrip():''}
+      ${!flt.q&&!flt.status?`<div class="nuwrap"><div class="nuc">${nextUpCard()}</div></div>`+filmStrip():''}
       ${groups.map(g=>{ const oq=g.items.reduce((a,e)=>a+openQ(e).length,0); return `<section class="mg"><div class="mh"><span>${ym(g.k)}</span><span class="mc">· ${plural(g.items.length,'event','events')}</span>${oq?`<span class="mp">${plural(oq,'open question','open questions')}</span>`:''}</div>${g.items.map(row).join('')}</section>`; }).join('')
         ||`<div class="lempty">${S.events.length?'No events match.':'No events yet.'}<br>${S.events.length?'<button class="btn sm" style="margin-top:10px" id="fl-reset" type="button">Clear filters</button>':''}</div>`}
     </div>
