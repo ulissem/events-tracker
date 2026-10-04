@@ -1556,6 +1556,8 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .nextup .nfoot b{color:#fff} .nextup .nfoot .r{margin-left:auto}
 .nuhead{grid-column:1 / -1;display:flex;align-items:baseline;gap:4px 12px;flex-wrap:wrap;position:relative}
 .nuhead .big{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.nuhead .sum{margin-left:auto;font-size:12px;color:rgba(255,255,255,.85);white-space:nowrap} .nuhead .sum b{color:#fff}
+.home .nuhead .sum{font-size:13px}
 .nuhead .date{font-size:15px;font-weight:600;color:rgba(255,255,255,.85);letter-spacing:-.01em}
 .nuhead .live{display:inline} /* inline, not flex: the date beside it shares the text baseline */
 .nuhead .live i{display:inline-block;vertical-align:middle;margin:0 9px 0 2px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.3);animation:hlive 1.6s ease-out infinite}
@@ -1566,14 +1568,14 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .rpc > b small{font-size:8px;font-weight:700;margin-left:1px}
 .rpc > b svg{width:22px;height:22px;display:block}
 .nextup .nus{grid-column:1 / -1;display:flex;flex-direction:column;gap:4px;margin-top:8px;position:relative}
-.nur{display:flex;align-items:center;gap:10px;border:0;border-radius:10px;padding:7px 8px 7px 10px;background:rgba(255,255,255,.14);color:#fff;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer;min-width:0}
+.nur{position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;border:0;border-radius:10px;padding:7px 8px 7px 14px;background:rgba(255,255,255,.14);color:#fff;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer;min-width:0}
 .nur:hover{background:rgba(255,255,255,.24)}
-.nur > i{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c);box-shadow:0 0 0 2px #fff}
+.nur > i{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)} /* type colour as a stripe (a dot read like a radio button); same type as the card → its darker shade */
 .nur .t{flex:1;min-width:0;display:flex;flex-direction:column}
 .nur b,.nur small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nur b{font-size:14px;font-weight:600} .nur small{font-size:11.5px;color:rgba(255,255,255,.8)}
 .home .nextup.multi .nus{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin-top:12px}
-.home .nextup.multi .nur{padding:12px 12px 12px 14px;align-items:flex-start;border-radius:12px} .home .nextup.multi .nur > i{margin-top:5px}
+.home .nextup.multi .nur{padding:12px 12px 12px 18px;align-items:center;border-radius:12px} .home .nextup.multi .nur > i{width:5px}
 .home .nextup.multi .nur b{font-size:16px} .home .nextup.multi .nur small + small{margin-top:4px;color:rgba(255,255,255,.9);white-space:normal}
 .nugrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:18px}
 :root{--check-dark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%231c1c1e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8.5l2.6 2.5L12 5.5'/%3E%3C/svg%3E")}
@@ -2819,10 +2821,9 @@ function nuDay(grp,day,wide){
   const races=grp.reduce((a,e)=>a+e.contests.length,0), oq=grp.reduce((a,e)=>a+openQ(e).length,0);
   const big=live?`<span class="live"><i></i>Race day</span>`:d===1?'Tomorrow':`In ${d} days`;
   return `<div class="nextup multi" style="${tintStyle(grp[0])}">
-    <div class="nuhead"><span class="big">${big}</span><span class="date">${esc(DOWL[parse(day).getDay()])} ${esc(fmtShort(day).slice(4))}</span></div>
-    <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" style="--c:${tintOf(e).a}" aria-label="Open ${esc(e.name)}"><i></i><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small>${wide?`<small>${plural(e.contests.length,'race','races')}${km(e)?' · '+fmtN(km(e))+' km':''} · ${plural(e.timingPoints.length,'timing point','timing points')}${openQ(e).length?' · '+plural(openQ(e).length,'open question','open questions'):''}</small>`:''}</span>${wide?`<span class="rpc" title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),48,3.5)}<b>${progress(e)>=1?ic('check',3):`${Math.round(progress(e)*100)}<small>%</small>`}</b></span>`:`<span title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),22,2.5)}</span>`}</button>`).join('')}</div>
+    <div class="nuhead"><span class="big">${big}</span><span class="date">${esc(DOWL[parse(day).getDay()])} ${esc(fmtShort(day).slice(4))}</span><span class="sum"><b>${races}</b> ${races===1?'race':'races'} · ${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
+    <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" style="--c:${tintOf(e).a===tintOf(grp[0]).a?tintOf(e).b:tintOf(e).a}" aria-label="Open ${esc(e.name)}"><i></i><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small>${wide?`<small>${plural(e.contests.length,'race','races')}${km(e)?' · '+fmtN(km(e))+' km':''} · ${plural(e.timingPoints.length,'timing point','timing points')}${openQ(e).length?' · '+plural(openQ(e).length,'open question','open questions'):''}</small>`:''}</span>${wide?`<span class="rpc" title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),48,3.5)}<b>${progress(e)>=1?ic('check',3):`${Math.round(progress(e)*100)}<small>%</small>`}</b></span>`:`<span title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),22,2.5)}</span>`}</button>`).join('')}</div>
     ${items.length?`<div class="due">${items.join('')}</div>`:''}
-    <div class="nfoot"><span><b>${races}</b> ${races===1?'race':'races'}</span><span class="r">${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
   </div>`;
 }
 /* Film strip: the next four weeks — events in their type colour, to-dos (tickable), travel / away */
