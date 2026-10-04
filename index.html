@@ -828,7 +828,7 @@ dialog::backdrop{background:var(--scrim)}
   .addrow .in.trig{font-size:15px}
   .palette .pi{height:46px}
   .grip,table.t .rowact{opacity:.8}
-  #dp.bsheet,#menu.bsheet,#pinpop.bsheet,#notepop.bsheet{position:fixed;left:0!important;right:0;top:auto!important;bottom:0;width:auto!important;min-width:0!important;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;border-bottom:0;padding:8px 14px calc(14px + var(--sab));animation:sheetin .26s cubic-bezier(.2,.8,.2,1)}
+  #dp.bsheet,#menu.bsheet,#pinpop.bsheet,#notepop.bsheet,#geopop.bsheet{position:fixed;left:0!important;right:0;top:auto!important;bottom:0;width:auto!important;min-width:0!important;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;border-bottom:0;padding:8px 14px calc(14px + var(--sab));animation:sheetin .26s cubic-bezier(.2,.8,.2,1)}
   .pop.bsheet::before{content:'';display:block;width:38px;height:5px;border-radius:5px;background:var(--line-3);margin:0 auto 12px}
   #dp.bsheet .day{height:46px} #dp.bsheet .day span{width:40px;height:40px;font-size:15px}
   #dp.bsheet .dpseg button{height:36px;font-size:14px}
@@ -1169,6 +1169,83 @@ body.locked{overflow:hidden}
 .sub .rmode button{font-size:12.5px;display:inline-flex;align-items:center;gap:6px} .sub .rmode .count{font-size:10.5px}
 .rspecial{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border:1px dashed var(--line-3);border-radius:10px;color:var(--ink-2);font-size:13px;margin:6px 0 10px}
 .rspecial svg{width:16px;height:16px;flex:none;margin-top:1px;color:var(--accent)}
+
+/* =====================================================================
+   LOCATION LOOKUP (Nominatim) + MAP VIEW (Leaflet)
+   ===================================================================== */
+.geobtn.on{color:var(--accent)}
+.geoline{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:6px;font-size:11.5px;color:var(--ink-3);line-height:1.3;min-width:0}
+.geoline svg{width:13px;height:13px;flex:none}
+.geoline.ok{color:var(--ink-2)} .geoline.ok > svg{color:var(--ok)}
+.geoline.warn > svg{color:var(--warn)}
+.geoline .gl{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.geoline .dot{width:3px;height:3px;border-radius:50%;background:var(--line-3);flex:none}
+.geoline a,.geoline .lnk{color:var(--accent);font-weight:500;text-decoration:none;border:0;background:none;padding:0;font-size:inherit;cursor:pointer;white-space:nowrap}
+#geopop{width:380px;max-width:calc(100vw - 16px);padding:10px 8px 6px}
+#geopop .lab{padding:0 4px;margin-bottom:6px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gp-list{max-height:min(50vh,360px);overflow-y:auto}
+.gp-list button{display:flex;align-items:flex-start;gap:9px;width:100%;padding:7px 8px;border:0;border-radius:7px;background:none;text-align:left;font-size:13px;color:inherit}
+.gp-list button:hover{background:var(--hover)}
+.gp-list button > svg{width:15px;height:15px;color:var(--ink-3);flex:none;margin-top:2px}
+.gp-list button span{min-width:0;flex:1} .gp-list b{font-weight:500;display:block} .gp-list small{display:block;color:var(--ink-3);font-size:11.5px;line-height:1.3}
+.gp-list em{font-style:normal;font-size:10.5px;color:var(--ink-3);background:var(--sunken);border-radius:4px;padding:1px 5px;flex:none;margin-top:3px}
+.gp-msg{padding:10px 8px;font-size:12.5px;color:var(--ink-3)}
+.gp-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 4px 0;margin-top:4px;border-top:1px solid var(--line);font-size:10.5px;color:var(--ink-3)}
+/* List | Map toggle */
+.vseg{display:inline-flex;gap:2px;padding:2px;border-radius:7px;background:var(--sunken);border:1px solid var(--line);flex:none}
+.vseg button{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border:0;border-radius:5px;background:none;color:var(--ink-3);font-size:12px;font-weight:500}
+.vseg button svg{width:12px;height:12px}
+.vseg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:var(--shadow-sm)}
+/* map view: toolbar + map fill the page under the top bar */
+main.mapv #detail{display:flex;flex-direction:column;height:calc(100vh - var(--hh) - var(--tb,0px));padding:0;max-width:none}
+.maphead{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap;flex:none}
+.maphead .msrch{width:280px;flex:none}
+.maphead .in.sm{width:auto}
+.maphead .mcount{font-size:12px;color:var(--ink-3);margin-left:auto}
+.mapwrap{position:relative;flex:1;min-height:0;background:var(--sunken)}
+.mapel{position:absolute;inset:0;z-index:0}
+.mapload{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:var(--ink-3);z-index:1;text-align:center;padding:20px}
+.nopos{position:absolute;left:12px;bottom:12px;z-index:500;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:var(--panel);border:1px solid var(--line-2);box-shadow:var(--shadow-sm);font-size:12px;color:var(--ink-2)}
+.nopos:hover{background:var(--hover)}
+.nopos svg{width:13px;height:13px;color:var(--warn)} .nopos b{color:var(--ink);font-weight:600}
+.mlegend{position:absolute;right:12px;bottom:26px;z-index:500;background:var(--panel);border:1px solid var(--line-2);border-radius:10px;padding:6px 10px;font-size:11.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow-sm)}
+.mlegend span{display:flex;align-items:center;gap:7px}
+.mlegend .mpill{position:static;transform:none;width:40px;cursor:default}
+.mlegend .mpill.past{width:10px;margin:0 15px}
+.mpin{background:none;border:0}
+.mpill{position:absolute;transform:translate(-50%,-50%);display:inline-flex;align-items:center;justify-content:center;height:20px;min-width:20px;padding:0 6px;border-radius:999px;background:var(--panel);color:var(--ink);font:600 11px/1 Inter,system-ui,sans-serif;letter-spacing:-.01em;border:1.5px solid var(--accent);box-shadow:var(--shadow-sm);white-space:nowrap;cursor:pointer}
+.mpill.soon{background:var(--accent-soft);color:var(--accent)}
+.mpill.now{background:var(--accent);color:var(--accent-ink)}
+.mpill.past{height:10px;min-width:10px;padding:0;border-color:var(--ink-3);opacity:.6}
+.leaflet-container{font:inherit;background:var(--sunken)}
+.leaflet-container a{color:var(--accent)}
+.leaflet-control-attribution{font:10.5px Inter,system-ui,sans-serif!important;background:color-mix(in srgb,var(--panel) 80%,transparent)!important;color:var(--ink-3)!important}
+.leaflet-control-attribution a{color:var(--ink-2)!important}
+.leaflet-bar{border:1px solid var(--line-2)!important;box-shadow:var(--shadow-sm)!important;border-radius:8px!important;overflow:hidden}
+.leaflet-bar a{background:var(--panel)!important;color:var(--ink)!important;border-bottom-color:var(--line)!important}
+.leaflet-tooltip.mtip{background:var(--panel);color:var(--ink);border:1px solid var(--line-2);box-shadow:var(--shadow-sm);border-radius:6px;padding:3px 8px;font:500 12px Inter,system-ui,sans-serif}
+.leaflet-tooltip.mtip::before{display:none}
+.leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:12px;box-shadow:var(--shadow-pop);border:1px solid var(--line);padding:0}
+.leaflet-popup-content{margin:0;width:auto!important;line-height:1.4}
+.leaflet-popup-tip{background:var(--panel);box-shadow:none}
+.mcard{padding:10px 12px;min-width:220px;max-width:300px;font-size:13px}
+.mcard b{display:block;font-size:13.5px;letter-spacing:-.01em}
+.mcard .m{color:var(--ink-2);font-size:12px;margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mcard .m .sd{width:7px;height:7px;box-shadow:none}
+.mcard .r{display:flex;align-items:center;gap:8px;margin-top:8px}
+.mcard a{color:var(--accent);font-weight:500;text-decoration:none;font-size:12.5px;margin-left:auto;display:inline-flex;align-items:center;gap:3px}
+.mcard a svg{width:12px;height:12px}
+.mapcard{position:absolute;left:0;right:0;bottom:0;z-index:600;background:var(--panel);border-radius:16px 16px 0 0;border-top:1px solid var(--line);box-shadow:0 -10px 30px -10px rgba(16,24,40,.25);padding:8px 16px 14px;animation:sheetin .2s ease-out}
+.mapcard::before{content:'';display:block;width:36px;height:4px;border-radius:999px;background:var(--line-3);margin:0 auto 8px}
+.mapcard .mcard{padding:0;min-width:0;max-width:none}
+@media (max-width:860px){
+  .maphead{padding:8px 12px;gap:6px}
+  .maphead .msrch{width:100%}
+  .maphead .in.sm{flex:1;min-width:0}
+  .maphead .mcount{display:none}
+  .mlegend{display:none}
+  .nopos{bottom:auto;top:10px}
+}
 </style>
 </head>
 <body>
@@ -1180,6 +1257,11 @@ body.locked{overflow:hidden}
 
 <div id="dp" class="pop" hidden role="dialog" aria-label="Choose dates"></div>
 <div id="menu" class="pop menu" hidden role="menu"></div>
+<div id="geopop" class="pop" hidden role="dialog" aria-label="Find on map">
+  <span class="lab" id="gp-title">Find on map</span>
+  <div class="gp-list" id="gp-list"></div>
+  <div class="gp-foot"><span>OpenStreetMap · Nominatim</span><button class="btn sm ghost del" id="gp-clear" type="button" hidden>Clear position</button></div>
+</div>
 <div id="pinpop" class="pop" hidden role="dialog" aria-label="Timing point position">
   <label class="lab" for="pp-in" id="pp-title">Position</label>
   <div class="in group"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><input id="pp-in" class="bare mono" placeholder="42.7019, 9.3600" autocomplete="off" inputmode="decimal"></div>
@@ -1212,6 +1294,7 @@ body.locked{overflow:hidden}
       <h2>Settings</h2>
       <p>Saved with your data (config.json).</p>
       <div class="fld"><label class="lab" for="s-rr14user">RR14 user <span class="lh">· used by “Open in RR14”</span></label><input class="in" id="s-rr14user" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. Ulisse"></div>
+      <div class="fld"><label class="lab" for="s-carto">Map tiles key <span class="lh">· CARTO basemaps, optional</span></label><input class="in mono" id="s-carto" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="without a key the map uses Esri grey tiles"></div>
       <div class="fld"><span class="lab">Safe-word <span class="lh">· privacy screen for hours and values</span></span>
         <div class="swrow"><span class="hint" id="s-swinfo"></span><button class="btn sm" type="button" id="s-swset">Change safe-word…</button></div></div>
       <div class="fld"><span class="lab">App lock <span class="lh">· this device only</span></span>
@@ -1452,7 +1535,8 @@ function normalize(){
     e.checklist=e.checklist||{}; for(const [k] of EVENT_LISTS) e[k]=toTasks(e[k]);
     if(LEGACY[e.status]) e.status=LEGACY[e.status];
     if(e.myrrUrl!==undefined&&(!e.myrrUrl||e.myrrUrl===myrrUrl(e))) delete e.myrrUrl; // now derived from EventID
-    e.technology=e.technology||''; e.checklistExtra=toTasks(e.checklistExtra); e.dateStart=e.dateStart||''; e.dateEnd=e.dateEnd||'';
+    e.technology=e.technology||''; e.checklistExtra=toTasks(e.checklistExtra); e.dateStart=e.dateStart||''; e.dateEnd=e.dateEnd||''; e.location=e.location||'';
+    if(e.geo!=null){ const g=e.geo, la=+g?.lat, lo=+g?.lon; if(!isFinite(la)||!isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180) delete e.geo; else e.geo={lat:la,lon:lo,label:g.label||'',osm:g.osm||'',text:g.text??e.location}; }
     for(const t of e.timingPoints){ t.mode={'Tracking START':'T Start','Tracking STOP':'T Stop'}[t.mode]||t.mode; t.hardware=t.hardware||''; t.ch=t.ch||''; t.loop=t.loop||''; t.mode=t.mode||''; t.position=t.position||''; t.notes=t.notes||''; if(!t.color) t.color=nextColor(e); }
     for(const c of e.contests){
       if(LEGACY[c.startType]) c.startType=LEGACY[c.startType]; c.startType=c.startType||'mass'; c.timeBasis=c.timeBasis||''; c.date=c.date||'';
@@ -1841,6 +1925,7 @@ const P={
   copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
   ext:'<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
   pin:'<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  pinfill:'<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" fill="currentColor"/><circle cx="12" cy="9.5" r="2.5" fill="var(--panel)" stroke="none"/>',
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   side:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>',
   back:'<path d="M15 6l-6 6 6 6"/>',
@@ -2020,14 +2105,15 @@ try{ const th=localStorage.getItem(THEME_KEY); if(th==='light'||th==='dark') doc
 const isDark=()=>document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':sysDark.matches;
 /* Toggling back to what the system uses returns to "follow the system" */
 function toggleTheme(){ const want=isDark()?'light':'dark'; if((want==='dark')===sysDark.matches){ delete document.documentElement.dataset.theme; try{ localStorage.removeItem(THEME_KEY) }catch{} }
-  else{ document.documentElement.dataset.theme=want; try{ localStorage.setItem(THEME_KEY,want) }catch{} } renderTop(); }
+  else{ document.documentElement.dataset.theme=want; try{ localStorage.setItem(THEME_KEY,want) }catch{} } renderTop(); if(route.view==='m') renderDetail(); }
 function renderTop(){
-  const vt={e:'Events',c:'Clients',a:'Agenda',h:'Hours'}[route.view];
+  const vt={e:'Events',c:'Clients',a:'Agenda',h:'Hours',m:'Map'}[route.view];
+  const tabOn=v=>route.view===v||(v==='e'&&route.view==='m');
   const nv=route.view==='c'?'client':route.view==='h'?'hours':route.view==='a'?'agenda entry':'event';
   $('#top').innerHTML=`
-    ${route.view!=='h'&&route.view!=='a'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
+    ${route.view!=='h'&&route.view!=='a'&&route.view!=='m'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
     <div class="brand"><span class="logo">${ic('flag',2.4)}</span><b>Events tracker</b></div><span class="ptitle">${vt}</span>
-    <nav class="tabs" aria-label="Sections">${[['e','Events'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${route.view===v?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
+    <nav class="tabs" aria-label="Sections">${[['e','Events'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
     <button class="cmdtrig" id="cmdtrig" type="button" aria-label="Jump to" data-tip="Jump to an event, client or action" data-kbd="${MOD} K">${ic('search')}<span>Jump to…</span><kbd>${MOD==='⌘'?'⌘K':'Ctrl K'}</kbd></button>
     <span class="spacer"></span>
     <span class="savestate" id="savestate" role="status"><i></i><span></span></span>
@@ -2039,7 +2125,7 @@ function renderTop(){
     <button id="setbtn" class="btn icon ghost" type="button" data-tip="Settings" aria-label="Settings">${ic('gear',1.8)}</button>
     <button id="logoutbtn" class="btn icon ghost" type="button" data-tip="Log out" aria-label="Log out">${ic('logout',1.9)}</button>
     <button id="morebtn" class="btn icon ghost morebtn" type="button" aria-label="More">${ic('more',2)}</button>`;
-  $('#tabbar').innerHTML=[['e','Events','flag'],['c','Clients','user'],['a','Agenda','cal'],...(priv()?[['h','Hours','hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${route.view===v?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join('')+`<button type="button" class="tsave" id="tsave">${ic('save',1.8)}<i></i><span>Saved</span></button>`;
+  $('#tabbar').innerHTML=[['e','Events','flag'],['c','Clients','user'],['a','Agenda','cal'],...(priv()?[['h','Hours','hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join('')+`<button type="button" class="tsave" id="tsave">${ic('save',1.8)}<i></i><span>Saved</span></button>`;
   updSave();
   const tabGo=v=>go(v,narrow.matches?null:v==='e'?(route.view==='e'?route.id:lastEvent):v==='c'?(route.view==='c'?route.id:lastClient):null);
   on($('#top'),'[data-view]',b=>tabGo(b.dataset.view));
@@ -2055,16 +2141,16 @@ function renderTop(){
   $('#setbtn').onclick=()=>openSettings();
   $('#logoutbtn').onclick=logout;
 }
-sysDark.addEventListener('change',()=>renderTop());
+sysDark.addEventListener('change',()=>{ renderTop(); if(route.view==='m') renderDetail(); });
 
 /* =====================================================================
    ROUTING  #/e  #/e/<id>  #/c  #/c/<id>  #/h
    ===================================================================== */
 function parseRoute(){
   const [,v='e',id=null]=location.hash.split('/');
-  let view=['e','c','a','h'].includes(v)?v:'e';
+  let view=['e','c','a','h','m'].includes(v)?v:'e';
   if(view==='h'&&!priv()){ view='e'; if(location.hash) history.replaceState(null,'','#/e'); } // Hours exist only while unlocked
-  route={view,id:view==='h'||view==='a'||!id?null:decodeURIComponent(id)};
+  route={view,id:view==='h'||view==='a'||view==='m'||!id?null:decodeURIComponent(id)};
   if(route.view==='e'&&route.id) lastEvent=route.id;
   if(route.view==='c'&&route.id) lastClient=route.id;
   document.body.classList.toggle('showing-detail',!!route.id);
@@ -2085,7 +2171,7 @@ function render(){
   today();
   if(route.view==='h'&&!priv()){ go('e'); return; }
   renderTop(); if(!S) return;
-  $('#main').classList.toggle('full',route.view==='h'||route.view==='a'); $('#main').classList.toggle('agenda',route.view==='a'); $('#main').classList.toggle('nolist',!listOpen);
+  $('#main').classList.toggle('full',route.view==='h'||route.view==='a'||route.view==='m'); $('#main').classList.toggle('agenda',route.view==='a'); $('#main').classList.toggle('mapv',route.view==='m'); $('#main').classList.toggle('nolist',!listOpen);
   renderList(); renderDetail();
 }
 
@@ -2124,7 +2210,7 @@ function renderEventList(L){
       <div class="in group">${ic('search')}<input class="bare" type="search" id="fl-q" placeholder="Search event, place, client" value="${esc(flt.q)}" aria-label="Search"><kbd style="margin-right:4px">/</kbd></div>
       <select class="in sm" id="fl-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="in sm" id="fl-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
-      <div class="lrow"><label class="switch"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> Show past events <span class="count">${hidden}</span></label></div>
+      <div class="lrow"><label class="switch"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> Show past events <span class="count">${hidden}</span></label>${viewSeg('e')}</div>
     </div>
     <div class="lscroll">
       ${!flt.q&&!flt.client&&!flt.status?week:''}
@@ -2139,6 +2225,7 @@ function renderEventList(L){
   $('#fl-status').onchange=e=>{ flt.status=e.target.value; renderList(); };
   $('#fl-past').onchange=e=>{ flt.past=e.target.checked; renderList(); };
   $('#fl-import').onclick=openImport;
+  $('#fl-map').onclick=()=>go('m');
   $('#fl-reset')?.addEventListener('click',()=>{ flt.q='';flt.client='';flt.status=''; renderList(); });
   if(focus==='fl-q'){ const i=$('#fl-q'); i.focus(); i.setSelectionRange(i.value.length,i.value.length); }
 }
@@ -2180,7 +2267,8 @@ function renderDetail(){
   const D=$('#detail'), key=route.view+':'+(route.id||''), same=D.dataset.k===key;
   const keep=same?[...D.querySelectorAll('.evside,.hsc,.tpwrap')].map(x=>[x.scrollTop,x.scrollLeft]):null, fk=same?focusKey(D):null;
   OBJ=[]; taRO.disconnect(); hsRO.disconnect();
-  if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else if(route.view==='a') renderAgenda(D); else renderHours(D);
+  if(MAP&&route.view!=='m'){ MAP.remove(); MAP=null; MAPL=null; }
+  if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else if(route.view==='a') renderAgenda(D); else if(route.view==='m') renderMap(D); else renderHours(D);
   D.dataset.k=key;
   if(keep) D.querySelectorAll('.evside,.hsc,.tpwrap').forEach((x,i)=>{ if(keep[i]){ x.scrollTop=keep[i][0]; x.scrollLeft=keep[i][1]; } });
   bind(D); sortable(D); hscroll(D); refocus(D,fk);
@@ -2226,7 +2314,7 @@ function renderEvent(D){
     ${Sel(e,'clientId','Client',[['','— no client —'],...S.clients.map(c=>[c.id,c.name||'untitled'])],{r:'detail'})}
     <div class="fld"><span class="lab">Status</span><button class="in trig chev" type="button" id="statusbtn" aria-haspopup="menu"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span class="tv">${esc(e.status||'—')}</span></button></div>
     <div class="fld span2"><span class="lab">Date <span class="lh">· one day or multi-day</span></span><button class="in trig dtrig" type="button" id="datebtn" aria-haspopup="dialog">${ic('cal',1.8)}<span class="tv">${esc(rt.main)}</span><span class="ts">${esc(rt.sub)}</span></button></div>
-    ${F(e,'location','Location',{ph:'Town, venue'})}
+    ${locationField(e)}
     ${F(e,'type','Type',{list:'dl-types',ph:'Trail, cycling…'})}
     <div class="fld span2"><label class="lab" for="f-web">Event website</label><div class="in group">${ic('globe',1.8)}<input class="bare" id="f-web" type="url" data-o="${ref(e)}" data-k="website" data-r="change" value="${esc(e.website)}" placeholder="https://…">${e.website?linkBtn(e.website):''}</div></div>
   </div>
@@ -2323,6 +2411,10 @@ function renderEvent(D){
     for(const c of used){ c.splits=c.splits.filter(s=>s.tp!==t.id||s.role!=='split'); for(const s of c.splits) if(s.tp===t.id) s.tp=''; }
     e.timingPoints.splice(+b.dataset.deltp,1); touch(); renderDetail(); });
   on(D,'[data-pos]',b=>openPin(b,OBJ[+b.dataset.pos]));
+  $('#geobtn').onclick=()=>geoSearch($('#geobtn'),e);
+  $('#f-loc').addEventListener('input',()=>setTimeout(()=>geoLineUpdate(e),0)); // after bind() has stored the new text
+  $('#f-loc').addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); geoSearch($('#geobtn'),e); } });
+  D.querySelector('.fld.geo').addEventListener('click',ev=>{ const b=ev.target.closest('[data-geokeep],[data-geofind]'); if(!b) return; if(b.hasAttribute('data-geokeep')){ e.geo.text=(e.location||'').trim(); touch('none'); renderDetail(); } else geoSearch($('#geobtn'),e); });
   on(D,'[data-note]',b=>openNote(b,OBJ[+b.dataset.note]));
   $('#addct').onclick=()=>{ const c={id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'mass',timeBasis:'',eligibility:'',startSplit:false,splits:[{id:uid('s'),role:'finish',label:'',tp:'',km:''}],relay:'',notes:''};
     e.contests.push(c); openRaces.add(c.id); saveOpen(); touch(); renderDetail(); D.querySelector(`[data-racename="${CSS.escape(c.id)}"]`)?.focus(); };
@@ -2842,10 +2934,10 @@ let popAnchor=null;
 function closePops(){
   $('#scrim').hidden=true;
   if(!$('#notepop').hidden){ $('#notepop').hidden=true; if(noteT){ noteT=null; renderDetail(); } }
-  for(const id of ['dp','menu','pinpop']){ const p=document.getElementById(id); if(!p.hidden){ p.hidden=true; if(id==='dp'&&DP.onClose&&DP.changed){ const f=DP.onClose; DP.onClose=null; f(); } if(id==='pinpop'&&pinT){ pinT=null; renderDetail(); } } }
+  for(const id of ['dp','menu','pinpop','geopop']){ const p=document.getElementById(id); if(!p.hidden){ p.hidden=true; if(id==='dp'&&DP.onClose&&DP.changed){ const f=DP.onClose; DP.onClose=null; f(); } if(id==='pinpop'&&pinT){ pinT=null; renderDetail(); } } }
   popAnchor?.classList.remove('on'); popAnchor=null;
 }
-document.addEventListener('pointerdown',e=>{ if(!e.target.closest('.pop,.dtrig,#statusbtn,#morebtn,[data-pos],[data-note],[data-tnote]')) closePops(); });
+document.addEventListener('pointerdown',e=>{ if(!e.target.closest('.pop,.dtrig,#statusbtn,#morebtn,#geobtn,#nopos,[data-pos],[data-note],[data-tnote]')) closePops(); });
 window.addEventListener('resize',()=>{ if(!narrow.matches&&document.querySelector('.pop.bsheet:not([hidden])')) closePops(); });
 // iOS: after the keyboard closes WebKit can leave the visual viewport panned (or the layout viewport short),
 // so the sticky header slides off the top and the fixed tab bar floats mid-screen. Hide the bars while typing,
@@ -2909,6 +3001,151 @@ $('#pp-in').addEventListener('input',e=>{ if(!pinT) return; pinT.position=e.targ
 $('#pp-in').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); closePops(); } });
 $('#pp-done').onclick=()=>closePops();
 $('#pp-clear').onclick=()=>{ if(pinT){ pinT.position=''; touch('none'); } closePops(); };
+
+/* =====================================================================
+   LOCATION → COORDINATES (OpenStreetMap Nominatim, free, no key)
+   e.location stays the text you see; e.geo = {lat, lon, label, osm, text} is the validated position.
+   geo.text is the location text at the time of linking: when it differs the position is "stale".
+   ===================================================================== */
+const geoState=e=>!e.geo?'none':(e.geo.text||'')===(e.location||'').trim()?'linked':'stale';
+const mapsUrl=g=>`https://www.google.com/maps?q=${g.lat},${g.lon}`;
+/* "Town, Region" / "Street, Town, Region" from a Nominatim result */
+function geoText(r){
+  const loc=x=>String(x||'').split(' / ')[0].trim(); // "Bonifacio / Bunifaziu" → Bonifacio
+  const a=r.address||{}, name=loc(r.name||String(r.display_name||'').split(',')[0]);
+  const town=loc(a.city||a.town||a.village||a.hamlet||a.municipality);
+  const region=[a.county,a.state,a.region,a.country].find(x=>x&&x!==name&&x!==town)||'';
+  const parts=[name]; if(town&&town!==name) parts.push(town); if(region) parts.push(region);
+  return parts.filter(Boolean).join(', ');
+}
+function geoLineHTML(e){
+  const gs=geoState(e), g=e.geo;
+  if(gs==='linked') return `<div class="geoline ok" id="geoline">${ic('check',2.6)}<span class="gl" title="${esc(g.label)}">${esc(g.label||g.text)}</span><i class="dot"></i><span class="mono">${g.lat}, ${g.lon}</span><i class="dot"></i><a href="${esc(mapsUrl(g))}" target="_blank" rel="noopener noreferrer">Open map</a></div>`;
+  if(gs==='stale') return `<div class="geoline warn" id="geoline">${ic('warn',2.2)}<span class="gl">Position still points to ${esc(g.text||g.label)}</span><i class="dot"></i><button type="button" class="lnk" data-geokeep>Keep</button><i class="dot"></i><button type="button" class="lnk" data-geofind>Find again</button></div>`;
+  return `<div class="geoline" id="geoline" hidden></div>`;
+}
+function locationField(e){
+  const gs=geoState(e);
+  return `<div class="fld geo span2"><label class="lab" for="f-loc">Location <span class="lh">· street or town</span></label>
+    <div class="in group"><input class="bare" id="f-loc" data-o="${ref(e)}" data-k="location" value="${esc(e.location)}" placeholder="Town, venue" autocomplete="off"><button class="btn icon sm ghost geobtn ${gs==='linked'?'on':''}" id="geobtn" type="button" data-tip="${gs==='linked'?'Position linked · search again':'Find on map'}" aria-label="Find on map">${ic(gs==='linked'?'pinfill':'pin',1.9)}</button></div>
+    ${geoLineHTML(e)}</div>`;
+}
+/* typing in Location only refreshes the line and the pin, never the input itself (it keeps the focus) */
+function geoLineUpdate(e){ const gs=geoState(e), b=$('#geobtn'); $('#geoline')?.insertAdjacentHTML('afterend',geoLineHTML(e)); $('#geoline')?.remove();
+  if(b){ b.classList.toggle('on',gs==='linked'); b.innerHTML=ic(gs==='linked'?'pinfill':'pin',1.9); b.dataset.tip=gs==='linked'?'Position linked · search again':'Find on map'; } }
+let geoE=null;
+async function geoSearch(btn,e){
+  const q=(e.location||'').trim();
+  if(!q){ toast('Type a street or a town first','','pin','warn'); $('#f-loc')?.focus(); return; }
+  closePops(); geoE=e;
+  const list=$('#gp-list'); list.innerHTML='<div class="gp-msg">Searching…</div>';
+  $('#gp-title').textContent=`Find on map · ${q}`; $('#gp-clear').hidden=!e.geo;
+  place($('#geopop'),btn,'right'); popAnchor=btn; btn.classList.add('on');
+  let rs;
+  // "Patrimonio → Bastia" (start → finish): if the whole text finds nothing, look up the start place alone
+  const tries=[q], first=q.split(/\s*(?:→|->|–|—)\s*/)[0].trim(); if(first&&first!==q) tries.push(first);
+  try{ for(const t of tries){ const r=await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&addressdetails=1&accept-language=xx&q=${encodeURIComponent(t)}`,{headers:{Accept:'application/json'}});
+      if(!r.ok) throw new Error(String(r.status)); rs=await r.json(); if(!Array.isArray(rs)) throw new Error('bad reply'); if(rs.length) break; } }
+  catch(err){ if(geoE===e) list.innerHTML=`<div class="gp-msg">Lookup failed${navigator.onLine?'':' — you are offline'}. Try again later.</div>`; return; }
+  if(geoE!==e||$('#geopop').hidden) return;
+  if(!rs.length){ list.innerHTML='<div class="gp-msg">Nothing found. Add the town or the country and try again.</div>'; return; }
+  list.innerHTML=rs.map((r,i)=>`<button type="button" data-gi="${i}">${ic('pin',1.8)}<span><b>${esc(geoText(r))}</b><small>${esc(r.display_name||'')}</small></span><em>${esc(String(r.addresstype||r.type||'').replace(/_/g,' '))}</em></button>`).join('');
+  on(list,'[data-gi]',b=>geoApply(e,rs[+b.dataset.gi]));
+}
+function geoApply(e,r){
+  const text=geoText(r);
+  e.geo={lat:+(+r.lat).toFixed(5),lon:+(+r.lon).toFixed(5),label:r.display_name||text,osm:r.osm_type&&r.osm_id?`${r.osm_type}/${r.osm_id}`:'',text};
+  e.location=text; touch(); closePops(); renderDetail(); toast('Position linked',text,'pin');
+}
+$('#gp-clear').onclick=()=>{ if(geoE){ delete geoE.geo; touch(); renderDetail(); } closePops(); };
+
+/* =====================================================================
+   MAP VIEW  #/m — the events of the list (same filters) on a monochrome map.
+   Leaflet is loaded on first use (vendor/leaflet). Tiles: CARTO Positron / Dark Matter when config.cartoKey is set
+   (free personal key), otherwise Esri World Light / Dark Gray Canvas (free, no key). Tiles need the network.
+   ===================================================================== */
+let MAP=null, MAPL=null, MAPV=null; // map, marker layer, remembered view (centre + zoom) while the app is open
+function loadLeaflet(){
+  if(window.L) return Promise.resolve();
+  if(loadLeaflet.p) return loadLeaflet.p;
+  return loadLeaflet.p=new Promise((res,rej)=>{
+    const l=document.createElement('link'); l.rel='stylesheet'; l.href='vendor/leaflet/leaflet.css'; document.head.appendChild(l);
+    const sc=document.createElement('script'); sc.src='vendor/leaflet/leaflet.js'; sc.onload=res; sc.onerror=()=>{ loadLeaflet.p=null; rej(new Error('Leaflet failed to load')); }; document.head.appendChild(sc);
+  });
+}
+function mapTiles(){
+  const dark=isDark(), key=String(S.config.cartoKey||'').trim();
+  if(key) return L.tileLayer(`https://basemaps.cartocdn.com/rastertiles/${dark?'dark_all':'light_all'}/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(key)}`,{maxZoom:20,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'});
+  return L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${dark?'World_Dark_Gray_Base':'World_Light_Gray_Base'}/MapServer/tile/{z}/{y}/{x}`,{maxZoom:16,attribution:'Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors'});
+}
+const viewSeg=cur=>`<span class="vseg" role="group" aria-label="View"><button type="button" ${cur==='e'?'aria-pressed="true"':'data-mv="e"'}>${ic('list',2.2)}List</button><button type="button" id="fl-map" ${cur==='m'?'aria-pressed="true"':''}>${ic('pin',2.2)}Map</button></span>`;
+function mapEvents(){ const q=flt.q.toLowerCase();
+  return S.events.filter(e=>(!flt.client||e.clientId===flt.client)&&(!flt.status||e.status===flt.status)&&(flt.past||!isPast(e))
+    &&(!q||[e.name,e.location,e.type,clientName(e.clientId)].join(' ').toLowerCase().includes(q))).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9')); }
+/* compact countdown for the pins: 6d · 3w · 2mo · today */
+function cdShort(e){
+  const s=e.dateStart; if(!s) return {t:'?',c:''};
+  const en=e.dateEnd&&e.dateEnd>s?e.dateEnd:s, d=diff(TODAY,s), de=diff(TODAY,en);
+  if(d<=0&&de>=0) return {t:'today',c:'now'};
+  if(d>0) return {t:d<14?`${d}d`:d<60?`${Math.round(d/7)}w`:`${Math.round(d/30.4)}mo`,c:d<=7?'soon':''};
+  return {t:'',c:'past'};
+}
+function mapCard(e){ const cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd);
+  return `<div class="mcard"><b>${esc(e.name)||'<i>untitled</i>'}</b><div class="m">${esc(rt.main)}${e.location?`<i class="dot"></i>${esc(e.location)}`:''}</div><div class="m"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i>${esc(e.status)}<i class="dot"></i>${esc(clientName(e.clientId))}</div>
+    <div class="r"><span class="cd ${cd.c||''}">${cd.t}</span><a href="#/e/${encodeURIComponent(e.id)}" data-go="e:${esc(e.id)}">Open event ${ic('chev',2.4)}</a></div></div>`; }
+function renderMap(D){
+  if(MAP){ MAP.remove(); MAP=null; MAPL=null; }
+  D.innerHTML=`<div class="maphead">
+      <div class="in group msrch">${ic('search')}<input class="bare" type="search" id="fm-q" placeholder="Search event, place, client" value="${esc(flt.q)}" aria-label="Search"></div>
+      <select class="in sm" id="fm-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+      <select class="in sm" id="fm-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+      <label class="switch"><input type="checkbox" id="fm-past" ${flt.past?'checked':''}> Past events</label>
+      <span class="mcount" id="mapcount"></span>${viewSeg('m')}
+    </div>
+    <div class="mapwrap"><div id="map" class="mapel"></div><div class="mapload" id="maploading">Loading the map…</div>
+      <button class="nopos" id="nopos" type="button" hidden></button>
+      <div class="mlegend"><span><span class="mpill">3w</span>Days to go</span><span><span class="mpill soon">6d</span>Within 7 days</span><span><span class="mpill now">today</span>Today</span><span><span class="mpill past"></span>Past</span></div>
+      <div class="mapcard" id="mapcard" hidden></div>
+    </div>`;
+  const refit=()=>{ MAPV=null; mapRefresh(true); };
+  $('#fm-q').oninput=e=>{ flt.q=e.target.value; refit(); };
+  $('#fm-client').onchange=e=>{ flt.client=e.target.value; refit(); };
+  $('#fm-status').onchange=e=>{ flt.status=e.target.value; refit(); };
+  $('#fm-past').onchange=e=>{ flt.past=e.target.checked; refit(); };
+  on(D,'[data-mv]',()=>go('e',narrow.matches?null:lastEvent));
+  loadLeaflet().then(()=>{ if(route.view!=='m'||!document.getElementById('map')||MAP) return; initMap(); })
+    .catch(()=>{ const l=$('#maploading'); if(l) l.textContent='The map library could not be loaded. Are you offline?'; });
+}
+function initMap(){
+  $('#maploading').hidden=true;
+  MAP=L.map('map',{zoomControl:!narrow.matches,attributionControl:false,worldCopyJump:true});
+  L.control.attribution({prefix:false,position:'bottomright'}).addTo(MAP);
+  mapTiles().addTo(MAP);
+  MAPL=L.layerGroup().addTo(MAP);
+  MAP.on('moveend',()=>{ MAPV={c:MAP.getCenter(),z:MAP.getZoom()}; });
+  MAP.on('click',()=>{ const c=$('#mapcard'); if(c) c.hidden=true; });
+  mapRO.disconnect(); mapRO.observe($('#map')); // list toggle, drawer, rotation: Leaflet must re-measure its box
+  mapRefresh(true);
+}
+const mapRO=new ResizeObserver(()=>{ if(MAP) MAP.invalidateSize({pan:false}); });
+function mapRefresh(fit){
+  if(!MAP||!MAPL) return; MAPL.clearLayers(); const card=$('#mapcard'); if(card) card.hidden=true;
+  const evs=mapEvents(), withPos=evs.filter(e=>e.geo), noPos=evs.filter(e=>!e.geo);
+  for(const e of withPos){ const cd=cdShort(e);
+    const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html:`<span class="mpill ${cd.c}">${esc(cd.t)}</span>`,iconSize:null}),riseOnHover:true,keyboard:false,title:''});
+    if(narrow.matches) mk.on('click',()=>{ card.innerHTML=mapCard(e); card.hidden=false; });
+    else{ mk.bindTooltip(esc(e.name||'untitled'),{direction:'top',offset:[0,-12],className:'mtip'}); mk.bindPopup(mapCard(e),{closeButton:false,offset:[0,-10],maxWidth:320}); mk.on('click',()=>mk.closeTooltip()); }
+    MAPL.addLayer(mk); }
+  const np=$('#nopos'); np.hidden=!noPos.length;
+  np.innerHTML=`${ic('pin',2.2)}<b>${noPos.length}</b> ${noPos.length===1?'event':'events'} without position`;
+  np.onclick=()=>{ if(!$('#menu').hidden&&popAnchor===np){ closePops(); return; } closePops(); if(card) card.hidden=true; const m=$('#menu');
+    m.innerHTML=`<div class="mlab">Without position · link them in the event's Location field</div>`+noPos.map(e=>`<button type="button" data-go="e:${esc(e.id)}">${ic('flag',1.8)}<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name)||'<i>untitled</i>'}<small style="color:var(--ink-3)"> · ${esc(e.location||'no location')}</small></span></button>`).join('');
+    place(m,np,'left'); popAnchor=np; };
+  const mc=$('#mapcount'); if(mc) mc.textContent=`${plural(withPos.length,'event','events')} on the map`;
+  if(fit){ if(MAPV) MAP.setView(MAPV.c,MAPV.z);
+    else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),{padding:[56,56],maxZoom:10});
+    else MAP.setView([42.6,9.4],6); }
+}
 
 /* date picker: single day or multi-day range, month grid, dots on days with other events */
 const DP={};
@@ -3570,7 +3807,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     if(document.querySelector('dialog[open]')) return; // the dialog handles its own Esc
     if(!$('#cmdk').hidden){ closeCmd(); return; }
-    if(!$('#notepop').hidden||!$('#dp').hidden||!$('#menu').hidden||!$('#pinpop').hidden){ closePops(); return; }
+    if(!$('#notepop').hidden||!$('#dp').hidden||!$('#menu').hidden||!$('#pinpop').hidden||!$('#geopop').hidden){ closePops(); return; }
     if(document.body.classList.contains('drawer')){ closeDrawer(); return; }
     if(typing){ e.target.blur(); return; }
     if(route.id) go(route.view);
@@ -3579,7 +3816,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='['&&route.view!=='h'&&route.view!=='a'){ toggleList(); return; }
   if(e.key==='t'&&route.view==='a'){ e.preventDefault(); $('#td-add')?.focus(); return; }
   if(e.key===']'&&route.view==='e'){ toggleSide(); return; }
-  if(e.key==='/'&&route.view==='e'){ e.preventDefault(); if(narrow.matches&&route.id) openDrawer(); $('#fl-q')?.focus(); }
+  if(e.key==='/'&&(route.view==='e'||route.view==='m')){ e.preventDefault(); if(narrow.matches&&route.id) openDrawer(); ($('#fl-q')||$('#fm-q'))?.focus(); }
   else if((e.key==='j'||e.key==='k')&&route.view==='e'&&listOrder.length){ const i=listOrder.indexOf(route.id); const n=e.key==='j'?Math.min(listOrder.length-1,i+1):Math.max(0,i<0?0:i-1); go('e',listOrder[n]); document.querySelector('#list .row.active')?.scrollIntoView({block:'nearest'}); }
   else if(e.key==='n'){ e.preventDefault(); newItem(); }
   else if(e.key==='?'){ e.preventDefault(); openKeys(); }
@@ -3857,12 +4094,13 @@ function openSettings(msg=''){
   $('#s-title').textContent=loggedIn?'GitHub connection':'Log in';
   $('#s-save').textContent=loggedIn?'Reconnect':'Log in';
   $('#s-owner').value=cfg.owner; $('#s-repo').value=cfg.repo; $('#s-dir').value=cfg.dir; $('#s-token').value=cfg.token; $('#s-msg').textContent=msg;
-  if(loggedIn){ $('#s-rr14user').value=S.config.rr14User||'';
+  if(loggedIn){ $('#s-rr14user').value=S.config.rr14User||''; $('#s-carto').value=S.config.cartoKey||'';
     $('#s-swinfo').textContent=!hasSafeword()?'Not set yet — set it the first time you unlock.':priv()?'Set. You can change it while unlocked.':'Set. Unlock first to change it.';
     $('#s-swset').disabled=!priv(); lockInfo(); }
   if(!dlg.open) dlg.showModal();
 }
 $('#s-rr14user').addEventListener('input',e=>{ if(!S) return; S.config.rr14User=e.target.value.trim(); touch('none'); });
+$('#s-carto').addEventListener('input',e=>{ if(!S) return; const v=e.target.value.trim(); if(v) S.config.cartoKey=v; else delete S.config.cartoKey; touch('none'); });
 $('#s-swset').onclick=()=>{ if(!priv()){ toast('Unlock with the current safe-word first','','lock'); return; } dlg.close(); openUnlock('change'); };
 $('#s-dclose').onclick=()=>dlg.close();
 $('#s-cancel').onclick=()=>dlg.close();
