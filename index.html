@@ -3020,17 +3020,27 @@ function ghostPane(D){
   inner.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
   g.append(inner); document.body.append(g); setTimeout(()=>g.remove(),420);
 }
+/* re-rendering the same page must not move it: Safari has no scroll anchoring, so a tick in Checklist could land the page on
+   Races. Remember the section at the top of the screen and where it sat; after the render (and once more when late layout
+   such as images and auto-sized textareas has settled) put it back on the same spot. */
+function pageAnchor(D){ const band=($('#jump')?.getBoundingClientRect().bottom||$('#top')?.offsetHeight||52)+4;
+  const el=[...D.querySelectorAll('[id^="s-"]')].find(x=>x.getBoundingClientRect().bottom>band&&!(wide.matches&&x.closest('.evside'))); /* the side column is only a column on wide screens */ return el?{id:el.id,top:el.getBoundingClientRect().top,y:scrollY}:null; }
+let ancGen=0; for(const t of ['touchstart','wheel']) addEventListener(t,()=>{ ancGen++; },{passive:true,capture:true}); // the user scrolls: late fixes stand down
+function keepAnchor(a){ const g=ancGen, fix=()=>{ if(spyHold||g!==ancGen) return; const el=document.getElementById(a.id); if(!el) return; const d=el.getBoundingClientRect().top-a.top; if(Math.abs(d)>1) window.scrollBy(0,d); };
+  fix(); requestAnimationFrame(fix); setTimeout(fix,250); }
 function renderDetail(){
   if(!S) return;
   const D=$('#detail'), key=route.view+':'+(route.id||''), same=D.dataset.k===key;
   if(!same) ghostPane(D);
   const keep=same?[...D.querySelectorAll('.evside,.hsc,.tpwrap')].map(x=>[x.scrollTop,x.scrollLeft]):null, fk=same?focusKey(D):null;
+  const anc=same?pageAnchor(D):null;
   OBJ=[]; taRO.disconnect(); hsRO.disconnect();
   if(MAP&&route.view!=='m'){ MAP.remove(); MAP=null; MAPL=null; }
   if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else if(route.view==='a') renderAgenda(D); else if(route.view==='m') renderMap(D); else renderHours(D);
   D.dataset.k=key;
   if(keep) D.querySelectorAll('.evside,.hsc,.tpwrap').forEach((x,i)=>{ if(keep[i]){ x.scrollTop=keep[i][0]; x.scrollLeft=keep[i][1]; } });
   bind(D); sortable(D); hscroll(D); refocus(D,fk); placeFilms(D);
+  if(anc) keepAnchor(anc);
   D.querySelector('#closebtn')?.addEventListener('click',()=>go(route.view));
   D.querySelector('#backbtn')?.addEventListener('click',()=>go(route.view));
   spy();
