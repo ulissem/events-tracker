@@ -293,11 +293,6 @@ main.full #detail{max-width:1180px}
 .wd.has{cursor:pointer;color:var(--ink)}
 .wd.has:hover{background:var(--hover)}
 .wd.wkend b{color:var(--ink-3)} .wd.wkend.has b{color:var(--ink)}
-.wkl{margin-top:8px;display:flex;flex-direction:column;gap:1px}
-.wl{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:center;padding:4px 6px;border:0;border-radius:6px;background:none;text-align:left;font-size:12.5px}
-.wl:hover{background:var(--hover)}
-.wl .wlday{color:var(--ink-3);font-weight:500}
-.wl .wln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
 .wkempty{font-size:12.5px;color:var(--ink-3);padding:4px 6px}
 /* month groups with sticky separators */
 .mh{position:sticky;top:0;z-index:2;display:flex;align-items:baseline;gap:6px;padding:8px 16px 7px;background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--ink);letter-spacing:-.005em}
@@ -824,7 +819,6 @@ dialog::backdrop{background:var(--scrim)}
   .chk{font-size:14px;min-height:40px}
   .q{grid-template-columns:36px minmax(0,1fr)}
   .row{padding:12px 16px}
-  .wl{padding:9px 6px;font-size:13.5px}
   .wd{padding:7px 0 6px}
   #closebtn,.sumtxt,.listfoot .kh{display:none}
   .linkchip{height:42px}
@@ -2112,7 +2106,6 @@ function renderEventList(L){
   const week=`<div class="wk"><div class="wkh"><span>Next 7 days</span><span>${soon.length?plural(soon.length,'event','events'):'nothing scheduled'}</span></div>
     <div class="wkd">${days.map(d=>{ const es=soon.filter(e=>d>=e.dateStart&&d<=(e.dateEnd||e.dateStart)), dt=parse(d), we=dt.getDay()===0||dt.getDay()===6;
       return `<button type="button" class="wd ${d===TODAY?'today':''} ${es.length?'has':''} ${we?'wkend':''}" ${es.length?`data-id="${esc(es[0].id)}" title="${esc(es.map(e=>e.name).join(', '))}"`:'tabindex="-1"'}><small>${d===TODAY?'Today':DOW[dt.getDay()]}</small><b>${dt.getDate()}</b><i>${es.slice(0,3).map(()=>'<u></u>').join('')}</i></button>`; }).join('')}</div>
-    ${soon.length?`<div class="wkl">${soon.map(e=>{ const c=countdown(e); return `<button type="button" class="wl" data-id="${esc(e.id)}"><span class="wlday">${esc(fmtShort(e.dateStart).replace(/ \w+$/,''))}</span><span class="wln">${esc(e.name)||'<i>untitled</i>'}</span><span class="cd ${c.c}">${c.t}</span></button>`; }).join('')}</div>`:''}
   </div>`;
   // month groups
   const groups=[]; for(const e of ev){ const k=(e.dateStart||'').slice(0,7)||'none'; let g=groups[groups.length-1]; if(!g||g.k!==k){ g={k,items:[]}; groups.push(g); } g.items.push(e); }
@@ -2212,9 +2205,10 @@ function renderEvent(D){
   const ckDone=ck.filter(x=>x.done).length+countTasks(e.checklistExtra)[1], ckTot=ck.length+countTasks(e.checklistExtra)[0];
   const grpStat=g=>{ const a=ck.filter(x=>x.group===g); return [a.filter(x=>x.done).length,a.length]; };
   const scoreN=countTasks(e.rankings)[0]+countTasks(e.teamScores)[0], outN=OUTPUT_LISTS.reduce((a,[k])=>a+countTasks(e[k])[0],0), regN=REG_LISTS.reduce((a,[k])=>a+countTasks(e[k])[0],0);
+  const tpc=tpCols(e);
   const tpTools=`<button class="btn sm ghost" type="button" data-tpcolors>Auto colours</button><button class="btn sm ghost" type="button" data-tpexport title="Timing Points.lvs for RR14">${ic('file',1.8)} Export .lvs</button>`;
   D.innerHTML=`
-  <div class="crumbs">${e.clientId&&clientOf(e.clientId)?`<button type="button" data-go="c:${esc(e.clientId)}">${esc(clientName(e.clientId))}</button>`:`<span>${esc(clientName(e.clientId))}</span>`}${ic('chev')}<span>${esc(e.type||'Event')}</span></div>
+  <div class="crumbs">${e.clientId&&clientOf(e.clientId)?`<button type="button" data-go="c:${esc(e.clientId)}">${esc(clientName(e.clientId))}</button>`:`<span>${esc(clientName(e.clientId))}</span>`}</div>
   <div class="dtitle">${backBtn}<input class="nameinput" data-o="${ref(e)}" data-k="name" value="${esc(e.name)}" placeholder="Event name" aria-label="Event name">
     <button class="btn icon ghost" id="aibtn" type="button" data-tip="Copy AI prompt to update this event" aria-label="Copy AI prompt to update this event">${ic('sparkle',1.8)}</button>
     <button class="btn" id="sumbtn" type="button" data-tip="Client summary (PNG / PDF)">${ic('doc',1.8)}<span class="sumtxt">Summary</span></button>
@@ -2249,7 +2243,7 @@ function renderEvent(D){
   </section>
 
   <section class="sec" id="s-tps"><div class="sech" style="--sc:${SECC.tps}"><h3>${secBadge('tps')}Timing points <span class="count">${e.timingPoints.length}</span></h3><span class="sp"></span>${e.timingPoints.length?`<span class="deskonly" style="display:contents">${tpTools}</span>`:''}<button class="btn sm" id="addtp" type="button">${ic('plus',2.2)} Point</button></div>
-  ${e.timingPoints.length?`<div class="hs"><div class="tbox hsc"><table class="t tps"><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7">${narrow.matches?'':'<col class="c8">'}<col class="c9"></colgroup><thead><tr><th class="stk stk1"></th><th class="stk stk2">Name</th><th>Hardware</th><th>Ch.</th><th>L.</th><th>Mode</th><th title="Position (lat, lon)${narrow.matches?' and note':''}">${narrow.matches?'Pos. · Note':'Pos.'}</th>${narrow.matches?'':'<th>Notes</th>'}<th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${e.timingPoints.map((t,i)=>tpRow(e,t,i,dups)).join('')}</tbody></table></div></div>
+  ${e.timingPoints.length?`<div class="hs"><div class="tbox hsc"><table class="t tps" style="min-width:${820-(tpc.ch?0:62)-(tpc.loop?0:62)-(tpc.mode?0:108)}px"><colgroup><col class="c1"><col class="c2"><col class="c3">${tpc.ch?'<col class="c4">':''}${tpc.loop?'<col class="c5">':''}${tpc.mode?'<col class="c6">':''}<col class="c7">${narrow.matches?'':'<col class="c8">'}<col class="c9"></colgroup><thead><tr><th class="stk stk1"></th><th class="stk stk2">Name</th><th>Hardware</th>${tpc.ch?'<th>Ch.</th>':''}${tpc.loop?'<th>L.</th>':''}${tpc.mode?'<th>Mode</th>':''}<th title="Position (lat, lon)${narrow.matches?' and note':''}">${narrow.matches?'Pos. · Note':'Pos.'}</th>${narrow.matches?'':'<th>Notes</th>'}<th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${e.timingPoints.map((t,i)=>tpRow(e,t,i,dups,tpc)).join('')}</tbody></table></div></div>
   ${dups.length?`<div class="empty" style="border-color:var(--danger);color:var(--danger);margin-top:8px">${ic('warn')}<span>${dups.map(([k,v])=>`Ch. ${esc(k.split('/')[0])}${k.endsWith('–')?'':` / L. ${esc(k.split('/')[1])}`} is used ${v.length} times: ${v.map(t=>esc(t.name||'untitled')).join(', ')}`).join('<br>')}</span></div>`:''}
   <div class="toolbar phoneonly">${tpTools}</div>`:emptyBox('pin','The hardware on the course: start, finish, intermediate points. Races use them in their splits.')}
   </section>
@@ -2353,7 +2347,9 @@ function renderEvent(D){
     if(confirm(`Delete «${e.name||'untitled'}»? It stays in the commit history.`)){ S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
 }
 
-function tpRow(e,t,i,dups){
+/* Ch. / L. / Mode columns only when a point's hardware has them (never with passive timing) */
+function tpCols(e){ const has=k=>e.technology!=='passive'&&e.timingPoints.some(t=>HW[t.hardware]?.[k]); return {ch:has('ch'),loop:has('loop'),mode:has('modes')}; }
+function tpRow(e,t,i,dups,tpc){
   const tech=e.technology, avail=Object.keys(HW).filter(h=>!tech||HW[h].tech.includes(tech));
   const opts=[['','— hardware —'],...avail.map(h=>[h,h]),...(t.hardware&&!avail.includes(t.hardware)?[[t.hardware,`${t.hardware} (not ${tech})`]]:[])];
   const hw=HW[t.hardware], ids=tech!=='passive'&&hw, dup=dups.some(([,v])=>v.includes(t));
@@ -2367,12 +2363,12 @@ function tpRow(e,t,i,dups){
     <td class="gr stk stk1">${GRIP}<input type="color" class="swatch" data-o="${ref(t)}" data-k="color" value="${esc(t.color||'#cccccc')}" aria-label="Colour ${esc(t.name)}"></td>
     <td class="stk stk2">${cell(t,'name',{ph:'Name'})}</td>
     <td><div class="hwcell">${hwImg(t.hardware)?`<img class="hwimg" src="${hwImg(t.hardware)}" alt="">`:'<span class="hwimg" style="display:grid;place-items:center;color:var(--ink-3);background:var(--sunken);border:1px dashed var(--line-2)">?</span>'}<div class="hwsel"><select class="cell ${t.hardware?'':'unset'}" data-o="${ref(t)}" data-k="hardware" data-r="detail" aria-label="Hardware ${esc(t.name)}">${opts.map(([v,l])=>`<option value="${esc(v)}" ${t.hardware===v?'selected':''}>${esc(l)}</option>`).join('')}</select>${link}${bad?`<span class="rep" style="color:var(--warn)">${ic('warn')} not for ${esc(tech)} timing</span>`:''}</div></div></td>
-    <td>${ids&&hw.ch?range('ch',hw.ch):''}</td>
-    <td>${ids&&hw.loop?range('loop',hw.loop):''}</td>
-    <td>${ids&&hw.modes?`<select class="cell ${t.mode?'':'unset'}" data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value="">Mode</option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>
+    ${tpc.ch?`<td>${ids&&hw.ch?range('ch',hw.ch):''}</td>`:''}
+    ${tpc.loop?`<td>${ids&&hw.loop?range('loop',hw.loop):''}</td>`:''}
+    ${tpc.mode?`<td>${ids&&hw.modes?`<select class="cell ${t.mode?'':'unset'}" data-o="${ref(t)}" data-k="mode" data-r="detail" aria-label="Mode ${esc(t.name)}"><option value="">Mode</option>${hw.modes.map(m=>`<option ${t.mode===m?'selected':''}>${m}</option>`).join('')}</select>`:''}</td>`:''}
     <td><button class="btn icon sm ghost pin ${t.position?'set':''}" data-pos="${ref(t)}" type="button" title="${t.position?esc('Position: '+t.position):'Set position'}" aria-label="Position of ${esc(t.name||'timing point')}"><svg viewBox="0 0 24 24" fill="${t.position?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" fill="${t.position?'var(--panel)':'none'}"/></svg></button>${ph?`<button class="btn icon sm ghost notebtn ${t.notes?'set':''}" data-note="${ref(t)}" type="button" title="${t.notes?'Edit note':'Add note'}" aria-label="${t.notes?'Edit':'Add'} note for ${esc(t.name||'timing point')}">${ic('note',1.8)}</button>`:''}</td>
     ${ph?'':`<td>${cell(t,'notes',{ph:'Notes',label:'Notes'})}</td>`}
-    <td class="x"><button class="btn icon sm ghost del rowact" data-deltp="${i}" type="button" aria-label="Remove point ${esc(t.name)}">${ic('x')}</button></td></tr>${hasN?`<tr class="tpnote"><td colspan="8"><div class="tpn">${ic('note',1.8)}<span>${esc(t.notes)}</span></div></td></tr>`:''}`;
+    <td class="x"><button class="btn icon sm ghost del rowact" data-deltp="${i}" type="button" aria-label="Remove point ${esc(t.name)}">${ic('x')}</button></td></tr>${hasN?`<tr class="tpnote"><td colspan="${5+tpc.ch+tpc.loop+tpc.mode}"><div class="tpn">${ic('note',1.8)}<span>${esc(t.notes)}</span></div></td></tr>`:''}`;
 }
 
 function splitRuler(e,c){
