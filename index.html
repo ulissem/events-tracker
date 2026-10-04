@@ -1329,7 +1329,9 @@ input[type=checkbox].ck:checked{background-color:var(--accent);border-color:var(
 .sec > .grid > .fld .in.trig.chev,.sec > .grid > .fld select.in{background-position:right 2px center;padding-right:22px}
 .sec > .grid > .fld textarea.in{height:auto;min-height:48px;padding:2px 0}
 .sec > .grid > .fld .help,.sec > .grid > .fld .geoline{margin-top:4px}
-.sec > .grid > .fld .in.group .geobtn{width:28px;height:28px;border-radius:8px}
+.sec > .grid > .fld .in.group .geobtn,.sec > .grid > .fld .in.group .geomap{width:28px;height:28px;border-radius:8px;flex:none}
+.geoline{flex-wrap:nowrap} .geoline.warn{flex-wrap:wrap}
+.geomap{color:var(--ink-3)} .geomap:hover{color:var(--accent)}
 
 /* sections: title outside, cards inside */
 .sec{margin-top:30px}
@@ -1414,7 +1416,7 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
   .in,.in.sm{height:42px;border-radius:10px}
   .sec > .grid{grid-template-columns:1fr}
   .sec > .grid > .fld .in{height:30px;font-size:17px}
-  .sec > .grid > .fld .in.group .geobtn{width:34px;height:34px}
+  .sec > .grid > .fld .in.group .geobtn,.sec > .grid > .fld .in.group .geomap{width:34px;height:34px}
   .nameinput{font-size:28px}
   .jump{padding:10px 16px}
   .jump a{height:34px}
@@ -3494,18 +3496,20 @@ function geoText(r){
 }
 function geoLineHTML(e){
   const gs=geoState(e), g=e.geo;
-  if(gs==='linked') return `<div class="geoline ok" id="geoline">${ic('check',2.6)}<span class="gl" title="${esc(g.label)}">${esc(g.label||g.text)}</span><i class="dot"></i><span class="mono">${g.lat}, ${g.lon}</span><i class="dot"></i><a href="${esc(mapsUrl(g))}" target="_blank" rel="noopener noreferrer">Open map</a></div>`;
+  if(gs==='linked') return `<div class="geoline ok" id="geoline">${ic('check',2.6)}<span class="gl" title="${esc(g.label)} · ${g.lat}, ${g.lon}">${esc(g.label||g.text)}</span></div>`;
   if(gs==='stale') return `<div class="geoline warn" id="geoline">${ic('warn',2.2)}<span class="gl">Position still points to ${esc(g.text||g.label)}</span><i class="dot"></i><button type="button" class="lnk" data-geokeep>Keep</button><i class="dot"></i><button type="button" class="lnk" data-geofind>Find again</button></div>`;
   return `<div class="geoline" id="geoline" hidden></div>`;
 }
 function locationField(e){
   const gs=geoState(e);
   return `<div class="fld geo"><label class="lab" for="f-loc">Location <span class="lh">· street or town</span></label>
-    <div class="in group"><input class="bare" id="f-loc" data-o="${ref(e)}" data-k="location" value="${esc(e.location)}" placeholder="Town, venue" autocomplete="off"><button class="btn icon sm ghost geobtn ${gs==='linked'?'on':''}" id="geobtn" type="button" data-tip="${gs==='linked'?'Position linked · search again':'Find on map'}" aria-label="Find on map">${ic(gs==='linked'?'pinfill':'pin',1.9)}</button></div>
+    <div class="in group"><input class="bare" id="f-loc" data-o="${ref(e)}" data-k="location" value="${esc(e.location)}" placeholder="Town, venue" autocomplete="off"><button class="btn icon sm ghost geobtn ${gs==='linked'?'on':''}" id="geobtn" type="button" data-tip="${gs==='linked'?'Position linked · search again':'Find on map'}" aria-label="Find on map">${ic(gs==='linked'?'pinfill':'pin',1.9)}</button>${geoMapBtn(e)}</div>
     ${geoLineHTML(e)}</div>`;
 }
+const geoMapBtn=e=>geoState(e)==='linked'?`<a class="btn icon sm ghost geomap" id="geomap" href="${esc(mapsUrl(e.geo))}" target="_blank" rel="noopener noreferrer" data-tip="Open map · ${e.geo.lat}, ${e.geo.lon}" aria-label="Open map">${ic('ext',1.9)}</a>`:'';
 /* typing in Location only refreshes the line and the pin, never the input itself (it keeps the focus) */
 function geoLineUpdate(e){ const gs=geoState(e), b=$('#geobtn'); $('#geoline')?.insertAdjacentHTML('afterend',geoLineHTML(e)); $('#geoline')?.remove();
+  $('#geomap')?.remove(); if(b&&gs==='linked') b.insertAdjacentHTML('afterend',geoMapBtn(e));
   if(b){ b.classList.toggle('on',gs==='linked'); b.innerHTML=ic(gs==='linked'?'pinfill':'pin',1.9); b.dataset.tip=gs==='linked'?'Position linked · search again':'Find on map'; } }
 let geoE=null;
 async function geoSearch(btn,e){
