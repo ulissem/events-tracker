@@ -3830,7 +3830,8 @@ function openMore(btn){
     <div class="mgrp">${row('prompt','sparkle','Copy AI prompt','var(--accent)')}${row('import','upload','Import from AI (JSON)','var(--accent)')}</div>
     <div class="mgrp">${row('settings','gear','Settings','#30b0c7')}${narrow.matches?'':row('keys','keyboard','Keyboard shortcuts','#30b0c7')}${row('reload','refresh','Reload app','#30b0c7','<span class="mv" id="mver"></span>')}</div>
     <div class="mgrp"><button type="button" data-mm="logout" class="mout">Log out</button></div>`;
-  caches?.keys?.().then(k=>{ const v=k.map(x=>(x.match(/-v(\d+)$/)||[])[1]).filter(Boolean).sort((a,b)=>b-a)[0]; const e=$('#mver'); if(e&&v) e.textContent='v'+v; }).catch(()=>{}); // the installed version, from the service worker cache name
+  const setV=v=>{ const e=$('#mver'); if(e&&v) e.textContent='v'+v; };
+  (window.caches?.keys?window.caches.keys().then(k=>k.map(x=>(x.match(/-v(\d+)$/)||[])[1]).filter(Boolean).sort((a,b)=>b-a)[0]):fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>(t.match(/events-tracker-v(\d+)/)||[])[1])).then(setV).catch(()=>{}); // the installed version, from the service worker cache name (window.caches: plain http has no Cache API, a bare `caches` throws)
   on(m,'[data-mm]',b=>{ const k=b.dataset.mm; closePops(); if(k==='theme') toggleTheme(); else if(k==='values') togglePrivacy(); else if(k==='settings') openSettings(); else if(k==='keys') openKeys(); else if(k==='prompt') openPrompt(); else if(k==='refresh') refreshData(); else if(k==='save') doSave(); else if(k==='reload') reloadApp(); else if(k==='import') openImport(); else logout(); });
   popAnchor=btn; place(m,btn,'right');
 }
