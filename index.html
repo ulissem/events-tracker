@@ -2703,8 +2703,8 @@ let selDay=null;      // a day picked in the film strip: its events stay lit, th
 const onSelDay=e=>!selDay||(e.dateStart&&selDay>=e.dateStart&&selDay<=(e.dateEnd||e.dateStart));
 function selectDay(d){
   selDay=selDay===d?null:d;
-  renderList(); if(route.view==='m') mapRefresh(false); else if(route.view==='e'&&!route.id) renderDetail();
-  if(selDay){ const r=document.querySelector('#list .row.hit'); r?.scrollIntoView({block:'center',behavior:'smooth'}); }
+  renderList(); if(route.view==='m'){ mapRefresh(false); mapShowDay(); } else if(route.view==='e'&&!route.id) renderDetail();
+  if(selDay){ const r=document.querySelector('#list .row.hit'); r?.scrollIntoView({block:'center',behavior:'smooth'}); document.querySelectorAll('.fd.sel').forEach(x=>x.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'})); }
 }
 function bindDays(root){ on(root,'[data-day]',b=>selectDay(b.dataset.day)); }
 /* =====================================================================
@@ -3862,6 +3862,14 @@ function mapRefreshInner(fit){
   const mc=$('#mapcount'); if(mc) mc.textContent=`${plural(evs.length,'event','events')} · ${withPos.length} on the map`;
 }
 
+/* a day picked in the strip: bring its placed events into view (one → fly to it, several → fit them all) */
+function mapShowDay(){
+  if(!MAP||!selDay) return;
+  const es=mapEvents().filter(e=>e.geo&&onSelDay(e)); if(!es.length) return;
+  const pts=es.map(e=>[+e.geo.lat,+e.geo.lon]);
+  if(pts.length===1) MAP.flyTo(pts[0],Math.max(MAP.getZoom(),10),{duration:.7});
+  else MAP.flyToBounds(L.latLngBounds(pts),{paddingTopLeft:[120,60],paddingBottomRight:[120,narrow.matches?Math.round(innerHeight*.45):220],maxZoom:11,duration:.7});
+}
 /* desktop map mode: a row in the list flies the map to its pin and opens the card */
 function mapFocus(id){
   const e=S.events.find(x=>x.id===id); if(!e) return; mapFocusId=id; renderList();
