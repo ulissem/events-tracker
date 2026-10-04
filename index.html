@@ -1493,8 +1493,8 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .rh2 .n{text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink-3)}
 .rh2 .act{margin-left:auto;text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--accent);border:0;background:none;display:inline-flex;align-items:center;gap:4px;padding:0}
 .rh2 .act svg{width:14px;height:14px}
-.road .track{display:flex;align-items:flex-start;margin-top:12px;position:relative;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-.road .track::before{content:'';position:absolute;left:12px;right:12px;top:7px;height:2px;background:linear-gradient(90deg,var(--ink-4) 0%,var(--ink-4) 70%,var(--tint,var(--accent)) 100%)}
+.road .track{display:flex;align-items:flex-start;margin-top:10px;position:relative;overflow-x:auto;scrollbar-width:none;padding:8px 8px 2px}
+.road .track::before{content:'';position:absolute;left:16px;right:16px;top:15px;height:2px;background:linear-gradient(90deg,var(--ink-4) 0%,var(--ink-4) 70%,var(--tint,var(--accent)) 100%)}
 .rdn{flex:1 1 0;min-width:150px;position:relative;padding-right:10px}
 .rdn .dot{width:16px;height:16px;border-radius:50%;background:var(--panel);border:2px solid var(--ink-3);position:relative;display:grid;place-items:center;color:var(--teal,#30b0c7);cursor:pointer}
 .rdn .dot svg{width:9px;height:9px}
@@ -1506,9 +1506,9 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .rdn button.t:hover{color:var(--accent)}
 .rdn.on .t{text-decoration:line-through;color:var(--ink-3)}
 .rdn.tr .dot{border-color:var(--ag-travel)} .rdn.tr .dot svg{color:var(--ag-travel)}
-.rdn.last{flex:0 0 auto;min-width:0;padding-right:0}
-.rdn.last .dot{background:var(--tint,var(--accent));border-color:var(--tint,var(--accent));color:#fff;width:22px;height:22px;margin:-3px 0 0 -3px;box-shadow:0 0 0 6px var(--tint-soft,var(--accent-soft));cursor:default}
-.rdn.last .dot svg{width:12px;height:12px}
+.rdn.last{flex:0 0 auto;min-width:0;padding-right:0;margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+.rdn.last .dot{background:var(--tint,var(--accent));border-color:var(--tint,var(--accent));color:transparent;width:16px;height:16px;box-shadow:0 0 0 5px var(--tint-soft,var(--accent-soft));cursor:default}
+.rdn.last .dot svg{display:none}
 .rdn.last .d{color:var(--tint,var(--accent))}
 .rdn.last .t{font-weight:700;cursor:default}
 .road{--tint-soft:color-mix(in srgb,var(--tint,var(--accent)) 14%,transparent)}
@@ -1607,7 +1607,10 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
   .rdn .d{margin:0;grid-column:3;font-size:11px}
   .rdn .t{grid-column:2;grid-row:1;margin:0;font-size:16px}
   .rdn .dot{grid-column:1;grid-row:1}
-  .rdn.last .dot{margin:0 0 0 -3px}
+  .rdn.last{display:grid;align-items:center;text-align:left;margin-left:0;width:100%}
+  .rdn.last .dot{margin:0}
+  .road .track{padding:4px 0 0}
+  .road .track::before{left:7px;top:12px;bottom:12px}
   .kit{grid-template-columns:1fr 1fr}
   .nextup{margin:10px 12px 4px}
   .nextup .td{min-height:28px;font-size:14px}
