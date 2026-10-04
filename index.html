@@ -1527,7 +1527,7 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .nextup::before{content:'';position:absolute;top:-40%;right:-20%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 70%);pointer-events:none}
 .nextup .cdn{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1;align-self:center}
 .nextup .cdn small{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.8);margin-top:2px}
-.nextup .cdn small.in,.mc-cd small.in{margin:0 0 3px} /* 'in' above the number: in 5 days, not 5 days long */
+.nextup .cdn .mn,.mc-cd .mn{font-weight:500;margin-right:1px;opacity:.85} /* −5 days: a countdown, not a duration */
 .nextup .cdn{text-align:center}
 .nextup .cdn .live{display:inline-flex;align-items:center;gap:8px;font-size:18px;font-weight:800;letter-spacing:-.01em}
 .nextup .cdn .live i{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.3);animation:hlive 1.6s ease-out infinite}
@@ -1794,20 +1794,22 @@ main.mapv #detail{padding:0;position:relative}
 .leaflet-container .evpop .leaflet-popup-tip-container{display:none}
 .leaflet-container .leaflet-popup.evpop{margin-bottom:0} /* sits just above the pin */
 .mpin.popped .mlbl{display:none!important} /* the card already says the name */
-.mcard{width:300px;padding:14px 14px 12px 16px;border-radius:18px;color:#fff;background:linear-gradient(135deg,var(--tint,var(--accent)) 0%,var(--tint-2,var(--accent-hover)) 100%);box-shadow:0 18px 40px -14px var(--tint-glow),0 2px 8px rgba(0,0,0,.3);position:relative;overflow:hidden;font-size:13px;line-height:1.35}
-.mcard::before{content:'';position:absolute;top:-50%;right:-25%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.26),transparent 70%);pointer-events:none}
+.mcard{width:300px;padding:14px 14px 12px 16px;border-radius:18px;color:var(--ink);background:color-mix(in srgb,var(--panel) 82%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 0 0 .5px var(--line-2),0 18px 40px -14px rgba(0,0,0,.55);position:relative;overflow:hidden;font-size:13px;line-height:1.35} /* neutral glass on the map; the type keeps its colour in the label */
+.mcard::before{content:'';position:absolute;top:-55%;right:-25%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tint) 30%,transparent),transparent 70%);pointer-events:none}
 .mcard > *{position:relative}
 .mc-top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center}
 .mc-cd{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1;text-align:center;min-width:34px;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif}
-.mc-cd small{display:block;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.8);margin-top:3px;font-family:-apple-system,system-ui,sans-serif}
+.mc-cd small{display:block;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-top:3px;font-family:-apple-system,system-ui,sans-serif}
 .mc-cd .live,.mc-cd .pst{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:800;letter-spacing:-.01em;font-family:-apple-system,system-ui,sans-serif}
-.mc-cd .live i{width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.3)}
+.mc-cd .live{color:var(--tint)} .mc-cd .live i{width:8px;height:8px;border-radius:50%;background:var(--tint);box-shadow:0 0 0 3px color-mix(in srgb,var(--tint) 30%,transparent)}
+.mc-cd .pst{color:var(--ink-3)}
+.mc-n .mc-ty{display:block;margin-top:0;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--tint);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mc-n{min-width:0} .mc-n b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:15.5px;font-weight:600;letter-spacing:-.01em;line-height:1.2;overflow:hidden}
-.mc-n span{display:block;font-size:12px;color:rgba(255,255,255,.82);margin-top:1px}
-.mcard .ring .rt{stroke:rgba(255,255,255,.25)} .mcard .ring .rv,.mcard .ring.full .rv{stroke:#fff}
-.mc-m{margin-top:8px;font-size:12px;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mc-m + .mc-m{margin-top:2px} .mc-m b{color:#fff}
-.mcard .mc-go{margin-top:12px;display:flex;justify-content:center;align-items:center;gap:4px;height:34px;border-radius:10px;background:rgba(255,255,255,.18);color:#fff;font-weight:600;font-size:13px;text-decoration:none}
-.mcard .mc-go:hover{background:rgba(255,255,255,.28);text-decoration:none} .mcard .mc-go svg{width:13px;height:13px}
+.mc-n span{display:block;font-size:12px;color:var(--ink-2);margin-top:1px}
+.mcard .ring .rt{stroke:var(--line-2)} .mcard .ring .rv,.mcard .ring.full .rv{stroke:var(--tint)}
+.mc-m{margin-top:8px;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mc-m + .mc-m{margin-top:2px} .mc-m b{color:var(--ink)}
+.mcard .mc-go{margin-top:12px;display:flex;justify-content:center;align-items:center;gap:4px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink);font-weight:600;font-size:13px;text-decoration:none}
+.mcard .mc-go:hover{background:color-mix(in srgb,var(--ink) 14%,transparent);text-decoration:none} .mcard .mc-go svg{width:13px;height:13px}
 .mapcard{background:none;border:0;box-shadow:none;padding:0 12px calc(12px + var(--sab,0px));animation:sheetin .2s ease-out} .mapcard::before{display:none} .mapcard .mcard{width:auto}
 @media (max-width:860px){
   .maphead{top:10px;left:10px;right:10px;padding:0;gap:6px}
@@ -2816,7 +2818,7 @@ function nuCard(e,several){
     ...trips.slice(0,2).map(i=>`<a class="td" href="#/a">${ic('plane',1.8)}<span class="tx">Travel${i.o.title?' · '+esc(i.o.title):''}</span><span class="when">${esc(dueTxt(i.s))}${i.o.time?' '+esc(i.o.time):''}</span></a>`)];
   if(tds.length>3) items.push(`<a class="td more" href="#/a">+${tds.length-3} more to-dos</a>`);
   const km=e.contests.reduce((a,c)=>a+num(c.distance),0);
-  const dn=live?`<span class="live"><i></i>${cd.t==='today'?'Race day':esc(cd.t)}</span>`:`<small class="in">in</small>${d}<small>${d===1?'day':'days'}</small>`;
+  const dn=live?`<span class="live"><i></i>${cd.t==='today'?'Race day':esc(cd.t)}</span>`:`<span class="mn">−</span>${d}<small>${d===1?'day':'days'}</small>`;
   return `<div class="nextup" style="${tintStyle(e)}" data-id="${esc(e.id)}" role="link" tabindex="0" aria-label="Open ${esc(e.name)}">
     <div class="cdn">${dn}</div>
     <div class="nmeta"><div class="ovl">${live?'Now':'Next up'} · ${esc(fmtShort(e.dateStart))}</div><div class="n">${esc(e.name)||'untitled'}</div><div class="s">${esc([clientName(e.clientId),e.location,e.status].filter(Boolean).join(' · '))}</div></div>
@@ -3874,9 +3876,9 @@ function cdShort(e){
 }
 /* the pin's card: a small Next up — days to go, name, date, place, ring, the key counts, one button */
 function mapCard(e){ const cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd), d=e.dateStart?diff(TODAY,e.dateStart):null, p=progress(e), oq=openQ(e).length;
-  const big=cd.c==='now'?`<span class="live"><i></i>${cd.t==='today'?'Race day':esc(cd.t)}</span>`:d===null?'–':isPast(e)?'<span class="pst">Past</span>':`<small class="in">in</small>${d}<small>${d===1?'day':'days'}</small>`;
+  const big=cd.c==='now'?`<span class="live"><i></i>${cd.t==='today'?'Race day':esc(cd.t)}</span>`:d===null?'–':isPast(e)?'<span class="pst">Past</span>':`<span class="mn">−</span>${d}<small>${d===1?'day':'days'}</small>`;
   return `<div class="mcard" style="${tintStyle(e)}">
-    <div class="mc-top"><div class="mc-cd">${big}</div><div class="mc-n"><b>${esc(e.name)||'untitled'}</b><span>${esc(rt.main.replace(new RegExp('\\s'+TODAY.slice(0,4)+'\\b','g'),''))}</span></div><span class="rpc" title="${Math.round(p*100)}% prepared">${ring(p,40,3)}<b>${p>=1?ic('check',3):`${Math.round(p*100)}<small>%</small>`}</b></span></div>
+    <div class="mc-top"><div class="mc-cd">${big}</div><div class="mc-n">${e.type?`<span class="mc-ty">${esc(e.type)}</span>`:''}<b>${esc(e.name)||'untitled'}</b><span>${esc(rt.main.replace(new RegExp('\\s'+TODAY.slice(0,4)+'\\b','g'),''))}</span></div><span class="rpc" title="${Math.round(p*100)}% prepared">${ring(p,40,3)}<b>${p>=1?ic('check',3):`${Math.round(p*100)}<small>%</small>`}</b></span></div>
     <div class="mc-m">${esc([e.location,clientName(e.clientId),e.status].filter(Boolean).join(' · '))}</div>
     <div class="mc-m"><b>${e.contests.length}</b> ${e.contests.length===1?'race':'races'} · <b>${e.timingPoints.length}</b> timing ${e.timingPoints.length===1?'point':'points'}${oq?` · <b>${oq}</b> open ${oq===1?'question':'questions'}`:''}</div>
     <a class="mc-go" href="#/e/${encodeURIComponent(e.id)}" data-go="e:${esc(e.id)}">Open event ${ic('chev',2.4)}</a></div>`; }
