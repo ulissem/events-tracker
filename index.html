@@ -2669,6 +2669,7 @@ function parseRoute(){
   const [,v='e',id=null]=location.hash.split('/');
   let view=['e','c','a','h','m'].includes(v)?v:'e';
   if(view==='h'&&!priv()){ view='e'; if(location.hash) history.replaceState(null,'','#/e'); } // Hours exist only while unlocked
+  if(route&&route.view!==view&&typeof selDay!=='undefined') selDay=null; // a picked day is a filter of the current view: List ↔ Map, Agenda, Clients start clean
   route={view,id:view==='h'||view==='a'||view==='m'||!id?null:decodeURIComponent(id)};
   if(route.view==='e'&&route.id) lastEvent=route.id;
   if(route.view==='c'&&route.id) lastClient=route.id;
