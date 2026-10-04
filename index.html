@@ -1810,6 +1810,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .leaflet-control-attribution{max-width:44vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mstrip{left:0;right:0;bottom:0;border-radius:22px 22px 0 0;padding:6px 0 calc(10px + var(--sab));max-height:44%;overflow:auto;transition:max-height .35s cubic-bezier(.2,.8,.2,1)}
   .mstrip.tall{max-height:84%}
+  .mstrip:not(.tall){max-height:calc(var(--mlow,44%) + 10px + var(--sab,0px));overflow:hidden} /* low = header + days only, the map gets the room; the event rows come with the tall strip */
   .mstrip .grip{display:block;width:36px;height:5px;border-radius:3px;background:var(--line-3);margin:4px auto 8px;cursor:pointer}
   .mstrip .msh{display:flex;align-items:baseline;gap:8px;padding:0 16px 4px;font-size:15px;font-weight:700}
   .mstrip .msh .mc{font-size:13px;color:var(--ink-2);font-weight:500}
@@ -3956,19 +3957,23 @@ function initMap(){
   mapRO.disconnect(); mapRO.observe($('#map')); // list toggle, drawer, rotation: Leaflet must re-measure its box
   mapRefresh(true);
 }
-const mapRO=new ResizeObserver(()=>{ if(MAP) MAP.invalidateSize({pan:false}); });
+const mapRO=new ResizeObserver(()=>{ if(MAP) MAP.invalidateSize({pan:false}); mstripLow(); });
 function mapRefresh(fit){
   if(!MAP||!MAPL||mapRefresh.busy) return; mapRefresh.busy=true; try{ mapRefreshInner(fit); } finally{ mapRefresh.busy=false; }
 }
 const MAPM=new Map();
+/* phone: height of the low strip = everything above the rows (header + days) */
+function mstripLow(){ const M=$('#mstrip'), r=$('#mrows'); if(M&&r&&r.offsetTop) M.style.setProperty('--mlow',r.offsetTop+'px'); }
+const mapBottomPad=()=>Math.round(($('#mstrip')?.offsetHeight||innerHeight*.42)+24);
 function mapRefreshInner(fit){
+  mstripLow();
   MAP.closePopup(); MAPL.clearLayers(); MAPM.clear(); const card=$('#mapcard'); if(card) card.hidden=true;
   const evs=mapEvents(), withPos=evs.filter(e=>e.geo), noPos=evs.filter(e=>!e.geo);
   /* the next race day, like the Next up card: every event on that first day pulses */
   const up=evs.filter(e=>e.dateStart&&(e.dateEnd||e.dateStart)>=TODAY).sort((a,b)=>a.dateStart.localeCompare(b.dateStart)), nday=up[0]?(up[0].dateStart<TODAY?TODAY:up[0].dateStart):null;
   const isNext=e=>!!nday&&!!e.dateStart&&e.dateStart<=nday&&(e.dateEnd||e.dateStart)>=nday;
   if(fit){ if(MAPV) MAP.setView(MAPV.c,MAPV.z);
-    else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),narrow.matches?{paddingTopLeft:[40,110],paddingBottomRight:[40,Math.round(innerHeight*.42)],maxZoom:10}:{paddingTopLeft:[100,50],paddingBottomRight:[100,210],maxZoom:10});
+    else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),narrow.matches?{paddingTopLeft:[40,110],paddingBottomRight:[40,mapBottomPad()],maxZoom:10}:{paddingTopLeft:[100,50],paddingBottomRight:[100,210],maxZoom:10});
     else MAP.setView([42.6,9.4],6); }
   for(const e of withPos){ const past=isPast(e);
     const html=`<span class="mpk ${isNext(e)?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''}" aria-label="${esc(e.name)||'untitled'}"><i></i></span>`; // just the dot: name and details in the card (hover / click)
@@ -3997,7 +4002,7 @@ function mapRefreshInner(fit){
     MAPM.set(e.id,mk); MAPL.addLayer(mk); }
   const fs=$('#mstrip .film'); if(fs){ fs.outerHTML=filmStrip(); placeFilms($('#mstrip')); }
   const mr=$('#mrows'); if(mr) mr.innerHTML=evs.filter(e=>!isPast(e)).map(e=>{ const c=countdown(e), sd=e.dateStart?parse(e.dateStart):null; return `<button class="mrow" type="button" data-id="${esc(e.id)}"><span class="rd"><b>${sd?sd.getDate():'–'}</b><small>${sd?DOW[sd.getDay()]:''}</small></span><span class="rm"><span class="rn"><span>${esc(e.name)||'untitled'}</span></span><span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span>${esc(e.status)}</span><span>· ${esc(e.location||'no location')}</span></span></span><span class="rr"><span class="cd ${c.c}">${c.t}</span>${e.geo?'':`<span class="ri">${ic('warn',2.2)}</span>`}</span></button>`; }).join('');
-  bindMapStrip();
+  bindMapStrip(); mstripLow();
   const mq=$('#mapq'); if(mq){ const n=evs.reduce((a,e)=>a+openQ(e).length,0); mq.textContent=n?plural(n,'open question','open questions'):''; }
   const np=$('#nopos'); np.hidden=!noPos.length;
   np.innerHTML=`${ic('pin',2.2)}<b>${noPos.length}</b> ${noPos.length===1?'event':'events'} without position`;
@@ -4020,7 +4025,7 @@ function mapShowDay(){
   const es=mapEvents().filter(e=>e.geo&&onSelDay(e)); if(!es.length) return;
   const pts=es.map(e=>[+e.geo.lat,+e.geo.lon]);
   if(pts.length===1){ const id=es[0].id; MAP.once('moveend',()=>setTimeout(()=>MAPM.get(id)?.openCard?.(),60)); MAP.flyTo(pts[0],Math.max(MAP.getZoom(),10),{duration:.7}); } // one race that day: its card opens too
-  else MAP.flyToBounds(L.latLngBounds(pts),{paddingTopLeft:[120,60],paddingBottomRight:[120,narrow.matches?Math.round(innerHeight*.45):220],maxZoom:11,duration:.7});
+  else MAP.flyToBounds(L.latLngBounds(pts),{paddingTopLeft:[120,60],paddingBottomRight:[120,narrow.matches?mapBottomPad():220],maxZoom:11,duration:.7});
 }
 /* desktop map mode: a row in the list flies the map to its pin and opens the card */
 function mapFocus(id){
