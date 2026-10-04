@@ -1828,6 +1828,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
    iOS auto-zooms a focused field under 16 px unless the viewport has maximum-scale=1 — it has, so fields can go to 14 px. */
 @media (max-width:860px){
   body{font-size:13px}
+  html,body{overscroll-behavior-y:none} /* no iOS rubber band on the page: it dragged the top bar and the tab bar along; pull-to-refresh is our own JS */
   input:not([type=checkbox]):not([type=radio]):not([type=color]),select,textarea,textarea.in,.q textarea.in{font-size:14px}
   .top > .ptitle{font-size:15px}
   .lhead .group,.maphead .msrch{height:34px} .lhead .group input,.maphead .msrch input{font-size:14px}
