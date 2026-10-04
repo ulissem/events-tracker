@@ -767,6 +767,10 @@ dialog::backdrop{background:var(--scrim)}
   body.drawer #list .mh{top:0}
   dialog#settings,dialog#unlock,dialog#impdlg,dialog#aidlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0}
   dialog#impdlg .imp,dialog#aidlg .imp{width:100%;padding:16px 14px calc(16px + var(--sab))}
+  /* client summary: full screen, buttons below the notch / status bar, sheet clear of the home bar */
+  dialog#sumdlg{margin:0;width:100%;max-width:100%;height:100%;max-height:100%;border:0;border-radius:0}
+  dialog#sumdlg .sumbar{padding:calc(10px + var(--sat)) max(14px,var(--sar)) 10px max(14px,var(--sal))}
+  dialog#sumdlg .sumwrap{padding-bottom:calc(16px + var(--sab))}
   .icard header{flex-direction:column;align-items:stretch} .icard header .in{width:100%}
   .impfile{flex-wrap:wrap}
   dialog#unlock .dlg,dialog#settings .dlg{width:100%;padding-bottom:calc(22px + var(--sab))}
