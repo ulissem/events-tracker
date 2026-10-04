@@ -391,7 +391,8 @@ main.full #detail{max-width:1180px}
 /* section headings: colour badge + tinted band + accent hairline; main-column headings stick under the section bar */
 .sb{width:24px;height:24px;border-radius:7px;display:inline-grid;place-items:center;flex:none;color:var(--sc);background:color-mix(in srgb,var(--sc) 15%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 30%,transparent)}
 .sb svg{width:14px;height:14px}
-.ji{width:15px;height:15px;display:inline-grid;place-items:center;color:var(--sc)}
+.ji{width:15px;height:15px;display:inline-grid;place-items:center;color:var(--ink-3);transition:color .12s}
+.jump a.cur .ji,.jump a:hover .ji{color:var(--sc)} /* section bar: grey icons, coloured on the current section */
 .ji svg{width:13px;height:13px}
 .gsep{width:1px;height:16px;background:var(--line-2);margin:0 2px;flex:none}
 .tipw{display:inline-flex;cursor:help}
