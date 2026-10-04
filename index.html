@@ -1854,6 +1854,10 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .mcard .mc-go{font-size:12.5px}
   .tabbar span{font-size:10.5px}
 }
+@media (max-width:860px){ /* toasts: centred with left:50% they were capped at half the screen and wrapped badly */
+  #toasts{left:12px;right:12px;transform:none}
+  .toast{max-width:100%;box-sizing:border-box} .toast .tact{white-space:nowrap;flex:none}
+}
 </style>
 </head>
 <body>
@@ -3961,7 +3965,16 @@ function mapRefreshInner(fit){
   for(const e of withPos){ const past=isPast(e);
     const html=`<span class="mpk ${isNext(e)?'focus':''} ${past?'past':''} ${selDay&&!onSelDay(e)?'dim':''}" aria-label="${esc(e.name)||'untitled'}"><i></i></span>`; // just the dot: name and details in the card (hover / click)
     const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html,iconSize:[0,0],iconAnchor:[0,0]}),riseOnHover:true,keyboard:false,title:''});
-    if(narrow.matches){ mk.openCard=()=>{ card.innerHTML=mapCard(e); card.hidden=false; }; mk.on('click',mk.openCard); }
+    if(narrow.matches){ /* phone: the card opens above the dot, never over the strip; the map pans so it fits between toolbar and strip */
+      const ll=[+e.geo.lat,+e.geo.lon], pop=L.popup({className:'evpop',closeButton:false,offset:[0,-8],maxWidth:320}).setContent(mapCard(e));
+      pop.on('add',()=>mk.getElement()?.classList.add('popped')).on('remove',()=>mk.getElement()?.classList.remove('popped'));
+      const open=()=>{ const mr=$('#map').getBoundingClientRect(), st=$('#mstrip')?.getBoundingClientRect();
+        const top=Math.max(mr.top,...['.maphead','#nopos'].map(q=>$(q)).filter(x=>x&&!x.hidden).map(x=>x.getBoundingClientRect().bottom)); // below the toolbar and the "without position" chip
+        pop.options.autoPanPaddingTopLeft=L.point(10,top-mr.top+10);
+        pop.options.autoPanPaddingBottomRight=L.point(10,(st?mr.bottom-st.top:0)+28); // room for the dot under the card
+        pop.setLatLng(ll).openOn(MAP); };
+      mk.openCard=()=>{ const s=$('#mstrip'); if(s?.classList.contains('tall')){ s.classList.remove('tall'); setTimeout(open,380); } else open(); }; // a tall strip leaves no room: lower it first
+      mk.on('click',mk.openCard); }
     else { /* desktop: the card opens on hover (and closes when the pointer leaves pin and card); a click keeps it open */
       const ll=[+e.geo.lat,+e.geo.lon], pop=L.popup({className:'evpop',closeButton:false,offset:[0,-3],maxWidth:320,autoPan:false}).setContent(mapCard(e)); let t=0, pinned=false;
       const show=pan=>{ clearTimeout(t); pop.options.autoPan=pan; if(!pop.isOpen()) pop.setLatLng(ll).openOn(MAP); }, shut=()=>{ clearTimeout(t); if(!pinned) t=setTimeout(()=>MAP.closePopup(pop),220); };
