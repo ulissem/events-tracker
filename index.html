@@ -262,8 +262,9 @@ table.t.htab{min-width:540px}
 /* =====================================================================
    LAYOUT
    ===================================================================== */
-main{display:grid;grid-template-columns:340px minmax(0,1fr);min-height:calc(100vh - var(--hh));transition:grid-template-columns .24s cubic-bezier(.2,.7,.2,1)}
-@media (min-width:861px){ #list > *{width:340px} main.nolist:not(.full){grid-template-columns:0px minmax(0,1fr)} main.nolist #list{border-right-color:transparent} }
+main{--lw:340px;display:grid;grid-template-columns:var(--lw) minmax(0,1fr);min-height:calc(100vh - var(--hh));transition:grid-template-columns .24s cubic-bezier(.2,.7,.2,1)}
+@media (min-width:1400px){ main{--lw:380px} }
+@media (min-width:861px){ #list > *{width:var(--lw)} main.nolist:not(.full){grid-template-columns:0px minmax(0,1fr)} main.nolist #list{border-right-color:transparent} }
 main.full{grid-template-columns:minmax(0,1fr)}
 main.full #list{display:none}
 #list{position:sticky;top:var(--hh);height:calc(100vh - var(--hh));display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);min-width:0;overflow:hidden;transition:border-color .24s}
@@ -2675,14 +2676,15 @@ function render(){
   today();
   if(route.view==='h'&&!priv()){ go('e'); return; }
   renderTop(); if(!S) return;
-  $('#main').classList.toggle('full',route.view==='h'||route.view==='a'||route.view==='m'); $('#main').classList.toggle('agenda',route.view==='a'); $('#main').classList.toggle('mapv',route.view==='m'); $('#main').classList.toggle('nolist',!listOpen);
+  $('#main').classList.toggle('full',route.view==='h'||route.view==='a'||(route.view==='m'&&narrow.matches)); $('#main').classList.toggle('agenda',route.view==='a'); $('#main').classList.toggle('mapv',route.view==='m'); $('#main').classList.toggle('nolist',!listOpen);
   renderList(); renderDetail();
 }
 
 /* =====================================================================
    LEFT LIST
    ===================================================================== */
-function renderList(){ if(!S) return; const L=$('#list'); if(route.view==='e') renderEventList(L); else if(route.view==='c') renderClientList(L); else L.innerHTML=''; }
+function renderList(){ if(!S) return; const L=$('#list'); if(route.view==='e'||(route.view==='m'&&!narrow.matches)) renderEventList(L); else if(route.view==='c') renderClientList(L); else L.innerHTML=''; }
+let mapFocusId=null; // map mode on the desktop: the event the list points at on the map
 /* =====================================================================
    REDESIGN STAGE 2 — ambient tint per event type, hero map, Next up card,
    film strip, road to race day, equipment shelf
@@ -2780,10 +2782,10 @@ function renderEventList(L){
   const row=e=>{ const c=countdown(e), past=isPast(e), oq=openQ(e).length, p=progress(e), h=showH?sumH(entriesOf(x=>x.eventId===e.id)):0;
     const s=e.dateStart?parse(e.dateStart):null, multi=e.dateEnd&&e.dateEnd>e.dateStart, en=multi?parse(e.dateEnd):null;
     const dn=!s?'–':multi?`${s.getDate()}–${en.getDate()}`:s.getDate(), dw=!s?'':multi?`${DOW[s.getDay()].slice(0,2)}–${DOW[en.getDay()].slice(0,2)}`:DOW[s.getDay()];
-    return `<button class="row ${e.id===route.id&&route.view==='e'?'active':''} ${past?'past':''}" data-id="${esc(e.id)}" type="button">
+    return `<button class="row ${(e.id===route.id&&route.view==='e')||(route.view==='m'&&e.id===mapFocusId)?'active':''} ${past?'past':''}" data-id="${esc(e.id)}" type="button">
       <span class="rd ${multi?'rg':''}"><b>${dn}</b><small>${dw}</small></span>
       <span class="rm"><span class="rn"><span>${esc(e.name)||'<i>untitled</i>'}</span></span>
-        <span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span class="rst">${esc(e.status)}</span><span class="rcl">· ${esc(clientName(e.clientId))}${e.location?' · '+esc(e.location):''}</span></span></span>
+        <span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span class="rst">${esc(e.status)}</span><span class="rcl">${flt.client?'':'· '+esc(clientName(e.clientId))}${e.location?(flt.client?'· ':' · ')+esc(e.location):''}</span></span></span>
       <span class="rr"><span class="cd ${c.c}">${c.t}</span><span class="ri">${oq?`<span class="qb" title="${plural(oq,'open question','open questions')}">${oq}?</span>`:''}${h?`<span>${fmtN(h)} h</span>`:''}<span title="${Math.round(p*100)}% prepared">${ring(p,14,2.2)}</span></span></span>
     </button>`; };
   const ym=k=>{ if(k==='none') return 'No date'; const [y,m]=k.split('-'); return `${MONL[+m-1]} ${y}`; };
@@ -2791,7 +2793,7 @@ function renderEventList(L){
       <div class="in group">${ic('search')}<input class="bare" type="search" id="fl-q" placeholder="Search event, place, client" value="${esc(flt.q)}" aria-label="Search"><kbd style="margin-right:4px">/</kbd></div>
       <select class="in sm" id="fl-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="in sm" id="fl-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
-      <div class="lrow"><label class="switch"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Show past events</span> <span class="count">${hidden}</span></label>${viewSeg('e')}</div>
+      <div class="lrow"><label class="switch"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Show past events</span> <span class="count">${hidden}</span></label>${viewSeg(route.view==='m'?'m':'e')}</div>
     </div>
     <div class="lscroll">
       ${!flt.q&&!flt.status?nextUpCard()+filmStrip():''}
@@ -2800,13 +2802,16 @@ function renderEventList(L){
     </div>
     <div class="listfoot"><span>${plural(ev.length,'event','events')} · ${plural(S.events.reduce((a,e)=>a+openQ(e).length,0),'open question','open questions')}</span><span class="lfa"><button type="button" class="keysbtn" id="fl-import" data-tip="Import from AI (JSON)" aria-label="Import from AI (JSON)">${ic('upload',1.8)}<span>Import</span></button><button type="button" class="keysbtn kh" data-keys data-tip="Keyboard shortcuts" data-kbd="?" aria-label="Keyboard shortcuts">${ic('keyboard',1.8)}<kbd>?</kbd></button></span></div>`;
   L.querySelector('.lscroll').scrollTop=scroll;
-  on(L,'[data-id]',b=>go('e',b.dataset.id));
-  $('#fl-q').oninput=e=>{ flt.q=e.target.value; renderList(); };
-  $('#fl-client').onchange=e=>{ flt.client=e.target.value; renderList(); };
-  $('#fl-status').onchange=e=>{ flt.status=e.target.value; renderList(); };
-  $('#fl-past').onchange=e=>{ flt.past=e.target.checked; renderList(); };
+  const mapMode=route.view==='m';
+  on(L,'[data-id]',b=>mapMode&&!b.closest('.film')?mapFocus(b.dataset.id):go('e',b.dataset.id));
+  const refl=()=>{ renderList(); if(mapMode){ MAPV=null; mapRefresh(true); } };
+  $('#fl-q').oninput=e=>{ flt.q=e.target.value; refl(); };
+  $('#fl-client').onchange=e=>{ flt.client=e.target.value; refl(); };
+  $('#fl-status').onchange=e=>{ flt.status=e.target.value; refl(); };
+  $('#fl-past').onchange=e=>{ flt.past=e.target.checked; refl(); };
   $('#fl-import').onclick=openImport;
-  $('#fl-map').onclick=()=>go('m');
+  $('#fl-map')?.addEventListener('click',()=>{ if(!mapMode) go('m'); });
+  on(L,'[data-mv]',()=>go('e',narrow.matches?null:lastEvent));
   $('#fl-reset')?.addEventListener('click',()=>{ flt.q='';flt.client='';flt.status=''; renderList(); });
   L.querySelectorAll('[data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); renderList(); if(route.view==='e'&&route.id) renderDetail(); }); });
   L.querySelectorAll('.nextup').forEach(n=>n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); go('e',n.dataset.id); } }));
@@ -3759,13 +3764,13 @@ function mapCard(e){ const cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd);
     <div class="r"><span class="cd ${cd.c||''}">${cd.t}</span><a href="#/e/${encodeURIComponent(e.id)}" data-go="e:${esc(e.id)}">Open event ${ic('chev',2.4)}</a></div></div>`; }
 function renderMap(D){
   if(MAP){ MAP.remove(); MAP=null; MAPL=null; }
-  D.innerHTML=`<div class="maphead">
+  D.innerHTML=`${narrow.matches?`<div class="maphead">
       <div class="in group msrch">${ic('search')}<input class="bare" type="search" id="fm-q" placeholder="Search event, place, client" value="${esc(flt.q)}" aria-label="Search"></div>
       <select class="in sm" id="fm-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="in sm" id="fm-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
       <label class="switch"><input type="checkbox" id="fm-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Past events</span></label>
       ${viewSeg('m')}
-    </div>
+    </div>`:''}
     <div class="mapwrap"><div id="map" class="mapel"></div><div class="mapload" id="maploading">Loading the map…</div>
       <button class="nopos" id="nopos" type="button" hidden></button>
       <div class="mstrip" id="mstrip"><div class="grip" id="mgrip" role="button" aria-label="Expand"></div><div class="msh"><span>Next weeks</span><span class="mc" id="mapcount"></span><span class="mq" id="mapq"></span></div>${filmStrip()}<div class="mrows" id="mrows"></div></div>
@@ -3775,10 +3780,10 @@ function renderMap(D){
   on(D,'#mstrip [data-id]',b=>go('e',b.dataset.id));
   $('#mgrip').onclick=()=>$('#mstrip').classList.toggle('tall');
   const refit=()=>{ MAPV=null; mapRefresh(true); };
-  $('#fm-q').oninput=e=>{ flt.q=e.target.value; refit(); };
-  $('#fm-client').onchange=e=>{ flt.client=e.target.value; refit(); };
-  $('#fm-status').onchange=e=>{ flt.status=e.target.value; refit(); };
-  $('#fm-past').onchange=e=>{ flt.past=e.target.checked; refit(); };
+  $('#fm-q')?.addEventListener('input',e=>{ flt.q=e.target.value; refit(); });
+  $('#fm-client')?.addEventListener('change',e=>{ flt.client=e.target.value; refit(); });
+  $('#fm-status')?.addEventListener('change',e=>{ flt.status=e.target.value; refit(); });
+  $('#fm-past')?.addEventListener('change',e=>{ flt.past=e.target.checked; refit(); });
   on(D,'[data-mv]',()=>go('e',narrow.matches?null:lastEvent));
   loadLeaflet().then(()=>{ if(route.view!=='m'||!document.getElementById('map')||MAP) return; initMap(); })
     .catch(()=>{ const l=$('#maploading'); if(l) l.textContent='The map library could not be loaded. Are you offline?'; });
@@ -3800,13 +3805,14 @@ const mapRO=new ResizeObserver(()=>{ if(MAP) MAP.invalidateSize({pan:false}); })
 function mapRefresh(fit){
   if(!MAP||!MAPL||mapRefresh.busy) return; mapRefresh.busy=true; try{ mapRefreshInner(fit); } finally{ mapRefresh.busy=false; }
 }
+const MAPM=new Map();
 function mapRefreshInner(fit){
-  MAPL.clearLayers(); const card=$('#mapcard'); if(card) card.hidden=true;
+  MAPL.clearLayers(); MAPM.clear(); const card=$('#mapcard'); if(card) card.hidden=true;
   const evs=mapEvents(), withPos=evs.filter(e=>e.geo), noPos=evs.filter(e=>!e.geo);
   const lons=withPos.map(e=>+e.geo.lon).sort((a,b)=>a-b), median=lons.length?lons[Math.floor(lons.length/2)]:0;
   const next=withPos.filter(e=>e.dateStart&&(e.dateEnd||e.dateStart)>=TODAY).sort((a,b)=>a.dateStart.localeCompare(b.dateStart))[0];
   if(fit){ if(MAPV) MAP.setView(MAPV.c,MAPV.z);
-    else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),narrow.matches?{paddingTopLeft:[40,110],paddingBottomRight:[40,Math.round(innerHeight*.42)],maxZoom:10}:{paddingTopLeft:[120,80],paddingBottomRight:[120,210],maxZoom:10});
+    else if(withPos.length) MAP.fitBounds(L.latLngBounds(withPos.map(e=>[e.geo.lat,e.geo.lon])),narrow.matches?{paddingTopLeft:[40,110],paddingBottomRight:[40,Math.round(innerHeight*.42)],maxZoom:10}:{paddingTopLeft:[100,50],paddingBottomRight:[100,210],maxZoom:10});
     else MAP.setView([42.6,9.4],6); }
   /* label placement: pixel boxes, no two labels overlapping, none off the edge; side flips, then nudges up / down */
   const side=new Map(), nudge=new Map(); { const W=innerWidth, boxes=[], hit=b=>b.x<4||b.x+b.w>MAP.getSize().x-4||boxes.some(o=>b.x<o.x+o.w&&b.x+b.w>o.x&&b.y<o.y+o.h&&b.y+b.h>o.y);
@@ -3820,7 +3826,8 @@ function mapRefreshInner(fit){
     const mk=L.marker([e.geo.lat,e.geo.lon],{icon:L.divIcon({className:'mpin',html,iconSize:[0,0],iconAnchor:[0,0]}),riseOnHover:true,keyboard:false,title:''});
     if(narrow.matches) mk.on('click',()=>{ card.innerHTML=mapCard(e); card.hidden=false; });
     else mk.bindPopup(mapCard(e),{closeButton:false,offset:[0,-10],maxWidth:320});
-    MAPL.addLayer(mk); }
+    mk.on('click',()=>{ mapFocusId=e.id; if(!narrow.matches) renderList(); });
+    MAPM.set(e.id,mk); MAPL.addLayer(mk); }
   const mr=$('#mrows'); if(mr) mr.innerHTML=evs.filter(e=>!isPast(e)).map(e=>{ const c=countdown(e), sd=e.dateStart?parse(e.dateStart):null; return `<button class="mrow" type="button" data-id="${esc(e.id)}"><span class="rd"><b>${sd?sd.getDate():'–'}</b><small>${sd?DOW[sd.getDay()]:''}</small></span><span class="rm"><span class="rn"><span>${esc(e.name)||'untitled'}</span></span><span class="rs"><i class="sd" style="--c:${esc(statusColor(e.status))}"></i><span>${esc(e.status)}</span><span>· ${esc(e.location||'no location')}</span></span></span><span class="rr"><span class="cd ${c.c}">${c.t}</span>${e.geo?'':`<span class="ri">${ic('warn',2.2)}</span>`}</span></button>`; }).join('');
   const mq=$('#mapq'); if(mq){ const n=evs.reduce((a,e)=>a+openQ(e).length,0); mq.textContent=n?plural(n,'open question','open questions'):''; }
   const np=$('#nopos'); np.hidden=!noPos.length;
@@ -3831,6 +3838,14 @@ function mapRefreshInner(fit){
   const mc=$('#mapcount'); if(mc) mc.textContent=`${plural(evs.length,'event','events')} · ${withPos.length} on the map`;
 }
 
+/* desktop map mode: a row in the list flies the map to its pin and opens the card */
+function mapFocus(id){
+  const e=S.events.find(x=>x.id===id); if(!e) return; mapFocusId=id; renderList();
+  if(!e.geo){ toast('No position yet',`Link «${e.name||'untitled'}» in its Location field`,'pin','warn',{label:'Open event',run:()=>go('e',id)}); return; }
+  if(!MAP) return; const ll=[+e.geo.lat,+e.geo.lon];
+  MAP.once('moveend',()=>{ setTimeout(()=>MAPM.get(id)?.openPopup(),50); }); // the zoom re-creates the markers: look it up again
+  MAP.flyTo(ll,Math.max(MAP.getZoom(),10),{duration:.7});
+}
 /* date picker: single day or multi-day range, month grid, dots on days with other events */
 const DP={};
 function openDate(anchor,{s='',e='',allowRange=true,onChange,onClose,excludeId=null,clearable=false}){
