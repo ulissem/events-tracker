@@ -1564,9 +1564,10 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .home .nuhead .big{font-size:38px} .home .nuhead .date{font-size:24px}
 .home .nuhead .live i{margin-right:16px;width:14px;height:14px;box-shadow:0 0 0 5px rgba(255,255,255,.3)}
 .rpc{position:relative;display:inline-grid;place-items:center;flex:none}
-.rpc > b{position:absolute;font-size:12.5px;font-weight:700;letter-spacing:-.02em;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif}
-.rpc > b small{font-size:8px;font-weight:700;margin-left:1px}
-.rpc > b svg{width:22px;height:22px;display:block}
+.rpc > b{position:absolute;font-size:10.5px;font-weight:700;letter-spacing:-.02em;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif}
+.rpc > b small{font-size:7px;font-weight:700;margin-left:1px}
+.rpc > b svg{width:17px;height:17px;display:block}
+.home .rpc > b{font-size:12.5px} .home .rpc > b small{font-size:8px} .home .rpc > b svg{width:22px;height:22px}
 .nextup .nus{grid-column:1 / -1;display:flex;flex-direction:column;gap:4px;margin-top:8px;position:relative}
 .nur{position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;border:0;border-radius:10px;padding:7px 8px 7px 12px;background:rgba(255,255,255,.14);color:#fff;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer;min-width:0}
 .nur:hover{background:rgba(255,255,255,.24)}
@@ -2821,7 +2822,7 @@ function nuDay(grp,day,wide){
   const big=live?`<span class="live"><i></i>Race day</span>`:d===1?'Tomorrow':`In ${d} days`;
   return `<div class="nextup multi" style="${tintStyle(grp[0])}">
     <div class="nuhead"><span class="big">${big}</span><span class="date">${esc(DOWL[parse(day).getDay()])} ${esc(fmtShort(day).slice(4))}</span><span class="sum"><b>${races}</b> ${races===1?'race':'races'} · ${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
-    <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" aria-label="Open ${esc(e.name)}"><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small>${wide?`<small>${plural(e.contests.length,'race','races')}${km(e)?' · '+fmtN(km(e))+' km':''} · ${plural(e.timingPoints.length,'timing point','timing points')}${openQ(e).length?' · '+plural(openQ(e).length,'open question','open questions'):''}</small>`:''}</span>${wide?`<span class="rpc" title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),48,3.5)}<b>${progress(e)>=1?ic('check',3):`${Math.round(progress(e)*100)}<small>%</small>`}</b></span>`:`<span title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),22,2.5)}</span>`}</button>`).join('')}</div>
+    <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" aria-label="Open ${esc(e.name)}"><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small>${wide?`<small>${plural(e.contests.length,'race','races')}${km(e)?' · '+fmtN(km(e))+' km':''} · ${plural(e.timingPoints.length,'timing point','timing points')}${openQ(e).length?' · '+plural(openQ(e).length,'open question','open questions'):''}</small>`:''}</span><span class="rpc" title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),wide?48:38,wide?3.5:3)}<b>${progress(e)>=1?ic('check',3):`${Math.round(progress(e)*100)}<small>%</small>`}</b></span></button>`).join('')}</div>
     ${items.length?`<div class="due">${items.join('')}</div>`:''}
   </div>`;
 }
