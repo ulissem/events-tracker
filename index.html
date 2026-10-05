@@ -3229,6 +3229,13 @@ function renderClientList(L){
     <div class="listfoot"><span>${plural(S.clients.length,'client','clients')}</span></div>`;
   L.querySelectorAll('.ccard').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('.cc-next')) return; go('c',el.dataset.id); }));
   const qi=L.querySelector('#cl-q'); qi.oninput=e=>{ cliQ=e.target.value; const p=qi.selectionStart; renderClientList(L); const n=L.querySelector('#cl-q'); n.focus(); n.setSelectionRange(p,p); };}
+/* =====================================================================
+   DETAIL
+   ===================================================================== */
+/* Re-rendering replaces every field: remember which one had the focus (the object and key it edits, or a fixed id)
+   and focus its new copy, so Tab and keyboard edits are not lost. The same object can appear twice (a task ticked in
+   Scoring and in Checklist): the copy closest to the old position wins. */
+const FOCUSABLE='input,select,textarea,button,a[href],[tabindex]';
 function focusKey(D){
   const a=document.activeElement; if(!a||a===document.body||!D.contains(a)) return null;
   let sel=null; try{ if(typeof a.selectionStart==='number') sel=[a.selectionStart,a.selectionEnd]; }catch{}
