@@ -1925,6 +1925,55 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .clhead .group{width:100%}
 .clhead + .lscroll .mh{position:static} /* few clients: plain group headers (sticky, with the notch's top inset, they slid over the first row) */
 /* client page */
+/* phone agenda as cards (month card + selected-day card), Oct 2026 */
+.agc{padding-top:12px}
+.agm,.agdc{position:relative;isolation:isolate;overflow:hidden;border-radius:22px;background:var(--panel);box-shadow:var(--shadow-sm);margin:0 -4px}
+.agm::before{content:'';position:absolute;inset:-30px;z-index:-1;pointer-events:none;background:radial-gradient(50% 45% at 95% 0%,color-mix(in srgb,var(--accent) 24%,transparent),transparent 70%)}
+.agm{padding:16px 10px 10px}
+.agm-top{display:flex;align-items:flex-start;gap:8px;padding:0 6px 12px}
+.agm-id{flex:1;min-width:0}
+.agm-title{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-top:3px}
+.agm-title span{color:var(--ink-3);font-weight:700}
+.agm-nav{display:flex;align-items:center;gap:2px;margin-top:2px}
+.agm-nav .btn.ghost{width:34px;height:34px;border:0;background:none;box-shadow:none;color:var(--accent)}
+.agm-nav .agm-today{height:30px;padding:0 11px;border-radius:999px;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:0;margin-left:4px}
+.agm-body{position:relative}
+.agm-we{position:absolute;top:0;bottom:0;right:0;width:calc(2/7*100%);border-radius:14px;background:var(--sunken);opacity:.55;pointer-events:none}
+.agm-h,.agm-w{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center}
+.agm-h span{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);padding:8px 0 6px}
+.agm-h span.we{color:var(--ink-3)}
+.agm-w button{height:52px;border:0;background:none;display:flex;flex-direction:column;align-items:center;padding:4px 0 0;font:inherit;font-size:15px;font-weight:500;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.agm-w button b{width:34px;height:30px;display:grid;place-items:center;border-radius:10px;font-weight:inherit;position:relative;z-index:1}
+.agm-w button.ev b{background:var(--fill-2);font-weight:700}
+.agm-w button.p{color:var(--ink-3)} .agm-w button.p.ev b{background:var(--sunken)}
+.agm-w button.o{color:var(--ink-4)} .agm-w button.o.ev b{background:none}
+.agm-w button.t b{background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:999px;width:30px}
+.agm-w button.s:not(.t) b{background:var(--accent-soft);color:var(--accent);font-weight:700;box-shadow:inset 0 0 0 1.5px var(--accent)}
+.agm-w button.t.s b{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--accent)}
+.agm-w u{display:flex;gap:2px;height:5px;margin-top:4px;text-decoration:none}
+.agm-w u i{width:5px;height:5px;border-radius:50%}
+.agm-w u i.r{box-sizing:border-box;border:1.3px solid currentColor;background:none}
+.agm-ln{position:absolute;inset:0;pointer-events:none}
+.agm-ln i{position:absolute;height:3px;border-radius:0}
+.agm-ln i.st{border-top-left-radius:3px;border-bottom-left-radius:3px} .agm-ln i.en{border-top-right-radius:3px;border-bottom-right-radius:3px}
+.agm-ln i.travel{background:var(--ag-travel)} .agm-ln i.away{background:var(--ag-away)} .agm-ln i.other{background:var(--ag-other)}
+.agm-ln i em{position:absolute;left:0;bottom:4px;display:inline-flex;align-items:center;gap:3px;font-style:normal;font-size:10px;font-weight:700;white-space:nowrap;line-height:1}
+.agm-ln i.travel em{color:var(--ag-travel)} .agm-ln i.away em{color:var(--ag-away)} .agm-ln i.other em{color:var(--ag-other)}
+.agm-ln i em svg{width:10px;height:10px}
+/* the selected day */
+.agdc{margin-top:12px;padding:14px 14px 12px}
+.agdc-top{padding:0 2px 10px}
+.agdc-title{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-top:2px}
+.agdc .cc-next{margin-top:0;margin-bottom:8px;width:100%;border:0;font:inherit;text-align:left}
+.agdc .cc-next:last-child{margin-bottom:0}
+.agt-r{display:flex;align-items:center;gap:8px}
+.cc-ring.sm{width:36px;height:36px;margin:0}
+.cc-ring.sm b{font-size:11px} .cc-ring.sm b small{font-size:8px}
+.agt.en{grid-template-columns:auto minmax(0,1fr)}
+.agt-i{width:28px;height:28px;border-radius:9px;display:grid;place-items:center}
+.agt-i svg{width:15px;height:15px}
+.agt.travel .agt-i{background:var(--ag-travel-s);color:var(--ag-travel)} .agt.away .agt-i{background:var(--ag-away-s);color:var(--ag-away)} .agt.other .agt-i{background:var(--ag-other-s);color:var(--ag-other)}
+.agdc-empty{padding:6px 2px 4px;color:var(--ink-3);font-size:13px}
 /* clients list as cards: big card per client with something coming up, small ones for the rest */
 .ccards{padding:2px 12px 16px}
 .cc-h{display:flex;align-items:baseline;gap:6px;font-size:13px;font-weight:700;letter-spacing:-.01em;padding:14px 4px 8px}
@@ -3730,21 +3779,39 @@ function agListView(){
   const days=monthDays(agMonth).map(d=>[d,agDayCards(d,{empty:false})]).filter(([,h])=>h);
   return `<div class="aglist">${days.map(([d,h])=>`<div class="agld ${d===TODAY?'today':''}"><div class="agldh">${esc(fmtShort(d))}${d===TODAY?' · today':''}</div><div>${h}</div></div>`).join('')||emptyBox('cal','Nothing this month.')}</div>`;
 }
+const WD=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+// phone agenda: the month as a card (counts, big month name, nav inside), event days as tiles, trips as lines named once
 function agMini(){
-  const first=`${agMonth}-01`, off=(parse(first).getDay()+6)%7, start=addDays(first,-off), last=monthDays(agMonth).pop();
+  const first=`${agMonth}-01`, off=(parse(first).getDay()+6)%7, start=addDays(first,-off), days=monthDays(agMonth), last=days[days.length-1];
   const ev=agF.ev?agEvents():[], en=agF.mine?agEntries():[], td=agF.todo?S.agenda.todos.filter(t=>t.due&&!t.done):[];
+  const inM=i=>i.s<=last&&i.e>=first, nEv=ev.filter(inM).length, nTrip=en.filter(i=>inM(i)&&i.o.type==='travel').length, nTd=td.filter(t=>t.due>=first&&t.due<=last).length;
+  const eye=[nEv?plural(nEv,'event','events'):'no events',nTrip?plural(nTrip,'trip','trips'):'',nTd?plural(nTd,'to-do','to-dos'):''].filter(Boolean).join(' · ');
+  const [y,m]=agMonth.split('-').map(Number);
   const weeks=[]; for(let w=start;w<=last;w=addDays(w,7)) weeks.push(w);
-  return `<div class="agmini"><div class="h">${['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('')}</div>${weeks.map(ws=>{
-    const days=[...Array(7)].map((_,i)=>addDays(ws,i)), we=days[6];
-    // travel / away / other as lines under the days: own layer, so nothing in a day cell can move them
-    const segs=en.filter(i=>i.s<=we&&i.e>=ws).slice(0,2).map((i,k)=>{ const a=days.indexOf(i.s<ws?ws:i.s), b=days.indexOf(i.e>we?we:i.e);
-      // from the left edge of the first day's box to the right edge of the last one (a small gap where it really starts / ends)
-      const st=i.s>=ws, en=i.e<=we, l=a/7*100, w=(b-a+1)/7*100;
-      return `<i class="${i.o.type} ${st?'st':''} ${en?'en':''}" style="left:calc(${l}% + ${st?5:0}px);width:calc(${w}% - ${(st?5:0)+(en?5:0)}px);bottom:${3+k*5}px"></i>`; }).join('');
-    return `<div class="g">${days.map(d=>{
-      const dots=[...ev.filter(i=>onDay(i,d)).map(i=>statusColor(i.o.status)),...td.filter(t=>t.due===d).map(()=>'r '+(d<TODAY?'var(--danger)':'var(--ink-3)'))].slice(0,4); // events = filled dot in the status colour, to-dos = ring
-      return `<button type="button" data-sel="${d}" class="${d.slice(0,7)!==agMonth?'o':''} ${d===TODAY?'t':''} ${d===agSel?'s':''}" aria-label="${esc(fmtLong(d))}"><b>${parse(d).getDate()}</b><u>${dots.map(c=>c.startsWith('r ')?`<i class="r" style="color:${esc(c.slice(2))}"></i>`:`<i style="background:${esc(c)}"></i>`).join('')}</u></button>`; }).join('')}<span class="agln">${segs}</span></div>`; }).join('')}</div>`;
+  return `<div class="agm">
+    <div class="agm-top"><div class="agm-id"><div class="cc-eye">${esc(eye)}</div><div class="agm-title">${MONL[m-1]} <span>${y}</span></div></div>
+      <div class="agm-nav"><button class="btn icon sm ghost" type="button" data-agnav="-1" aria-label="Previous month">${ic('chevl',2.2)}</button><button class="btn icon sm ghost" type="button" data-agnav="1" aria-label="Next month">${ic('chev',2.2)}</button>${agMonth===TODAY.slice(0,7)&&agSel===TODAY?'':'<button class="btn sm agm-today" type="button" data-agtoday>Today</button>'}</div></div>
+    <div class="agm-body"><span class="agm-we" aria-hidden="true"></span>
+      <div class="agm-h">${WD.map((x,i)=>`<span class="${i>4?'we':''}">${x}</span>`).join('')}</div>
+      ${weeks.map(ws=>{ const wd=[...Array(7)].map((_,i)=>addDays(ws,i)), we=wd[6];
+        const segs=en.filter(i=>i.s<=we&&i.e>=ws).slice(0,2).map((i,k)=>{ const a=wd.indexOf(i.s<ws?ws:i.s), b=wd.indexOf(i.e>we?we:i.e), st=i.s>=ws, end=i.e<=we;
+          const lab=st||a===0?`<em>${ic(AG_TYPES[i.o.type].icon,2)}${esc(i.o.title||AG_TYPES[i.o.type].label)}</em>`:'';
+          return `<i class="${i.o.type} ${st?'st':''} ${end?'en':''}" style="left:calc(${a/7*100}% + ${st?6:0}px);width:calc(${(b-a+1)/7*100}% - ${(st?6:0)+(end?6:0)}px);bottom:${2+k*14}px">${st?lab:''}</i>`; }).join('');
+        return `<div class="agm-w">${wd.map((d,i)=>{ const es=ev.filter(x=>onDay(x,d)), ts=td.filter(t=>t.due===d);
+          const dots=[...es.map(x=>`<i style="background:${esc(statusColor(x.o.status))}"></i>`),...ts.map(()=>`<i class="r" style="color:${d<TODAY?'var(--danger)':'var(--ink-3)'}"></i>`)].slice(0,4).join('');
+          return `<button type="button" data-sel="${d}" class="${d.slice(0,7)!==agMonth?'o':''} ${d<TODAY?'p':''} ${d===TODAY?'t':''} ${d===agSel?'s':''} ${es.length?'ev':''}" aria-label="${esc(fmtLong(d))}"><b>${parse(d).getDate()}</b><u>${dots}</u></button>`; }).join('')}<span class="agm-ln">${segs}</span></div>`; }).join('')}
+    </div></div>`;
 }
+const rel=d=>{ const n=Math.round((parse(d)-parse(TODAY))/864e5); return n===0?'Today':n===1?'Tomorrow':n===-1?'Yesterday':n>0?`in ${n} days`:`${-n} days ago`; };
+const agDayCard=d=>{ const ev=agF.ev?agEvents().filter(i=>onDay(i,d)):[], en=agF.mine?agEntries().filter(i=>onDay(i,d)):[];
+  const n=ev.length+en.length, dd=parse(d), cnt=[ev.length?plural(ev.length,'event','events'):'',en.length?plural(en.length,'entry','entries'):''].filter(Boolean).join(' · ');
+  const evT=({o:e})=>{ const p=progress(e), cd=countdown(e), t=evMeta(e);
+    return `<a class="cc-next agt" href="#/e/${encodeURIComponent(e.id)}"><span class="cc-nl">${esc(t||'Race')}</span><span class="cc-nm"><b>${esc(e.name||'untitled')}</b><small>${esc([e.type,clientName(e.clientId),e.status].filter(Boolean).join(' · '))}</small></span>
+      <span class="agt-r">${d===TODAY||cd.c==='now'?'':`<span class="cd ${cd.c}">${cd.t}</span>`}<span class="cc-ring sm" title="${Math.round(p*100)}% prepared">${ring(p,36,3.5)}<b>${Math.round(p*100)}<small>%</small></b></span></span></a>`; };
+  const enT=({o:x})=>`<button type="button" class="cc-next agt en ${x.type}" data-agen="${esc(x.id)}"><span class="agt-i">${ic(AG_TYPES[x.type].icon,2)}</span><span class="cc-nm"><b>${esc(enLabel(x))}</b><small>${esc([x.from!==(x.to||x.from)?rangeText(x.from,x.to).main:'',x.time,x.note].filter(Boolean).join(' · '))||'&nbsp;'}</small></span></button>`;
+  return `<div class="agdc ${d===TODAY?'today':''}"><div class="agdc-top"><div><div class="cc-eye">${esc(rel(d))}${cnt?' · '+esc(cnt):''}</div><div class="agdc-title">${esc(DOW[dd.getDay()])} ${dd.getDate()} ${MON[dd.getMonth()]}</div></div></div>
+    ${n?`${ev.map(evT).join('')}${en.map(enT).join('')}`:'<div class="agdc-empty">Nothing on this day.</div>'}</div>`; };
+
 function linkOpts(link){
   const evOpts=S.events.filter(e=>!isPast(e)||link==='e:'+e.id).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
   return `<option value="">No link</option>${S.clients.length?`<optgroup label="Clients">${S.clients.map(c=>`<option value="c:${esc(c.id)}" ${link==='c:'+c.id?'selected':''}>${esc(c.name||'untitled')}</option>`).join('')}</optgroup>`:''}${evOpts.length?`<optgroup label="Events">${evOpts.map(e=>`<option value="e:${esc(e.id)}" ${link==='e:'+e.id?'selected':''}>${esc(e.name||'untitled')}${e.dateStart?' · '+esc(fmtDay(e.dateStart)):''}</option>`).join('')}</optgroup>`:''}`;
@@ -3790,13 +3857,10 @@ function renderAgenda(D){
     <button class="btn icon sm ${ph?'ghost':''}" type="button" data-agnav="-1" aria-label="Previous month">${ic('chevl',2.2)}</button><button class="btn icon sm ${ph?'ghost':''}" type="button" data-agnav="1" aria-label="Next month">${ic('chev',2.2)}</button>
     <button class="btn sm" type="button" data-agtoday>Today</button><span class="spacer"></span>
     ${ph?'':`${chips}<span class="agseg" role="group" aria-label="View"><button type="button" data-agview="month" aria-pressed="${agView==='month'}">Month</button><button type="button" data-agview="list" aria-pressed="${agView==='list'}">List</button></span>`}</div>`;
-  if(ph) D.innerHTML=`<div class="agph">${head}${agMini()}
-      <div class="agdh"><span>${esc(fmtShort(agSel))}${agSel===TODAY?' · today':''}</span></div>
-      <div class="agday">${agDayCards(agSel,{todos:false})}</div>
+  if(ph) D.innerHTML=`<div class="agph agc">${agMini()}${agDayCard(agSel)}
       ${agTodosPhone()}
       <div class="agdh"><span>Notes</span></div><div class="phcard phnotes"><textarea class="auto" rows="2" data-o="${ref(S.agenda)}" data-k="notes" placeholder="Anything to keep in mind…" aria-label="Agenda notes">${esc(S.agenda.notes)}</textarea></div>
-      <button type="button" class="btn sm ghost agics" id="agics" style="margin-top:14px">${ic('cal',1.8)} Export .ics</button></div>
-`; /* new entry: the + in the top bar (a floating button covered the to-do list) */
+      <button type="button" class="btn sm ghost agics" id="agics" style="margin-top:14px">${ic('cal',1.8)} Export .ics</button></div>`; /* new entry: the + in the top bar */
   else D.innerHTML=`<div class="agwrap"><div class="agmain">${head}${agView==='month'?agMonthGrid():agListView()}</div>
       <aside class="agside">${agTodos()}${agNotes()}<button type="button" class="btn sm ghost agics" id="agics">${ic('cal',1.8)} Export .ics <span class="hint">events + my entries</span></button></aside></div>`;
   bindAgenda(D);
