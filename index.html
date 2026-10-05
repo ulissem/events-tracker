@@ -2397,7 +2397,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   <p class="si-alt">Client of Ulisse? <a href="portal">Open your client area</a></p></div></div>
 <div id="applock" hidden><div class="alk">
   <div class="alogo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
-  <h2>Events tracker</h2><p id="al-msg">Locked</p>
+  <h2>Race Hub</h2><p id="al-msg">Locked</p>
   <button class="btn primary al-big" type="button" id="al-bio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1M15 9v1M12 9v4h-1M9 16a4 4 0 0 0 6 0"/></svg><span>Unlock</span></button>
   <form id="al-pinf" autocomplete="off" hidden><input class="in" id="al-pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="PIN" aria-label="PIN"><button class="btn primary" type="submit" id="al-pgo">Unlock</button></form>
   <button class="btn ghost sm" type="button" id="al-usepin">Use PIN</button>
@@ -3397,7 +3397,7 @@ function renderTop(){
   $('#top').innerHTML=`
     ${route.id&&(route.view==='e'||route.view==='c')?`<button id="topback" class="btn icon ghost topback" type="button" aria-label="Back to the list">${ic('back',2)}</button>`:''}
     ${route.view!=='h'&&route.view!=='a'&&route.view!=='m'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
-    <div class="brand"><span class="logo">${ic('flag',2.4)}</span><b>Events tracker</b></div><span class="ptitle">${vt}</span>
+    <div class="brand"><span class="logo">${ic('flag',2.4)}</span><b>Race Hub</b></div><span class="ptitle">${vt}</span>
     <nav class="tabs" aria-label="Sections">${[['e','Events'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
     <button class="cmdtrig" id="cmdtrig" type="button" aria-label="Jump to" data-tip="Jump to an event, client or action" data-kbd="${MOD} K">${ic('search')}<span>Jump to…</span><kbd>${MOD==='⌘'?'⌘K':'Ctrl K'}</kbd></button>
     <span class="spacer"></span>
@@ -4598,7 +4598,7 @@ $('#tdform').addEventListener('submit',ev=>{ ev.preventDefault(); if(!tdCur) ret
 function exportICS(){
   if(!S) return;
   const q=t=>String(t||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/[,;]/g,m=>'\\'+m), d=s=>s.replace(/-/g,'');
-  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''), L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Events tracker//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:Events tracker'];
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''), L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Race Hub//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:Race Hub'];
   const add=(uid_,s,e,sum,desc,loc)=>L.push('BEGIN:VEVENT',`UID:${uid_}@events-tracker`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${d(s)}`,`DTEND;VALUE=DATE:${d(addDays(e,1))}`,`SUMMARY:${q(sum)}`,...(desc?[`DESCRIPTION:${q(desc)}`]:[]),...(loc?[`LOCATION:${q(loc)}`]:[]),'END:VEVENT');
   let n=0;
   for(const i of agEvents()){ add(i.id,i.s,i.e,i.o.name||'Event',[clientName(i.o.clientId),i.o.status,i.o.contests.map(c=>[c.name,c.startTime].filter(Boolean).join(' ')).join(', ')].filter(Boolean).join(' · '),i.o.location); n++; }
@@ -5151,7 +5151,7 @@ function aiPrompt(e=null){
   const t=today(), dow=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][parse(t).getDay()];
   const ids=h=>{ const x=HW[h]; return [x.ch&&`ch ${x.ch[0]}–${x.ch[1]}`,x.loop&&`loop ${x.loop[0]}–${x.loop[1]}`].filter(Boolean).join(', ')||'no IDs'; };
   const L=[];
-  L.push(`You help a sports-timing operator (RACE RESULT 14, "RR14") prepare timing for events. Read the customer email(s) pasted after this prompt (often in French or Italian) and extract the event data for the operator's Events tracker app.`,'');
+  L.push(`You help a sports-timing operator (RACE RESULT 14, "RR14") prepare timing for events. Read the customer email(s) pasted after this prompt (often in French or Italian) and extract the event data for the operator's Race Hub app.`,'');
   L.push('OUTPUT',`Return ONLY one JSON object inside a single \`\`\`json code block, with no text before or after it:`,`{ "format": "${IMPORT_FORMAT}", "events": [ ... ] }`,`An email may describe several events: one object per event in "events".`,'');
   L.push(`TODAY: ${t} (${dow}). Use it to resolve relative dates such as "next Saturday" or "le 12".`,'');
   L.push('HARD RULES',
