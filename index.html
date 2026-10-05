@@ -264,7 +264,7 @@ table.t.htab{min-width:540px}
    ===================================================================== */
 main{--lw:340px;display:grid;grid-template-columns:var(--lw) minmax(0,1fr);min-height:calc(100vh - var(--hh));transition:grid-template-columns .24s cubic-bezier(.2,.7,.2,1)}
 @media (min-width:1400px){ main{--lw:380px} }
-@media (min-width:861px){ #list > *{width:var(--lw)} main.nolist:not(.full){grid-template-columns:0px minmax(0,1fr)} main.nolist #list{border-right-color:transparent} }
+@media (min-width:861px) and (min-height:501px), (min-width:861px) and (pointer:fine){ #list > *{width:var(--lw)} main.nolist:not(.full){grid-template-columns:0px minmax(0,1fr)} main.nolist #list{border-right-color:transparent} }
 main.full{grid-template-columns:minmax(0,1fr)}
 main.full #list{display:none}
 #list{position:sticky;top:var(--hh);height:calc(100vh - var(--hh));display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);min-width:0;overflow:hidden;transition:border-color .24s}
@@ -696,7 +696,7 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .palette .pf span{display:flex;align-items:center;gap:5px}
 .palette .pnone{padding:28px;text-align:center;color:var(--ink-3)}
 .palette .cmdx{display:none;border:0;background:none;padding:0 2px;color:var(--accent);font-size:15px;font-weight:500;flex:none}
-@media (max-width:860px){ .palette .cmdx{display:block} .palette .pin2 kbd,.palette .pi .pr kbd,.palette .pf{display:none} } /* touch: no keyboard hints, a Cancel button instead of esc */
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){ .palette .cmdx{display:block} .palette .pin2 kbd,.palette .pi .pr kbd,.palette .pf{display:none} } /* touch: no keyboard hints, a Cancel button instead of esc */
 
 #toasts{position:fixed;z-index:1200;left:50%;bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 .toast{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 10px;border-radius:10px;background:var(--ink);color:var(--panel);font-size:13px;box-shadow:var(--shadow-pop);animation:toastin .18s ease-out;pointer-events:auto}
@@ -723,7 +723,7 @@ dialog::backdrop{background:var(--scrim)}
    ===================================================================== */
 @media (max-width:1180px){ .cmdtrig{width:auto} .cmdtrig span{display:none} .cmdtrig kbd{display:none} }
 @media (max-width:1020px){ .brand b{display:none} .savestate span{display:none} }
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   .top{padding:var(--sat) max(8px,var(--sar)) 0 max(10px,calc(var(--sal) + 6px));gap:2px}
   .brand{margin-right:4px}
   .cmdtrig{margin-left:4px;border:0;background:none;width:30px;padding:0 7px}
@@ -773,7 +773,7 @@ dialog::backdrop{background:var(--scrim)}
 @keyframes drawerin{from{transform:translateX(-100%)}}
 @keyframes drawerout{to{transform:translateX(-100%)}}
 #dscrim{position:fixed;inset:0;z-index:65;background:var(--scrim);animation:fade .2s}
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   :root{--tb:calc(58px + var(--sab));--jh:51px}
   body{padding-bottom:var(--tb)}
   .top{gap:4px}
@@ -931,7 +931,7 @@ table.t.cltab{min-width:520px}
 
 /* ---------- import from AI / AI prompt ---------- */
 dialog#impdlg,dialog#aidlg{max-height:calc(100vh - 16px - var(--sat));overflow:auto}
-@media (min-width:861px){ main{padding-left:var(--sal);padding-right:var(--sar)} #toasts{bottom:calc(22px + var(--sab))} }
+@media (min-width:861px) and (min-height:501px), (min-width:861px) and (pointer:fine){ main{padding-left:var(--sal);padding-right:var(--sar)} #toasts{bottom:calc(22px + var(--sab))} }
 #impdlg{width:840px} #aidlg{width:720px}
 .imp{padding:20px 22px;max-width:100%}
 .imp h2{margin:0 0 4px;font-size:16px;letter-spacing:-.01em}
@@ -980,7 +980,7 @@ textarea.impta{min-height:130px;font-family:"JetBrains Mono",ui-monospace,monosp
 #ptr .ptrs,#ptr.spin .ptra{display:none}
 #ptr.spin .ptrs{display:block;animation:ptrspin .8s linear infinite}
 @keyframes ptrspin{to{transform:rotate(360deg)}}
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   .phoneonly{display:flex!important}
   .closebox{grid-template-columns:1fr 1fr}
   .closebox .btn{grid-column:1/-1;height:40px}
@@ -999,7 +999,7 @@ textarea.impta{min-height:130px;font-family:"JetBrains Mono",ui-monospace,monosp
 /* iOS Safari: time/date inputs ignore the grid width and centre their value */
 input[type=time],input[type=date]{min-width:0;max-width:100%;width:100%;-webkit-appearance:none;appearance:none;text-align:left}
 input[type=time]::-webkit-date-and-time-value,input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
-@media (max-width:860px){ input:not([type=checkbox]):not([type=radio]):not([type=color]),select,textarea{font-size:16px} }
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){ input:not([type=checkbox]):not([type=radio]):not([type=color]),select,textarea{font-size:16px} }
 
 /* ---------- AGENDA ---------- */
 main.agenda #detail{max-width:1560px}
@@ -1134,11 +1134,11 @@ main.agenda #detail{max-width:1560px}
 .phtd .tdue{font-size:12px;opacity:1;padding:0}
 .phtd.add{color:var(--ink-3)} .phtd.add svg{width:16px;height:16px;flex:none;margin-left:1px} .phtd.add .cell{flex:1;height:40px;padding:0 10px;margin:4px 0}
 .phnotes textarea{display:block;width:100%;border:0;background:none;color:var(--ink);padding:12px 0;min-height:56px;resize:none;font:inherit;font-size:15px;line-height:1.5;outline:none}
-@media (max-width:860px){ .newbtn.onag{display:none!important} }
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){ .newbtn.onag{display:none!important} }
 #tdform .fld,#entryform .fld{margin-bottom:10px}
 #tdform .lab,#entryform .lab{display:flex;align-items:center;gap:4px}
 #tdform .acts{display:flex;gap:8px;align-items:center;margin-top:8px}
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   dialog#tododlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0;max-height:calc(100vh - 16px - var(--sat));overflow:auto}
   dialog#tododlg .dlg{width:100%;padding-bottom:calc(22px + var(--sab))}
 }
@@ -1152,7 +1152,7 @@ main.agenda #detail{max-width:1560px}
 #entryform .fld{margin-bottom:10px}
 .en2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 #entryform .acts{display:flex;gap:8px;align-items:center;margin-top:8px}
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   dialog#entrydlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0;max-height:calc(100vh - 16px - var(--sat));overflow:auto}
   dialog#entrydlg .dlg{width:100%;padding-bottom:calc(22px + var(--sab))}
   .agld{grid-template-columns:1fr;gap:2px}
@@ -1169,7 +1169,7 @@ body.locked{overflow:hidden}
 .al-big{height:46px;width:100%;font-size:15px;margin-top:10px} .al-big svg{width:20px;height:20px}
 #al-pinf{display:flex;gap:8px;width:100%} #al-pinf .in{flex:1;text-align:center;letter-spacing:.3em;font-size:18px;height:44px} #al-pinf .btn{height:44px}
 .al-reset{margin-top:22px;color:var(--ink-3)}
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   dialog#lockdlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0}
   dialog#lockdlg .dlg{width:100%;padding-bottom:calc(22px + var(--sab))}
 }
@@ -1191,7 +1191,7 @@ body.locked{overflow:hidden}
    ===================================================================== */
 .in.group .geobtn{flex:none;width:26px;height:26px;border-radius:6px}
 .geobtn.on{color:var(--accent);background:var(--accent-soft)}
-@media (max-width:860px){ .in.group .geobtn{width:34px;height:34px;border-radius:7px} .in.group .geobtn svg{width:18px;height:18px} }
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){ .in.group .geobtn{width:34px;height:34px;border-radius:7px} .in.group .geobtn svg{width:18px;height:18px} }
 .geoline{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:6px;font-size:11.5px;color:var(--ink-3);line-height:1.3;min-width:0}
 .geoline svg{width:13px;height:13px;flex:none}
 .geoline.ok{color:var(--ink-2)} .geoline.ok > svg{color:var(--ok)}
@@ -1250,7 +1250,7 @@ main.mapv #detail{display:flex;flex-direction:column;height:calc(100vh - var(--h
 .leaflet-popup-tip{background:var(--panel);box-shadow:none}
 .mapcard{position:absolute;left:0;right:0;bottom:0;z-index:600;background:var(--panel);border-radius:16px 16px 0 0;border-top:1px solid var(--line);box-shadow:0 -10px 30px -10px rgba(16,24,40,.25);padding:8px 16px 14px;animation:sheetin .2s ease-out}
 .mapcard::before{content:'';display:block;width:36px;height:4px;border-radius:999px;background:var(--line-3);margin:0 auto 8px}
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   /* phone: the list head takes the same two rows as the map toolbar — search, then clients · statuses · past · List | Map */
   .lhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px}
   .lhead .group{width:100%}
@@ -1429,7 +1429,7 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .tabbar .tsave i{box-shadow:0 0 0 2px var(--bg)}
 #list.drawer,body.drawer #list{background:var(--bg)}
 
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   .btn,.btn.sm{height:40px;border-radius:10px}
   .btn.icon,.btn.icon.sm{width:40px}
   .in,.in.sm{height:42px;border-radius:10px}
@@ -1643,7 +1643,7 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 .fi:hover{filter:brightness(1.08)}
 .fi.more{background:none;color:var(--ink-2);justify-content:center;box-shadow:inset 0 0 0 1px var(--line-2)} .fi.more:hover{color:var(--ink);background:var(--sunken)}
 
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   .hero{margin:0 -4px;border-radius:22px;min-height:380px}
   .hero:not(.hasmap){min-height:220px}
   .hero .back{display:inline-flex;background:color-mix(in srgb,var(--panel) 72%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2);color:var(--ink)}
@@ -1701,7 +1701,7 @@ body.viewswap .nuwrap > *{overflow:hidden}
 body.viewswap.swap-fwd #detail > *{animation:slidein-fwd .45s cubic-bezier(.2,.8,.2,1) both}
 body.viewswap.swap-back #detail > *{animation:slidein-back .45s cubic-bezier(.2,.8,.2,1) both}
 body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
-@media (max-width:860px){ body.viewswap #detail > *{animation:viewin .35s cubic-bezier(.2,.8,.2,1) both} }
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){ body.viewswap #detail > *{animation:viewin .35s cubic-bezier(.2,.8,.2,1) both} }
 @media (prefers-reduced-motion:reduce){ .nuwrap,.mstrip,#detail > *,.paneghost{animation:none!important} .paneghost{display:none} }
 
 /* film strip: pick a day */
@@ -1772,7 +1772,7 @@ body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
 .hm-keys{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--ink-3);margin-top:26px}
 .hm-keys span{display:flex;gap:4px;align-items:center}
 /* while the Home is open the left column is just the list */
-@media (min-width:861px){
+@media (min-width:861px) and (min-height:501px), (min-width:861px) and (pointer:fine){
   #list .nuwrap{display:none} main.mapv #list .nuwrap{display:grid}                      /* the green card on the left only next to the map */
   body.viewswap.swap-back main:not(.mapv) #list .nuwrap{display:grid;animation:nuout .45s cubic-bezier(.2,.8,.2,1) forwards} /* …and folds back up when leaving it */
   #list .film{display:none} body.showing-detail main:not(.mapv) #list .film{display:flex} /* the strip on the left only while an event is open */
@@ -1829,7 +1829,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .mcard .mc-go{margin-top:12px;display:flex;justify-content:center;align-items:center;gap:4px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink);font-weight:600;font-size:13px;text-decoration:none}
 .mcard .mc-go:hover{background:color-mix(in srgb,var(--ink) 14%,transparent);text-decoration:none} .mcard .mc-go svg{width:13px;height:13px}
 .mapcard{background:none;border:0;box-shadow:none;padding:0 12px calc(12px + var(--sab,0px));animation:sheetin .2s ease-out} .mapcard::before{display:none} .mapcard .mcard{width:auto}
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   .maphead{top:10px;left:10px;right:10px;padding:0;gap:6px}
   .maphead .msrch{width:100%}
   .nopos{top:100px;left:10px}
@@ -1853,7 +1853,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 }
 /* ---------- phone: smaller type (real-iPhone look: text too big, filters too prominent; second pass = one step smaller still) ----------
    iOS auto-zooms a focused field under 16 px unless the viewport has maximum-scale=1 — it has, so fields can go to 14 px. */
-@media (max-width:860px){
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
   body{font-size:13px}
   .topback{display:inline-flex;width:40px;height:40px;margin-left:-6px} #listbtn{display:none} /* phone: the list is the home screen, ‹ goes back to it */
   .row.last{background:var(--accent-soft)} .row.last .rn{color:var(--accent)} /* the event you just left */
@@ -1888,9 +1888,39 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .mcard .mc-go{font-size:12.5px}
   .tabbar span{font-size:10.5px}
 }
-@media (max-width:860px){ /* toasts: centred with left:50% they were capped at half the screen and wrapped badly */
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){ /* toasts: centred with left:50% they were capped at half the screen and wrapped badly */
   #toasts{left:12px;right:12px;transform:none}
   .toast{max-width:100%;box-sizing:border-box} .toast .tact{white-space:nowrap;flex:none}
+}
+@media (pointer:coarse) and (max-height:500px){ /* phone in landscape: short screen, compact tab bar like iOS (icon beside the label) */
+  :root{--tb:calc(40px + var(--sab))}
+  .tabbar button{flex-direction:row;gap:6px}
+  .tabbar button svg{width:20px;height:20px}
+  .tabbar span{font-size:12px}
+  .tabbar .tsave i{top:7px;left:calc(50% - 18px)}
+  /* event hero as on desktop (map on the right, title on the left): the phone's stacked hero was taller than the screen */
+  .hero,.hero:not(.hasmap){min-height:0;--fx:.72;--fy:.45;--tw:22%}
+  .hero .back,.dtitle .back{display:none} /* ‹ is in the top bar */
+  .hpin{display:block}
+  .hero.hasmap .hscrim{background:linear-gradient(90deg,var(--panel) 0%,color-mix(in srgb,var(--panel) 88%,transparent) 30%,transparent 60%)!important}
+  .hero:not(.hasmap) .hscrim{background:linear-gradient(135deg,var(--tint-soft),transparent 60%)!important}
+  .hlay{padding:16px 20px;grid-template-columns:minmax(0,1fr) auto;gap:16px}
+  .hr{flex-direction:column;justify-content:flex-end}
+  #detail .hero .nameinput{font-size:28px}
+  /* list and map toolbars on one line: search + filters side by side */
+  .lhead{flex-wrap:nowrap} .lhead .group{flex:1 1 200px;width:auto;min-width:0}
+  .maphead{left:max(10px,var(--sal));right:max(10px,var(--sar));flex-wrap:nowrap}
+  .maphead .msrch{flex:1 1 200px;width:auto;min-width:0} .maphead .in.sm{flex:0 1 150px}
+  /* map sheet: low = grip + header line only (the days need the tall sheet), between the side safe areas */
+  .nopos{top:56px;left:max(10px,var(--sal))} .leaflet-top.leaflet-right{right:var(--sar)}
+  .jump{margin-left:0;margin-right:0;padding-left:0;padding-right:0} /* section chips start inside the safe area */
+  .mstrip{left:var(--sal);right:var(--sar)}
+  /* bottom sheets and sheet dialogs: centred, 600 px wide, clear of the notch (full width they ran under it) */
+  #dp.bsheet,#menu.bsheet,#pinpop.bsheet,#notepop.bsheet,#geopop.bsheet,#geoinfo.bsheet{left:max(0px,calc(50% - 300px))!important;right:max(0px,calc(50% - 300px))}
+  dialog#settings,dialog#unlock,dialog#impdlg,dialog#aidlg,dialog#tododlg,dialog#entrydlg,dialog#lockdlg{margin:auto auto 0;max-width:600px}
+  .agfab{right:max(16px,calc(var(--sar) + 8px));bottom:calc(var(--tb) + 12px)}
+  .mstrip:not(.tall){max-height:52px} .mstrip:not(.tall) > .film{opacity:0}
+  .mstrip .msh{cursor:pointer}
 }
 </style>
 </head>
@@ -2637,7 +2667,7 @@ function ring(p,size=16,stroke=2.4){ const r=(size-stroke)/2, c=2*Math.PI*r; ret
 /* =====================================================================
    STATE (per browser conveniences, not data)
    ===================================================================== */
-const narrow=matchMedia('(max-width:860px)');
+const narrow=matchMedia('(max-width:860px), (pointer:coarse) and (max-height:500px)'); // phone layout, also a phone in landscape (874 px wide, but short and touch)
 const wide=matchMedia('(min-width:1720px)');
 let route={view:'e',id:null};
 const flt={client:'',status:'',q:'',past:false};
@@ -3984,7 +4014,7 @@ function renderMap(D){
       <div class="mstrip" id="mstrip"><div class="grip" id="mgrip" role="button" aria-label="Expand"></div><div class="msh"><span>Next weeks</span><span class="mc" id="mapcount"></span><span class="mq" id="mapq"></span></div>${filmStrip()}<div class="mrows" id="mrows"></div></div>
       <div class="mapcard" id="mapcard" hidden></div>
     </div>`;
-  $('#mgrip').onclick=()=>$('#mstrip').classList.toggle('tall'); bindMapStrip();
+  $('#mgrip').onclick=$('#mstrip .msh').onclick=()=>$('#mstrip').classList.toggle('tall'); bindMapStrip();
   { /* phone sheet gestures, like Apple Maps: swipe down (content at the top) lowers a tall strip, swipe up raises a low one */
     const M=$('#mstrip'); let g=null;
     M.addEventListener('touchstart',e=>{ g=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY,top:M.scrollTop}:null; },{passive:true});
