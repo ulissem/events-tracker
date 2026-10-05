@@ -515,7 +515,8 @@ const ic=n=>(Math.round((+n||0)*100)/100).toLocaleString('en-GB',{maximumFractio
 const plural=(n,a,b)=>`${n} ${n===1?a:b}`;
 const tint=e=>{ for(const [r,a,b] of TINTS) if(r.test(e.type||'')) return [a,b]; return ['#0a7aff','#0050b3']; };
 const tstyle=e=>{ const [a,b]=tint(e); return `--tint:${a};--tint-2:${b}`; };
-const when=ts=>ts?new Date(ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'';
+const when=ts=>{ if(!ts) return ''; const d=new Date(ts); if(isNaN(d)) return ''; const t=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}), day=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`, y=new Date(); y.setDate(y.getDate()-1);
+  return day===isoToday()?`Today, ${t}`:day===`${y.getFullYear()}-${pad(y.getMonth()+1)}-${pad(y.getDate())}`?`Yesterday, ${t}`:`${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}, ${t}`; }; // Today, 22:12 · Yesterday, 09:30 · Mon 5 Oct, 22:12
 
 /* ---------- session (Supabase Auth over plain fetch) ---------- */
 let sess=(()=>{ try{ return JSON.parse(localStorage.getItem(SKEY)||'null'); }catch{ return null; } })();
@@ -666,7 +667,7 @@ function qItem(e,q){
   if(q.author==='client') return `<div class="q mine"><span class="qn">Q${q.n}</span><div class="qt"><span class="from">You asked · ${esc(when(q.createdAt))}</span>${esc(q.text)}</div>
     <div class="qa">${q.answer?`<div class="bubble op">${esc(q.answer)}<small>${esc(OP().name.split(' ')[0])}${q.answeredAt?' · '+esc(when(q.answeredAt)):''}</small></div>`:`<span class="wait">${I.check} Sent to ${esc(OP().name.split(' ')[0])}</span>`}</div></div>`;
   if(!isOpenQ(q)) return `<div class="q done"><span class="qn">${I.check}</span><div class="qt">${esc(q.text)}</div>
-    <div class="qa">${q.answer?`<div class="bubble">${esc(q.answer)}<small>${q.answeredByMe?'You':'Answered'}${q.answeredAt?' · '+esc(when(q.answeredAt)):''}</small></div>`:`<span class="wait">${I.check} Resolved</span>`}</div></div>`;
+    <div class="qa">${q.answer?`<div class="bubble">${esc(q.answer)}<small>${q.answeredByMe?'You':q.answeredAt?esc(OP().name.split(' ')[0]):'Answered'}${q.answeredAt?' · '+esc(when(q.answeredAt)):''}</small></div>`:`<span class="wait">${I.check} Resolved</span>`}</div></div>`;
   const d=drafts[q.id]||'';
   return `<div class="q"><span class="qn">Q${q.n}</span><div class="qt">${esc(q.text)}</div>
     <div class="qa ${d?'has':''}"><textarea class="field" rows="1" placeholder="Write your answer…" data-q="${esc(q.id)}">${esc(d)}</textarea>
