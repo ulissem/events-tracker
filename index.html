@@ -1099,6 +1099,7 @@ main.agenda #detail{max-width:1560px}
 .agcard>span{flex:1;min-width:0} .agcard b{font-weight:500}
 .agcard small{display:block;color:var(--ink-3);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .agcard .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.agcard .agpr{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-2)} .agcard .agpr em{font-style:normal;font-variant-numeric:tabular-nums}
 .agcard>svg{width:14px;height:14px;flex:none;color:var(--ink-3)}
 .agcard.travel{background:var(--ag-travel-s);border-color:transparent;color:var(--ag-travel);box-shadow:inset 3px 0 0 var(--ag-travel)}
 .agcard.away{background:var(--ag-away-s);border-color:transparent;color:var(--ag-away);box-shadow:inset 3px 0 0 var(--ag-away)}
@@ -3630,7 +3631,7 @@ function agMonthGrid(){
 function agDayCards(d,{empty=true,todos=true}={}){
   const ev=agF.ev?agEvents().filter(i=>onDay(i,d)):[], en=agF.mine?agEntries().filter(i=>onDay(i,d)):[], td=agF.todo&&todos?S.agenda.todos.filter(t=>t.due===d&&!t.done):[];
   if(!ev.length&&!en.length&&!td.length) return empty?`<div class="agempty">Nothing on this day.</div>`:'';
-  return `${ev.map(({o:e})=>`<a class="agcard" href="#/e/${encodeURIComponent(e.id)}"><i class="dot" style="background:${esc(statusColor(e.status))}"></i><span><b>${esc(e.name||'untitled')}</b><small>${esc([clientName(e.clientId),e.location,evMeta(e),e.status].filter(Boolean).join(' · '))}</small></span>${ic('chev',2)}</a>`).join('')}
+  return `${ev.map(({o:e})=>`<a class="agcard" href="#/e/${encodeURIComponent(e.id)}"><i class="dot" style="background:${esc(statusColor(e.status))}"></i><span><b>${esc(e.name||'untitled')}</b><small>${esc([e.type,clientName(e.clientId),e.location,evMeta(e),e.status].filter(Boolean).join(' · '))}</small></span><span class="agpr" title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),18,2.4)}<em>${Math.round(progress(e)*100)}%</em></span>${ic('chev',2)}</a>`).join('')}
     ${en.map(({o:x})=>`<button type="button" class="agcard ${x.type}" data-agen="${esc(x.id)}">${ic(AG_TYPES[x.type].icon,2)}<span><b>${esc(enLabel(x))}</b><small>${esc([x.from!==(x.to||x.from)?rangeText(x.from,x.to).main:'',x.time,x.note].filter(Boolean).join(' · '))||'&nbsp;'}</small></span></button>`).join('')}
     ${td.map(t=>`<div class="agcard tdc"><input type="checkbox" class="ck" data-o="${ref(t)}" data-k="done" data-r="detail" aria-label="Done: ${esc(t.text)}"><span><b>${esc(t.text||'To-do')}</b><small>To-do${linkOf(t)?' · '+esc(linkOf(t).name):''}</small></span></div>`).join('')}`;
 }
