@@ -2158,7 +2158,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .cpast .count{margin-left:auto;font-weight:500;color:var(--ink-3)}
 /* questions in a card like every other section; film strip in the list column fades out clearly at the right edge */
 .qbox{background:var(--panel);border-radius:var(--r-card);box-shadow:var(--shadow-sm);padding:2px 14px}
-.qbox .q:last-child{border-bottom:0}
+.qbox .q:last-of-type{border-bottom:0}
 #list .film{mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent);-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent)}
 /* event side column as cards (≥ 1720 px), Oct 2026 */
 @media (min-width:1720px){
@@ -2180,10 +2180,15 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .scard .q:last-child{border-bottom:0}
 }
 /* "+ Add …" at the end of each list (links, timing points, races, questions): new items appear right there, no scrolling up */
-.addline{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;padding:10px 14px;border:0;border-radius:14px;background:none;color:var(--ink-3);font:inherit;font-size:13.5px;text-align:left;cursor:pointer;box-shadow:inset 0 0 0 1px var(--line);-webkit-tap-highlight-color:transparent}
-.addline svg{width:14px;height:14px}
-.addline:hover{color:var(--accent);background:var(--hover);box-shadow:inset 0 0 0 1px var(--accent-line)}
-.addline:active{transform:scale(.99)}
+.addline{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:9px 16px;border:0;border-radius:14px;background:none;color:var(--ink-3);font:inherit;font-size:13.5px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.addline svg{width:14px;height:14px;flex:none}
+.addline span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.addline small{font-size:12px;color:var(--ink-3);opacity:.8}
+.addline:hover{color:var(--accent);background:var(--hover)}
+.addline.empty1{background:var(--panel);box-shadow:var(--shadow-sm);padding:13px 16px;border-radius:var(--r-card);margin-top:0;color:var(--ink-2)} /* an empty section = this one card */
+.addline.empty1:hover{color:var(--accent)}
+.scard .addline.empty1{background:var(--sunken);box-shadow:none;border-radius:14px} /* inside a side card: a tile, not a card in a card */
+.qbox .addline{margin:0 -14px;width:calc(100% + 28px);border-radius:0 0 var(--r-card) var(--r-card);border-top:1px solid var(--line);padding:11px 18px}
 /* day cards: past days dimmed; rings: a green check at 100 % */
 .agdc.past{opacity:.55}
 .agdc.past .cc-eye{color:var(--ink-3)}
@@ -3524,21 +3529,21 @@ function renderEvent(D){
   </div></section>
 
   <section class="sec" id="s-links"><div class="sech" style="--sc:${SECC.links}"><h3>${secBadge('links')}Links and documents ${e.links.length?`<span class="count">${e.links.length}</span>`:''}</h3><span class="sp"></span></div>
-  ${e.links.length?`<div class="tbox"><table class="t links"><tbody>${e.links.map((l,i)=>`<tr><td style="width:34%"><div style="display:flex;align-items:center;gap:4px;padding-left:4px"><span style="color:var(--ink-3);display:flex">${ic('link',1.8).replace('<svg','<svg width="14" height="14"')}</span>${cell(l,'label',{ph:'Regulations, GPX, branding…'})}</div></td><td>${cell(l,'url',{ph:'https://…',type:'url',label:'Address',cls:'tu',r:'change'})}</td><td class="x">${linkBtn(l.url)}</td><td class="x"><button class="btn icon sm ghost del rowact" data-dellink="${i}" type="button" aria-label="Remove link">${ic('x')}</button></td></tr>`).join('')}</tbody></table></div>`:emptyBox('link','Regulations, GPX, branding, shared folder…')}
-  <button type="button" class="addline" id="addlink">${ic('plus',2)}<span>Add a link</span></button>
+  ${e.links.length?`<div class="tbox"><table class="t links"><tbody>${e.links.map((l,i)=>`<tr><td style="width:34%"><div style="display:flex;align-items:center;gap:4px;padding-left:4px"><span style="color:var(--ink-3);display:flex">${ic('link',1.8).replace('<svg','<svg width="14" height="14"')}</span>${cell(l,'label',{ph:'Regulations, GPX, branding…'})}</div></td><td>${cell(l,'url',{ph:'https://…',type:'url',label:'Address',cls:'tu',r:'change'})}</td><td class="x">${linkBtn(l.url)}</td><td class="x"><button class="btn icon sm ghost del rowact" data-dellink="${i}" type="button" aria-label="Remove link">${ic('x')}</button></td></tr>`).join('')}</tbody></table></div>`:''}
+  <button type="button" class="addline ${e.links.length?'':'empty1'}" id="addlink">${ic('plus',2)}<span>Add a link${e.links.length?'':'<small>Regulations, GPX, branding, shared folder…</small>'}</span></button>
   </section>
 
   <section class="sec" id="s-tps"><div class="sech" style="--sc:${SECC.tps}"><h3>${secBadge('tps')}Timing points <span class="count">${e.timingPoints.length}</span></h3><span class="sp"></span>${e.timingPoints.length?`<span class="deskonly" style="display:contents">${tpTools}</span>`:''}</div>
   ${kitShelf(e)}
   ${e.timingPoints.length?`<div class="hs"><div class="tbox hsc"><table class="t tps" style="min-width:${820-(tpc.ch?0:62)-(tpc.loop?0:62)-(tpc.mode?0:108)}px"><colgroup><col class="c1"><col class="c2"><col class="c3">${tpc.ch?'<col class="c4">':''}${tpc.loop?'<col class="c5">':''}${tpc.mode?'<col class="c6">':''}<col class="c7">${narrow.matches?'':'<col class="c8">'}<col class="c9"></colgroup><thead><tr><th class="stk stk1"></th><th class="stk stk2">Name</th><th>Hardware</th>${tpc.ch?'<th>Ch.</th>':''}${tpc.loop?'<th>L.</th>':''}${tpc.mode?'<th>Mode</th>':''}<th title="Position (lat, lon)${narrow.matches?' and note':''}">${narrow.matches?'Pos. · Note':'Pos.'}</th>${narrow.matches?'':'<th>Notes</th>'}<th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${e.timingPoints.map((t,i)=>tpRow(e,t,i,dups,tpc)).join('')}</tbody></table></div></div>
   ${dups.length?`<div class="empty" style="border-color:var(--danger);color:var(--danger);margin-top:8px">${ic('warn')}<span>${dups.map(([k,v])=>`Ch. ${esc(k.split('/')[0])}${k.endsWith('–')?'':` / L. ${esc(k.split('/')[1])}`} is used ${v.length} times: ${v.map(t=>esc(t.name||'untitled')).join(', ')}`).join('<br>')}</span></div>`:''}
-  <div class="toolbar phoneonly">${tpTools}</div>`:emptyBox('pin','The hardware on the course: start, finish, intermediate points. Races use them in their splits.')}
-  <button type="button" class="addline" id="addtp">${ic('plus',2)}<span>Add a timing point</span></button>
+  <div class="toolbar phoneonly">${tpTools}</div>`:''}
+  <button type="button" class="addline ${e.timingPoints.length?'':'empty1'}" id="addtp">${ic('plus',2)}<span>Add a timing point${e.timingPoints.length?'':'<small>The hardware on the course: start, finish, intermediate points. Races use them in their splits.</small>'}</span></button>
   </section>
 
   <section class="sec" id="s-races"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Races <span class="count">${e.contests.length}</span></h3><span class="sp"></span>${e.contests.length>1?`<button class="btn sm ghost" id="ctall" type="button">${e.contests.every(c=>openRaces.has(c.id))?'Collapse all':'Expand all'}</button>`:''}</div>
-  ${e.contests.map((c,ci)=>raceCard(e,c,ci,tpOpts)).join('')||emptyBox('flag','No races yet.')}
-  <button type="button" class="addline" id="addct">${ic('plus',2)}<span>Add a race</span></button>
+  ${e.contests.map((c,ci)=>raceCard(e,c,ci,tpOpts)).join('')}
+  <button type="button" class="addline ${e.contests.length?'':'empty1'}" id="addct">${ic('plus',2)}<span>Add a race${e.contests.length?'':'<small>Distance, start time and the splits along the course.</small>'}</span></button>
   </section>
 
   <section class="sec" id="s-registration"><div class="sech" style="--sc:${SECC.registration}"><h3>${secBadge('registration')}Registration / Kiosk</h3></div>
@@ -3567,8 +3572,8 @@ function renderEvent(D){
      <div class="qbody"><textarea class="in auto qt" rows="1" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
      <textarea class="in auto qa" rows="1" data-o="${ref(q)}" data-k="answer" placeholder="Answer…" aria-label="Answer Q${q.n}">${esc(q.answer)}</textarea></div>
      <span class="qc"><label class="chk" title="Resolved"><input type="checkbox" class="ck" data-o="${ref(q)}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> Resolved</label><button class="btn icon sm ghost del" data-delq="${i}" type="button" aria-label="Delete question Q${q.n}">${ic('x')}</button></span>
-   </div>`).join('')}${e.questions.length?'</div>':emptyBox('inbox','Open questions go into the client summary, numbered Q1, Q2…')}
-  <button type="button" class="addline" id="addq">${ic('plus',2)}<span>Add a question</span></button>
+   </div>`).join('')}
+  <button type="button" class="addline ${e.questions.length?'':'empty1'}" id="addq">${ic('plus',2)}<span>Add a question${e.questions.length?'':'<small>Open questions go into the client summary, numbered Q1, Q2…</small>'}</span></button>${e.questions.length?'</div>':''}
   </section>
 
   <section class="sec" id="s-checklist"><div class="sech" style="--sc:${SECC.checklist}"><h3>${secBadge('checklist')}Checklist</h3></div>
