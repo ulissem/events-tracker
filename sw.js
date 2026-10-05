@@ -1,5 +1,5 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v157';
+const CACHE = 'events-tracker-v158';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/mbox.png', './img/trackbox-active.png', './img/trackbox-passive.png',
   './vendor/leaflet/leaflet.js', './vendor/leaflet/leaflet.css', './vendor/tz-lookup/tz.js'];

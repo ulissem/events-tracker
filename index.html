@@ -4603,7 +4603,7 @@ function exportICS(){
   let n=0;
   for(const i of agEvents()){ add(i.id,i.s,i.e,i.o.name||'Event',[clientName(i.o.clientId),i.o.status,i.o.contests.map(c=>[c.name,c.startTime].filter(Boolean).join(' ')).join(', ')].filter(Boolean).join(' · '),i.o.location); n++; }
   for(const i of agEntries()){ add(i.id,i.s,i.e,enLabel(i.o),[i.o.time,i.o.note].filter(Boolean).join(' · ')); n++; }
-  L.push('END:VCALENDAR'); download('events-tracker.ics',L.join('\r\n')+'\r\n','text/calendar');
+  L.push('END:VCALENDAR'); download('race-hub.ics',L.join('\r\n')+'\r\n','text/calendar');
   toast('Calendar file downloaded',`${plural(n,'item','items')} · open it to import into your calendar`,'file');
 }
 
@@ -5741,8 +5741,8 @@ async function bioGet(credId,salt){
     allowCredentials:[{type:'public-key',id:fromB64(credId)}],extensions:{prf:{eval:{first:fromB64(salt)}}}}});
   const out=cred?.getClientExtensionResults?.().prf?.results?.first; if(!out) throw new Error('This browser can’t use '+BIO+' to encrypt (no PRF).'); return new Uint8Array(out); }
 async function bioCreate(salt){
-  const cred=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'Events tracker',id:location.hostname},
-    user:{id:rnd(16),name:`Events tracker · ${BIO==='Face ID'?'iPhone':BIO==='Touch ID'?'Mac':'device'}`,displayName:'Events tracker'},
+  const cred=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'Race Hub',id:location.hostname},
+    user:{id:rnd(16),name:`Race Hub · ${BIO==='Face ID'?'iPhone':BIO==='Touch ID'?'Mac':'device'}`,displayName:'Race Hub'},
     pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],timeout:60000,
     authenticatorSelection:{authenticatorAttachment:'platform',residentKey:'required',userVerification:'required'},
     extensions:{prf:{eval:{first:fromB64(salt)}}}}});
@@ -5825,7 +5825,7 @@ $('#s-lkoff').onclick=async()=>{
   if(!confirm('Turn off the app lock on this device?\n\nThe token and the offline copy will be stored without encryption again.')) return;
   const rec=localCache; LOCK=null; DK=null; localCache=null; idbKey('del').catch(()=>{});
   try{ localStorage.removeItem(LOCK_KEY); const c={...cfg}; delete c.tokenEnc; localStorage.setItem(CFG_KEY,JSON.stringify(c)); if(rec) localStorage.setItem(LOCAL_KEY(),JSON.stringify(rec)); }catch{}
-  persistLocal(); lockInfo(); toast('App lock off','you can delete the “Events tracker” passkey in the Passwords app','lock'); };
+  persistLocal(); lockInfo(); toast('App lock off','you can delete the “Race Hub” passkey (or the older “Events tracker” one) in the Passwords app','lock'); };
 let lkPinOnly=false;
 function openLockSetup(pinOnly=false){
   lkPinOnly=pinOnly; $('#lk-title').textContent=pinOnly?'Change backup PIN':'App lock';
