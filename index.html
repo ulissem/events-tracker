@@ -5924,6 +5924,8 @@ async function refreshData(){
 /* service worker: check for a new version on load, when the app comes back, and every 30 min while visible */
 let swReg=null, swReloading=false, swNotified=false;
 function notifyUpdate(reg){ if(swNotified) return; swNotified=true;
+  // on the sign-in page with nothing typed in the password: nothing to lose, so the new version is applied without asking
+  if(!S&&!DEMO&&!$('#signin').hidden&&!$('#s-token').value){ swReloading=true; if(reg.waiting) reg.waiting.postMessage({type:'skipWaiting'}); else location.reload(); setTimeout(()=>location.reload(),4000); return; }
   toast('New version available','reload to use it','bolt','',{label:'Reload',run:async()=>{
     if(!await saveBeforeReload('Reload')){ swNotified=false; notifyUpdate(reg); return; }
     swReloading=true; if(reg.waiting) reg.waiting.postMessage({type:'skipWaiting'}); else location.reload();
