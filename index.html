@@ -2196,6 +2196,62 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .ckbox .tasks{background:none;box-shadow:none;border:0;border-radius:0;padding:0 0 4px;margin:0} /* extra items = one more group of the checklist */
 .ckbox .tasks .th{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;padding:12px 4px 2px}
 .scard .ckbox{background:none;box-shadow:none;padding:0;border-radius:0} /* the side card is already the card */
+/* Hours page, event hours and client open hours as rows (Oct 2026) */
+.hrs2 .hm-head{align-items:flex-end;margin-bottom:18px}
+.hrs2 .hm-head h1{margin-top:4px}
+.hrs2 .ov-s b small{font-size:16px}
+.hr2-cl{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.hr2-c{margin:0;padding:14px 16px}
+.hr2-c .cc-name{font-size:19px}
+.hr2-cv{display:flex;align-items:baseline;gap:8px;margin-top:6px}
+.hr2-cv b{font-size:20px;font-weight:800;letter-spacing:-.03em}
+.hr2-cv span{font-size:12.5px;color:var(--ink-2)}
+.hr2-c .tbtn{margin:8px 0 0 -6px}
+.hr2-c .tbtn svg{width:11px;height:11px}
+.hr2-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:22px 0 10px}
+.hr2-tools .hchip{border-radius:999px;width:auto}
+.hr2-mon{display:inline-flex;align-items:center;gap:2px}
+.hr2-mon .btn.ghost{width:30px;height:30px;border:0;background:none;box-shadow:none;color:var(--accent)}
+.hr2-ml{border:0;background:var(--sunken);color:var(--ink-2);font:inherit;font-size:13px;font-weight:600;height:28px;padding:0 12px;border-radius:999px;cursor:pointer}
+.hr2-ml.on{background:var(--accent-soft);color:var(--accent)}
+.hr2-log{margin:0 0 12px;padding:14px 16px 6px}
+.hr2-log .hoursadd{margin:8px 0}
+.hr2-g{margin:0 0 12px;padding:8px 10px}
+.hr2-gh{display:flex;align-items:baseline;justify-content:space-between;padding:6px 8px 6px}
+.hr2{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 80px 62px 30px;align-items:center;gap:0 10px;padding:7px 8px;border-top:1px solid var(--line)}
+.hr2 .rd{display:flex;flex-direction:column;align-items:center}
+.hr2 .rd b,.hr2-d b{font-size:17px;font-weight:700;line-height:1.1}
+.hr2 .rd small,.hr2-d small{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.hr2-d{border:0;background:none;color:inherit;font:inherit;display:flex;flex-direction:column;align-items:center;cursor:pointer;border-radius:10px;padding:2px 6px}
+.hr2-d:hover{background:var(--hover)}
+.hr2-m{min-width:0;display:flex;flex-direction:column}
+.hr2-m small{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:8px}
+.hr2-m small a{color:var(--ink-2)}
+.hr2-m .cell{font-size:13.5px;font-weight:500}
+.hr2-n{font-size:13.5px;padding:4px 8px;color:var(--ink-2)}
+.hr2-h{display:flex;align-items:baseline;gap:3px;justify-content:flex-end}
+.hr2-h .cell{text-align:right;font-weight:700;width:52px}
+.hr2-h b{font-weight:700} .hr2-h small{color:var(--ink-3);font-size:11px}
+.hr2-v{text-align:right;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+.hr2.closed{opacity:.6}
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
+  .hr2{grid-template-columns:40px minmax(0,1fr) 60px 26px;grid-template-areas:"d m h x" "d m v s"}
+  .hr2 .rd{grid-area:d} .hr2-m{grid-area:m} .hr2-h{grid-area:h} .hr2-v{grid-area:v;font-size:11.5px} .hr2-s{grid-area:s} .hr2-x{grid-area:x}
+  .hr2-s .tag{font-size:10px}
+  .hr2-log .hoursadd{grid-template-columns:1fr 1fr}
+  .hr2-log .hoursadd .grow,.hr2-log .hoursadd .btn{grid-column:1/-1}
+  .hr2-tools .spacer{display:none}
+}
+.hr2-ev{padding:8px 10px 10px}
+.hr2-ev .cc-eye.w{color:var(--warn)}
+.hr2-add{display:grid;grid-template-columns:130px 76px minmax(0,1fr) auto;gap:6px;padding:10px 8px 2px;border-top:1px solid var(--line)}
+.hr2-add .in{height:32px}
+
+@media (min-width:1720px){ /* the narrow side column */
+  .evside .hr2{grid-template-columns:40px minmax(0,1fr) 60px 26px;grid-template-areas:"d m h x" "d m v s"}
+  .evside .hr2 .rd{grid-area:d} .evside .hr2-m{grid-area:m} .evside .hr2-h{grid-area:h} .evside .hr2-v{grid-area:v;font-size:11.5px} .evside .hr2-s{grid-area:s} .evside .hr2-x{grid-area:x}
+  .evside .hr2-add{grid-template-columns:1fr 70px;} .evside .hr2-add .grow,.evside .hr2-add .btn{grid-column:1/-1}
+}
 /* day cards: past days dimmed; rings: a green check at 100 % */
 .agdc.past{opacity:.55}
 .agdc.past .cc-eye{color:var(--ink-3)}
@@ -3592,9 +3648,9 @@ function renderEvent(D){
   </section>
 
   ${showH?`<section class="sec" id="s-hours"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Hours</h3><span class="sp"></span><span class="hint">${ic('unlock',2).replace('<svg','<svg width="12" height="12" style="display:inline;vertical-align:-1px"')} unlocked · locks after 10 min idle</span></div>
-  <div class="hrsum"><div><b>${fmtN(sumH(evHours))} h</b><span>logged</span></div><div><b>${fmtN(sumH(evHours.filter(isOpen)))} h</b><span>open</span></div><div><b>${val(sumH(evHours.filter(isOpen))*coefOf(e.clientId))}</b><span>open ${esc(U().label)}</span></div></div>
-  ${hoursTable(evHours,{showEvent:false,showClient:false})}
-  <div class="addrow">${dateBtn('h-date')}<input class="in" inputmode="decimal" id="h-hours" placeholder="Hours" aria-label="Hours"><input class="in grow" id="h-note" placeholder="What you did" aria-label="Activity"><button class="btn" id="h-add" type="button" ${e.clientId?'':'disabled title="Assign a client first"'}>Add</button></div>
+  <div class="ccard hr2-g hr2-ev"><div class="hr2-gh"><span class="cc-eye ${evHours.some(isOpen)?'w':''}">${fmtN(sumH(evHours))} h logged · ${fmtN(sumH(evHours.filter(isOpen)))} h open · ${val(evHours.filter(isOpen).reduce((s,h)=>s+hValOf(h),0))}</span>${e.clientId?`<span class="hint">× ${fmtN(coefOf(e.clientId))}</span>`:''}</div>
+    ${evHours.map(h=>hRow(h,{showClient:false,showEvent:false})).join('')}
+    <div class="hr2-add">${dateBtn('h-date')}<input class="in" inputmode="decimal" id="h-hours" placeholder="Hours" aria-label="Hours"><input class="in grow" id="h-note" placeholder="${evHours.length?'What you did':'Log the first hours: what you did'}" aria-label="Activity"><button class="btn sm" id="h-add" type="button" ${e.clientId?'':'disabled title="Assign a client first"'}>${ic('plus',2.2)} Log</button></div></div>
   </section>`:''}
 
   <section class="sec" id="s-notes"><div class="sech" style="--sc:${SECC.notes}"><h3>${secBadge('notes')}Notes</h3><span class="sp"></span><span class="hint">never in the summary</span></div>
@@ -3902,7 +3958,7 @@ function renderClient(D){
       ${up.length?`<div class="cgh">Upcoming · ${up.length}</div>${up.map(evRow).join('')}`:'<div class="cgh">Nothing coming up</div>'}
       ${past.length?`<button type="button" class="cpast ${cliPast?'open':''}" id="cpast">${ic('chev',2.2)}<span>Past events</span><span class="count">${past.length}</span></button>${cliPast?past.map(evRow).join(''):''}`:''}
     </div>`:emptyBox('flag','No events for this client yet.')}
-      ${showH?`<div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Open hours <span class="count">${fmtN(sumH(open))} h</span></h3></div>${hoursTable(open.sort((a,b)=>a.date.localeCompare(b.date)),{showClient:false})}</div>
+      ${showH?`<div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Open hours <span class="count">${fmtN(sumH(open))} h</span></h3></div>${open.length?`<div class="ccard hr2-g">${open.sort((a,b)=>a.date.localeCompare(b.date)).map(h=>hRow(h,{showClient:false})).join('')}</div>`:emptyBox('hours','No open hours.')}</div>
       <div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Close period</h3></div>
         <p class="hint" style="margin:0 0 10px">Marks open hours up to the chosen date as closed. Today's coefficient is frozen into the closure.</p>
         <div class="closebox"><div class="fld"><span class="lab">Up to</span>${dateBtn('cl-until',fmtDay,'Up to')}</div>
@@ -3944,31 +4000,64 @@ function renderClient(D){
    HOURS view (unlocked only)
    ===================================================================== */
 const hf={client:'',state:'open',month:''};
+/* Hours (Oct 2026): totals, open by client, filters as chips + month ‹ ›, log card, entries as rows grouped by month */
+const hValOf=h=>{ const cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure); return num(h.hours)*(cl?num(cl.coefficient):coefOf(h.clientId)); };
+const hRow=(h,{showClient=true,showEvent=true}={})=>{ const c=clientOf(h.clientId), ev=S.events.find(x=>x.id===h.eventId), d=h.date?parse(h.date):null, cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure);
+    return `<div class="hr2 ${h.closure?'closed':''}">
+      <span class="rd">${h.closure||!d?`<b>${d?d.getDate():'–'}</b><small>${d?DOW[d.getDay()]:''}</small>`:`<button type="button" class="hr2-d" data-hdate="${ref(h)}" aria-label="Date ${esc(h.date)}"><b>${d.getDate()}</b><small>${DOW[d.getDay()]}</small></button>`}</span>
+      <span class="hr2-m">${showClient||showEvent?`<small>${[showClient?esc(c?.name||'—'):'',showEvent?(ev?`<a href="#/e/${encodeURIComponent(ev.id)}" data-go="e:${esc(ev.id)}">${esc(ev.name||'untitled')}</a>`:'general'):''].filter(Boolean).join(' · ')}</small>`:''}
+        ${h.closure?`<span class="hr2-n">${esc(h.note)||'—'}</span>`:cell(h,'note',{ph:'What you did',label:'Activity'})}</span>
+      <span class="hr2-h">${h.closure?`<b>${esc(fmtN(num(h.hours)))}</b>`:cell(h,'hours',{label:'Hours',t:'num',r:'change',style:'text-align:right'})}<small>h</small></span>
+      <span class="hr2-v">${val(hValOf(h))}</span>
+      <span class="hr2-s">${h.closure?`<span class="tag" title="${esc(cl?.ref||'')}">closed</span>`:'<span class="tag open">open</span>'}</span>
+      <span class="hr2-x">${h.closure?'':`<button class="btn icon sm ghost del" data-delh="${esc(h.id)}" type="button" aria-label="Delete entry">${ic('x')}</button>`}</span></div>`; };
 function renderHours(D){
-  const rows=S.hours.entries.filter(h=>(!hf.client||h.clientId===hf.client)&&(hf.state==='all'||(hf.state==='open')===isOpen(h))&&(!hf.month||(h.date||'').startsWith(hf.month)))
-    .sort((a,b)=>b.date.localeCompare(a.date));
-  const tot=rows.reduce((s,h)=>{ const cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure); return s+num(h.hours)*(cl?num(cl.coefficient):coefOf(h.clientId)); },0);
+  const all=S.hours.entries, ym=TODAY.slice(0,7), yr=TODAY.slice(0,4);
+  const rows=all.filter(h=>(!hf.client||h.clientId===hf.client)&&(hf.state==='all'||(hf.state==='open')===isOpen(h))&&(!hf.month||(h.date||'').startsWith(hf.month))).sort((a,b)=>b.date.localeCompare(a.date));
+  const open=all.filter(isOpen), openH=sumH(open), openV=open.reduce((s,h)=>s+hValOf(h),0);
+  const monthH=sumH(all.filter(h=>(h.date||'').startsWith(ym))), closedY=sumH(all.filter(h=>h.closure&&(h.date||'').startsWith(yr)));
   const addC=hf.client||S.clients[0]?.id||'';
-  D.innerHTML=`<div class="dtitle"><h2 style="margin:0;font-size:22px;letter-spacing:-.02em;flex:1">Hours</h2></div>
-  <div class="filterbar">
-    <select class="in sm" id="hf-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${hf.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
-    <select class="in sm" id="hf-state" aria-label="Status">${[['open','Open'],['closed','Closed'],['all','All']].map(([v,l])=>`<option value="${v}" ${hf.state===v?'selected':''}>${l}</option>`).join('')}</select>
-    <input class="in sm" type="month" id="hf-month" value="${esc(hf.month)}" aria-label="Month" style="width:auto">
-    <span class="spacer"></span><span class="hint"><b style="color:var(--ink)">${fmtN(sumH(rows))} h</b> · ${val(tot)}</span></div>
-  <div class="hoursadd">
-    <select class="in" id="a-client" aria-label="Client">${S.clients.map(c=>`<option value="${esc(c.id)}" ${addC===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
-    <select class="in" id="a-event" aria-label="Event"></select>
-    ${dateBtn('a-date')}
-    <input class="in" id="a-hours" inputmode="decimal" placeholder="Hours" aria-label="Hours">
-    <input class="in grow" id="a-note" placeholder="What you did" aria-label="Activity">
-    <button class="btn primary" id="a-add" type="button" ${S.clients.length?'':'disabled'}>Add</button>
-  </div>
-  ${hoursTable(rows)}`;
+  const [y,m]=(hf.month||ym).split('-').map(Number);
+  // per client: open hours
+  const byC=S.clients.map(c=>{ const o=open.filter(h=>h.clientId===c.id); return {c,h:sumH(o),v:o.reduce((s,h)=>s+hValOf(h),0),n:o.length,last:o.map(h=>h.date).sort().pop()}; }).filter(x=>x.n).sort((a,b)=>b.h-a.h);
+  // entries grouped by month
+  const groups=[]; for(const h of rows){ const k=(h.date||'').slice(0,7); let g=groups[groups.length-1]; if(!g||g.k!==k){ g={k,items:[]}; groups.push(g); } g.items.push(h); }
+  const row=h=>hRow(h);
+  D.innerHTML=`<div class="home hrs2">
+    <div class="hm-head"><div><div class="cc-eye">${hf.state==='all'?'All hours':hf.state==='open'?'Open hours':'Closed hours'} · ${hf.month?esc(MONL[m-1]+' '+y):'all months'}${hf.client?` · ${esc(clientName(hf.client))}`:''}</div><h1>Hours</h1></div></div>
+    <div class="ov-stats">
+      <div class="ov-s warn"><div class="cc-eye">Open hours</div><b>${fmtN(openH)}<small> h</small></b><span>not closed yet · ${plural(byC.length,'client','clients')}</span></div>
+      <div class="ov-s"><div class="cc-eye">Open value</div><b>${fmtN(openV)}<small> ${esc(U().icon)}</small></b><span>hours × each client's coefficient</span></div>
+      <div class="ov-s"><div class="cc-eye">This month</div><b>${fmtN(monthH)}<small> h</small></b><span>logged in ${esc(MONL[+ym.slice(5)-1])}</span></div>
+      <div class="ov-s"><div class="cc-eye">Closed in ${yr}</div><b>${fmtN(closedY)}<small> h</small></b><span>${plural(S.hours.closures.filter(x=>(x.date||'').startsWith(yr)).length,'closure','closures')}</span></div>
+    </div>
+    ${byC.length?`<div class="cc-h">Open by client <span>${byC.length}</span></div><div class="hr2-cl">${byC.map(x=>`<div class="ccard hr2-c" data-id="${esc(x.c.id)}" role="button" tabindex="0">
+      <div class="cc-eye">${plural(x.n,'entry','entries')} · last ${esc(fmtShort(x.last).split(' ').slice(1).join(' '))}</div><div class="cc-name">${esc(x.c.name)}</div>
+      <div class="hr2-cv"><b>${fmtN(x.h)} h</b><span>${val(x.v)} · × ${fmtN(coefOf(x.c.id))}</span></div>
+      <button type="button" class="tbtn" data-close="${esc(x.c.id)}">Close period ${ic('chev',2.2)}</button></div>`).join('')}</div>`:''}
+    <div class="hr2-tools">
+      <select class="in sm hchip" id="hf-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${hf.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+      <span class="agseg" role="group" aria-label="Status">${[['open','Open'],['closed','Closed'],['all','All']].map(([v,l])=>`<button type="button" data-hstate="${v}" aria-pressed="${hf.state===v}">${l}</button>`).join('')}</span>
+      <span class="hr2-mon"><button class="btn icon sm ghost" type="button" data-hmon="-1" aria-label="Previous month">${ic('chevl',2.2)}</button><button type="button" class="hr2-ml ${hf.month?'on':''}" data-hmon="0">${hf.month?esc(MONL[m-1]+' '+y):'All months'}</button><button class="btn icon sm ghost" type="button" data-hmon="1" aria-label="Next month">${ic('chev',2.2)}</button>${hf.month?`<button type="button" class="tbtn quiet" data-hmon="x">All</button>`:''}</span>
+      <span class="spacer"></span><span class="hint"><b style="color:var(--ink)">${fmtN(sumH(rows))} h</b> · ${val(rows.reduce((s,h)=>s+hValOf(h),0))} shown</span></div>
+    <div class="ccard hr2-log"><div class="cc-eye">Log hours</div>
+      <div class="hoursadd">
+        <select class="in" id="a-client" aria-label="Client">${S.clients.map(c=>`<option value="${esc(c.id)}" ${addC===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+        <select class="in" id="a-event" aria-label="Event"></select>
+        ${dateBtn('a-date')}
+        <input class="in" id="a-hours" inputmode="decimal" placeholder="Hours" aria-label="Hours">
+        <input class="in grow" id="a-note" placeholder="What you did" aria-label="Activity">
+        <button class="btn primary" id="a-add" type="button" ${S.clients.length?'':'disabled'}>Add</button>
+      </div></div>
+    ${groups.length?groups.map(g=>{ const [gy,gm]=g.k.split('-').map(Number); return `<div class="ccard hr2-g"><div class="hr2-gh"><span class="cc-eye">${esc(MONL[gm-1]+' '+gy)}</span><span class="hint">${fmtN(sumH(g.items))} h · ${val(g.items.reduce((s,h)=>s+hValOf(h),0))}</span></div>${g.items.map(row).join('')}</div>`; }).join(''):`<div class="ccard hr2-g"><div class="ov-empty">${ic('hours',2)} No hours with these filters.</div></div>`}
+  </div>`;
   const fillEv=()=>{ const cid=$('#a-client').value; $('#a-event').innerHTML=`<option value="">— general (no event) —</option>`+S.events.filter(e=>e.clientId===cid).sort((a,b)=>(b.dateStart||'').localeCompare(a.dateStart||'')).map(e=>`<option value="${esc(e.id)}">${esc(e.name||'untitled')}</option>`).join(''); };
   fillEv(); $('#a-client').onchange=fillEv;
   $('#hf-client').onchange=e=>{ hf.client=e.target.value; renderDetail(); };
-  $('#hf-state').onchange=e=>{ hf.state=e.target.value; renderDetail(); };
-  $('#hf-month').onchange=e=>{ hf.month=e.target.value; renderDetail(); };
+  on(D,'[data-hstate]',b=>{ hf.state=b.dataset.hstate; renderDetail(); });
+  on(D,'[data-hmon]',b=>{ const k=b.dataset.hmon; if(k==='x'){ hf.month=''; } else if(k==='0'){ hf.month=hf.month?'':ym; } else { const d=new Date(y,m-1+(+k),1,12); hf.month=isoOf(d).slice(0,7); } renderDetail(); });
+  D.querySelectorAll('.hr2-c').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('[data-close]')) return; hf.client=hf.client===el.dataset.id?'':el.dataset.id; renderDetail(); }));
+  on(D,'[data-close]',b=>go('c',b.dataset.close));
   bindAddHours('a',()=>({clientId:$('#a-client').value,eventId:$('#a-event').value}));
   bindHoursTable(D);
 }
