@@ -3705,7 +3705,7 @@ function renderClient(D){
       <span class="rr"><span class="cd ${k.c}">${isPast(e)&&s?esc(MON[s.getMonth()]+' '+s.getFullYear()):k.t}</span><span class="ri">${q?`<span class="qb">${q}?</span>`:''}${isPast(e)?'':`<span title="${Math.round(p*100)}% prepared">${ring(p,14,2.2)}</span>`}</span></span></a>`; };
   const mail=c.email?`mailto:${encodeURIComponent(c.email)}`:'', tel=c.phone?`tel:${c.phone.replace(/[^\d+]/g,'')}`:'';
   D.innerHTML=`<div class="cview2">
-  <div class="hero cli" id="s-top" style="--tint:var(--accent)"><div class="hscrim"></div>
+  <div class="hero cli" id="s-top" style="--tint:var(--accent)"><div class="hscrim"></div><div class="hacts">${closeBtn('client')}</div>
     <div class="hlay"><div class="hmain">
       <div class="hovl"><span>Client</span>${contact?`<i class="sep"></i><span>${esc(contact)}</span>`:''}<i class="sep"></i><span>${plural(ev.length,'event','events')}</span></div>
       <div class="cname"><input class="nameinput" data-o="${ref(c)}" data-k="name" value="${esc(c.name)}" placeholder="Client name" aria-label="Client name"></div>
@@ -3767,6 +3767,7 @@ function renderClient(D){
   }
   D.querySelector('#cpast')?.addEventListener('click',()=>{ cliPast=!cliPast; const y=scrollY; renderClient(D); scrollTo(0,y); });
   on(D,'[data-jump]',(a,e)=>{ e.preventDefault(); D.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth',block:'start'}); });
+  D.querySelector('#closebtn')?.addEventListener('click',()=>go('c')); // back to the overview (Esc too)
   D.querySelector('#cphone')?.addEventListener('click',async()=>{ if(await copyText(c.phone)) toast('Phone copied',c.phone,'copy'); }); // desktop: no calls, copy the number
   D.querySelectorAll('.cacts .off').forEach(b=>b.onclick=()=>D.querySelector(b.dataset.f)?.focus()); // no email / phone yet: go to the field
   $('#delcl').onclick=()=>{
