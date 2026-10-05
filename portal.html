@@ -395,6 +395,16 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 }
 
 
+/* Questions page */
+.qcard .addline{width:calc(100% + 40px);margin:4px -20px -8px;padding:13px 20px}
+.qask{padding:6px 18px 0} .qask .qev{padding:12px 0 0} .qask .qevh .qdot{width:8px;height:8px;box-shadow:none}
+.qask .addline{color:var(--accent)} .qask .qev:last-child .addline{margin-bottom:0}
+.archh{display:flex;align-items:center;gap:8px;width:100%;margin:30px 0 12px;padding:10px 4px;border:0;background:none;font-size:15px;font-weight:700;color:var(--ink-2);text-align:left}
+.archh .count{font-size:12px;font-weight:600;color:var(--ink-3);background:var(--sunken);padding:1px 8px;border-radius:999px}
+.archh svg{margin-left:auto;transition:transform .2s;color:var(--ink-3)} .archh.open svg{transform:rotate(90deg)}
+.arch .qcard{opacity:.85} .arch .qhead{background:none}
+@media (max-width:640px){ .qcard .addline{width:calc(100% + 32px);margin:4px -16px -6px;padding:13px 16px} .qask{padding:4px 16px 0} }
+
 /* motion */
 .still .rise{animation:none!important} .still .rv{transition:none!important}
 .rise{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
@@ -776,13 +786,25 @@ function raceBlock(r){
   const meta=[r.date&&fmtD(r.date,{weekday:'short',day:'numeric',month:'short'}),r.distance&&`${r.distance} km`,r.elevation&&`${r.elevation} m D+`].filter(Boolean).join(' · ');
   return `<div class="race"><div class="race-h">${r.startTime?`<span class="tm">${esc(r.startTime)}</span>`:''}<b>${esc(r.name||'Race')}</b>${meta?`<small>${esc(meta)}</small>`:''}${r.special?'<small>Special results</small>':''}</div>${course}${r.notes?`<div class="rnote">${esc(r.notes)}</div>`:''}</div>`;
 }
+/* Questions: what needs the client (or waits for Ulisse) first; answered / resolved ones folded at the bottom, like an archive */
+let archOpen=false;
+const isLive=q=>isOpenQ(q)||q.author==='client'&&!q.answer;
 function vQuestions(){
-  const withQ=EVENTS.filter(e=>DET[e.id]?.questions.length||upcoming().includes(e)).sort((a,b)=>(a.start||'9').localeCompare(b.start||'9'));
-  const missing=withQ.filter(e=>!DET[e.id]); if(missing.length){ Promise.all(missing.map(e=>loadEvent(e.id))).then(rerender).catch(()=>{}); }
-  const qn=totalOpen();
-  return `<div class="rise"><div class="eyebrow">${plural(withQ.length,'event','events')}</div><h1>Questions</h1>
-  <p class="lede">${qn?`<b>${qn} open</b> — answer here, or ask ${esc(OP().name.split(' ')[0])} something yourself.`:'All answered — thank you!'}</p>
-  ${withQ.filter(e=>DET[e.id]).map(e=>`<div class="card" style="margin-bottom:12px">${qGroup(e,{all:true,write:true})}</div>`).join('')}</div>`;
+  const evs=EVENTS.filter(e=>DET[e.id]?.questions.length||upcoming().includes(e)).sort((a,b)=>(a.start||'9').localeCompare(b.start||'9'));
+  const missing=evs.filter(e=>!DET[e.id]); if(missing.length){ Promise.all(missing.map(e=>loadEvent(e.id))).then(rerender).catch(()=>{}); }
+  const ok=evs.filter(e=>DET[e.id]), live=ok.filter(e=>qsOf(e).some(isLive)), other=ok.filter(e=>!live.includes(e)&&upcoming().includes(e));
+  const arch=ok.map(e=>[e,qsOf(e).filter(q=>!isLive(q))]).filter(([,l])=>l.length).sort((a,b)=>(b[0].start||'').localeCompare(a[0].start||''));
+  const an=arch.reduce((n,[,l])=>n+l.length,0), qn=totalOpen(), first=esc(OP().name.split(' ')[0]);
+  const head=(e,n)=>`<div class="qhead"><span class="qdot"></span><div class="qhm"><div class="eye">${e.start?fmtD(e.start,{weekday:'short',day:'numeric',month:'short'})+' · ':''}${cd(days(e))}</div><b>${esc(e.name)}</b></div>
+    ${n?`<span class="chip warn">${plural(n,'to answer','to answer')}</span>`:''}<a class="qopen" href="#e/${encodeURIComponent(e.id)}">Open event ›</a></div>`;
+  return `<div class="rise"><div class="eyebrow">Questions</div><h1>${qn?`${plural(qn,'question','questions')} for you`:'All answered'}</h1>
+  <p class="lede">${qn?`Answer here — ${first} gets it at once. Or ask him something yourself.`:`Thank you! Ask ${first} something yourself, or look back at the answers below.`}</p>
+  ${live.length?`<div class="qlist">${live.map(e=>`<div class="card glow qcard" style="${tstyle(e)}">${head(e,openN(e))}
+    ${qsOf(e).filter(isLive).map(q=>qItem(e,q)).join('')}${writeBlock(e)}</div>`).join('')}</div>`:''}
+  ${other.length?`<div class="h2">Ask about ${live.length?'another event':'an event'}</div>
+    <div class="card qask">${other.map(e=>`<div class="qev" style="${tstyle(e)}"><div class="qevh"><span class="qdot"></span><b>${esc(e.name)}</b><small>${e.start?fmtD(e.start,{day:'numeric',month:'short'})+' · ':''}${cd(days(e))}</small></div>${writeBlock(e)}</div>`).join('')}</div>`:''}
+  ${an?`<button class="archh ${archOpen?'open':''}" data-act="arch"><span>Answered &amp; resolved</span><span class="count">${an}</span>${I.fwd}</button>
+    ${archOpen?`<div class="qlist arch">${arch.map(([e,l])=>`<div class="card qcard" style="${tstyle(e)}">${head(e,0)}${l.sort((a,b)=>a.n-b.n).map(q=>qItem(e,q)).join('')}</div>`).join('')}</div>`:''}`:''}</div>`;
 }
 function vIce(){
   const by={}; ICE.open.forEach(h=>{ const m=(h.date||'').slice(0,7); (by[m]=by[m]||[]).push(h); });
@@ -829,6 +851,7 @@ document.addEventListener('click',async e=>{
   const act=b.dataset.act;
   if(act==='account') return account();
   if(act==='theme') return cycleTheme();
+  if(act==='arch'){ archOpen=!archOpen; return rerender(); }
   if(act==='towait') return document.getElementById('wait')?.scrollIntoView({behavior:'smooth',block:'start'});
   if(act==='signout'){ closeSheet(); return signOut(); }
   if(act==='again'){ linkSent=''; render(); return; }
