@@ -1974,6 +1974,49 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .agt-i svg{width:15px;height:15px}
 .agt.travel .agt-i{background:var(--ag-travel-s);color:var(--ag-travel)} .agt.away .agt-i{background:var(--ag-away-s);color:var(--ag-away)} .agt.other .agt-i{background:var(--ag-other-s);color:var(--ag-other)}
 .agdc-empty{padding:6px 2px 4px;color:var(--ink-3);font-size:13px}
+/* clients overview (desktop, no client open) */
+.cov .hm-head{align-items:flex-end;margin-bottom:18px}
+.cov .hm-head h1{margin-top:4px}
+.ov-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.ov-s{position:relative;overflow:hidden;isolation:isolate;border-radius:22px;background:var(--panel);box-shadow:var(--shadow-sm);padding:16px 18px}
+.ov-s::before{content:'';position:absolute;inset:-30px;z-index:-1;pointer-events:none;background:radial-gradient(55% 60% at 95% 0%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 70%)}
+.ov-s.warn::before{background:radial-gradient(55% 60% at 95% 0%,color-mix(in srgb,var(--warn) 20%,transparent),transparent 70%)}
+.ov-s.warn .cc-eye,.ov-s.warn b{color:var(--warn)}
+.ov-s b{display:block;font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.05;margin-top:6px}
+.ov-s b small{font-size:18px;font-weight:700;color:var(--ink-2);margin-left:1px}
+.ov-s > span,.ov-s > div > span{display:block;font-size:12.5px;color:var(--ink-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-s.rg{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ov-s.rg > div{min-width:0}
+.ov-s.rg .cc-ring{width:56px;height:56px;margin:0}
+.ov-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;margin-top:12px;align-items:start}
+.ov-c{cursor:default;padding:18px 18px 14px}
+.ov-c:active{transform:none}
+.ov-ch{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+.ov-ch h3{margin:3px 0 0;font-size:20px;font-weight:800;letter-spacing:-.03em}
+.ov-t{margin:0 0 8px} .ov-t:last-child{margin-bottom:0}
+.ov-t{grid-template-columns:64px minmax(0,1fr) auto}
+.ov-t .cc-nl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ov-t small .w{color:var(--warn)}
+.ov-empty{display:flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13px;padding:6px 2px}
+.ov-empty svg{width:16px;height:16px;color:var(--ok)}
+/* 30-day tracks */
+.ov-ticks{position:relative;height:16px;margin:0 8px 6px 148px}
+.ov-ticks span{position:absolute;transform:translateX(-50%);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.ov-ticks span:first-child{transform:none;color:var(--accent)} .ov-ticks span:last-child{transform:translateX(-100%)}
+.ov-row{display:grid;grid-template-columns:140px minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;padding:10px 8px;border-radius:14px;background:var(--sunken);margin-bottom:8px}
+.ov-row:last-child{margin-bottom:0}
+.ov-cn{grid-row:1 / 3;border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0}
+.ov-cn b{display:block;font-size:15px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-cn small{font-size:11.5px;color:var(--ink-3)}
+.ov-cn:hover b{color:var(--accent)}
+.ov-track{position:relative;height:22px}
+.ov-line{position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;border-radius:2px;background:var(--line-2)}
+.ov-ev{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:999px;background:var(--panel);box-shadow:0 0 0 2px var(--accent);overflow:hidden}
+.ov-ev i{position:absolute;left:0;top:0;bottom:0;width:var(--p);background:var(--accent)}
+.ov-ev.now{box-shadow:0 0 0 2px var(--accent),0 0 0 6px var(--accent-soft)}
+.ov-ev:hover{transform:scale(1.25)}
+.ov-names{font-size:11.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+@media (max-width:1180px){ .ov-stats{grid-template-columns:repeat(2,minmax(0,1fr))} .ov-grid{grid-template-columns:1fr} }
 /* clients list as cards: big card per client with something coming up, small ones for the rest */
 .ccards{padding:2px 12px 16px}
 .cc-h{display:flex;align-items:baseline;gap:6px;font-size:13px;font-weight:700;letter-spacing:-.01em;padding:14px 4px 8px}
@@ -3607,8 +3650,48 @@ function bindHoursTable(D){
 /* =====================================================================
    CLIENT
    ===================================================================== */
+// desktop, no client open: overview (totals, needs attention, 30-day tracks per client)
+function clientsOverview(D){
+  const all=S.clients.map(c=>({c,...cliStats(c)})), withUp=all.filter(x=>x.up.length);
+  const upEv=S.events.filter(e=>!isPast(e)&&e.dateStart).sort((a,b)=>a.dateStart.localeCompare(b.dateStart));
+  const oqT=all.reduce((a,x)=>a+x.oq,0), oqC=all.filter(x=>x.oq).length;
+  const avg=upEv.length?upEv.reduce((a,e)=>a+progress(e),0)/upEv.length:0;
+  const end30=addDays(TODAY,29), in30=upEv.filter(e=>e.dateStart<=end30);
+  const showH=priv(), openH=showH?sumH(entriesOf(isOpen)):0;
+  // needs attention: within 14 days and not ready, or with open questions; soonest first
+  const att=upEv.filter(e=>(e.dateStart<=addDays(TODAY,13)&&progress(e)<1)||openQ(e).length).slice(0,6);
+  const nx=upEv[0], nxc=nx?countdown(nx):null;
+  const tile=e=>{ const p=progress(e), q=openQ(e).length, cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd).main.replace(/ \d{4}$/,'');
+    const why=[q?plural(q,'open question','open questions'):'',e.dateStart<=addDays(TODAY,13)&&p<1?`${Math.round(p*100)}% prepared`:''].filter(Boolean).join(' · ');
+    return `<a class="cc-next ov-t" href="#/e/${encodeURIComponent(e.id)}"><span class="cc-nl">${esc(clientName(e.clientId)||'—')}</span>
+      <span class="cc-nm"><b>${esc(e.name||'untitled')}</b><small>${esc(rt)}${why?` · <span class="${q?'w':''}">${esc(why)}</span>`:''}</small></span>
+      <span class="agt-r"><span class="cd ${cd.c}">${cd.t}</span><span class="cc-ring sm">${ring(p,36,3.5)}<b>${Math.round(p*100)}<small>%</small></b></span></span></a>`; };
+  // next 30 days: one track per client with something in the window
+  const rows=all.map(x=>({...x,evs:x.up.filter(e=>e.dateStart&&e.dateStart<=end30)})).filter(x=>x.evs.length).sort((a,b)=>a.evs[0].dateStart.localeCompare(b.evs[0].dateStart));
+  const dayX=d=>Math.max(0,Math.min(29,Math.round((parse(d)-parse(TODAY))/864e5)))/29*100;
+  const ticks=[0,7,14,21,29].map(n=>{ const d=addDays(TODAY,n), dd=parse(d); return `<span style="left:${n/29*100}%">${n===0?'Today':`${dd.getDate()} ${MON[dd.getMonth()]}`}</span>`; }).join('');
+  const track=x=>`<div class="ov-row"><button type="button" class="ov-cn" data-go="c:${esc(x.c.id)}"><b>${esc(x.c.name||'untitled')}</b><small>${plural(x.evs.length,'event','events')}</small></button>
+    <div class="ov-track"><i class="ov-line"></i>${x.evs.map(e=>{ const a=dayX(e.dateStart), b=dayX(e.dateEnd||e.dateStart), p=progress(e);
+      return `<a class="ov-ev ${b>a?'multi':''} ${e.dateStart===TODAY?'now':''}" href="#/e/${encodeURIComponent(e.id)}" style="left:${a}%;${b>a?`width:calc(${b-a}% + 12px)`:''}" title="${esc(e.name)} · ${esc(fmtShort(e.dateStart))} · ${Math.round(p*100)}% prepared"><i style="--p:${Math.round(p*100)}%"></i></a>`; }).join('')}</div>
+    <div class="ov-names">${x.evs.slice(0,2).map(e=>esc(e.name)).join(' · ')}${x.evs.length>2?` · +${x.evs.length-2}`:''}</div></div>`;
+  D.innerHTML=`<div class="home cov">
+    <div class="hm-head"><div><div class="cc-eye">${plural(S.clients.length,'client','clients')} · ${withUp.length} with events coming up</div><h1>Clients</h1></div></div>
+    <div class="ov-stats">
+      <div class="ov-s"><div class="cc-eye">Coming up</div><b>${upEv.length}</b><span>${nx?`next: ${esc(nx.name)} · ${esc(nxc.t)}`:'nothing planned'}</span></div>
+      <div class="ov-s ${oqT?'warn':''}"><div class="cc-eye">Open questions</div><b>${oqT}</b><span>${oqT?`at ${plural(oqC,'client','clients')}`:'all answered'}</span></div>
+      <div class="ov-s rg"><div><div class="cc-eye">Prepared</div><b>${Math.round(avg*100)}<small>%</small></b><span>average of the upcoming events</span></div><span class="cc-ring">${ring(avg,56,5)}</span></div>
+      ${showH?`<div class="ov-s"><div class="cc-eye">Open hours</div><b>${fmtN(openH)}</b><span>${esc(U().icon)} ${fmtN(openH)} h not closed</span></div>`:`<div class="ov-s"><div class="cc-eye">Next 30 days</div><b>${in30.length}</b><span>${plural(in30.length,'event','events')} for ${plural(rows.length,'client','clients')}</span></div>`}
+    </div>
+    <div class="ov-grid">
+      <section class="ccard ov-c"><div class="ov-ch"><div><div class="cc-eye">Needs attention</div><h3>${att.length?plural(att.length,'event','events'):'All good'}</h3></div></div>
+        ${att.length?att.map(tile).join(''):`<div class="ov-empty">${ic('check',2.2)} Nothing urgent: events in the next 2 weeks are ready and no questions are open.</div>`}</section>
+      <section class="ccard ov-c"><div class="ov-ch"><div><div class="cc-eye">Next 30 days</div><h3>By client</h3></div></div>
+        <div class="ov-ticks">${ticks}</div>${rows.map(track).join('')||'<div class="ov-empty">Nothing in the next 30 days.</div>'}</section>
+    </div></div>`;
+}
 function renderClient(D){
   const c=S.clients.find(x=>x.id===route.id);
+  if(!c&&!narrow.matches) return clientsOverview(D);
   if(!c){ D.innerHTML=`<div class="bigempty"><div class="ill">${ic('user',1.8)}</div><h2>Pick a client</h2><p>Contacts, RR customer ID and all their events in one place.</p><p><button class="btn primary" type="button" id="bc-new">${ic('plus',2.4)} New client</button></p></div>`; $('#bc-new').onclick=newItem; return; }
   const {ev,up,past,next,oq,avg}=cliStats(c), cd=next?countdown(next):null;
   const showH=priv(), all=showH?entriesOf(h=>h.clientId===c.id):[], open=all.filter(isOpen), coef=showH?coefOf(c.id):0;
@@ -3638,7 +3721,7 @@ function renderClient(D){
   </div>
   <div class="cacts">
     <a class="btn ${mail?'':'off'}" ${mail?`href="${esc(mail)}"`:'role="button" tabindex="0" data-f="[data-k=email]"'}>${ic('mail',1.9)}<span>${mail?'Email':'No email'}</span></a>
-    <a class="btn ${tel?'':'off'}" ${tel?`href="${esc(tel)}"`:'role="button" tabindex="0" data-f="[data-k=phone]"'}>${ic('phone',1.9)}<span>${tel?'Call':'No phone'}</span></a>
+    ${tel&&!narrow.matches?`<button type="button" class="btn" id="cphone">${ic('copy',1.9)}<span>Copy phone</span></button>`:`<a class="btn ${tel?'':'off'}" ${tel?`href="${esc(tel)}"`:'role="button" tabindex="0" data-f="[data-k=phone]"'}>${ic('phone',1.9)}<span>${tel?'Call':'No phone'}</span></a>`}
   </div>
   <section class="sec" id="s-cdetails"><div class="sech" style="--sc:${SECC.general}"><h3>${secBadge('general')}Details</h3></div>
     <div class="grid">
@@ -3684,6 +3767,7 @@ function renderClient(D){
   }
   D.querySelector('#cpast')?.addEventListener('click',()=>{ cliPast=!cliPast; const y=scrollY; renderClient(D); scrollTo(0,y); });
   on(D,'[data-jump]',(a,e)=>{ e.preventDefault(); D.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth',block:'start'}); });
+  D.querySelector('#cphone')?.addEventListener('click',async()=>{ if(await copyText(c.phone)) toast('Phone copied',c.phone,'copy'); }); // desktop: no calls, copy the number
   D.querySelectorAll('.cacts .off').forEach(b=>b.onclick=()=>D.querySelector(b.dataset.f)?.focus()); // no email / phone yet: go to the field
   $('#delcl').onclick=()=>{
     if(ev.length){ alert('This client has events: move or delete them first.'); return; }
