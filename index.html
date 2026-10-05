@@ -1993,8 +1993,8 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .ov-c:active{transform:none}
 .ov-ch{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
 .ov-ch h3{margin:3px 0 0;font-size:20px;font-weight:800;letter-spacing:-.03em}
-.ov-t{margin:0 0 8px} .ov-t:last-child{margin-bottom:0}
-.ov-t{grid-template-columns:64px minmax(0,1fr) auto}
+.cc-next.ov-t{margin:0 0 8px} .cc-next.ov-t:last-child{margin-bottom:0}
+.cc-next.ov-t{grid-template-columns:64px minmax(0,1fr) auto} /* .cc-next comes later in the file: needs the extra class */
 .ov-t .cc-nl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ov-t small .w{color:var(--warn)}
 .ov-empty{display:flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13px;padding:6px 2px}
@@ -3888,7 +3888,7 @@ function agMini(){
     </div></div>`;
 }
 const rel=d=>{ const n=Math.round((parse(d)-parse(TODAY))/864e5); return n===0?'Today':n===1?'Tomorrow':n===-1?'Yesterday':n>0?`in ${n} days`:`${-n} days ago`; };
-const agDayCard=d=>{ const ev=agF.ev?agEvents().filter(i=>onDay(i,d)):[], en=agF.mine?agEntries().filter(i=>onDay(i,d)):[];
+const agDayCard=(d,o={})=>{ const on1=i=>o.starts?i.s===d||(i.s<d&&d===`${agMonth}-01`&&i.e>=d):onDay(i,d), ev=agF.ev?agEvents().filter(on1):[], en=agF.mine?agEntries().filter(on1):[]; // starts: multi-day items only on their first day (list view)
   const n=ev.length+en.length, dd=parse(d), cnt=[ev.length?plural(ev.length,'event','events'):'',en.length?plural(en.length,'entry','entries'):''].filter(Boolean).join(' · ');
   const evT=({o:e})=>{ const p=progress(e), cd=countdown(e), t=evMeta(e);
     return `<a class="cc-next agt" href="#/e/${encodeURIComponent(e.id)}"><span class="cc-nl">${esc(t||'Race')}</span><span class="cc-nm"><b>${esc(e.name||'untitled')}</b><small>${esc([e.type,clientName(e.clientId),e.status].filter(Boolean).join(' · '))}</small></span>
