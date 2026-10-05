@@ -495,7 +495,7 @@ async function loadAll(){
     const [evs,ice]=await Promise.all([rpc('portal_events'),rpc('portal_icecreams')]);
     EVENTS=(evs||[]).map(evOf); ICE=ice||ICE;
     await Promise.all(EVENTS.filter(e=>e.open).map(e=>loadEvent(e.id))); // the open questions are answered on Home
-    if(state==='ok'){ state='ok'; quietRender(); return; } // a refresh: no entrance animations, map tiles kept
+    if(state==='ok'){ rerender(); return; } // a refresh: no entrance animations, map tiles kept
     state='ok';
   }catch(err){
     if(err.signedOut){ state='signin'; }
@@ -742,10 +742,14 @@ document.addEventListener('submit',async e=>{
 });
 
 /* ---------- router ---------- */
-function rerender(){ const y=scrollY; document.body.classList.add('still'); render(); scrollTo(0,y); setTimeout(()=>document.body.classList.remove('still'),50); }
-/* re-render without reloading the map tiles: identical tile blocks get their old, already painted nodes back (no flash) */
-function quietRender(){ const old=new Map([...document.querySelectorAll('.tiles')].map(n=>[n.outerHTML,n]));
-  rerender(); for(const n of document.querySelectorAll('.tiles')){ const o=old.get(n.outerHTML); if(o&&o!==n) n.replaceWith(o); } }
+/* re-render in place: no entrance animations, and map tiles / pictures that did not change keep their already painted nodes
+   (a new <img> paints empty for a frame in Safari = flash) */
+function rerender(){ const y=scrollY; document.body.classList.add('still'); keepImgs(render); document.querySelectorAll('#app .rise').forEach(x=>x.classList.remove('rise')); scrollTo(0,y); setTimeout(()=>document.body.classList.remove('still'),50); } // .rise removed too: dropping .still would restart it (the flash)
+function keepImgs(fn){
+  const old=new Map(); for(const n of document.querySelectorAll('.htiles,.tiles,img')){ if(n.tagName==='IMG'&&n.closest('.htiles,.tiles')) continue; const k=n.outerHTML; (old.get(k)||old.set(k,[]).get(k)).push(n); }
+  fn();
+  for(const n of [...document.querySelectorAll('.htiles,.tiles,img')]){ if(!n.isConnected||n.tagName==='IMG'&&n.closest('.htiles,.tiles')) continue; const o=old.get(n.outerHTML)?.shift(); if(o&&o!==n) n.replaceWith(o); }
+}
 function render(){
   const h=decodeURIComponent(location.hash.slice(1))||'home', bare=!sess||state!=='ok';
   $('#top').style.display=$('#tbar').style.display=bare?'none':'';

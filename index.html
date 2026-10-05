@@ -3082,12 +3082,13 @@ async function autoPull(){
   if(!isSB()||!S||dirty||saving||syncing||refreshing||errMsg||needRemote||document.visibilityState!=='visible') return;
   const a=document.activeElement; if(a&&a.matches?.('input,textarea,select,[contenteditable]')||document.querySelector('dialog[open]')||!$('#scrim').hidden) return;
   lastPull=Date.now();
-  try{ const y=scrollY; if(await syncFromRemote()){ keepTiles('.htiles',()=>{ parseRoute(); render(); }); scrollTo(0,y); } }catch(err){ if(isNetErr(err)){ errMsg='Offline'; updSave(); } }
+  try{ const y=scrollY; if(await syncFromRemote()){ keepImgs(()=>{ parseRoute(); render(); }); scrollTo(0,y); } }catch(err){ if(isNetErr(err)){ errMsg='Offline'; updSave(); } }
 }
-/* re-render without reloading the map tiles: identical tile blocks get their old, already painted nodes back (no black flash) */
-function keepTiles(sel,fn){
-  const old=new Map([...document.querySelectorAll(sel)].map(n=>[n.outerHTML,n])); fn();
-  for(const n of document.querySelectorAll(sel)){ const o=old.get(n.outerHTML); if(o&&o!==n) n.replaceWith(o); }
+/* re-render without reloading images: map tile blocks and pictures that did not change get their old, already painted nodes back (a new <img> paints empty for a frame in Safari = flash) */
+function keepImgs(fn){
+  const old=new Map(); for(const n of document.querySelectorAll('.htiles,.tiles,.hpin,img')){ if(n.tagName==='IMG'&&n.closest('.htiles,.tiles')) continue; const k=n.outerHTML; (old.get(k)||old.set(k,[]).get(k)).push(n); }
+  fn();
+  for(const n of [...document.querySelectorAll('.htiles,.tiles,.hpin,img')]){ if(!n.isConnected||n.tagName==='IMG'&&n.closest('.htiles,.tiles')) continue; const o=old.get(n.outerHTML)?.shift(); if(o&&o!==n) n.replaceWith(o); }
 }
 setInterval(autoPull,60e3);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-lastPull>20e3) setTimeout(autoPull,600); });
