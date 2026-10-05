@@ -914,6 +914,15 @@ dialog#settings,dialog#unlock{max-height:calc(100vh - 16px - var(--sat));overflo
 .sset .fld{margin-bottom:12px}
 .swrow{display:flex;align-items:center;gap:10px;justify-content:space-between}
 .swrow .hint{flex:1;min-width:0}
+.rlist{padding:6px 14px 12px}
+.rrow{display:grid;grid-template-columns:96px minmax(0,1fr) 28px;gap:10px;align-items:center;padding:9px 0;border-bottom:.5px solid var(--line)}
+.rrow .rv{font-size:13px;color:var(--ink-2);white-space:nowrap} .rrow .rv b{font-family:var(--round);font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.rrow .rf{font-size:13px;color:var(--ink-2);display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.rrow .rtag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--sunken);color:var(--ink-3);white-space:nowrap}
+.rrow.cur .rtag{background:var(--ok-soft,rgba(52,199,89,.14));color:var(--ok,#34c759)} .rrow.fut .rtag{background:var(--accent-soft);color:var(--accent)}
+.rrow.old{opacity:.7}
+.radd{display:grid;grid-template-columns:minmax(128px,1.3fr) minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:12px}
+.radd .btn{height:32px}
 .closebox{display:grid;grid-template-columns:170px minmax(0,1fr) auto;gap:8px;align-items:end;margin-bottom:6px}
 .closebox .btn{height:32px}
 table.t.cltab{min-width:520px}
@@ -2675,6 +2684,16 @@ const SupabaseStore={
     const gh=goneOf('h:',entries), gk=goneOf('k:',closures);
     if(gh.length){ await this.rest(`hour_entries?${f}&id=${inList(gh)}`,{method:'DELETE',...kp}); for(const id of gh) delete this.h['h:'+id]; }
     if(gk.length){ await this.rest(`closures?${f}&id=${inList(gk)}`,{method:'DELETE',...kp}); for(const id of gk) delete this.h['k:'+id]; }
+    /* the rate list of the client page: insert / change / delete rows of client_rates (key: client + valid from) */
+    if(j.rates){ const key=(c,f)=>c+'|'+f, cur=new Map(), want=new Map();
+      for(const [c,l] of Object.entries(this.rates)) for(const x of l) cur.set(key(c,x.from),x.coefficient);
+      for(const [c,l] of Object.entries(j.rates)) for(const x of l||[]) if(x.from&&isFinite(num(x.coefficient))) want.set(key(c,x.from),num(x.coefficient));
+      const put=[...want].filter(([k,v])=>cur.get(k)!==v).map(([k,v])=>{ const [c,fr]=k.split('|'); return {org_id:o,client_id:c,valid_from:fr,coefficient:v}; });
+      if(put.length) await this.rest('client_rates?on_conflict=org_id,client_id,valid_from',{method:'POST',body:put,prefer:'resolution=merge-duplicates,return=minimal',...kp});
+      for(const k of [...cur.keys()].filter(k=>!want.has(k))){ const [c,fr]=k.split('|');
+        await this.rest(`client_rates?${f}&client_id=eq.${encodeURIComponent(c)}&valid_from=eq.${fr}`,{method:'DELETE',...kp}); }
+      const nr={}; for(const [k,v] of want){ const [c,fr]=k.split('|'); (nr[c]=nr[c]||[]).push({from:fr,coefficient:v}); }
+      for(const l of Object.values(nr)) l.sort((a,b)=>a.from.localeCompare(b.from)); this.rates=nr; }
     // a changed coefficient is a new rate from today on: earlier hours keep theirs
     const d=today(), nr=Object.entries(j.coefficients||{}).filter(([cid,v])=>v!==''&&v!=null&&isFinite(num(v))&&num(v)!==rateAt(this.rates,cid,d));
     if(nr.length){ await this.rest('client_rates?on_conflict=org_id,client_id,valid_from',{method:'POST',body:nr.map(([cid,v])=>({org_id:o,client_id:cid,valid_from:d,coefficient:num(v)})),prefer:'resolution=merge-duplicates,return=minimal',...kp});
@@ -2866,7 +2885,7 @@ async function loadAll(){
 }
 function snapshotItems(){ savedItems={}; for(const e of S.events) savedItems['e:'+e.id]=JSON.stringify(e); for(const c of S.clients) savedItems['c:'+c.id]=JSON.stringify(c); }
 const yearOf=e=>(e.dateStart||'').slice(0,4)||String(new Date().getFullYear());
-function hoursText(){ const h=S.hours, o={version:2,entries:h.entries,closures:h.closures}; if(Object.keys(h.coefficients||{}).length) o.coefficients=h.coefficients; if(Object.keys(h.rates||{}).length) o.rates=h.rates; return JSON.stringify(o,null,2); }
+function hoursText(){ const h=S.hours, o={version:2,entries:h.entries,closures:h.closures}; if(Object.keys(h.coefficients||{}).length) o.coefficients=h.coefficients; if(h.rates) o.rates=h.rates; return JSON.stringify(o,null,2); }
 /* CRITICAL: hours.json is part of the save set only while it is loaded (unlocked, or locked with changes still to save).
    It comes first so a coefficient move writes hours.json before clients.json drops them. */
 function serialize(){
@@ -3206,6 +3225,7 @@ const P={
   logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   x:'<path d="M6 6l12 12M18 6L6 18"/>',
   chev:'<path d="M9 6l6 6-6 6"/>',
@@ -3399,11 +3419,16 @@ function toast(msg,sub='',icon='check',cls='',action=null,persist=false){
    ===================================================================== */
 const THEME_KEY='events-tracker-theme';
 const sysDark=matchMedia('(prefers-color-scheme: dark)');
-try{ const th=localStorage.getItem(THEME_KEY); if(th==='light'||th==='dark') document.documentElement.dataset.theme=th; }catch{}
-const isDark=()=>document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':sysDark.matches;
-/* Toggling back to what the system uses returns to "follow the system" */
-function toggleTheme(){ const want=isDark()?'light':'dark'; if((want==='dark')===sysDark.matches){ delete document.documentElement.dataset.theme; try{ localStorage.removeItem(THEME_KEY) }catch{} }
-  else{ document.documentElement.dataset.theme=want; try{ localStorage.setItem(THEME_KEY,want) }catch{} } renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); }
+/* appearance: Auto (follows the device) → Light → Dark, remembered on this device (same switch as the client portal) */
+let themePref=(()=>{ try{ const th=localStorage.getItem(THEME_KEY); return th==='light'||th==='dark'?th:'auto'; }catch{ return 'auto'; } })();
+const isDark=()=>themePref==='dark'||themePref==='auto'&&sysDark.matches;
+const themeName=()=>themePref==='auto'?'Auto':themePref==='light'?'Light':'Dark', themeIcon=()=>themePref==='auto'?'auto':themePref==='light'?'sun':'moon';
+const nextTheme=()=>themePref==='auto'?'light':themePref==='light'?'dark':'auto';
+function applyTheme(){ const r=document.documentElement; if(themePref==='auto') delete r.dataset.theme; else r.dataset.theme=themePref;
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.content=themePref==='auto'?(m.media.includes('dark')?'#000000':'#f2f2f7'):isDark()?'#000000':'#f2f2f7'); }
+applyTheme();
+function toggleTheme(){ themePref=nextTheme(); try{ themePref==='auto'?localStorage.removeItem(THEME_KEY):localStorage.setItem(THEME_KEY,themePref); }catch{}
+  applyTheme(); renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); toast(`Appearance: ${themePref==='auto'?'Auto (like this device)':themeName()}`,'','check'); }
 function renderTop(){
   const vt={e:'Events',c:'Clients',a:'Agenda',h:'Hours',m:'Map'}[route.view];
   const tabOn=v=>route.view===v||(v==='e'&&route.view==='m');
@@ -3418,7 +3443,7 @@ function renderTop(){
     <span class="savestate" id="savestate" role="status"><i></i><span></span></span>
     <button id="savebtn" class="btn icon ghost" type="button" aria-label="Save">${ic('save',1.9)}</button>
     <button id="unitbtn" class="btn icon ghost ${priv()?'unl':''}" type="button" aria-pressed="${priv()}" data-tip="${priv()?'Unlocked — click to lock (auto-locks after 10 min idle)':'Unlock private data'}" data-kbd="L" aria-label="${priv()?'Lock private data':'Unlock private data'}">${esc(U().icon)}<span class="lk">${ic(priv()?'unlock':'lock',3)}</span></button>
-    <button id="themebtn" class="btn icon ghost" type="button" data-tip="${isDark()?'Light':'Dark'} theme" aria-label="Toggle theme">${ic(isDark()?'sun':'moon',1.9)}</button>
+    <button id="themebtn" class="btn icon ghost" type="button" data-tip="Appearance: ${themeName()} · click for ${{auto:'Auto',light:'Light',dark:'Dark'}[nextTheme()]}" aria-label="Appearance">${ic(themeIcon(),1.9)}</button>
     <span class="vsep"></span>
     <button id="newbtn" class="btn primary newbtn ${route.view==='a'?'onag':''}" type="button" data-tip="${route.view==='h'?'Log hours':'New '+nv}" data-kbd="N" aria-label="${route.view==='h'?'Log hours':'New '+nv}">${ic('plus',2.4)}<span>${route.view==='c'?'Client':route.view==='h'?'Hours':route.view==='a'?'Entry':'Event'}</span></button>
     <button id="setbtn" class="btn icon ghost" type="button" data-tip="Settings" aria-label="Settings">${ic('gear',1.8)}</button>
@@ -4227,11 +4252,11 @@ function renderClient(D){
       ${F(c,'rrCustomerId','RR customer ID',{ph:'e.g. 60788',mono:true,r:'change',attrs:'inputmode="numeric" autocomplete="off"'})}
       ${F(c,'email','Email',{type:'email',ph:'name@example.com'})}
       ${F(c,'phone','Phone',{type:'tel',ph:'+33…'})}
-      ${showH?F(S.hours.coefficients,c.id,'Coefficient',{ph:'1',hint:'· hours × coefficient = '+esc(U().icon)+(S.hours.rates?' · a change counts from today, earlier hours keep their rate':''),t:'num',r:'change'}):''}
+      ${showH&&!isSB()?F(S.hours.coefficients,c.id,'Coefficient',{ph:'1',hint:'· hours × coefficient = '+esc(U().icon)+(S.hours.rates?' · a change counts from today, earlier hours keep their rate':''),t:'num',r:'change'}):''}
       ${T(c,'notes','Notes',{ph:'Anything about this client…'})}
     </div>
     <p class="hint chelp">RR customer ID is used for the “Open in RR14” links of this client's events.</p>
-  </section>${isSB()?`<section class="sec" id="s-cportal"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Client portal</h3></div><div id="cportal"><p class="hint">Loading…</p></div></section>`:''}</div>
+  </section>${showH&&isSB()?ratesBlock(c):''}${isSB()?`<section class="sec" id="s-cportal"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Client portal</h3></div><div id="cportal"><p class="hint">Loading…</p></div></section>`:''}</div>
   <div class="cg-r"><section class="sec" id="s-cevents"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Events <span class="count">${ev.length}</span></h3></div>
     ${ev.length?`<div class="cevs">
       ${up.length?`<div class="cgh">Upcoming · ${up.length}</div>${up.map(evRow).join('')}`:'<div class="cgh">Nothing coming up</div>'}
@@ -4268,6 +4293,7 @@ function renderClient(D){
   }
   D.querySelector('#cpast')?.addEventListener('click',()=>{ cliPast=!cliPast; const y=scrollY; renderClient(D); scrollTo(0,y); });
   if(isSB()) loadPortalContacts(c);
+  if(isSB()&&S.hours) bindRates(D,c);
   on(D,'[data-jump]',(a,e)=>{ e.preventDefault(); D.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth',block:'start'}); });
   D.querySelector('#closebtn')?.addEventListener('click',()=>go('c')); // back to the overview (Esc too)
   D.querySelector('#cphone')?.addEventListener('click',async()=>{ if(await copyText(c.phone)) toast('Phone copied',c.phone,'copy'); }); // desktop: no calls, copy the number
@@ -4276,7 +4302,37 @@ function renderClient(D){
     if(ev.length){ alert('This client has events: move or delete them first.'); return; }
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this client','lock'); return; }
     if(all.length){ alert('This client has hours: move or delete them first.'); return; }
-    if(confirm(`Delete the client «${c.name||'untitled'}»?`)){ S.clients=S.clients.filter(x=>x!==c); if(S.hours) delete S.hours.coefficients[c.id]; touch(); go('c'); } };
+    if(confirm(`Delete the client «${c.name||'untitled'}»?`)){ S.clients=S.clients.filter(x=>x!==c); if(S.hours){ delete S.hours.coefficients[c.id]; if(S.hours.rates) delete S.hours.rates[c.id]; } touch(); go('c'); } };
+}
+
+/* 🍦 rates of a client (Supabase): each hour uses the rate valid on the day of the work; closed periods keep their value */
+const dLong=s=>parse(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+function ratesBlock(c){
+  const l=(S.hours.rates?.[c.id]||[]).slice().sort((a,b)=>b.from.localeCompare(a.from)), cur=l.find(x=>x.from<=TODAY);
+  const row=(x,i)=>{ const newer=l[i-1], tag=x.from>TODAY?'upcoming':x===cur?'current':`until ${dLong(addDays(newer.from,-1))}`;
+    return `<div class="rrow ${x===cur?'cur':x.from>TODAY?'fut':'old'}"><span class="rv"><b>${fmtN(x.coefficient)}</b> ${esc(U().icon)} / h</span>
+      <span class="rf">from ${dLong(x.from)} <span class="rtag">${tag}</span></span>
+      <button type="button" class="btn icon sm ghost" data-rdel="${esc(x.from)}" aria-label="Delete this rate" data-tip="Delete">${ic('x',2)}</button></div>`; };
+  return `<section class="sec" id="s-crates"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Rates <span class="count">${esc(U().icon)} per hour</span></h3></div>
+    <div class="ccard rlist">${l.length?l.map(row).join(''):`<p class="hint" style="margin:6px 0">No rate yet: hours count as 1 ${esc(U().icon)} each.</p>`}
+      <div class="radd"><div class="fld"><span class="lab">From</span>${dateBtn('rt-date',fmtDay,'Valid from')}</div>
+        <div class="fld"><label class="lab" for="rt-val">${esc(U().icon)} per hour</label><input class="in" id="rt-val" inputmode="decimal" placeholder="${cur?fmtN(cur.coefficient):'75'}"></div>
+        <button class="btn" id="rt-add" type="button">${ic('plus',2)} Add rate</button></div></div>
+    <p class="hint" style="margin:6px 2px 0">Each hour uses the rate valid on the day of the work. A rate on a date that already has one replaces it. Closed periods keep their value.</p></section>`;
+}
+function bindRates(D,c){
+  const syncCoef=()=>{ const v=rateAt(S.hours.rates,c.id,TODAY); if(v===undefined) delete S.hours.coefficients[c.id]; else S.hours.coefficients[c.id]=v; };
+  const redraw=()=>{ const y=scrollY; renderDetail(); scrollTo(0,y); };
+  const add=$('#rt-add'); if(!add) return;
+  bindDateBtn($('#rt-date'),fmtDay);
+  const go=()=>{ const v=num($('#rt-val').value), d=$('#rt-date').dataset.date;
+    if(!isFinite(v)||v<=0){ toast('Enter the rate',`${U().icon} per hour, e.g. 75`,'warn','warn'); $('#rt-val').focus(); return; }
+    S.hours.rates=S.hours.rates||{}; const l=(S.hours.rates[c.id]||[]).filter(x=>x.from!==d); l.push({from:d,coefficient:v}); l.sort((a,b)=>a.from.localeCompare(b.from));
+    S.hours.rates[c.id]=l; syncCoef(); touch(); redraw(); toast('Rate added',`${fmtN(v)} ${U().icon} / h from ${fmtDay(d)}`,'check'); };
+  add.onclick=go; $('#rt-val').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } });
+  on(D,'[data-rdel]',b=>{ const l=S.hours.rates?.[c.id]||[], x=l.find(r=>r.from===b.dataset.rdel); if(!x) return;
+    if(!confirm(`Delete the rate ${fmtN(x.coefficient)} ${U().icon} / h from ${fmtDay(x.from)}?\n\nHours of that period will use the rate before it (or 1 if there is none).`)) return;
+    S.hours.rates[c.id]=l.filter(r=>r!==x); if(!S.hours.rates[c.id].length) delete S.hours.rates[c.id]; syncCoef(); touch(); redraw(); });
 }
 
 /* Client portal contacts (Supabase): each email gets its own sign-in by link; the Edge Function "invite" does the work
@@ -4678,7 +4734,7 @@ function openMore(btn){
   m.innerHTML=`<div class="msave ${st}"><i></i><div><b>${st==='saved'?'All saved':st==='saving'?'Saving…':st==='err'?'Not saved':'Unsaved changes'}</b><small>${esc(txt)}</small></div>
       <button type="button" data-mm="${needSave?'save':'refresh'}">${ic(needSave?'save':'refresh',2)}${needSave?'Save':'Refresh'}</button></div>
     <div class="mtiles">
-      <button type="button" data-mm="theme"><span class="mi" style="--c:#7a5af5">${ic(isDark()?'sun':'moon',1.9)}</span><b>${isDark()?'Light theme':'Dark theme'}</b><small>now ${isDark()?'dark':'light'}</small></button>
+      <button type="button" data-mm="theme"><span class="mi" style="--c:#7a5af5">${ic(themeIcon(),1.9)}</span><b>Appearance: ${themeName()}</b><small>tap for ${{auto:'Auto',light:'Light',dark:'Dark'}[nextTheme()]}</small></button>
       <button type="button" data-mm="values"><span class="mi" style="--c:#ff9500">${esc(U().icon)}</span><b>Private data</b><small>${priv()?'unlocked · tap to lock':'locked · tap to unlock'}</small></button>
     </div>
     <div class="mglab">AI import</div>
@@ -5026,7 +5082,7 @@ function renderCmd(){
     {t:'Refresh data',icon:'refresh',sub:`re-read from ${where()} (saves first)`,run:refreshData},
     {t:'Reload app',icon:'refresh',sub:'saves first',run:reloadApp},
     ...(importUndo?[{t:'Undo import',icon:'back',sub:'until the next save',run:undoImport}]:[]),
-    {t:isDark()?'Switch to light theme':'Switch to dark theme',icon:isDark()?'sun':'moon',run:toggleTheme},
+    {t:`Appearance: switch to ${{auto:'Auto',light:'Light',dark:'Dark'}[nextTheme()]}`,icon:themeIcon(),run:toggleTheme},
     priv()?{t:'Lock private data',icon:'lock',k:'L',run:()=>lock()}:{t:'Unlock private data…',icon:'unlock',k:'L',run:togglePrivacy},
     ...(ce?(()=>{ const L=evLinks(ce); return [
       {t:'Open in RR14',icon:L.rr.icon,sub:L.rr.url?ce.name:L.rr.why,run:()=>L.rr.url?window.open(L.rr.url,'_blank','noopener'):toast(L.rr.why,'','warn','warn')},
