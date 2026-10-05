@@ -343,6 +343,8 @@ main.bare{padding:0;max-width:none}
 .lcard input.field{display:block}
 .lerr{color:var(--warn);font-size:13px;margin-top:8px}
 .lerr:empty{display:none}
+.lcard input.code{text-align:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:20px;letter-spacing:.2em;margin-top:16px}
+.lcard input.code::placeholder{font-family:-apple-system,system-ui,sans-serif;font-size:15px;letter-spacing:0}
 .lcard .fine a{color:var(--ink-2);text-decoration:underline}
 .contact a.btn{flex:1;justify-content:center;height:38px}
 a.btn{text-decoration:none}
@@ -460,6 +462,12 @@ async function sendLink(email){
   if(r.status===429) throw new Error('Please wait a minute before asking for a new link.');
   // other errors (e.g. an email without access) look the same as a success: nobody can probe who is a client
 }
+// the code in the email: works where the link can't, e.g. in the portal added to the iPhone Home Screen (its own storage)
+async function verifyCode(email,code){
+  const r=await fetch(`${SB.url}/auth/v1/verify`,{method:'POST',headers:{apikey:SB.key,'Content-Type':'application/json'},body:JSON.stringify({type:'email',email,token:code})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(r.status===429?'Too many tries — wait a minute.':'That code is not valid or has expired.');
+  sess={access:j.access_token,refresh:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000}; saveSess(); }
 async function signOut(){ try{ if(sess) await fetch(`${SB.url}/auth/v1/logout`,{method:'POST',headers:{apikey:SB.key,Authorization:`Bearer ${sess.access}`}}); }catch{} sess=null; saveSess(); ME=null; location.hash=''; render(); }
 
 /* ---------- data ---------- */
@@ -663,8 +671,10 @@ function vIce(){
 let linkSent='';
 function vLogin(){
   return `<div class="login"><div class="card lcard rise"><span class="logo">${logo.replace(/16/g,24)}</span><div class="eye" style="color:var(--ink-3)">${esc(OP_DEFAULT.name)} · ${esc(OP_DEFAULT.role)}</div><h1>Your events</h1>
-  ${linkSent?`<p class="ic-sub" style="font-size:14px;margin-top:14px">If <b>${esc(linkSent)}</b> has access, a sign-in link is on its way. Open it on this device.</p>
-    <button class="btn" data-act="again" style="margin-top:14px">Use another email</button>`
+  ${linkSent?`<p class="ic-sub" style="font-size:14px;margin-top:14px">If <b>${esc(linkSent)}</b> has access, an email with a sign-in button and a code is on its way.</p>
+    <form id="cf"><input class="field code" id="lcode" inputmode="numeric" autocomplete="one-time-code" maxlength="14" required placeholder="Code from the email"><button class="btn primary" type="submit" id="cgo">Sign in</button></form>
+    <div class="lerr" id="lerr"></div>
+    <button class="btn ghost" data-act="again" style="margin-top:10px">Use another email</button>`
   :`<p class="ic-sub" style="font-size:14px">Answer questions, follow the preparation, see your ice creams.</p>
   <form id="lf"><input class="field" id="lmail" type="email" inputmode="email" autocomplete="email" required placeholder="you@email.com"><button class="btn primary" type="submit" id="lgo">Email me a sign-in link</button></form>
   <div class="lerr" id="lerr">${esc(linkError)}</div>`}
@@ -712,6 +722,11 @@ document.addEventListener('click',async e=>{
     return; }
 });
 document.addEventListener('submit',async e=>{
+  if(e.target.id==='cf'){ e.preventDefault(); const c=$('#lcode').value.replace(/\D/g,''); if(!c) return;
+    $('#cgo').disabled=true; $('#lerr').textContent='';
+    try{ await verifyCode(linkSent,c); linkSent=''; state='loading'; render(); location.hash='home'; await loadAll(); }
+    catch(err){ $('#cgo').disabled=false; $('#lerr').textContent=err instanceof TypeError?'No connection — try again.':err.message; }
+    return; }
   if(e.target.id!=='lf') return; e.preventDefault();
   const m=$('#lmail').value.trim().toLowerCase(); if(!m) return;
   $('#lgo').disabled=true; $('#lerr').textContent='';
