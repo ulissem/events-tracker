@@ -2961,8 +2961,8 @@ let dirty=false,saving=false,stateMsg=null,errMsg=null,lastSaved=null;
 function touch(what){ dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); if(what!=='hold') autoSave(); }
 /* Supabase: every change is saved by itself 1.5 s after the last one (only changed rows are written; GitHub stays manual: one commit per save).
    'hold' = not yet (the location text: it is saved with its coordinates after the pin lookup, or with the next change) */
-let autoT=null;
-function autoSave(){ if(DEMO||!isSB()) return; clearTimeout(autoT); autoT=setTimeout(()=>{ if(dirty&&!saving) save({quiet:true}); else if(dirty) autoSave(); },1500); }
+var autoT=null, autoPending=false, saveT0=0; // var: updSave may read them before this line runs
+function autoSave(){ if(DEMO||!isSB()) return; clearTimeout(autoT); autoPending=true; updSave(); autoT=setTimeout(()=>{ autoPending=false; if(dirty&&!saving) save({quiet:true}); else if(dirty) autoSave(); else updSave(); },1500); }
 /* an edit that was undone (item added, then removed) is not an unsaved change: compare with what was last saved */
 let dirtyT=null, cleanSnap=null; // cleanSnap: serialize() right after loading or saving (older files are upgraded on load, so they never match the saved text exactly)
 const markClean=()=>{ cleanSnap=serialize(); };
@@ -2973,7 +2973,7 @@ async function save({unload=false,quiet=false,retry=0}={}){
   if(!dirty&&!needRemote){ if(hoursWaiting()&&!unload&&!quiet){ toast(`Unlock ${U().icon} to sync the hours`,'hours changed offline are kept encrypted on this device','lock'); return; }
     if(!unload&&!quiet) toast('Everything is saved','nothing to commit'); dropHoursIfLocked(); return; }
   const wasOffline=errMsg==='Offline';
-  saving=true; errMsg=null; updSave();
+  saving=true; saveT0=Date.now(); errMsg=null; updSave(); setTimeout(updSave,2600); // a slow save shows itself after 2.5 s
   let file=null; const done=[];
   try{
     if(needRemote&&unload){ saving=false; updSave(); persistLocal(); return; } // remote not read yet: the local copy keeps the changes
@@ -3467,15 +3467,18 @@ function sortable(root){
 function ago(t){ const s=Math.round((Date.now()-t)/1000); if(s<45) return 'just now'; const m=Math.round(s/60); if(m<60) return `${m} min ago`; return `${Math.round(m/60)} h ago`; }
 function saveInfo(){
   const off=errMsg==='Offline';
+  // autosave (Supabase): a change waiting for its 1.5 s, or a quick save, does not flip the indicator; only a slow save, an error or offline show
+  const calm=!DEMO&&isSB()&&!off&&!errMsg&&(autoPending||saving&&Date.now()-saveT0<2500);
+  if(calm) return {off,st:'saved',txt:lastSaved?`Saved · ${ago(lastSaved)}`:'Up to date',calm};
   const st=off?'dirty':errMsg?'err':saving?'saving':dirty||hoursWaiting()?'dirty':'saved';
   const txt=stateMsg||(off?(dirty?'Offline · changes kept on this device':'Offline'):errMsg)||(saving?'Saving…':dirty?'Unsaved changes':hoursWaiting()?`Unlock ${U().icon} to sync hours`:DEMO?'Demo · not saved':lastSaved?`Saved · ${ago(lastSaved)}`:'Up to date');
   return {off,st,txt};
 }
 function updSave(){
-  const {off,st,txt}=saveInfo();
+  const {off,st,txt,calm}=saveInfo();
   const el=$('#savestate'); if(el){ el.className='savestate '+st; el.querySelector('span').textContent=txt; }
-  const b=$('#savebtn'); if(b){ b.className='btn icon ghost '+st; b.dataset.tip=off?(dirty?'Offline — changes are kept on this device and pushed when you are back online':'Offline'):errMsg?`${errMsg} — click to retry`:saving?'Saving…':dirty?'Unsaved changes — save':'Saved'; b.dataset.kbd=`${MOD} S`; b.setAttribute('aria-label',b.dataset.tip); }
-  const t=$('#tsave'); if(t){ t.className='tsave '+st; t.querySelector('span').textContent=off?'Offline':errMsg?'Retry':dirty?'Save':saving?'Saving…':'Saved'; }
+  const b=$('#savebtn'); if(b){ b.className='btn icon ghost '+st; b.dataset.tip=calm?'Saved automatically':off?(dirty?'Offline — changes are kept on this device and pushed when you are back online':'Offline'):errMsg?`${errMsg} — click to retry`:saving?'Saving…':dirty?'Unsaved changes — save':'Saved'; b.dataset.kbd=`${MOD} S`; b.setAttribute('aria-label',b.dataset.tip); }
+  const t=$('#tsave'); if(t){ t.className='tsave '+st; t.querySelector('span').textContent=calm?'Saved':off?'Offline':errMsg?'Retry':dirty?'Save':saving?'Saving…':'Saved'; }
 }
 setInterval(updSave,30e3);
 function toast(msg,sub='',icon='check',cls='',action=null,persist=false){
