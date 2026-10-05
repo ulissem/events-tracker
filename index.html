@@ -929,7 +929,7 @@ dialog#settings,dialog#unlock{max-height:calc(100vh - 16px - var(--sat));overflo
 .radd .in,.radd .btn{height:34px}
 .rin{position:relative;min-width:0} .rin .in{padding-right:52px} .rin i{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;font-size:12px;color:var(--ink-3);pointer-events:none}
 .rlist .addline{margin-top:4px}
-.q.hl{animation:qhl 2.6s ease-out;border-radius:12px}
+.lq.hl{animation:qhl 2.6s ease-out;border-radius:12px}
 @keyframes qhl{0%,35%{background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-line)}100%{background:transparent;box-shadow:0 0 0 2px transparent}}
 .closebox{display:grid;grid-template-columns:170px minmax(0,1fr) auto;gap:8px;align-items:end;margin-bottom:6px}
 .closebox .btn{height:32px}
@@ -2208,6 +2208,30 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .cpast svg{width:13px;height:13px;transition:transform .2s} .cpast.open svg{transform:rotate(90deg)}
 .cpast .count{margin-left:auto;font-weight:500;color:var(--ink-3)}
 /* questions in a card like every other section; film strip in the list column fades out clearly at the right edge */
+.lq{display:grid;grid-template-columns:34px minmax(0,1fr);gap:0 10px;padding:14px 0;border-bottom:1px solid var(--line)}
+.lq:last-of-type{border-bottom:0}
+.lq .num{font-size:12px;font-weight:700;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;color:var(--ink-3);padding-top:3px;display:flex;align-items:center;justify-content:flex-end;gap:5px;align-self:start;white-space:nowrap}
+.lq.turn .num{color:var(--warn)} .lq.turn .num::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--warn);flex:none}
+.lq.res .lb>.lm,.lq.res .num{opacity:.5}
+.lb{min-width:0}
+.lm{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;align-items:start}
+.lm + .lm,.lm + .lr{margin-top:10px}
+.av{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:700;color:#fff;letter-spacing:.02em;margin-top:1px}
+.av.um{background:linear-gradient(135deg,#7a5af5,#0a7aff)} .av.cl{background:linear-gradient(135deg,#30b0c7,#0e7490)}
+.lm .h{font-size:12px;color:var(--ink-3);line-height:22px} .lm .h b{color:var(--ink);font-weight:600}
+.lm .t,.lm textarea.lt{grid-column:2}
+.lm .t{font-size:14.5px;line-height:1.42;white-space:pre-wrap;overflow-wrap:anywhere}
+textarea.lt.in{border:0;background:transparent;box-shadow:none;padding:2px 6px;margin:-2px -6px;min-height:0;height:auto;resize:none;overflow:hidden;font-size:14.5px;line-height:1.42;border-radius:8px;width:calc(100% + 12px)}
+textarea.lt.in:hover{background:var(--sunken)} textarea.lt.in:focus{background:var(--sunken);box-shadow:0 0 0 2px var(--accent-soft)}
+textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3)}
+.lr{display:flex;align-items:flex-end;gap:6px;margin-left:30px;border:1px solid var(--line-2);border-radius:14px;padding:3px 3px 3px 8px;background:var(--panel)}
+.lq.turn .lr{border-color:color-mix(in srgb,var(--warn) 55%,transparent)}
+.lr textarea.lt.in{margin:0;width:auto;flex:1;padding:5px 4px} .lr textarea.lt.in:hover,.lr textarea.lt.in:focus{background:transparent;box-shadow:none}
+.send{width:30px;height:30px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--fill-2,var(--sunken));color:var(--panel);flex:none;cursor:pointer}
+.send svg{width:14px;height:14px} .send.on{background:var(--ink)}
+.ltools{display:flex;align-items:center;gap:6px;margin:8px 0 0 30px;font-size:12px;color:var(--ink-3)}
+.ltools .del{opacity:0;margin-left:auto} .lq:hover .ltools .del{opacity:1}
+@media (max-width:860px){ textarea.lt.in{font-size:16px} .ltools .del{opacity:1} }
 .qbox{background:var(--panel);border-radius:var(--r-card);box-shadow:var(--shadow-sm);padding:2px 14px}
 .qbox .q:last-of-type{border-bottom:0}
 #list .film{mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent);-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent)}
@@ -2228,7 +2252,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .scard .cc-eye.w{color:var(--warn)}
   .scard .ckhead{border:0;background:var(--sunken);border-radius:14px}
   .scard .qbox{background:none;box-shadow:none;padding:0}
-  .scard .q:last-child{border-bottom:0}
+  .scard .q:last-child,.scard .lq:last-of-type{border-bottom:0}
 }
 /* "+ Add …" at the end of each list (links, timing points, races, questions): new items appear right there, no scrolling up */
 .addline{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:9px 16px;border:0;border-radius:14px;background:none;color:var(--ink-3);font:inherit;font-size:13.5px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -2584,7 +2608,7 @@ const SupabaseStore={
       status:r.status||'',website:r.website||'',rr14EventId:r.rr14_event_id||'',...r.data,questions:qs.map(q=>this.qObj(q)),notes:r.notes||'',
       ...(r.geo?{geo:r.geo}:{}),...(r.tz?{tz:r.tz}:{}),...(r.portal_visible===false?{portalVisible:false}:{})}; },
   qObj(q){ return {id:q.id,n:q.n,text:q.text,answer:q.answer,resolved:q.resolved,...(q.author==='client'?{author:'client'}:{}),
-    ...(q.author==='client'&&q.created_at?{askedAt:q.created_at}:{}),...(q.answered_at&&q.answer?{answeredAt:q.answered_at,answeredBy:q.answered_by&&q.answered_by===jwtSub(this.access)?'you':'client'}:{})}; }, // who / when: read only (set by the database)
+    ...(q.created_at?{askedAt:q.created_at}:{}),...(q.answered_at&&q.answer?{answeredAt:q.answered_at,answeredBy:q.answered_by&&q.answered_by===jwtSub(this.access)?'you':'client'}:{})}; }, // who / when: read only (set by the database)
   qRow(q,eid){ return {event_id:eid,n:q.n,text:q.text||'',answer:q.answer||'',resolved:!!q.resolved}; },
   clRow(c){ const {id,name,contact,email,phone,rrCustomerId,notes,coefficient,...data}=c;
     return {id,name:name||'',contact:nz(contact),email:nz(email),phone:nz(phone),rr_customer_id:nz(rrCustomerId),notes:nz(notes),data}; },
@@ -3268,6 +3292,7 @@ const P={
   moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
   auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
+  up:'<path d="M12 19V5M5 12l7-7 7 7"/>',
   x:'<path d="M6 6l12 12M18 6L6 18"/>',
   chev:'<path d="M9 6l6 6-6 6"/>',
   mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
@@ -3534,7 +3559,7 @@ function applyRoute(force){
 }
 /* opened from a push: scroll to the questions it names and light them up; the hash goes back to the plain event */
 function focusQs(){ const ns=route.focusQ; route.focusQ=null; if(!ns||!route.id) return;
-  const els=ns.map(n=>document.querySelector(`#detail .q[data-qn="${n}"]`)).filter(Boolean);
+  const els=ns.map(n=>document.querySelector(`#detail [data-qn="${n}"]`)).filter(Boolean);
   history.replaceState(null,'',`#/e/${encodeURIComponent(route.id)}`); routeKey=location.hash;
   const t=els[0]||document.querySelector('#s-questions'); if(!t) return;
   const show=()=>{ t.scrollIntoView({block:'center'}); els.forEach(el=>{ el.classList.remove('hl'); void el.offsetWidth; el.classList.add('hl'); }); };
@@ -3983,12 +4008,7 @@ function renderEvent(D){
     <button type="button" data-rail="s-notes" title="Notes">${ic('doc',1.8)}</button>
   </div><div class="sidefull">
   <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''}</h3><span class="sp"></span></div>
-  ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}" data-qn="${q.n}">
-     <span class="qn">Q${q.n}</span>
-     <div class="qbody">${q.author==='client'?`<small class="qfrom">From the client${q.askedAt?' · '+esc(whenTs(q.askedAt)):''}</small>`:''}<textarea class="in auto qt" rows="1" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
-     <textarea class="in auto qa" rows="1" data-o="${ref(q)}" data-k="answer" placeholder="Answer…" aria-label="Answer Q${q.n}">${esc(q.answer)}</textarea>${q.answeredAt&&q.answer?`<small class="qwhen ${q.answeredBy==='client'?'cl':''}">${q.answeredBy==='client'?`${esc(clientName(e.clientId)||'Client')} answered`:'You answered'} · ${esc(whenTs(q.answeredAt))}</small>`:''}</div>
-     <span class="qc"><label class="chk" title="Resolved"><input type="checkbox" class="ck" data-o="${ref(q)}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> Resolved</label><button class="btn icon sm ghost del" data-delq="${i}" type="button" aria-label="Delete question Q${q.n}">${ic('x')}</button></span>
-   </div>`).join('')}
+  ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>qThread(e,q,i)).join('')}
   <button type="button" class="addline ${e.questions.length?'':'empty1'}" id="addq">${ic('plus',2)}<span>Add a question${e.questions.length?'':'<small>Open questions go into the client summary, numbered Q1, Q2…</small>'}</span></button>${e.questions.length?'</div>':''}
   </section>
 
@@ -4055,6 +4075,9 @@ function renderEvent(D){
   on(D,'[data-delsp]',b=>{ const [ci,si]=b.dataset.delsp.split(':').map(Number); if(e.contests[ci].splits[si]?.role==='split'){ e.contests[ci].splits.splice(si,1); touch(); renderDetail(); } });
   $('#addq').onclick=()=>{ const n=Math.max(0,...e.questions.map(q=>q.n||0))+1; e.questions.push({id:qid(),n,text:'',answer:'',resolved:false}); touch(); if(!sideOpen&&wide.matches) toggleSide(); renderDetail(); D.querySelector(`[aria-label="Question Q${n}"]`)?.focus(); };
   on(D,'[data-delq]',b=>{ e.questions.splice(+b.dataset.delq,1); touch(); renderDetail(); });
+  D.querySelectorAll('.lr').forEach(r=>{ const t=r.querySelector('textarea'), b=r.querySelector('.send'), upd=()=>b.classList.toggle('on',!!t.value.trim()); t.addEventListener('input',upd); upd();
+    b.onclick=async()=>{ if(!t.value.trim()) return; b.disabled=true; await save(); renderDetail(); }; });
+  markSeen(D,e);
   D.querySelectorAll('[data-ck]').forEach(c=>c.onchange=()=>{ e.checklist[c.dataset.ck]=c.checked; touch(); renderDetail(); });
   if(showH){
     bindAddHours('h',()=>({clientId:e.clientId,eventId:e.id}));
@@ -4359,6 +4382,29 @@ function renderClient(D){
 
 /* 🍦 rates of a client (Supabase): each hour uses the rate valid on the day of the work; closed periods keep their value */
 const dLong=s=>parse(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+/* a question as a short conversation (comment style): who · when, the text; the reply box only where it is your turn */
+const initials=n=>String(n||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+function qThread(e,q,i){
+  const cn=clientName(e.clientId), cl=q.author==='client', turn=cl&&!q.answer&&!q.resolved, R=ref(q);
+  const ME='<span class="av um" aria-hidden="true">UM</span>', THEM=`<span class="av cl" aria-hidden="true">${esc(initials(cn))}</span>`;
+  const head=(name,ts,extra='')=>`<span class="h"><b>${esc(name)}</b>${ts?' · '+esc(whenTs(ts)):''}${extra}</span>`;
+  const ta=(k,ph,cls='')=>`<textarea class="in auto lt ${k==='text'?'qt':'qa'} ${cls}" rows="1" data-o="${R}" data-k="${k}" placeholder="${ph}" aria-label="${k==='text'?'Question':'Answer'} Q${q.n}">${esc(q[k])}</textarea>`;
+  const ask=cl?`<div class="lm">${THEM}${head(cn,q.askedAt)}<div class="t">${esc(q.text)}</div></div>`:`<div class="lm">${ME}${head('You',q.askedAt)}${ta('text','Question')}</div>`;
+  const ans=q.answer&&q.answeredBy==='client'?`<div class="lm">${THEM}${head(cn,q.answeredAt)}<div class="t">${esc(q.answer)}</div></div>`
+    :q.answer?`<div class="lm">${ME}${head('You',q.answeredAt,cl&&q.answeredAt?`<span class="seen" data-seen="${esc(q.answeredAt)}"></span>`:'')}${ta('answer','Answer')}</div>`
+    :turn?`<div class="lr">${ta('answer',`Reply to ${esc(cn)}…`)}<button type="button" class="send" data-qsend aria-label="Send the reply">${ic('up',2.6)}</button></div>`
+    :`<div class="lm"><span></span>${ta('answer','No answer yet — or write it yourself…','mute')}</div>`;
+  return `<div class="lq ${turn?'turn':''} ${q.resolved?'res':''}" data-qn="${q.n}"><span class="num">Q${q.n}</span><div class="lb">${ask}${ans}
+    <div class="ltools"><label class="chk" title="Resolved"><input type="checkbox" class="ck" data-o="${R}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> Resolved</label><button class="btn icon sm ghost del" data-delq="${i}" type="button" aria-label="Delete question Q${q.n}">${ic('x')}</button></div></div></div>`;
+}
+/* "seen": the client opened the portal after your reply (portal_activity → seen of each contact) */
+const seenCache={};
+async function markSeen(D,e){
+  const els=[...D.querySelectorAll('.seen[data-seen]')]; if(!els.length||!isSB()||!e.clientId) return;
+  let c=seenCache[e.clientId]; if(!c||Date.now()-c.t>60e3){ try{ c=seenCache[e.clientId]={t:Date.now(),a:await SupabaseStore.rest('rpc/portal_activity',{method:'POST',body:{p_client:e.clientId}})||[]}; }catch{ return; } }
+  const last=c.a.map(x=>x.seen).filter(Boolean).sort().pop(); if(!last) return;
+  for(const el of els) if(el.isConnected&&new Date(last)>=new Date(el.dataset.seen)) el.textContent=' · seen';
+}
 const whenTs=ts=>{ const d=new Date(ts); if(isNaN(d)) return ''; const t=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}), day=isoOf(d);
   return day===TODAY?`Today, ${t}`:day===addDays(TODAY,-1)?`Yesterday, ${t}`:`${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',...(day.slice(0,4)!==TODAY.slice(0,4)?{year:'numeric'}:{})})}, ${t}`; };
 function ratesBlock(c){

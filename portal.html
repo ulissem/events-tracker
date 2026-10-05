@@ -396,6 +396,29 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 }
 
 
+/* questions as conversations (comment style) */
+.statusrow{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 22px} .statusrow .status{margin:0}
+.status.blue{background:var(--accent-soft);color:var(--accent)} .status.blue i{background:var(--accent)}
+.lq{display:grid;grid-template-columns:34px minmax(0,1fr);gap:0 10px;padding:14px 0;border-top:.5px solid var(--line)}
+.qhead + .lq,.qev .qevh + .lq{border-top:0}
+.lq .num{font:700 12px var(--round);color:var(--ink-3);padding-top:3px;display:flex;align-items:center;justify-content:flex-end;gap:5px;align-self:start;white-space:nowrap}
+.lq.turn .num{color:var(--warn)} .lq.turn .num::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--warn);flex:none}
+.lq.res .lb,.lq.res .num{opacity:.55}
+.lb{min-width:0}
+.lm{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;align-items:start}
+.lm + .lm,.lm + .lr{margin-top:10px}
+.lb .av{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 9px var(--round);color:#fff;letter-spacing:.02em;margin-top:1px}
+.lb .av.um{background:linear-gradient(135deg,#7a5af5,#0a7aff)} .lb .av.cl{background:linear-gradient(135deg,#30b0c7,#0e7490)}
+.lm .h{font-size:12px;color:var(--ink-3);line-height:22px} .lm .h b{color:var(--ink);font-weight:600}
+.lm .t{grid-column:2;font-size:14.5px;line-height:1.42;white-space:pre-wrap;overflow-wrap:anywhere} .lm .t.mute{font-size:13px;color:var(--ink-3)}
+.newdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-left:6px;vertical-align:1px}
+.lr{display:flex;align-items:flex-end;gap:6px;margin-left:30px;border:1px solid color-mix(in srgb,var(--warn) 55%,transparent);border-radius:14px;padding:3px 3px 3px 12px;background:var(--panel)}
+.lr textarea{flex:1;border:0;background:none;resize:none;outline:0;font:inherit;font-size:14.5px;color:var(--ink);padding:6px 0;line-height:1.42;min-height:0}
+.lr textarea::placeholder{color:var(--ink-3)}
+.send{width:30px;height:30px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--fill-2);color:var(--panel);flex:none}
+.send.on{background:var(--ink)} .send:disabled{cursor:default}
+@media (max-width:640px){ .lr textarea{font-size:16px} }
+
 /* Questions page */
 .qcard .addline{width:calc(100% + 40px);margin:4px -20px -8px;padding:13px 20px}
 .qask{padding:6px 18px 0} .qask .qev{padding:12px 0 0} .qask .qevh .qdot{width:8px;height:8px;box-shadow:none}
@@ -607,10 +630,10 @@ const prep=e=>Math.max(0,Math.min(100,Math.round(e.progress||0)));
 const stepOf=e=>e.step!=null?e.step:e.status==='closed'?5:e.status==='ready'?4:e.status==='testing'?3:openN(e)?1:2;
 async function loadAll(){
   try{
-    ME=await rpc('portal_me');
+    ME=await rpc('portal_me'); if(!seenRead){ SEEN=ME?.prefs?.seen||null; seenRead=true; }
     const [evs,ice]=await Promise.all([rpc('portal_events'),rpc('portal_icecreams')]);
     EVENTS=(evs||[]).map(evOf); ICE=ice||ICE;
-    const nx=upcoming()[0]; await Promise.all(EVENTS.filter(e=>e.open||e===nx||DET[e.id]).map(e=>loadEvent(e.id))); // open questions are answered on Home; the next event shows its start time; details already here are refreshed too (a question closed elsewhere must not linger)
+    await Promise.all(EVENTS.filter(e=>e.open||upcoming().includes(e)||DET[e.id]).map(e=>loadEvent(e.id))); if(document.visibilityState==='visible') rpc('mark_seen').catch(()=>{}); // open questions are answered on Home; the next event shows its start time; details already here are refreshed too (a question closed elsewhere must not linger)
     startLive();
     if(state==='ok'){ rerender(); return; } // a refresh: no entrance animations, map tiles kept
     state='ok';
@@ -640,6 +663,7 @@ const I={
   sun:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   moon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
   auto:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>',
+  up:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
   info:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>',
   wa:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l1.3-4A8.5 8.5 0 1 1 8 19.6z"/><path d="M9 9.5c.3 2.2 2.3 4.3 4.6 4.8l1.2-1.1 1.9.8-.4 1.6c-3.7.2-7.6-3.6-7.5-7.3l1.6-.4.8 1.9z"/></svg>',
   mail:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
@@ -664,16 +688,22 @@ function chrome(route){
 /* ---------- questions ---------- */
 const drafts={};      // unsent text per question / per event, kept across re-renders
 const composing={};
+/* a question as a short conversation (comment style): avatar, who · when, the text; the answer box only where it is the client's turn.
+   SEEN = when the client last looked (members.prefs.seen, read once per visit): Ulisse's replies after it get a blue dot */
+let SEEN=null, seenRead=false;
+const isNewReply=q=>q.author==='client'&&!!q.answer&&q.answeredBy==='owner'&&!!q.answeredAt&&(!SEEN||q.answeredAt>SEEN);
+const initials=n=>String(n||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
 function qItem(e,q){
-  if(q.author==='client') return `<div class="q mine"><span class="qn">Q${q.n}</span><div class="qt"><span class="from">You asked · ${esc(when(q.createdAt))}</span>${esc(q.text)}</div>
-    <div class="qa">${q.answer?`<div class="bubble op">${esc(q.answer)}<small>${esc(OP().name.split(' ')[0])}${q.answeredAt?' · '+esc(when(q.answeredAt)):''}</small></div>`:`<span class="wait">${I.check} Sent to ${esc(OP().name.split(' ')[0])}</span>`}</div></div>`;
-  const asked=q.createdAt?`<span class="from op">${esc(OP().name.split(' ')[0])} asked · ${esc(when(q.createdAt))}</span>`:''; // when Ulisse asked it
-  if(!isOpenQ(q)) return `<div class="q done"><span class="qn">${I.check}</span><div class="qt">${asked}${esc(q.text)}</div>
-    <div class="qa">${q.answer?`<div class="bubble">${esc(q.answer)}<small>${q.answeredByMe?'You':q.answeredAt?esc(OP().name.split(' ')[0]):'Answered'}${q.answeredAt?' · '+esc(when(q.answeredAt)):''}</small></div>`:`<span class="wait">${I.check} Resolved</span>`}</div></div>`;
-  const d=drafts[q.id]||'';
-  return `<div class="q"><span class="qn">Q${q.n}</span><div class="qt">${asked}${esc(q.text)}</div>
-    <div class="qa ${d?'has':''}"><textarea class="field" rows="1" placeholder="Write your answer…" data-q="${esc(q.id)}">${esc(d)}</textarea>
-    <div class="qbar"><button class="btn primary" data-send="${esc(q.id)}" ${d.trim()?'':'disabled'}>Send ${I.send}</button></div></div></div>`;
+  const op=OP().name.split(' ')[0], UMA=`<span class="av um" aria-hidden="true">${esc(initials(OP().name))}</span>`, CLA=`<span class="av cl" aria-hidden="true">${esc(initials(ME?.client))}</span>`;
+  const head=(name,ts,extra='')=>`<span class="h"><b>${esc(name)}</b>${ts?' · '+esc(when(ts)):''}${extra}</span>`;
+  const mine=q.author==='client', open=isOpenQ(q), d=drafts[q.id]||'';
+  const ask=mine?`<div class="lm">${CLA}${head('You',q.createdAt)}<div class="t">${esc(q.text)}</div></div>`:`<div class="lm">${UMA}${head(op,q.createdAt)}<div class="t">${esc(q.text)}</div></div>`;
+  const by=q.answeredBy||(q.answeredByMe?'me':mine?'owner':'client');
+  const ans=q.answer?(by==='owner'?`<div class="lm">${UMA}${head(op,q.answeredAt,isNewReply(q)?'<span class="newdot" title="New"></span>':'')}<div class="t">${esc(q.answer)}</div></div>`
+                                  :`<div class="lm">${CLA}${head(by==='me'?'You':ME?.client||'Your team',q.answeredAt)}<div class="t">${esc(q.answer)}</div></div>`)
+    :open?`<div class="lr"><textarea class="lt" rows="1" placeholder="Your answer…" data-q="${esc(q.id)}">${esc(d)}</textarea><button class="send ${d.trim()?'on':''}" data-send="${esc(q.id)}" aria-label="Send" ${d.trim()?'':'disabled'}>${I.up}</button></div>`
+    :`<div class="lm"><span></span><div class="t mute">${mine?`Sent to ${esc(op)}`:'Resolved'}</div></div>`;
+  return `<div class="lq ${open?'turn':''} ${q.resolved&&!open?'res':''}" data-qn="${q.n}"><span class="num">Q${q.n}</span><div class="lb">${ask}${ans}</div></div>`;
 }
 function writeBlock(e){
   if(composing[e.id]) return `<div class="compose"><span class="lbl">Q${Math.max(0,...qsOf(e).map(q=>q.n))+1} · your question or note for ${esc(OP().name.split(' ')[0])}</span><textarea class="field" rows="2" data-c="${esc(e.id)}" placeholder="A question, a change, a note…">${esc(drafts['c:'+e.id]||'')}</textarea>
@@ -692,13 +722,15 @@ const pastEvents=()=>EVENTS.filter(e=>!upcoming().includes(e)).sort((a,b)=>b.sta
 const iceTotal=()=>ICE.open.reduce((s,h)=>s+(+h.icecreams||0),0), iceHours=()=>ICE.open.reduce((s,h)=>s+(+h.hours||0),0);
 const coefChip=()=>`<span class="coef">1 h = <b>${ic(ICE.coefficient)}</b> ${U()}</span>`;
 function vHome(){
+  const nr=EVENTS.reduce((n,e)=>n+qsOf(e).filter(isNewReply).length,0);
   const up=upcoming(), today=up.find(e=>days(e)===0||(e.start<=isoToday()&&e.end>=isoToday())), next=today||up[0], rest=up.filter(e=>e!==next), past=pastEvents(), qn=totalOpen();
   return `<div class="rise">
   <div class="eyebrow">${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}</div>
   <h1>${greet()}, ${esc(ME.client||'')}</h1>
   <p class="lede" style="margin-bottom:10px">${up.length?`${plural(up.length,'event','events')} coming up with ${esc(OP().name.split(' ')[0])}.`:`No events coming up yet — ${esc(OP().name.split(' ')[0])} adds them here.`}</p>
+  <div class="statusrow">${nr?`<button class="status blue" data-go="#q"><i>${nr}</i>${nr===1?'New reply':'New replies'} from ${esc(OP().name.split(' ')[0])}<span class="arr">→</span></button>`:''}
   ${qn?`<button class="status warn" data-act="towait"><i>${qn}</i>${plural(qn,'question','questions')} waiting for your answer<span class="arr">↓</span></button>`
-      :`<button class="status ok" data-go="#q"><i>${I.check}</i>All answered — nothing waiting for you</button>`}
+      :`<button class="status ok" data-go="#q"><i>${I.check}</i>All answered — nothing waiting for you</button>`}</div>
   ${today?raceDay(today):next?nextCard(next):''}
   ${waitBlock(up)}
   ${rest.length?`<div class="h2">Also coming up <span>${rest.length}</span></div><div class="evgrid">${rest.map(e=>evCard(e)).join('')}</div>`:''}
@@ -756,7 +788,7 @@ function duo(){
   </div>`;
 }
 const sinceTxt=()=>{ const u=ICE.closed.map(c=>c.until).filter(Boolean).sort().pop(); return u?` · since ${fmtD(u,{day:'numeric',month:'short'})}`:''; };
-function timerCard(){ const o=OP(); return `<div class="card"><div class="eye mute">Your timer</div><div style="font-size:16px;font-weight:700;margin-top:6px">${esc(o.name)}</div><div class="ic-sub">${esc(o.role)}</div>
+function timerCard(){ const o=OP(); return `<div class="card"><div class="eye mute">Your contact</div><div style="font-size:16px;font-weight:700;margin-top:6px">${esc(o.name)}</div><div class="ic-sub">${esc(o.role)}</div>
   <div class="wa-note">${I.wa} Questions? WhatsApp me</div></div>`; }
 function evCard(e,past=false){
   const n=days(e), oq=openN(e), s=past?6:stepOf(e);
@@ -818,7 +850,7 @@ function raceBlock(r){
 }
 /* Questions: what needs the client (or waits for Ulisse) first; answered / resolved ones folded at the bottom, like an archive */
 let archOpen=false;
-const isLive=q=>isOpenQ(q)||q.author==='client'&&!q.answer;
+const isLive=q=>isOpenQ(q)||q.author==='client'&&(!q.answer||isNewReply(q));
 function vQuestions(){
   const evs=EVENTS.filter(e=>DET[e.id]?.questions.length||upcoming().includes(e)).sort((a,b)=>(a.start||'9').localeCompare(b.start||'9'));
   const missing=evs.filter(e=>!DET[e.id]); if(missing.length){ Promise.all(missing.map(e=>loadEvent(e.id))).then(rerender).catch(()=>{}); }
@@ -872,7 +904,7 @@ function account(){ sheet(`<h3>${esc(ME?.client||'Account')}</h3><p>Signed in as
 document.addEventListener('input',e=>{
   const t=e.target, k=t.dataset.q?t.dataset.q:t.dataset.c?'c:'+t.dataset.c:null; if(!k) return;
   drafts[k]=t.value; t.style.height='auto'; t.style.height=Math.min(t.scrollHeight,180)+'px';
-  if(t.dataset.q){ t.parentNode.classList.toggle('has',!!t.value.trim()); document.querySelectorAll(`[data-send="${CSS.escape(t.dataset.q)}"]`).forEach(b=>b.disabled=!t.value.trim()); }
+  if(t.dataset.q){ t.parentNode.classList.toggle('has',!!t.value.trim()); document.querySelectorAll(`[data-send="${CSS.escape(t.dataset.q)}"]`).forEach(b=>{ b.disabled=!t.value.trim(); b.classList.toggle('on',!!t.value.trim()); }); }
   else document.querySelectorAll(`[data-csend="${CSS.escape(t.dataset.c)}"]`).forEach(b=>b.disabled=!t.value.trim());
 });
 document.addEventListener('click',async e=>{
