@@ -2252,6 +2252,10 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .evside .hr2 .rd{grid-area:d} .evside .hr2-m{grid-area:m} .evside .hr2-h{grid-area:h} .evside .hr2-v{grid-area:v;font-size:11.5px} .evside .hr2-s{grid-area:s} .evside .hr2-x{grid-area:x}
   .evside .hr2-add{grid-template-columns:1fr 70px;} .evside .hr2-add .grow,.evside .hr2-add .btn{grid-column:1/-1}
 }
+/* "your time" hint next to start times when this device is in another time zone */
+.yt{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:0 6px;height:18px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:600;white-space:nowrap;vertical-align:1px}
+.yt svg{width:10px;height:10px}
+.yt sup{font-size:8px;margin-left:1px}
 /* day cards: past days dimmed; rings: a green check at 100 % */
 .agdc.past{opacity:.55}
 .agdc.past .cc-eye{color:var(--ink-3)}
@@ -2413,6 +2417,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 </dialog>
 <div id="printarea"></div>
 
+<script src="vendor/tz-lookup/tz.js"></script>
 <script>
 'use strict';
 /* =====================================================================
@@ -2585,6 +2590,25 @@ const repeatTarget=(e,t)=>t.hardware==='Loop Box'&&t.mode==='repeat'?e.timingPoi
 /* Race day: the event date for single-day events, otherwise one of the event's days */
 function eventDays(e){ if(!e.dateStart||!e.dateEnd||e.dateEnd<=e.dateStart) return []; const out=[]; for(let d=e.dateStart;out.length<31&&d<=e.dateEnd;d=addDays(d,1)) out.push(d); return out; }
 const raceDate=(e,c)=>{ const days=eventDays(e); return days.length?(days.includes(c.date)?c.date:''):e.dateStart||''; };
+
+/* Time zones (Oct 2026): times typed in an event are local to the race. The event's zone comes from its map position
+   (vendor/tz-lookup, offline) or the Time zone field; when this device is in another zone, start times also show "your time". */
+const DEFAULT_TZ='Europe/Paris';
+let myTz=()=>{ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||DEFAULT_TZ; }catch{ return DEFAULT_TZ; } };
+const autoTz=e=>{ if(e.geo?.lat==null||typeof tzlookup!=='function') return ''; try{ return tzlookup(+e.geo.lat,+e.geo.lon)||''; }catch{ return ''; } };
+const tzOf=e=>e.tz||autoTz(e)||S?.config?.defaultTz||DEFAULT_TZ;
+const tzOff=(tz,ms)=>{ const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(new Date(ms)).map(x=>[x.type,x.value]));
+  return Date.UTC(+p.year,+p.month-1,+p.day,+p.hour%24,+p.minute,+p.second)-ms; };
+const zoned=(tz,d,t)=>{ const [y,m,dd]=d.split('-').map(Number), [h,mi]=t.split(':').map(Number), g=Date.UTC(y,m-1,dd,h,mi); let u=g-tzOff(tz,g); return g-tzOff(tz,u); }; // wall time in tz → instant (DST-safe)
+const tzCity=tz=>tz.split('/').pop().replace(/_/g,' ');
+const yourTime=(e,d,t)=>{ if(!d||!/^\d{1,2}:\d{2}$/.test(t||'')) return null; const etz=tzOf(e), mt=myTz(); if(etz===mt) return null;
+  let u; try{ u=zoned(etz,d,t); if(tzOff(etz,u)===tzOff(mt,u)) return null; }catch{ return null; }
+  const hm=new Intl.DateTimeFormat('en-GB',{timeZone:mt,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(u));
+  const md=new Intl.DateTimeFormat('en-CA',{timeZone:mt,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(u));
+  return {t:hm,shift:Math.round((parse(md)-parse(d))/864e5),city:tzCity(mt),etz,mt}; };
+const ytHint=(e,d,t,{long=false}={})=>{ const y=yourTime(e,d,t); if(!y) return ''; const sh=y.shift?`<sup>${y.shift>0?'+':''}${y.shift}</sup>`:'';
+  return `<span class="yt" title="${esc(t)} at the race (${esc(y.etz)}) = ${esc(y.t)}${y.shift?` ${y.shift>0?'next':'previous'} day`:''} where you are (${esc(y.mt)})">${ic('clock',2)}${esc(y.t)}${sh} ${long?'your time':esc(y.city)}</span>`; };
+const firstStart=(e,d)=>e.contests.filter(c=>!d||!eventDays(e).length||raceDate(e,c)===d).map(c=>c.startTime).filter(Boolean).sort()[0]||'';
 const dayLabel=(e,iso)=>{ const i=eventDays(e).indexOf(iso); return i<0?'':`Day ${i+1} · ${fmtLong(iso)}`; };
 const PASTEL=['#a9c9e8','#c3b5e8','#f7c9a3','#f2e198','#9fd6d6','#ebb0cc','#f2a9a4','#b9dfb0','#d9c7a7','#b3d4f0','#e3c1f0','#c8e6a0'];
 const nextColor=e=>PASTEL.find(c=>!e.timingPoints.some(t=>t.color===c))||PASTEL[e.timingPoints.length%PASTEL.length];
@@ -3262,7 +3286,7 @@ function nuCard(e,several){
   const dn=live?`<span class="live"><i></i>${cd.t==='today'?'Race day':esc(cd.t)}</span>`:`<span class="mn">−</span>${d}<small>${d===1?'day':'days'}</small>`;
   return `<div class="nextup" style="${tintStyle(e)}" data-id="${esc(e.id)}" role="link" tabindex="0" aria-label="Open ${esc(e.name)}">
     <div class="cdn">${dn}</div>
-    <div class="nmeta"><div class="ovl">${live?'Now':'Next up'} · ${esc(fmtShort(e.dateStart))}</div><div class="n">${esc(e.name)||'untitled'}</div><div class="s">${esc([clientName(e.clientId),e.location,e.status].filter(Boolean).join(' · '))}</div></div>
+    <div class="nmeta"><div class="ovl">${live?'Now':'Next up'} · ${esc(fmtShort(e.dateStart))}</div><div class="n">${esc(e.name)||'untitled'}</div><div class="s">${esc([clientName(e.clientId),e.location,e.status].filter(Boolean).join(' · '))}${ytHint(e,e.dateStart,firstStart(e,e.dateStart),{long:true})?` · starts ${esc(firstStart(e,e.dateStart))} ${ytHint(e,e.dateStart,firstStart(e,e.dateStart),{long:true})}`:''}</div></div>
     <span class="nring" title="${Math.round(p*100)}% prepared">${ring(p,34,3)}</span>
     ${items.length?`<div class="due">${items.join('')}</div>`:''}
     <div class="nfoot"><span><b>${e.contests.length}</b> ${e.contests.length===1?'race':'races'}${km?` · ${fmtN(km)} km`:''}</span><span><b>${e.timingPoints.length}</b> timing ${e.timingPoints.length===1?'point':'points'}</span><span><b>${ckOpen}</b> checklist open</span><span class="r">${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
@@ -3315,7 +3339,7 @@ function roadToRace(e){
   const nodes=[...tds.map(t=>({d:t.due||'',h:`<div class="rdn ${t.done?'on':''}"><label class="dot"><input type="checkbox" class="ck" data-o="${ref(t)}" data-k="done" data-r="detail" ${t.done?'checked':''} aria-label="Done: ${esc(t.text)}"></label><div class="d">${t.due?esc(fmtShort(t.due))+(!t.done&&t.due>=TODAY?` · <em class="${dueCls(t)}">${esc(countdown({dateStart:t.due}).t)}</em>`:!t.done&&t.due<TODAY?' · <em class="late">overdue</em>':''):'no date'}</div><button type="button" class="t" data-todo="${esc(t.id)}">${esc(t.text||'To-do')}</button></div>`})),
     ...trips.map(i=>({d:i.s,h:`<div class="rdn tr"><span class="dot">${ic('plane',2.4)}</span><div class="d">${esc(fmtShort(i.s))}${i.o.time?' · '+esc(i.o.time):''}</div><a class="t" href="#/a">Travel${i.o.title?' → '+esc(i.o.title):''}</a></div>`}))].sort((a,b)=>(a.d||'9').localeCompare(b.d||'9'));
   return `<div class="road"><div class="rh2">Road to race day${nodes.length?`<span class="n">· ${plural(tds.length,'to-do','to-dos')}${trips.length?`, ${plural(trips.length,'trip','trips')}`:''}</span>`:''}<button type="button" class="act" id="roadadd">${ic('plus',2.4)} To-do</button></div>
-    <div class="track">${nodes.map(n=>n.h).join('')}<div class="rdn last"><span class="dot">${ic('flag',2.4)}</span><div class="d">${esc(fmtShort(e.dateStart))}</div><div class="t">Race day${t0?' · '+esc(t0):''}</div></div></div></div>`;
+    <div class="track">${nodes.map(n=>n.h).join('')}<div class="rdn last"><span class="dot">${ic('flag',2.4)}</span><div class="d">${esc(fmtShort(e.dateStart))}</div><div class="t">Race day${t0?' · '+esc(t0):''}${t0?ytHint(e,e.dateStart,t0,{long:true}):''}</div></div></div></div>`;
 }
 /* Equipment shelf: the hardware kit of the event, with counts and channels, and the points still without hardware */
 function kitShelf(e){
@@ -3580,6 +3604,7 @@ function renderEvent(D){
     <div class="fld span2"><span class="lab">Date <span class="lh">· one day or multi-day</span></span><button class="in trig dtrig" type="button" id="datebtn" aria-haspopup="dialog">${ic('cal',1.8)}<span class="tv">${esc(rt.main)}</span><span class="ts">${esc(rt.sub)}</span></button></div>
     ${locationField(e)}
     ${F(e,'type','Type',{list:'dl-types',ph:'Trail, cycling…'})}
+    <div class="fld"><label class="lab" for="f-tz">Time zone <span class="lh">· ${e.tz?'set by hand':autoTz(e)?'from the map':'default'}</span></label><select class="in" id="f-tz" data-o="${ref(e)}" data-k="tz" data-r="detail"><option value="">Auto · ${esc(autoTz(e)||S.config.defaultTz||DEFAULT_TZ)}</option>${(Intl.supportedValuesOf?.('timeZone')||[]).map(z=>`<option ${e.tz===z?'selected':''}>${esc(z)}</option>`).join('')}</select></div>
     <div class="fld span2"><label class="lab" for="f-web">Event website</label><div class="in group">${ic('globe',1.8)}<input class="bare" id="f-web" type="url" data-o="${ref(e)}" data-k="website" data-r="change" value="${esc(e.website)}" placeholder="https://…">${e.website?linkBtn(e.website):''}</div></div>
   </div>
   <datalist id="dl-types">${S.config.eventTypes.map(t=>`<option value="${esc(t)}">`).join('')}</datalist>
@@ -3773,7 +3798,7 @@ function raceCard(e,c,ci,tpOpts){
   return `<div class="race ${open?'open':''}">
     <div class="rh" data-toggle="${esc(c.id)}">
       <button class="chev" type="button" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} ${esc(c.name||'race')}">${ic('chev',2.4)}</button>
-      <span class="rt"><b>${esc(c.name)||'<i>untitled race</i>'}</b><span class="rmeta">${meta.map(([i,t])=>`<span>${ic(i,1.8)}${esc(t)}</span>`).join('')}${c.notes?`<span class="rnote" title="${esc(c.notes)}">${esc(c.notes)}</span>`:''}</span></span>
+      <span class="rt"><b>${esc(c.name)||'<i>untitled race</i>'}</b><span class="rmeta">${meta.map(([i,t])=>`<span>${ic(i,1.8)}${esc(t)}${i==='clock'?ytHint(e,rd||e.dateStart,t):''}</span>`).join('')}${c.notes?`<span class="rnote" title="${esc(c.notes)}">${esc(c.notes)}</span>`:''}</span></span>
       <span class="ract">${ci?`<button class="btn icon sm ghost" data-upct="${ci}" type="button" aria-label="Move up" title="Move up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>`:''}<button class="btn icon sm ghost del" data-delct="${ci}" type="button" aria-label="Delete race">${ic('x')}</button></span>
     </div>
     ${open?`<div class="rbody">
@@ -4153,7 +4178,7 @@ const rel=d=>{ const n=Math.round((parse(d)-parse(TODAY))/864e5); return n===0?'
 const agDayCard=(d,o={})=>{ const on1=i=>o.starts?i.s===d||(i.s<d&&d===`${agMonth}-01`&&i.e>=d):onDay(i,d), ev=agF.ev?agEvents().filter(on1):[], en=agF.mine?agEntries().filter(on1):[]; // starts: multi-day items only on their first day (list view)
   const n=ev.length+en.length, dd=parse(d), cnt=[ev.length?plural(ev.length,'event','events'):'',en.length?plural(en.length,'entry','entries'):''].filter(Boolean).join(' · ');
   const evT=({o:e})=>{ const p=progress(e), cd=countdown(e), t=evMeta(e);
-    return `<a class="cc-next agt" href="#/e/${encodeURIComponent(e.id)}"><span class="cc-nl">${esc(t||'Race')}</span><span class="cc-nm"><b>${esc(e.name||'untitled')}</b><small>${esc([e.type,clientName(e.clientId),e.status].filter(Boolean).join(' · '))}</small></span>
+    return `<a class="cc-next agt" href="#/e/${encodeURIComponent(e.id)}"><span class="cc-nl">${esc(t||'Race')}</span><span class="cc-nm"><b>${esc(e.name||'untitled')}</b><small>${esc([e.type,clientName(e.clientId),e.status].filter(Boolean).join(' · '))}${ytHint(e,d,firstStart(e,d))?' · '+ytHint(e,d,firstStart(e,d),{long:true}):''}</small></span>
       <span class="agt-r">${d===TODAY||cd.c==='now'?'':`<span class="cd ${cd.c}">${cd.t}</span>`}<span class="cc-ring sm" title="${Math.round(p*100)}% prepared">${ring(p,36,3.5)}${ringV(p)}</span></span></a>`; };
   const enT=({o:x})=>`<button type="button" class="cc-next agt en ${x.type}" data-agen="${esc(x.id)}"><span class="agt-i">${ic(AG_TYPES[x.type].icon,2)}</span><span class="cc-nm"><b>${esc(enLabel(x))}</b><small>${esc([x.from!==(x.to||x.from)?rangeText(x.from,x.to).main:'',x.time,x.note].filter(Boolean).join(' · '))||'&nbsp;'}</small></span></button>`;
   return `<div class="agdc ${d===TODAY?'today':''} ${d<TODAY?'past':''}"><div class="agdc-top"><div><div class="cc-eye">${esc(rel(d))}${cnt?' · '+esc(cnt):''}</div><div class="agdc-title">${esc(DOW[dd.getDay()])} ${dd.getDate()} ${MON[dd.getMonth()]}</div></div></div>
