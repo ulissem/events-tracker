@@ -2160,6 +2160,25 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .qbox{background:var(--panel);border-radius:var(--r-card);box-shadow:var(--shadow-sm);padding:2px 14px}
 .qbox .q:last-child{border-bottom:0}
 #list .film{mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent);-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent)}
+/* event side column as cards (≥ 1720 px), Oct 2026 */
+@media (min-width:1720px){
+  .evside{background:none;border:0;box-shadow:none;border-radius:0}
+  .sidefull{padding:0 4px 12px 2px}
+  .sidefull > .sec.scard{background:var(--panel);border-radius:var(--r-card);box-shadow:var(--shadow-sm);padding:14px 16px 10px;margin:0 0 12px;position:relative;isolation:isolate;overflow:hidden}
+  .sidefull > .sec.scard:first-child{margin-top:50px} /* level with the General card, not its title */
+  .sidefull > .sec.scard::before{content:'';position:absolute;inset:-30px;z-index:-1;pointer-events:none;background:radial-gradient(55% 45% at 95% 0%,color-mix(in srgb,var(--sc-glow,var(--accent)) var(--sc-a,16%),transparent),transparent 70%)}
+  .sidefull > .sec.scard.g-warn{--sc-glow:var(--warn)}
+  .sidefull > .sec.scard.g-ok{--sc-glow:var(--ok)}
+  .sidefull > .sec.scard.g-soft{--sc-a:9%}
+  .scard .sech.sc-h{position:static;background:none;border:0;padding:0 0 10px;margin:0;display:flex;align-items:flex-start;gap:8px}
+  .scard .sc-id{flex:1;min-width:0}
+  .scard .sc-id h3{margin:2px 0 0;font-size:18px;font-weight:800;letter-spacing:-.03em}
+  .scard .sc-id h3 .sb{display:none}
+  .scard .cc-eye.w{color:var(--warn)}
+  .scard .ckhead{border:0;background:var(--sunken);border-radius:14px}
+  .scard .qbox{background:none;box-shadow:none;padding:0}
+  .scard .q:last-child{border-bottom:0}
+}
 /* day cards: past days dimmed; rings: a green check at 100 % */
 .agdc.past{opacity:.55}
 .agdc.past .cc-eye{color:var(--ink-3)}
@@ -3615,6 +3634,19 @@ function renderEvent(D){
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this event','lock'); return; }
     if(evHours.length){ alert(`This event has ${plural(evHours.length,'hours entry','hours entries')}. Delete or move them first (Hours section).`); return; }
     if(confirm(`Delete «${e.name||'untitled'}»? It stays in the commit history.`)){ S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
+  if(wide.matches) sideCards(D,e); // only where the side column is a column (≥ 1720 px)
+}
+/* wide screens: the side column (Questions, Checklist, Notes) as separate cards with eyebrow + title and a meaningful glow */
+function sideCards(D,e){
+  D.querySelectorAll('.sidefull > .sec').forEach(sec=>{
+    const h3=sec.querySelector('.sech h3'); if(!h3) return;
+    let eye='';
+    if(sec.id==='s-questions'){ const oq=openQ(e).length; eye=oq?`<div class="cc-eye w">${plural(oq,'open question','open questions')}</div>`:`<div class="cc-eye">${e.questions.length?'all answered':'no questions yet'}</div>`; h3.querySelector('.count')?.remove(); h3.lastChild.textContent=h3.lastChild.textContent.replace('Questions for the client','Questions'); }
+    else if(sec.id==='s-checklist'){ const t=sec.querySelector('.ckhead span')?.textContent||''; eye=`<div class="cc-eye">${esc(t)}</div>`; }
+    else { const c=h3.querySelector('.count'); eye=`<div class="cc-eye">${esc(c?.textContent||sec.id.replace('s-',''))}</div>`; c?.remove(); }
+    const sech=sec.querySelector('.sech'); sech.classList.add('sc-h'); sech.insertAdjacentHTML('afterbegin',`<div class="sc-id">${eye}</div>`); sech.querySelector('.sc-id').appendChild(h3);
+    sec.classList.add('scard', sec.id==='s-questions'?(openQ(e).length?'g-warn':'g-acc'):sec.id==='s-checklist'?(progress(e)>=1?'g-ok':'g-acc'):'g-soft');
+  });
 }
 
 /* Ch. / L. / Mode columns only when a point's hardware has them (never with passive timing) */
@@ -5555,6 +5587,7 @@ $('#scrim').addEventListener('click',()=>closePops()); // on click, not pointerd
   L.addEventListener('touchstart',e=>{ sx=document.body.classList.contains('drawer')?e.touches[0].clientX:null; },{passive:true});
   L.addEventListener('touchmove',e=>{ if(sx!==null&&e.touches[0].clientX-sx<-60){ sx=null; closeDrawer(); } },{passive:true}); }
 narrow.addEventListener('change',()=>{ closeDrawer(true); closePops(); render(); });
+wide.addEventListener('change',()=>{ if(route.view==='e'&&route.id) renderDetail(); }); // side column cards on / off
 document.fonts?.ready.then(()=>document.querySelectorAll('textarea.auto').forEach(fitTA));
 
 (async()=>{
