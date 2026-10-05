@@ -2024,6 +2024,14 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .agt-i svg{width:15px;height:15px}
 .agt.travel .agt-i{background:var(--ag-travel-s);color:var(--ag-travel)} .agt.away .agt-i{background:var(--ag-away-s);color:var(--ag-away)} .agt.other .agt-i{background:var(--ag-other-s);color:var(--ag-other)}
 .agdc-empty{padding:6px 2px 4px;color:var(--ink-3);font-size:13px}
+/* client page on wide screens: contact + details on the left, events (and private hours) on the right */
+@media (min-width:1180px) and (min-height:501px), (min-width:1180px) and (pointer:fine){
+  .cgrid2{display:grid;grid-template-columns:360px minmax(0,1fr);gap:24px;align-items:start;margin-top:4px}
+  .cg-l .cacts{margin:12px 0 0}
+  .cg-l .sec > .grid{grid-template-columns:1fr}
+  .cg-l .sec > .grid > *{grid-column:1/-1}
+  .cg-l > .sec{margin-top:22px} .cg-r > .sec:first-child{margin-top:12px} /* Events title level with the contact buttons */
+}
 /* clients overview (desktop, no client open) */
 .cov .hm-head{align-items:flex-end;margin-bottom:18px}
 .cov .hm-head h1{margin-top:4px}
@@ -3776,6 +3784,7 @@ function renderClient(D){
     ${up.length?`<div class="hr"><span class="ringbox">${ring(avg,84,7)}<span class="ringv">${Math.round(avg*100)}%<small>prepared</small></span></span><span class="hlab">avg. of ${plural(up.length,'upcoming event','upcoming events')}</span></div>`:''}
     </div>
   </div>
+  <div class="cgrid2"><div class="cg-l">
   <div class="cacts">
     <a class="btn ${mail?'':'off'}" ${mail?`href="${esc(mail)}"`:'role="button" tabindex="0" data-f="[data-k=email]"'}>${ic('mail',1.9)}<span>${mail?'Email':'No email'}</span></a>
     ${tel&&!narrow.matches?`<button type="button" class="btn" id="cphone">${ic('copy',1.9)}<span>Copy phone</span></button>`:`<a class="btn ${tel?'':'off'}" ${tel?`href="${esc(tel)}"`:'role="button" tabindex="0" data-f="[data-k=phone]"'}>${ic('phone',1.9)}<span>${tel?'Call':'No phone'}</span></a>`}
@@ -3790,8 +3799,8 @@ function renderClient(D){
       ${T(c,'notes','Notes',{ph:'Anything about this client…'})}
     </div>
     <p class="hint chelp">RR customer ID is used for the “Open in RR14” links of this client's events.</p>
-  </section>
-  <section class="sec" id="s-cevents"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Events <span class="count">${ev.length}</span></h3></div>
+  </section></div>
+  <div class="cg-r"><section class="sec" id="s-cevents"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Events <span class="count">${ev.length}</span></h3></div>
     ${ev.length?`<div class="cevs">
       ${up.length?`<div class="cgh">Upcoming · ${up.length}</div>${up.map(evRow).join('')}`:'<div class="cgh">Nothing coming up</div>'}
       ${past.length?`<button type="button" class="cpast ${cliPast?'open':''}" id="cpast">${ic('chev',2.2)}<span>Past events</span><span class="count">${past.length}</span></button>${cliPast?past.map(evRow).join(''):''}`:''}
@@ -3806,7 +3815,7 @@ function renderClient(D){
       <div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Closures <span class="count">${closures.length}</span></h3></div>
         ${closures.length?`<div class="hs"><div class="tbox hsc"><table class="t cltab"><thead><tr><th class="stk stk1">Closed on</th><th>Up to</th><th>Ref.</th><th class="num">Hours</th><th class="num">Coeff.</th><th class="num">${esc(U().icon)}</th><th></th></tr></thead><tbody>
           ${closures.map(x=>`<tr><td class="txt stk stk1">${esc(fmtDay(x.date))}</td><td class="txt">${esc(fmtDay(x.until))}</td><td class="txt">${esc(x.ref)}</td><td class="num">${fmtN(num(x.hours))}</td><td class="num">${fmtN(num(x.coefficient))}</td><td class="num">${val(num(x.value))}</td><td class="x"><button class="btn sm ghost" data-reopen="${esc(x.id)}" type="button" title="Reopen these hours">Undo</button></td></tr>`).join('')}</tbody></table></div></div>`:emptyBox('hours','No closures yet.')}</div>`:''}
-    </section>
+    </section></div></div>
   <div class="foot"><span class="mono">id: ${esc(c.id)}</span><button class="btn sm ghost del dangerous" id="delcl" type="button">Delete client</button></div></div>`;
   if(showH){
     bindHoursTable(D);
