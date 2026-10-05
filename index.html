@@ -388,7 +388,8 @@ main.full #detail{max-width:1180px}
   .evgrid{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:0 28px;align-items:start;transition:grid-template-columns .24s cubic-bezier(.2,.7,.2,1)}
   .evgrid.collapsed{grid-template-columns:minmax(0,1fr) 52px}
   .evside{position:sticky;top:calc(var(--hh) + 56px);max-height:calc(100vh - var(--hh) - 72px);overflow-y:auto;overflow-x:hidden;margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-sm);scrollbar-width:thin}
-  .sidefull{padding:0 18px 12px;min-width:398px;animation:fade .3s ease}
+  .sidefull{padding:0 18px 12px;min-width:398px}
+  .evgrid.opening .sidefull,.evgrid.opening .rail{animation:fade .3s ease} /* only when the panel opens / closes: on every redraw it was the flash */
   .sidefull > .sec:first-child{margin-top:12px}
   .evside .sech{--sbg:var(--panel)}
   .evgrid.collapsed .sidefull{display:none}
@@ -396,7 +397,7 @@ main.full #detail{max-width:1180px}
   .sidebtn{display:inline-flex!important}
 }
 .sidebtn{display:none}
-.rail{flex-direction:column;align-items:center;gap:2px;padding:6px 0;animation:fade .3s ease}
+.rail{flex-direction:column;align-items:center;gap:2px;padding:6px 0}
 .rail button{width:42px;min-height:42px;padding:6px 0;border:0;border-radius:8px;background:none;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;font-weight:600}
 .rail button:hover{background:var(--hover);color:var(--ink)}
 .rail button svg{width:17px;height:17px}
@@ -3344,7 +3345,8 @@ function toggleList(){
   if(narrow.matches){ if(!document.body.classList.contains('showing-detail')){ window.scrollTo({top:0,behavior:'smooth'}); return; } document.body.classList.contains('drawer')?closeDrawer():openDrawer(); return; }
   listOpen=!listOpen; LS.set('events-tracker-list',listOpen); $('#main').classList.toggle('nolist',!listOpen);
   const b=$('#listbtn'); if(b){ b.classList.toggle('on',listOpen); b.dataset.tip=(listOpen?'Hide':'Show')+' list'; } }
-function toggleSide(){ sideOpen=!sideOpen; LS.set('events-tracker-side2',sideOpen); document.querySelector('.evgrid')?.classList.toggle('collapsed',!sideOpen);
+function toggleSide(){ sideOpen=!sideOpen; LS.set('events-tracker-side2',sideOpen); const g=document.querySelector('.evgrid'); g?.classList.toggle('collapsed',!sideOpen);
+  if(g){ g.classList.add('opening'); setTimeout(()=>g.classList.remove('opening'),320); }
   const b=$('#sidebtn'); if(b){ b.classList.toggle('on',sideOpen); b.setAttribute('aria-pressed',sideOpen); b.dataset.tip=(sideOpen?'Collapse':'Show')+' side panel'; } }
 
 /* Drag to reorder with mouse or finger: grab a .grip, the row moves live among its siblings ([data-si] children of a [data-sort] box).
