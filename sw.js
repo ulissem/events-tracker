@@ -1,5 +1,5 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v166';
+const CACHE = 'events-tracker-v167';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/mbox.png', './img/trackbox-active.png', './img/trackbox-passive.png',
   './vendor/leaflet/leaflet.js', './vendor/leaflet/leaflet.css', './vendor/tz-lookup/tz.js'];
@@ -25,4 +25,19 @@ self.addEventListener('fetch', e => {
     }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || (e.request.mode === 'navigate' ? caches.match('./index.html') : Response.error())))
     // only a page load falls back to the app page; an image must never get the page instead (it shows as broken)
   );
+});
+
+// Web Push (owner): a client answered or asked. The page payload is {title, body, url, tag}.
+self.addEventListener('push', e => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'Race Hub', { body: d.body || '', tag: d.tag, data: { url: d.url || './' }, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png' }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = new URL(e.notification.data?.url || './', self.location.href);
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(ws => {
+    const w = ws.find(x => new URL(x.url).pathname === url.pathname);   // the hub already open: bring it up on the event
+    if (w) return w.focus().then(f => (f || w).navigate ? (f || w).navigate(url.href) : null).catch(() => self.clients.openWindow(url.href));
+    return self.clients.openWindow(url.href);
+  }));
 });
