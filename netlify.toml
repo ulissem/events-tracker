@@ -1,0 +1,16 @@
+# Netlify (hub.ulissemariangeli.com): static site, no build — this folder is published as it is.
+[build]
+  publish = "."
+
+# the service worker must always be fetched fresh, or "New version available" never shows
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
