@@ -169,7 +169,7 @@ input[type=checkbox].ck:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)
 .hidenote:hover{color:var(--ink-2)} .hidenote.on{color:var(--accent)} .hidenote:disabled{display:none}
 .pc-list{padding:4px 12px;margin-bottom:10px}
 .pc-row{display:flex;align-items:center;gap:8px;padding:8px 0} .pc-row+.pc-row{border-top:1px solid var(--line)}
-.pc-m{flex:1;min-width:0} .pc-m b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis} .pc-m small{color:var(--ink-3);font-size:12px}
+.pc-m{flex:1;min-width:0} .pc-m b{display:block;font-weight:600;overflow-wrap:break-word;line-height:1.3} .pc-m small{color:var(--ink-3);font-size:12px}
 .pc-add{display:flex;gap:8px;margin-bottom:8px} .pc-add .in{flex:1;min-width:0}
 #loginform[data-backend="github"] .s-sb,#loginform[data-backend="supabase"] .s-gh{display:none}
 /* segmented control (Active / Passive) */
@@ -921,8 +921,11 @@ dialog#settings,dialog#unlock{max-height:calc(100vh - 16px - var(--sat));overflo
 .rrow .rtag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--sunken);color:var(--ink-3);white-space:nowrap}
 .rrow.cur .rtag{background:var(--ok-soft,rgba(52,199,89,.14));color:var(--ok,#34c759)} .rrow.fut .rtag{background:var(--accent-soft);color:var(--accent)}
 .rrow.old{opacity:.7}
-.radd{display:grid;grid-template-columns:minmax(128px,1.3fr) minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:12px}
-.radd .btn{height:32px}
+.radd{display:grid;grid-template-columns:minmax(120px,auto) minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:10px 0 2px}
+.radd[hidden]{display:none}
+.radd .in,.radd .btn{height:34px}
+.rin{position:relative;min-width:0} .rin .in{padding-right:52px} .rin i{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;font-size:12px;color:var(--ink-3);pointer-events:none}
+.rlist .addline{margin-top:4px}
 .closebox{display:grid;grid-template-columns:170px minmax(0,1fr) auto;gap:8px;align-items:end;margin-bottom:6px}
 .closebox .btn{height:32px}
 table.t.cltab{min-width:520px}
@@ -4315,9 +4318,10 @@ function ratesBlock(c){
       <button type="button" class="btn icon sm ghost" data-rdel="${esc(x.from)}" aria-label="Delete this rate" data-tip="Delete">${ic('x',2)}</button></div>`; };
   return `<section class="sec" id="s-crates"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Rates <span class="count">${esc(U().icon)} per hour</span></h3></div>
     <div class="ccard rlist">${l.length?l.map(row).join(''):`<p class="hint" style="margin:6px 0">No rate yet: hours count as 1 ${esc(U().icon)} each.</p>`}
-      <div class="radd"><div class="fld"><span class="lab">From</span>${dateBtn('rt-date',fmtDay,'Valid from')}</div>
-        <div class="fld"><label class="lab" for="rt-val">${esc(U().icon)} per hour</label><input class="in" id="rt-val" inputmode="decimal" placeholder="${cur?fmtN(cur.coefficient):'75'}"></div>
-        <button class="btn" id="rt-add" type="button">${ic('plus',2)} Add rate</button></div></div>
+      <button type="button" class="addline" id="rt-open">${ic('plus',2)}<span>Add rate</span></button>
+      <div class="radd" id="rt-form" hidden>${dateBtn('rt-date',fmtDay,'Valid from')}
+        <span class="rin"><input class="in" id="rt-val" inputmode="decimal" placeholder="${cur?fmtN(cur.coefficient):'75'}" aria-label="${esc(U().icon)} per hour"><i>${esc(U().icon)} / h</i></span>
+        <button class="btn primary" id="rt-add" type="button">Add</button><button class="btn icon ghost" id="rt-cancel" type="button" aria-label="Cancel">${ic('x',2)}</button></div></div></div>
     <p class="hint" style="margin:6px 2px 0">Each hour uses the rate valid on the day of the work. A rate on a date that already has one replaces it. Closed periods keep their value.</p></section>`;
 }
 function bindRates(D,c){
@@ -4325,11 +4329,13 @@ function bindRates(D,c){
   const redraw=()=>{ const y=scrollY; renderDetail(); scrollTo(0,y); };
   const add=$('#rt-add'); if(!add) return;
   bindDateBtn($('#rt-date'),fmtDay);
+  const open=v=>{ $('#rt-form').hidden=!v; $('#rt-open').hidden=v; if(v) $('#rt-val').focus(); };
+  $('#rt-open').onclick=()=>open(true); $('#rt-cancel').onclick=()=>open(false);
   const go=()=>{ const v=num($('#rt-val').value), d=$('#rt-date').dataset.date;
     if(!isFinite(v)||v<=0){ toast('Enter the rate',`${U().icon} per hour, e.g. 75`,'warn','warn'); $('#rt-val').focus(); return; }
     S.hours.rates=S.hours.rates||{}; const l=(S.hours.rates[c.id]||[]).filter(x=>x.from!==d); l.push({from:d,coefficient:v}); l.sort((a,b)=>a.from.localeCompare(b.from));
     S.hours.rates[c.id]=l; syncCoef(); touch(); redraw(); toast('Rate added',`${fmtN(v)} ${U().icon} / h from ${fmtDay(d)}`,'check'); };
-  add.onclick=go; $('#rt-val').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } });
+  add.onclick=go; $('#rt-val').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } else if(e.key==='Escape') open(false); });
   on(D,'[data-rdel]',b=>{ const l=S.hours.rates?.[c.id]||[], x=l.find(r=>r.from===b.dataset.rdel); if(!x) return;
     if(!confirm(`Delete the rate ${fmtN(x.coefficient)} ${U().icon} / h from ${fmtDay(x.from)}?\n\nHours of that period will use the rate before it (or 1 if there is none).`)) return;
     S.hours.rates[c.id]=l.filter(r=>r!==x); if(!S.hours.rates[c.id].length) delete S.hours.rates[c.id]; syncCoef(); touch(); redraw(); });
@@ -4348,7 +4354,7 @@ async function loadPortalContacts(c){
   try{ const o=await SupabaseStore.orgId(); rows=await SupabaseStore.rest(`client_contacts?select=email,name,user_id,invited_at&org_id=eq.${o}&client_id=eq.${encodeURIComponent(c.id)}&order=email`); }
   catch(err){ box.innerHTML=`<p class="hint">${esc(isNetErr(err)?'Offline: portal contacts need a connection.':err.message)}</p>`; return; }
   if($('#cportal')!==box) return; // another page meanwhile
-  box.innerHTML=`${rows.length?`<div class="ccard pc-list">${rows.map(r=>`<div class="pc-row"><span class="pc-m"><b>${esc(r.name||r.email)}</b><small>${r.name?esc(r.email)+' · ':''}${r.invited_at?'invited '+esc(fmtDay(r.invited_at.slice(0,10))):'added'}</small></span>
+  box.innerHTML=`${rows.length?`<div class="ccard pc-list">${rows.map(r=>`<div class="pc-row"><span class="pc-m"><b>${r.name?esc(r.name):esc(r.email).replace('@','<wbr>@')}</b><small>${r.name?esc(r.email)+' · ':''}${r.invited_at?'invited '+esc(fmtDay(r.invited_at.slice(0,10))):'added'}</small></span>
       <button class="btn sm ghost" data-pcre="${esc(r.email)}" type="button" title="Send a new sign-in link">Send link</button><button class="btn icon sm ghost del" data-pcdel="${esc(r.email)}" type="button" aria-label="Remove ${esc(r.email)} from the portal">${ic('x')}</button></div>`).join('')}</div>`:''}
     <form class="pc-add" id="pc-add" autocomplete="off"><input class="in" type="email" id="pc-mail" placeholder="client@email.com" required data-bwignore="true" data-1p-ignore data-lpignore="true"><button class="btn primary" type="submit">Invite</button></form>
     <p class="hint">${rows.length?'Each person signs in with a link by email, no password.':`Invite ${esc(c.name||'this client')}: an email with a sign-in link to <b>hub.ulissemariangeli.com/portal</b> — visible events, questions to answer, ${esc(U().icon)}.`}</p>`;
