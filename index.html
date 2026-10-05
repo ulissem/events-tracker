@@ -2833,7 +2833,7 @@ let hoursInRepo=false;   // hours.json exists in the repo (it is fetched only af
 let unlocked=false;      // privacy screen; never persisted, per page load
 let coefMigrated=false;  // coefficients moved from clients.json into hours.json in this session
 
-const same=(a,b)=>{ try{ return JSON.stringify(JSON.parse(a))===JSON.stringify(JSON.parse(b)); }catch{ return false; } };
+const same=(a,b)=>{ try{ return canon(JSON.parse(a))===canon(JSON.parse(b)); }catch{ return false; } }; // same content, whatever the key order
 async function loadAll(){
   stateMsg='Loading…'; errMsg=null; updSave();
   const names=await Store.list();
@@ -3023,6 +3023,13 @@ function merge3(B,L,Rm,ask){
   }
   return out;
 }
+/* events without their questions, then the questions one by one (Supabase: clients answer and ask from the portal) */
+function mergeEvents(B,L,Rm){
+  const noQ=a=>(a||[]).map(e=>({...e,questions:[]})), qs=a=>new Map((a||[]).map(e=>[e.id,e.questions||[]]));
+  const out=merge3(noQ(B),noQ(L),noQ(Rm),asker('Event',x=>x.name)), bq=qs(B), lq=qs(L), rq=qs(Rm);
+  for(const e of out) e.questions=merge3(bq.get(e.id),lq.get(e.id)??rq.get(e.id),rq.get(e.id),asker('Question',q=>`Q${q.n} of ${e.name||'untitled'}`)).sort((a,b)=>(a.n||0)-(b.n||0));
+  return out;
+}
 const asker=(kind,name)=>(mine,theirs)=>{ const n=name(mine||theirs)||'untitled';
   return confirm(`${kind} “${n}” was ${mine?'changed':'deleted'} on this device and ${theirs?'changed':'deleted'} on another device.\n\nOK: keep the version on this device.\nCancel: take the other version.`); };
 const asMap=o=>Object.entries(o||{}).map(([id,v])=>({id,v})), fromMap=a=>Object.fromEntries(a.map(x=>[x.id,x.v]));
@@ -3042,7 +3049,7 @@ async function syncFromRemote(){
   const cfgM=merge3([{id:'c',...(B.config||{})}],[{id:'c',...S.config}],[{id:'c',...(Rm.config||{})}],asker('Settings',()=>'config'))[0]||{};
   delete cfgM.id; S.config=Object.assign(structuredClone(DEFAULT_CONFIG),cfgM);
   S.clients=merge3(B.clients,S.clients,Rm.clients,asker('Client',x=>x.name));
-  S.events=merge3(B.events,S.events,Rm.events,asker('Event',x=>x.name));
+  S.events=mergeEvents(B.events,S.events,Rm.events);
   { const b=B.agenda||{}, r=Rm.agenda||{}, A=S.agenda;
     A.todos=merge3(b.todos,A.todos,r.todos,asker('To-do',x=>x.text));
     A.entries=merge3(b.entries,A.entries,r.entries,asker('Agenda entry',x=>x.title||x.type));
@@ -3069,6 +3076,16 @@ async function syncNow(){
   finally{ syncing=false; }
 }
 window.addEventListener('online',()=>setTimeout(syncNow,800));
+/* Supabase: client answers and questions arrive without a manual refresh (true realtime comes with notifications) */
+let lastPull=Date.now();
+async function autoPull(){
+  if(!isSB()||!S||dirty||saving||syncing||refreshing||errMsg||needRemote||document.visibilityState!=='visible') return;
+  const a=document.activeElement; if(a&&a.matches?.('input,textarea,select,[contenteditable]')||document.querySelector('dialog[open]')||!$('#scrim').hidden) return;
+  lastPull=Date.now();
+  try{ const y=scrollY; if(await syncFromRemote()){ parseRoute(); render(); scrollTo(0,y); } }catch(err){ if(isNetErr(err)){ errMsg='Offline'; updSave(); } }
+}
+setInterval(autoPull,60e3);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-lastPull>20e3) setTimeout(autoPull,600); });
 window.addEventListener('offline',()=>{ if(!errMsg){ errMsg='Offline'; updSave(); } });
 setInterval(()=>{ if((errMsg==='Offline'||needRemote)&&document.visibilityState==='visible') syncNow(); },30e3);
 window.addEventListener('beforeunload',e=>{ if(dirty||saving){ save({unload:true}); e.preventDefault(); e.returnValue=''; } });
@@ -3113,6 +3130,7 @@ const isPast=e=>(e.dateEnd||e.dateStart||'9')<TODAY;
 const num=v=>{ const n=parseFloat(String(v??'').replace(',','.')); return isFinite(n)?n:0; };
 const fmtN=n=>(Math.round(n*100)/100).toLocaleString('en-GB');
 const uid=p=>p+'-'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const qid=()=>crypto.randomUUID?.()||uid('q'); // questions: a uuid from the start (Supabase key), so saving never renames them
 const slug=n=>n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const plural=(n,one,many)=>`${n} ${n===1?one:many}`;
 const clientOf=id=>S.clients.find(c=>c.id===id);
@@ -3942,7 +3960,7 @@ function renderEvent(D){
   on(D,'[data-rmode]',b=>{ const [i,m]=b.dataset.rmode.split(':'), c=e.contests[+i]; if(m==='special') c.results='special'; else delete c.results; touch(); renderDetail(); });
   D.querySelectorAll('[data-startsplit]').forEach(x=>x.onchange=()=>{ const c=e.contests[+x.dataset.startsplit]; c.startSplit=x.checked; fixSplits(c); touch(); renderDetail(); });
   on(D,'[data-delsp]',b=>{ const [ci,si]=b.dataset.delsp.split(':').map(Number); if(e.contests[ci].splits[si]?.role==='split'){ e.contests[ci].splits.splice(si,1); touch(); renderDetail(); } });
-  $('#addq').onclick=()=>{ const n=Math.max(0,...e.questions.map(q=>q.n||0))+1; e.questions.push({id:uid('q'),n,text:'',answer:'',resolved:false}); touch(); if(!sideOpen&&wide.matches) toggleSide(); renderDetail(); D.querySelector(`[aria-label="Question Q${n}"]`)?.focus(); };
+  $('#addq').onclick=()=>{ const n=Math.max(0,...e.questions.map(q=>q.n||0))+1; e.questions.push({id:qid(),n,text:'',answer:'',resolved:false}); touch(); if(!sideOpen&&wide.matches) toggleSide(); renderDetail(); D.querySelector(`[aria-label="Question Q${n}"]`)?.focus(); };
   on(D,'[data-delq]',b=>{ e.questions.splice(+b.dataset.delq,1); touch(); renderDetail(); });
   D.querySelectorAll('[data-ck]').forEach(c=>c.onchange=()=>{ e.checklist[c.dataset.ck]=c.checked; touch(); renderDetail(); });
   if(showH){
@@ -5394,7 +5412,7 @@ function buildRows(inc,e){
   for(const [k,l] of EVENT_LISTS){ const have=new Set(e[k].map(t=>normTxt(t.text)));
     for(const t of inc[k]) if(!have.has(normTxt(t.text))){ have.add(normTxt(t.text)); rows.push({sec:l,label:`Add to ${l}`,to:t.text+(t.note?` — ${t.note}`:''),checked:true,fn:ev=>ev[k].push(structuredClone(t))}); } }
   const hq=new Set(e.questions.map(q=>normTxt(q.text)));
-  for(const q of inc.questions) if(!hq.has(normTxt(q))){ hq.add(normTxt(q)); rows.push({sec:'Questions',label:'Add question',to:q,checked:true,fn:ev=>ev.questions.push({id:uid('q'),n:nextQ(ev),text:q,answer:'',resolved:false})}); }
+  for(const q of inc.questions) if(!hq.has(normTxt(q))){ hq.add(normTxt(q)); rows.push({sec:'Questions',label:'Add question',to:q,checked:true,fn:ev=>ev.questions.push({id:qid(),n:nextQ(ev),text:q,answer:'',resolved:false})}); }
   return {rows,warn};
 }
 /* split → timing point references that resolve to nothing (for the chosen target) */
@@ -5464,7 +5482,7 @@ function buildEvent(inc,clientId){
     ...Object.fromEntries(EVENT_LISTS.map(([k])=>[k,structuredClone(inc[k])])),questions:[],checklist:{},checklistExtra:[],notes:inc.notes};
   for(const t of inc.timingPoints) e.timingPoints.push({id:uid('tp'),...t,color:nextColor(e)});
   e.contests=inc.contests.map(r=>mkRace(r,e));
-  const seen=new Set(); for(const q of inc.questions) if(!seen.has(normTxt(q))){ seen.add(normTxt(q)); e.questions.push({id:uid('q'),n:nextQ(e),text:q,answer:'',resolved:false}); }
+  const seen=new Set(); for(const q of inc.questions) if(!seen.has(normTxt(q))){ seen.add(normTxt(q)); e.questions.push({id:qid(),n:nextQ(e),text:q,answer:'',resolved:false}); }
   return e;
 }
 function applyImport(){
