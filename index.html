@@ -5828,8 +5828,10 @@ async function logout(){
 const dlg=$('#settings');
 /* logged out: the login form lives on the full sign-in page (nothing of the app behind it); logged in: back in Settings */
 const loginHome=document.createComment('loginform'); $('#loginform').before(loginHome);
-function showSignin(){ $('#si-slot').append($('#loginform')); $('#signin').hidden=false; if(dlg.open) dlg.close(); setTimeout(()=>$('#s-owner').focus(),60); }
-function hideSignin(){ if($('#signin').hidden) return; loginHome.after($('#loginform')); $('#signin').hidden=true; }
+function showSignin(){ $('#si-slot').append($('#loginform'));
+  // Data location is not for the sign-in page (clients will use it too): only with ?setup, or on a device still on GitHub
+  $('#s-adv').hidden=!(new URLSearchParams(location.search).has('setup')||(cfg.backend||'github')==='github'&&!!cfg.owner); $('#signin').hidden=false; if(dlg.open) dlg.close(); setTimeout(()=>$('#s-owner').focus(),60); }
+function hideSignin(){ $('#s-adv').hidden=false; if($('#signin').hidden) return; loginHome.after($('#loginform')); $('#signin').hidden=true; }
 function openSettings(msg=''){
   closePops(); closeCmd();
   const loggedIn=!!S;
