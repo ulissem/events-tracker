@@ -1925,6 +1925,56 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .clhead .group{width:100%}
 .clhead + .lscroll .mh{position:static} /* few clients: plain group headers (sticky, with the notch's top inset, they slid over the first row) */
 /* client page */
+/* desktop agenda as cards (month card, day card on the right, list = day cards), Oct 2026 */
+.agd2 .agm{margin:0;padding:18px 16px 14px}
+.agmd .agm-top{align-items:center;padding:0 4px 14px;flex-wrap:wrap;gap:10px}
+.agmd .agm-title{font-size:30px}
+.agmd-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.agmd-tools .agchip{background:transparent}
+.agmd .agm-today[disabled]{opacity:.4}
+/* the grid inside the card: no own frame, caps weekdays, weekend columns, past dimmed, event tiles */
+.agmd .agcal{border:0;box-shadow:none;background:transparent;border-radius:16px;overflow:hidden}
+.agmd .agdow{background:none;border:0}
+.agmd .agdow span{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--ink-2);padding:6px 10px 8px}
+.agmd .agdow span:nth-child(n+6){color:var(--ink-3)}
+.agmd .agwk{border-bottom:1px solid var(--line);min-height:104px}
+.agmd .agbg button{border-right-color:var(--line)}
+.agmd .agbg button.we{background:color-mix(in srgb,var(--sunken) 55%,transparent)}
+.agmd .agbg button.out{background:none}
+.agmd .agbg button.today{background:none}
+.agmd .agbg button.sel{background:color-mix(in srgb,var(--accent) 9%,transparent);box-shadow:inset 0 0 0 1.5px var(--accent-line)}
+.agmd .agbg button:hover{background:var(--hover)}
+.agmd .agdn{font-size:14px;color:var(--ink);padding:8px 10px 4px}
+.agmd .agdn b{font-weight:600}
+.agmd .agdn.p,.agmd .agdn.out{color:var(--ink-3)}
+.agmd .agdn.today b{min-width:26px;height:26px;font-weight:700}
+.agmd .agdn.sel:not(.today) b{color:var(--accent);font-weight:800}
+.agmd .agbar{box-shadow:none!important}
+.agmd .agbar.ev{background:var(--fill-2);border-radius:7px;font-weight:600}
+.agmd .agbar.ev:hover{background:color-mix(in srgb,var(--accent) 22%,var(--fill-2))}
+.agmd .agbar.travel{background:color-mix(in srgb,var(--ag-travel) 18%,transparent)}
+.agmd .agbar.away{background:color-mix(in srgb,var(--ag-away) 18%,transparent)}
+.agmd .agbar.other{background:color-mix(in srgb,var(--ag-other) 18%,transparent)}
+.agmd .agwk:last-child{border-bottom:0}
+.agmd .agwk:has(.agdn.p) .agbar.ev{opacity:1}
+.agmd .agbar{height:24px;border-radius:7px}
+.agmd-hint{font-size:12px;color:var(--ink-3);margin:10px 6px 0}
+.agd2 .aglegend{display:none}
+/* side column */
+.agd2 .agside{gap:12px}
+.agd2 .agdc{margin:0}
+.agdc-top{display:flex;align-items:flex-start;gap:8px}
+.agdc-id{flex:1;min-width:0}
+.agdc-add{height:30px;padding:0 11px;border-radius:999px;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:0}
+.agdc-add svg{width:13px;height:13px}
+.agd2 .agpanel{border-radius:22px;padding:14px 16px}
+/* list view: one card per day */
+.agmd-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.agmd-list .agdc{margin:0;background:var(--sunken);box-shadow:none}
+.agmd .agtd{min-width:0;height:20px;padding:0 7px 0 6px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:var(--sunken);color:var(--ink-2);box-shadow:none}
+.agmd .agtd::before{content:'';width:7px;height:7px;border-radius:50%;box-sizing:border-box;border:1.5px solid currentColor}
+.agmd .agtd.soon{background:var(--warn-soft);color:var(--warn)}
+.agmd .agtd.late{background:var(--danger-soft);color:var(--danger);box-shadow:none}
 /* phone agenda as cards (month card + selected-day card), Oct 2026 */
 .agc{padding-top:12px}
 .agm,.agdc{position:relative;isolation:isolate;overflow:hidden;border-radius:22px;background:var(--panel);box-shadow:var(--shadow-sm);margin:0 -4px}
@@ -3848,16 +3898,16 @@ function agMonthGrid(){
     const lanes=[];
     for(const g of segs){ g.a=days.indexOf(g.s<ws?ws:g.s); g.b=days.indexOf(g.e>we?we:g.e);
       let L=lanes.findIndex(l=>l.every(([x,y])=>g.b<x||g.a>y)); if(L<0){ L=lanes.length; lanes.push([]); } lanes[L].push([g.a,g.b]); g.l=L; }
-    return `<div class="agwk"><div class="agbg">${days.map((d,i)=>`<button type="button" class="${i>4?'we':''} ${d.slice(0,7)!==agMonth?'out':''} ${d===TODAY?'today':''}" data-day="${d}" aria-label="New entry on ${esc(fmtLong(d))}"></button>`).join('')}</div>
+    return `<div class="agwk"><div class="agbg">${days.map((d,i)=>`<button type="button" class="${i>4?'we':''} ${d.slice(0,7)!==agMonth?'out':''} ${d===TODAY?'today':''} ${d<TODAY?'p':''} ${d===agSel?'sel':''}" data-day="${d}" aria-label="${esc(fmtLong(d))}"></button>`).join('')}</div>
       ${days.map((d,i)=>{ const td=todos.filter(t=>t.due===d);
-        return `<span class="agdn ${d.slice(0,7)!==agMonth?'out':''} ${d===TODAY?'today':''}" style="grid-column:${i+1}"><b>${parse(d).getDate()}${d.endsWith('-01')?' '+MON[parse(d).getMonth()]:''}</b>
-          ${td.length?`<span class="agtd ${d<TODAY?'late':''}" title="${esc(td.map(t=>t.text).join('\n'))}">${td.length}</span>`:''}</span>`; }).join('')}
+        return `<span class="agdn ${d.slice(0,7)!==agMonth?'out':''} ${d===TODAY?'today':''} ${d<TODAY?'p':''} ${d===agSel?'sel':''}" style="grid-column:${i+1}"><b>${parse(d).getDate()}${d.endsWith('-01')?' '+MON[parse(d).getMonth()]:''}</b>
+          ${td.length?`<span class="agtd ${d<TODAY?'late':d<=addDays(TODAY,3)?'soon':''}" title="${esc(td.map(t=>t.text).join('\n'))}">${td.length}</span>`:''}</span>`; }).join('')}
       ${segs.map(g=>{ const pos=`grid-column:${g.a+1}/${g.b+2};grid-row:${g.l+2}`, cont=`${g.s<ws?'cont-l':''} ${g.e>we?'cont-r':''}`;
         if(g.kind==='ev'){ const e=g.o, m=g.e>we&&g.s>=ws?'':evMeta(e);
           return `<a class="agbar ev ${cont} " style="${pos}" href="#/e/${encodeURIComponent(e.id)}" title="${esc([e.name,e.location,clientName(e.clientId),e.status].filter(Boolean).join(' · '))}"><i class="dot" style="background:${esc(statusColor(e.status))}"></i><span class="t">${esc(e.name||'untitled')}</span>${g.e>we?`<span class="m">→ ${esc(fmtDay(g.e))}</span>`:m?`<span class="m">${esc(m)}</span>`:''}</a>`; }
         const x=g.o; return `<button type="button" class="agbar ${x.type} ${cont}" style="${pos}" data-agen="${esc(x.id)}" title="${esc([enLabel(x),x.time,x.note].filter(Boolean).join(' · '))}">${ic(AG_TYPES[x.type].icon,2)}<span class="t">${esc(enLabel(x))}</span>${x.time?`<span class="m">${esc(x.time)}</span>`:''}</button>`; }).join('')}
     </div>`; }).join('')}</div>
-  <div class="aglegend"><span><i class="ev"></i>Event (dot = status)</span><span><i class="travel"></i>Travel</span><span><i class="away"></i>Away</span><span><i class="other"></i>Other</span><span><i class="td"></i>To-dos due</span><span class="hint">Click a day, or drag across days, to add an entry</span></div>`;
+`;
 }
 /* everything on one day, as cards (phone day view and list view) */
 function agDayCards(d,{empty=true,todos=true}={}){
@@ -3866,6 +3916,16 @@ function agDayCards(d,{empty=true,todos=true}={}){
   return `${ev.map(({o:e})=>`<a class="agcard" href="#/e/${encodeURIComponent(e.id)}"><i class="dot" style="background:${esc(statusColor(e.status))}"></i><span><b>${esc(e.name||'untitled')}</b><small>${esc([e.type,clientName(e.clientId),e.location,evMeta(e),e.status].filter(Boolean).join(' · '))}</small></span><span class="agpr" title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),18,2.4)}<em>${Math.round(progress(e)*100)}%</em></span>${ic('chev',2)}</a>`).join('')}
     ${en.map(({o:x})=>`<button type="button" class="agcard ${x.type}" data-agen="${esc(x.id)}">${ic(AG_TYPES[x.type].icon,2)}<span><b>${esc(enLabel(x))}</b><small>${esc([x.from!==(x.to||x.from)?rangeText(x.from,x.to).main:'',x.time,x.note].filter(Boolean).join(' · '))||'&nbsp;'}</small></span></button>`).join('')}
     ${td.map(t=>`<div class="agcard tdc"><input type="checkbox" class="ck" data-o="${ref(t)}" data-k="done" data-r="detail" aria-label="Done: ${esc(t.text)}"><span><b>${esc(t.text||'To-do')}</b><small>To-do${linkOf(t)?' · '+esc(linkOf(t).name):''}</small></span></div>`).join('')}`;
+}
+let agClickT=0;
+/* desktop agenda as cards (Oct 2026): eyebrow counts, list view = one day card per day with something starting */
+const agCounts=()=>{ const first=`${agMonth}-01`, days=monthDays(agMonth), last=days[days.length-1];
+  const inM=i=>i.s<=last&&i.e>=first, ev=agF.ev?agEvents().filter(inM):[], en=agF.mine?agEntries().filter(inM):[], td=agF.todo?S.agenda.todos.filter(t=>t.due&&!t.done&&t.due>=first&&t.due<=last):[];
+  const tr=en.filter(i=>i.o.type==='travel').length, aw=en.length-tr;
+  return [ev.length?plural(ev.length,'event','events'):'no events',tr?plural(tr,'trip','trips'):'',aw?plural(aw,'entry','entries'):'',td.length?plural(td.length,'to-do','to-dos'):''].filter(Boolean).join(' · '); };
+function agListCards(){
+  const first=`${agMonth}-01`, st=(i,d)=>i.s===d||(i.s<d&&d===first&&i.e>=d), days=monthDays(agMonth).filter(d=>(agF.ev&&agEvents().some(i=>st(i,d)))||(agF.mine&&agEntries().some(i=>st(i,d))));
+  return days.length?`<div class="agmd-list">${days.map(d=>agDayCard(d,{starts:true})).join('')}</div>`:emptyBox('cal','Nothing this month.');
 }
 function agListView(){
   const days=monthDays(agMonth).map(d=>[d,agDayCards(d,{empty:false})]).filter(([,h])=>h);
@@ -3953,8 +4013,17 @@ function renderAgenda(D){
       ${agTodosPhone()}
       <div class="agdh"><span>Notes</span></div><div class="phcard phnotes"><textarea class="auto" rows="2" data-o="${ref(S.agenda)}" data-k="notes" placeholder="Anything to keep in mind…" aria-label="Agenda notes">${esc(S.agenda.notes)}</textarea></div>
       <button type="button" class="btn sm ghost agics" id="agics" style="margin-top:14px">${ic('cal',1.8)} Export .ics</button></div>`; /* new entry: the + in the top bar */
-  else D.innerHTML=`<div class="agwrap"><div class="agmain">${head}${agView==='month'?agMonthGrid():agListView()}</div>
-      <aside class="agside">${agTodos()}${agNotes()}<button type="button" class="btn sm ghost agics" id="agics">${ic('cal',1.8)} Export .ics <span class="hint">events + my entries</span></button></aside></div>`;
+  else{
+    const chips2=`<span class="agchips">${[['ev','Events'],['mine','My entries'],['todo','To-dos']].map(([k,l])=>`<button type="button" class="agchip ${k} ${agF[k]?'':'off'}" data-agf="${k}" aria-pressed="${agF[k]}"><i></i>${l}</button>`).join('')}</span>`;
+    const body=agView==='month'?agMonthGrid():agListCards();
+    D.innerHTML=`<div class="agwrap agd2"><div class="agmain"><div class="agm agmd">
+        <div class="agm-top"><div class="agm-id"><div class="cc-eye">${esc(agCounts())}</div><div class="agm-title">${MONL[m-1]} <span>${y}</span></div></div>
+          <div class="agmd-tools">${chips2}<span class="agseg" role="group" aria-label="View"><button type="button" data-agview="month" aria-pressed="${agView==='month'}">Month</button><button type="button" data-agview="list" aria-pressed="${agView==='list'}">List</button></span>
+            <span class="agm-nav"><button class="btn icon sm ghost" type="button" data-agnav="-1" aria-label="Previous month">${ic('chevl',2.2)}</button><button class="btn icon sm ghost" type="button" data-agnav="1" aria-label="Next month">${ic('chev',2.2)}</button><button class="btn sm agm-today" type="button" data-agtoday ${agMonth===TODAY.slice(0,7)&&agSel===TODAY?'disabled':''}>Today</button></span></div></div>
+        ${body}</div>
+        ${agView==='month'?'<div class="agmd-hint">Click a day to see it · double-click, or drag across days, to add an entry</div>':''}</div>
+      <aside class="agside">${agDayCard(agSel).replace('<div class="agdc-top"><div>','<div class="agdc-top"><div class="agdc-id">').replace('</div></div>\n','</div><button type="button" class="btn sm agdc-add" id="agdc-add">'+ic('plus',2.4)+' Entry</button></div>\n')}${agTodos()}${agNotes()}<button type="button" class="btn sm ghost agics" id="agics">${ic('cal',1.8)} Export .ics <span class="hint">events + my entries</span></button></aside></div>`;
+  }
   bindAgenda(D);
 }
 function bindAgenda(D){
@@ -3966,14 +4035,20 @@ function bindAgenda(D){
   on(D,'[data-sel]',b=>{ agSel=b.dataset.sel; if(agSel.slice(0,7)!==agMonth) agMonth=agSel.slice(0,7); renderDetail(); });
   on(D,'[data-tdedit]',b=>openTodo(OBJ[+b.dataset.tdedit]));
   D.querySelector('#agics')?.addEventListener('click',exportICS);
+  D.querySelector('#agdc-add')?.addEventListener('click',()=>openEntry(null,agSel));
   // click a day, or drag across days, to add an entry
   const cal=D.querySelector('#agcal');
-  if(cal){ let a=null,b=null;
-    const mark=()=>cal.querySelectorAll('[data-day]').forEach(c=>{ const d=c.dataset.day, lo=a<b?a:b, hi=a<b?b:a; c.classList.toggle('pick',!!a&&d>=lo&&d<=hi); });
-    cal.addEventListener('pointerdown',ev=>{ const c=ev.target.closest('[data-day]'); if(!c||ev.button) return; ev.preventDefault(); a=b=c.dataset.day; mark(); cal.setPointerCapture(ev.pointerId); });
-    cal.addEventListener('pointermove',ev=>{ if(!a) return; const c=document.elementFromPoint(ev.clientX,ev.clientY)?.closest?.('[data-day]'); if(c&&c.dataset.day!==b){ b=c.dataset.day; mark(); } });
-    const end=ev=>{ if(!a) return; const lo=a<b?a:b, hi=a<b?b:a; a=b=null; if(ev.type==='pointerup') openEntry(null,lo,hi); else mark(); };
-    cal.addEventListener('pointerup',end); cal.addEventListener('pointercancel',end); }
+  // click = select the day (day card on the right), drag across days or double-click = new entry
+  if(cal){
+  let a=null,b=null,moved=false;
+  const mark=()=>cal.querySelectorAll('[data-day]').forEach(c=>{ const d=c.dataset.day, lo=a<b?a:b, hi=a<b?b:a; c.classList.toggle('pick',moved&&!!a&&d>=lo&&d<=hi); });
+  cal.addEventListener('pointerdown',ev=>{ const c=ev.target.closest('[data-day]'); if(!c||ev.button) return; ev.preventDefault(); a=b=c.dataset.day; moved=false; cal.setPointerCapture(ev.pointerId); });
+  cal.addEventListener('pointermove',ev=>{ if(!a) return; const c=document.elementFromPoint(ev.clientX,ev.clientY)?.closest?.('[data-day]'); if(c&&c.dataset.day!==b){ b=c.dataset.day; moved=true; mark(); } });
+  const end=ev=>{ if(!a) return; const lo=a<b?a:b, hi=a<b?b:a, mv=moved; a=b=null; moved=false; if(ev.type!=='pointerup'){ mark(); return; }
+    if(mv) openEntry(null,lo,hi); else { clearTimeout(agClickT); agClickT=setTimeout(()=>{ agSel=lo; renderDetail(); },230); } }; // wait: a double-click must still find the same cell
+  cal.addEventListener('pointerup',end); cal.addEventListener('pointercancel',end);
+  cal.addEventListener('dblclick',ev=>{ const c=ev.target.closest('[data-day]'); if(!c) return; clearTimeout(agClickT); openEntry(null,c.dataset.day); });
+  }
   // to-dos
   const add=D.querySelector('#td-add');
   if(add){ const go_=refocus=>{ const v=add.value.trim(); if(!v) return; add.value=''; S.agenda.todos.push({...mkTask(v),id:uid('td'),due:'',link:''}); touch('none'); renderDetail(); if(refocus) $('#td-add')?.focus(); };
