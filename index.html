@@ -2256,6 +2256,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .yt{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:0 6px;height:18px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:600;white-space:nowrap;vertical-align:1px}
 .yt svg{width:10px;height:10px}
 .yt sup{font-size:8px;margin-left:1px}
+.dtrig.empty .tv{color:var(--ink-3)}
 /* day cards: past days dimmed; rings: a green check at 100 % */
 .agdc.past{opacity:.55}
 .agdc.past .cc-eye{color:var(--ink-3)}
@@ -2376,7 +2377,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
     <h2 id="en-head" tabindex="-1" style="margin:0 0 14px;font-size:17px;outline:none">New entry</h2>
     <div class="enseg" id="en-type" role="group" aria-label="Type"><button type="button" data-t="travel">Travel</button><button type="button" data-t="away">Away</button><button type="button" data-t="other">Other</button></div>
     <div class="fld"><label class="lab" for="en-tt">Title</label><input class="in" id="en-tt" placeholder="Bastia, Holiday, Dentist…"></div>
-    <div class="en2"><div class="fld"><label class="lab" for="en-from">From</label><input class="in" type="date" id="en-from"></div><div class="fld"><label class="lab" for="en-to">To</label><input class="in" type="date" id="en-to"></div></div>
+    <div class="fld"><span class="lab">Dates <span class="lh">· one day or a range</span></span><input type="hidden" id="en-from"><input type="hidden" id="en-to"><button class="in trig dtrig" type="button" id="en-dates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="tv"></span><span class="ts"></span></button></div>
     <div class="en2"><div class="fld"><label class="lab" for="en-time">Time <span class="lh">optional</span></label><input class="in" type="time" id="en-time"></div><div></div></div>
     <div class="fld"><label class="lab" for="en-note">Note</label><textarea class="in" id="en-note" rows="2" placeholder="Optional"></textarea></div>
     <div class="hint" id="en-hint" style="min-height:18px"></div>
@@ -2387,7 +2388,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   <form class="dlg" id="tdform" autocomplete="off">
     <h2 id="tf-head" tabindex="-1" style="margin:0 0 14px;font-size:17px;outline:none">To-do</h2>
     <div class="fld"><label class="lab" for="tf-text">To-do</label><input class="in" id="tf-text" placeholder="What to take care of"></div>
-    <div class="fld"><label class="lab" for="tf-due">Due <span class="lh">optional</span><button class="btn sm ghost" type="button" id="tf-nodate" style="margin-left:auto;height:22px">No date</button></label><input class="in" type="date" id="tf-due"></div>
+    <div class="fld"><label class="lab" for="tf-duebtn">Due <span class="lh">optional</span><button class="btn sm ghost" type="button" id="tf-nodate" style="margin-left:auto;height:22px">No date</button></label><input type="hidden" id="tf-due"><button class="in trig dtrig" type="button" id="tf-duebtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="tv">No date</span></button></div>
     <div class="fld"><label class="lab" for="tf-link">Link</label><select class="in" id="tf-link"></select></div>
     <div class="fld"><label class="lab" for="tf-note">Note</label><textarea class="in" id="tf-note" rows="2" placeholder="Optional"></textarea></div>
     <div class="acts"><button class="btn dangerous" type="button" id="tf-del">Delete</button><span class="spacer"></span><button class="btn" type="button" id="tf-cancel">Cancel</button><button class="btn primary" type="submit">Save</button></div>
@@ -4292,7 +4293,7 @@ function openEntry(x,from=TODAY,to=from){
   const v=x||{type:agType,title:'',from,to,time:'',note:''};
   $('#en-head').textContent=x?'Edit entry':'New entry';
   $('#en-tt').value=v.title; $('#en-time').value=v.time; $('#en-note').value=v.note;
-  $('#en-from').value=v.from; $('#en-to').value=v.to||v.from;
+  $('#en-from').value=v.from; $('#en-to').value=v.to||v.from; enDatesTxt();
   setEnType(v.type); $('#en-del').hidden=!x; $('#en-go').textContent=x?'Save':'Add';
   enHint(); $('#entrydlg').showModal(); if(!narrow.matches) setTimeout(()=>$('#en-tt').focus(),30);
 }
@@ -4304,8 +4305,9 @@ $('#en-type').addEventListener('click',e=>{ const b=e.target.closest('button[dat
 /* the iPhone date wheel stays open until you tap elsewhere: close it as soon as a day is picked */
 // only on touch screens: on a computer the date field fires 'change' while you type a date, and moving focus would interrupt it
 const dropFocus=(el,to)=>{ if(!matchMedia('(hover:none)').matches) return; el.blur(); to.focus({preventScroll:true}); };
-$('#en-from').addEventListener('change',e=>{ if(!$('#en-to').value||$('#en-to').value<e.target.value) $('#en-to').value=e.target.value; dropFocus(e.target,$('#en-head')); enHint(); });
-$('#en-to').addEventListener('change',e=>{ dropFocus(e.target,$('#en-head')); enHint(); });
+function enDatesTxt(){ const f=$('#en-from').value, t=$('#en-to').value||f, b=$('#en-dates'), n=f&&t?Math.round((parse(t)-parse(f))/864e5)+1:0;
+  b.querySelector('.tv').textContent=f?(t>f?rangeText(f,t).main:fmtLong(f)):'Pick a day'; b.querySelector('.ts').textContent=n>1?`${n} days`:''; }
+$('#en-dates').onclick=()=>openDate($('#en-dates'),{s:$('#en-from').value,e:$('#en-to').value,allowRange:true,onChange:(f,t)=>{ if(!f) return; $('#en-from').value=f; $('#en-to').value=t||f; enDatesTxt(); enHint(); }});
 $('#en-cancel').onclick=()=>$('#entrydlg').close();
 $('#en-del').onclick=()=>{ if(!enCur||!confirm('Delete this entry?')) return; S.agenda.entries=S.agenda.entries.filter(x=>x!==enCur); touch('none'); $('#entrydlg').close(); renderDetail(); };
 $('#entryform').addEventListener('submit',ev=>{ ev.preventDefault();
@@ -4319,9 +4321,10 @@ $('#entryform').addEventListener('submit',ev=>{ ev.preventDefault();
 let tdCur=null;
 function openTodo(t){ closePops(); tdCur=t;
   $('#tf-text').value=t.text; $('#tf-note').value=t.note||''; $('#tf-link').innerHTML=linkOpts(t.link);
-  $('#tf-due').value=t.due||''; $('#tf-nodate').hidden=!t.due; $('#tododlg').showModal(); }
-$('#tf-due').addEventListener('change',e=>{ dropFocus(e.target,$('#tf-head')); $('#tf-nodate').hidden=!e.target.value; });
-$('#tf-nodate').onclick=()=>{ $('#tf-due').value=''; $('#tf-nodate').hidden=true; };
+  $('#tf-due').value=t.due||''; tfDueTxt(); $('#tododlg').showModal(); }
+function tfDueTxt(){ const d=$('#tf-due').value; $('#tf-duebtn').querySelector('.tv').textContent=d?fmtLong(d)+(d===TODAY?' · today':d===addDays(TODAY,1)?' · tomorrow':''):'No date'; $('#tf-duebtn').classList.toggle('empty',!d); $('#tf-nodate').hidden=!d; }
+$('#tf-duebtn').onclick=()=>openDate($('#tf-duebtn'),{s:$('#tf-due').value,allowRange:false,clearable:true,onChange:d=>{ $('#tf-due').value=d||''; tfDueTxt(); }});
+$('#tf-nodate').onclick=()=>{ $('#tf-due').value=''; tfDueTxt(); };
 $('#tf-cancel').onclick=()=>$('#tododlg').close();
 $('#tf-del').onclick=()=>{ if(!tdCur) return; S.agenda.todos=S.agenda.todos.filter(x=>x!==tdCur); touch('none'); $('#tododlg').close(); renderDetail(); };
 $('#tdform').addEventListener('submit',ev=>{ ev.preventDefault(); if(!tdCur) return;
@@ -4665,6 +4668,7 @@ function mapFocus(id){
 const DP={};
 function openDate(anchor,{s='',e='',allowRange=true,onChange,onClose,excludeId=null,clearable=false}){
   if(!$('#dp').hidden&&popAnchor===anchor){ closePops(); return; } closePops();
+  { const host=anchor.closest('dialog')||document.body; if($('#dp').parentElement!==host) host.appendChild($('#dp')); } // a modal dialog is in the top layer: the picker goes inside it
   const multi=!!(e&&e!==s);
   Object.assign(DP,{anchor,s:s||'',e:multi?e:'',mode:multi?'range':'single',allowRange,clearable,onChange,onClose,excludeId,view:'days',hover:'',pending:false,changed:false});
   const b=parse(s||TODAY); DP.y=b.getFullYear(); DP.m=b.getMonth();
