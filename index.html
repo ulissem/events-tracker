@@ -162,6 +162,15 @@ input[type=checkbox].ck:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)
 #signin .acts{margin-top:14px} #signin #s-save{width:100%;height:44px;font-size:15px;justify-content:center}
 #signin .adv{margin-top:4px;font-size:13px}
 #signin .fld{margin:0 0 12px} #signin .msg:empty{display:none}
+.si-alt{margin:16px 0 0;font-size:13px;color:var(--ink-3)}
+/* client portal bits in the app */
+.qfrom{display:block;font-size:11px;font-weight:600;color:var(--accent);margin:0 0 2px}
+.hidenote{display:block;border:0;background:none;padding:2px 0 0;font-size:11.5px;color:var(--ink-3);cursor:pointer;text-align:left}
+.hidenote:hover{color:var(--ink-2)} .hidenote.on{color:var(--accent)} .hidenote:disabled{display:none}
+.pc-list{padding:4px 12px;margin-bottom:10px}
+.pc-row{display:flex;align-items:center;gap:8px;padding:8px 0} .pc-row+.pc-row{border-top:1px solid var(--line)}
+.pc-m{flex:1;min-width:0} .pc-m b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis} .pc-m small{color:var(--ink-3);font-size:12px}
+.pc-add{display:flex;gap:8px;margin-bottom:8px} .pc-add .in{flex:1;min-width:0}
 #loginform[data-backend="github"] .s-sb,#loginform[data-backend="supabase"] .s-gh{display:none}
 /* segmented control (Active / Passive) */
 .seg{display:inline-flex;align-items:stretch;gap:2px;height:32px;padding:2px;border:1px solid var(--line-2);border-radius:7px;background:var(--sunken);box-shadow:var(--shadow-sm)}
@@ -2384,7 +2393,8 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 <div id="signin" hidden><div class="si-card">
   <span class="si-logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg></span>
   <div class="si-eye">Ulisse Mariangeli · Race timing</div><h1>Hub</h1><p class="si-sub">Events, races and preparation.</p>
-  <div id="si-slot"></div></div></div>
+  <div id="si-slot"></div>
+  <p class="si-alt">Client of Ulisse? <a href="portal">Open your client area</a></p></div></div>
 <div id="applock" hidden><div class="alk">
   <div class="alogo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
   <h2>Events tracker</h2><p id="al-msg">Locked</p>
@@ -3811,6 +3821,7 @@ function renderEvent(D){
     ${locationField(e)}
     ${F(e,'type','Type',{list:'dl-types',ph:'Trail, cycling…'})}
     <div class="fld"><label class="lab" for="f-tz">Time zone <span class="lh">· ${e.tz?'set by hand':autoTz(e)?'from the map':'default'}</span></label><select class="in" id="f-tz" data-o="${ref(e)}" data-k="tz" data-r="detail"><option value="">Auto · ${esc(autoTz(e)||S.config.defaultTz||DEFAULT_TZ)}</option>${(Intl.supportedValuesOf?.('timeZone')||[]).map(z=>`<option ${e.tz===z?'selected':''}>${esc(z)}</option>`).join('')}</select></div>
+    ${isSB()?`<div class="fld"><span class="lab">Client portal</span><label class="switch pv"><input type="checkbox" id="f-portal" ${e.portalVisible!==false?'checked':''}> <span class="swl">${e.portalVisible!==false?'Visible to the client':'Hidden from the client'}</span></label></div>`:''}
     <div class="fld span2"><label class="lab" for="f-web">Event website</label><div class="in group">${ic('globe',1.8)}<input class="bare" id="f-web" type="url" data-o="${ref(e)}" data-k="website" data-r="change" value="${esc(e.website)}" placeholder="https://…">${e.website?linkBtn(e.website):''}</div></div>
   </div>
   <datalist id="dl-types">${S.config.eventTypes.map(t=>`<option value="${esc(t)}">`).join('')}</datalist>
@@ -3863,7 +3874,7 @@ function renderEvent(D){
   <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''}</h3><span class="sp"></span></div>
   ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}">
      <span class="qn">Q${q.n}</span>
-     <div class="qbody"><textarea class="in auto qt" rows="1" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
+     <div class="qbody">${q.author==='client'?'<small class="qfrom">From the client</small>':''}<textarea class="in auto qt" rows="1" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
      <textarea class="in auto qa" rows="1" data-o="${ref(q)}" data-k="answer" placeholder="Answer…" aria-label="Answer Q${q.n}">${esc(q.answer)}</textarea></div>
      <span class="qc"><label class="chk" title="Resolved"><input type="checkbox" class="ck" data-o="${ref(q)}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> Resolved</label><button class="btn icon sm ghost del" data-delq="${i}" type="button" aria-label="Delete question Q${q.n}">${ic('x')}</button></span>
    </div>`).join('')}
@@ -3898,6 +3909,7 @@ function renderEvent(D){
   $('#cpid').onclick=()=>{ if(!e.rr14EventId) return; navigator.clipboard?.writeText(e.rr14EventId).then(()=>toast('EventID copied',e.rr14EventId,'copy'),()=>toast('Could not copy','','warn','warn')); };
   on(D,'[data-tech]',b=>{ e.technology=e.technology===b.dataset.tech?'':b.dataset.tech; touch(); renderDetail(); });
   $('#statusbtn').onclick=ev=>openStatusMenu(ev.currentTarget,e);
+  $('#f-portal')?.addEventListener('change',ev=>{ if(ev.target.checked) delete e.portalVisible; else e.portalVisible=false; touch('none'); ev.target.nextElementSibling.textContent=ev.target.checked?'Visible to the client':'Hidden from the client'; });
   on(D,'[data-statuspill]',b=>openStatusMenu(b,e));
   on(D,'[data-todo]',b=>{ const t=S.agenda.todos.find(x=>x.id===b.dataset.todo); if(t) openTodo(t); });
   $('#roadadd')?.addEventListener('click',()=>{ const t={...mkTask(''),id:uid('td'),due:'',link:'e:'+e.id}; S.agenda.todos.push(t); touch('none'); openTodo(t); });
@@ -4092,6 +4104,8 @@ function hoursTable(rows,{showEvent=true,showClient=true}={}){
   </tbody></table></div></div>`;
 }
 function bindHoursTable(D){
+  on(D,'[data-hideh]',b=>{ const h=S.hours.entries.find(x=>x.id===b.dataset.hideh); if(!h) return; if(h.noteHidden) delete h.noteHidden; else h.noteHidden=true; touch('none');
+    b.classList.toggle('on',!!h.noteHidden); b.textContent=h.noteHidden?'Note hidden from the client · shows “Timing work”':'Hide note from the client'; });
   on(D,'[data-delh]',b=>{ if(!confirm('Delete this hours entry?')) return; S.hours.entries=S.hours.entries.filter(h=>h.id!==b.dataset.delh); touch(); renderDetail(); });
   on(D,'[data-hdate]',b=>{ const h=OBJ[+b.dataset.hdate]; openDate(b,{s:h.date,allowRange:false,onChange:s=>{ if(!s) return; h.date=s; touch('none'); b.textContent=fmtDay(s); },onClose:()=>renderDetail()}); });
 }
@@ -4183,7 +4197,7 @@ function renderClient(D){
       ${T(c,'notes','Notes',{ph:'Anything about this client…'})}
     </div>
     <p class="hint chelp">RR customer ID is used for the “Open in RR14” links of this client's events.</p>
-  </section></div>
+  </section>${isSB()?`<section class="sec" id="s-cportal"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Client portal</h3></div><div id="cportal"><p class="hint">Loading…</p></div></section>`:''}</div>
   <div class="cg-r"><section class="sec" id="s-cevents"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Events <span class="count">${ev.length}</span></h3></div>
     ${ev.length?`<div class="cevs">
       ${up.length?`<div class="cgh">Upcoming · ${up.length}</div>${up.map(evRow).join('')}`:'<div class="cgh">Nothing coming up</div>'}
@@ -4219,6 +4233,7 @@ function renderClient(D){
       for(const h of S.hours.entries) if(h.closure===x.id) h.closure=null; S.hours.closures=S.hours.closures.filter(y=>y!==x); touch(); renderDetail(); });
   }
   D.querySelector('#cpast')?.addEventListener('click',()=>{ cliPast=!cliPast; const y=scrollY; renderClient(D); scrollTo(0,y); });
+  if(isSB()) loadPortalContacts(c);
   on(D,'[data-jump]',(a,e)=>{ e.preventDefault(); D.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth',block:'start'}); });
   D.querySelector('#closebtn')?.addEventListener('click',()=>go('c')); // back to the overview (Esc too)
   D.querySelector('#cphone')?.addEventListener('click',async()=>{ if(await copyText(c.phone)) toast('Phone copied',c.phone,'copy'); }); // desktop: no calls, copy the number
@@ -4228,6 +4243,29 @@ function renderClient(D){
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this client','lock'); return; }
     if(all.length){ alert('This client has hours: move or delete them first.'); return; }
     if(confirm(`Delete the client «${c.name||'untitled'}»?`)){ S.clients=S.clients.filter(x=>x!==c); if(S.hours) delete S.hours.coefficients[c.id]; touch(); go('c'); } };
+}
+
+/* Client portal contacts (Supabase): each email gets its own sign-in by link; the Edge Function "invite" does the work
+   with the service key on the server. The client must be saved first (it has to exist in the database). */
+async function portalInvite(action,c,email){
+  if(dirty) await save({quiet:true});
+  if(dirty) throw new Error('Save the changes first');
+  const r=await fetch(`${SupabaseStore.base()}/functions/v1/invite`,{method:'POST',headers:{apikey:SupabaseStore.key(),Authorization:`Bearer ${await SupabaseStore.token()}`,'Content-Type':'application/json'},body:JSON.stringify({action,clientId:c.id,email})});
+  const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||`Error ${r.status}`); return j;
+}
+async function loadPortalContacts(c){
+  const box=$('#cportal'); if(!box) return; let rows;
+  try{ const o=await SupabaseStore.orgId(); rows=await SupabaseStore.rest(`client_contacts?select=email,name,user_id,invited_at&org_id=eq.${o}&client_id=eq.${encodeURIComponent(c.id)}&order=email`); }
+  catch(err){ box.innerHTML=`<p class="hint">${esc(isNetErr(err)?'Offline: portal contacts need a connection.':err.message)}</p>`; return; }
+  if($('#cportal')!==box) return; // another page meanwhile
+  box.innerHTML=`${rows.length?`<div class="ccard pc-list">${rows.map(r=>`<div class="pc-row"><span class="pc-m"><b>${esc(r.name||r.email)}</b><small>${r.name?esc(r.email)+' · ':''}${r.invited_at?'invited '+esc(fmtDay(r.invited_at.slice(0,10))):'added'}</small></span>
+      <button class="btn sm ghost" data-pcre="${esc(r.email)}" type="button" title="Send a new sign-in link">Send link</button><button class="btn icon sm ghost del" data-pcdel="${esc(r.email)}" type="button" aria-label="Remove ${esc(r.email)} from the portal">${ic('x')}</button></div>`).join('')}</div>`:''}
+    <form class="pc-add" id="pc-add" autocomplete="off"><input class="in" type="email" id="pc-mail" placeholder="client@email.com" required data-bwignore="true" data-1p-ignore data-lpignore="true"><button class="btn primary" type="submit">Invite</button></form>
+    <p class="hint">${rows.length?'Each person signs in with a link by email, no password.':`Invite ${esc(c.name||'this client')}: an email with a sign-in link to <b>hub.ulissemariangeli.com/portal</b> — visible events, questions to answer, ${esc(U().icon)}.`}</p>`;
+  const run=async(btn,action,email,ok)=>{ btn.disabled=true; try{ const j=await portalInvite(action,c,email); toast(ok(j),email,action==='remove'?'x':'check'); loadPortalContacts(c); }catch(err){ btn.disabled=false; toast(isNetErr(err)?'Offline':err.message,'not sent','warn','err'); } };
+  $('#pc-add').onsubmit=ev=>{ ev.preventDefault(); const m=$('#pc-mail').value.trim().toLowerCase(); if(m) run(ev.submitter||$('#pc-add button'),'invite',m,j=>j.status==='invited'?'Invitation sent':'Sign-in link sent'); };
+  on(box,'[data-pcre]',b=>run(b,'invite',b.dataset.pcre,()=>'Sign-in link sent'));
+  on(box,'[data-pcdel]',b=>{ if(confirm(`Remove ${b.dataset.pcdel} from the client portal?\n\nThey can no longer sign in.`)) run(b,'remove',b.dataset.pcdel,()=>'Removed from the portal'); });
 }
 
 /* =====================================================================
@@ -4240,7 +4278,7 @@ const hRow=(h,{showClient=true,showEvent=true}={})=>{ const c=clientOf(h.clientI
     return `<div class="hr2 ${h.closure?'closed':''}">
       <span class="rd">${h.closure||!d?`<b>${d?d.getDate():'–'}</b><small>${d?DOW[d.getDay()]:''}</small>`:`<button type="button" class="hr2-d" data-hdate="${ref(h)}" aria-label="Date ${esc(h.date)}"><b>${d.getDate()}</b><small>${DOW[d.getDay()]}</small></button>`}</span>
       <span class="hr2-m">${showClient||showEvent?`<small>${[showClient?esc(c?.name||'—'):'',showEvent?(ev?`<a href="#/e/${encodeURIComponent(ev.id)}" data-go="e:${esc(ev.id)}">${esc(ev.name||'untitled')}</a>`:'general'):''].filter(Boolean).join(' · ')}</small>`:''}
-        ${h.closure?`<span class="hr2-n">${esc(h.note)||'—'}</span>`:cell(h,'note',{ph:'What you did',label:'Activity'})}</span>
+        ${h.closure?`<span class="hr2-n">${esc(h.note)||'—'}</span>`:cell(h,'note',{ph:'What you did',label:'Activity'})}${isSB()?`<button type="button" class="hidenote ${h.noteHidden?'on':''}" data-hideh="${esc(h.id)}" ${h.closure?'disabled':''}>${h.noteHidden?'Note hidden from the client · shows “Timing work”':'Hide note from the client'}</button>`:''}</span>
       <span class="hr2-h">${h.closure?`<b>${esc(fmtN(num(h.hours)))}</b>`:cell(h,'hours',{label:'Hours',t:'num',r:'change',style:'text-align:right'})}<small>h</small></span>
       <span class="hr2-v">${val(hValOf(h))}</span>
       <span class="hr2-s">${h.closure?`<span class="tag" title="${esc(cl?.ref||'')}">closed</span>`:'<span class="tag open">open</span>'}</span>
