@@ -926,6 +926,8 @@ dialog#settings,dialog#unlock{max-height:calc(100vh - 16px - var(--sat));overflo
 .radd .in,.radd .btn{height:34px}
 .rin{position:relative;min-width:0} .rin .in{padding-right:52px} .rin i{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;font-size:12px;color:var(--ink-3);pointer-events:none}
 .rlist .addline{margin-top:4px}
+.q.hl{animation:qhl 2.6s ease-out;border-radius:12px}
+@keyframes qhl{0%,35%{background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-line)}100%{background:transparent;box-shadow:0 0 0 2px transparent}}
 .closebox{display:grid;grid-template-columns:170px minmax(0,1fr) auto;gap:8px;align-items:end;margin-bottom:6px}
 .closebox .btn{height:32px}
 table.t.cltab{min-width:520px}
@@ -3514,6 +3516,7 @@ function parseRoute(){
     const ORD={e:0,m:1,c:2,a:3,h:4}, fwd=(ORD[view]??0)>(ORD[route.view]??0); document.body.classList.add('viewswap'); document.body.classList.toggle('swap-fwd',fwd); document.body.classList.toggle('swap-back',!fwd);
     clearTimeout(parseRoute.t); parseRoute.t=setTimeout(()=>document.body.classList.remove('viewswap','swap-fwd','swap-back'),800); } // entrance motion only on a view change
   route={view,id:view==='h'||view==='a'||view==='m'||!id?null:decodeURIComponent(id)};
+  const fq=location.hash.split('/')[3]; route.focusQ=view==='e'&&/^q[\d,]+$/.test(fq||'')?fq.slice(1).split(',').map(Number):null; // #/e/<id>/q2,3 (from a push): show those questions
   if(route.view==='e'&&route.id) lastEvent=route.id;
   if(route.view==='c'&&route.id) lastClient=route.id;
   document.body.classList.toggle('showing-detail',!!route.id);
@@ -3525,6 +3528,13 @@ function applyRoute(force){
   closePops(); closeDrawer(true); parseRoute(); render(); window.scrollTo(0,0);
   if(from&&!route.id&&route.view==='e'&&narrow.matches) $('#list .row.last')?.scrollIntoView({block:'center'}); // back on the phone list: the event you came from is in view, one tap reopens it
 }
+/* opened from a push: scroll to the questions it names and light them up; the hash goes back to the plain event */
+function focusQs(){ const ns=route.focusQ; route.focusQ=null; if(!ns||!route.id) return;
+  const els=ns.map(n=>document.querySelector(`#detail .q[data-qn="${n}"]`)).filter(Boolean);
+  history.replaceState(null,'',`#/e/${encodeURIComponent(route.id)}`); routeKey=location.hash;
+  const t=els[0]||document.querySelector('#s-questions'); if(!t) return;
+  const show=()=>{ t.scrollIntoView({block:'center'}); els.forEach(el=>{ el.classList.remove('hl'); void el.offsetWidth; el.classList.add('hl'); }); };
+  if(t.closest('.evside')&&!sideOpen&&wide.matches){ toggleSide(); setTimeout(show,320); } else show(); } // wide screens: the questions live in the side panel
 function go(v,id){ const h=id?`#/${v}/${encodeURIComponent(id)}`:`#/${v}`; if(location.hash!==h) history.pushState(null,'',h); applyRoute(true); }
 window.addEventListener('hashchange',()=>applyRoute());
 window.addEventListener('popstate',()=>applyRoute());
@@ -3538,6 +3548,7 @@ function render(){
   renderTop(); if(!S) return;
   $('#main').classList.toggle('full',route.view==='h'||route.view==='a'||(route.view==='m'&&narrow.matches)); $('#main').classList.toggle('agenda',route.view==='a'); $('#main').classList.toggle('mapv',route.view==='m'); $('#main').classList.toggle('nolist',!listOpen);
   renderList(); renderDetail();
+  if(route.focusQ) setTimeout(focusQs,300); // opened from a push (boot, or the hub already open)
 }
 
 /* =====================================================================
@@ -3966,7 +3977,7 @@ function renderEvent(D){
     <button type="button" data-rail="s-notes" title="Notes">${ic('doc',1.8)}</button>
   </div><div class="sidefull">
   <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''}</h3><span class="sp"></span></div>
-  ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}">
+  ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}" data-qn="${q.n}">
      <span class="qn">Q${q.n}</span>
      <div class="qbody">${q.author==='client'?'<small class="qfrom">From the client</small>':''}<textarea class="in auto qt" rows="1" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
      <textarea class="in auto qa" rows="1" data-o="${ref(q)}" data-k="answer" placeholder="Answer…" aria-label="Answer Q${q.n}">${esc(q.answer)}</textarea></div>

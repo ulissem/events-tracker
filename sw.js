@@ -1,5 +1,5 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v169';
+const CACHE = 'events-tracker-v170';
 const BADGE = 'race-hub-badge'; // app icon badge: client messages since the hub was last opened (the page clears it)
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/mbox.png', './img/trackbox-active.png', './img/trackbox-passive.png',
@@ -40,8 +40,9 @@ self.addEventListener('push', e => {
     const body = list.length > 1 ? `${head} — ${d.text || ''}` : (d.body || '');
     try { const c = await caches.open(BADGE), r = await c.match('n'), n = (r ? +(await r.text()) || 0 : 0) + 1;
       await c.put('n', new Response(String(n))); await self.navigator.setAppBadge?.(n); } catch {}
+    const ns = [...new Set(list.map(x => x.n).filter(n => n != null))], url = d.url ? d.url + (ns.length ? '/q' + ns.join(',') : '') : './'; // the hub scrolls to those questions
     await self.registration.showNotification(d.title || 'Race Hub', { body, tag: d.tag, renotify: !!d.tag, timestamp: Date.now(),
-      data: { url: d.url || './', list }, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', actions: [{ action: 'open', title: 'Open event' }] });
+      data: { url, list }, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', actions: [{ action: 'open', title: 'Open event' }] });
   })());
 });
 self.addEventListener('notificationclick', e => {
