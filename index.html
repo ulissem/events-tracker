@@ -2958,7 +2958,11 @@ function commitMessage(file){
 }
 
 let dirty=false,saving=false,stateMsg=null,errMsg=null,lastSaved=null;
-function touch(what){ dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); }
+function touch(what){ dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); if(what!=='hold') autoSave(); }
+/* Supabase: every change is saved by itself 1.5 s after the last one (only changed rows are written; GitHub stays manual: one commit per save).
+   'hold' = not yet (the location text: it is saved with its coordinates after the pin lookup, or with the next change) */
+let autoT=null;
+function autoSave(){ if(DEMO||!isSB()) return; clearTimeout(autoT); autoT=setTimeout(()=>{ if(dirty&&!saving) save({quiet:true}); else if(dirty) autoSave(); },1500); }
 /* an edit that was undone (item added, then removed) is not an unsaved change: compare with what was last saved */
 let dirtyT=null, cleanSnap=null; // cleanSnap: serialize() right after loading or saving (older files are upgraded on load, so they never match the saved text exactly)
 const markClean=()=>{ cleanSnap=serialize(); };
@@ -3397,7 +3401,7 @@ function bind(root){
       const o=OBJ[+el.dataset.o], k=el.dataset.k, t=el.dataset.t;
       let v=el.type==='checkbox'?el.checked:el.value;
       if(t==='num') v=num(v);
-      o[k]=v; touch();
+      o[k]=v; touch(k==='location'&&o===S?.events.find(x=>x.id===route.id)?'hold':undefined); // the location waits for its coordinates
       if(el.dataset.r==='detail') renderDetail();
     });
     if(el.dataset.r==='change') el.addEventListener('change',()=>setTimeout(renderDetail,0)); // after Tab has moved the focus, so renderDetail can keep it there
