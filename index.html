@@ -1924,20 +1924,43 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .clhead{display:block;padding:8px 12px 4px}
 .clhead .group{width:100%}
 .clhead + .lscroll .mh{position:static} /* few clients: plain group headers (sticky, with the notch's top inset, they slid over the first row) */
-.row.client .rn{display:flex;align-items:baseline;gap:6px;min-width:0}
-.row.client .rn .cct{font-weight:400;color:var(--ink-3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row.client .rs svg{width:11px;height:11px;flex:none;color:var(--ink-3);margin-right:4px}
-.row.client .avatar{width:36px;height:36px;font-size:14px;margin-right:2px}
-.avatar{border-radius:50%;background:linear-gradient(180deg,#b2b7c2,#8b909c);color:#fff;font-weight:600;letter-spacing:.02em;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 1px 2px rgba(0,0,0,.12)}
-.avatar.up{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 62%,#fff),var(--accent))}
-.avatar svg{width:55%;height:55%} .avatar.lg{border-radius:50%}
-:root[data-theme="dark"] .avatar:not(.up){background:linear-gradient(180deg,#7c818d,#555a64)}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .avatar:not(.up){background:linear-gradient(180deg,#7c818d,#555a64)} }
 /* client page */
+/* clients list as cards: big card per client with something coming up, small ones for the rest */
+.ccards{padding:2px 12px 16px}
+.cc-h{display:flex;align-items:baseline;gap:6px;font-size:13px;font-weight:700;letter-spacing:-.01em;padding:14px 4px 8px}
+.cc-h span{font-weight:500;color:var(--ink-3);font-size:12px}
+.ccard{position:relative;isolation:isolate;overflow:hidden;border-radius:22px;background:var(--panel);box-shadow:var(--shadow-sm);padding:16px 16px 14px;margin-bottom:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s}
+.ccard:active{transform:scale(.985)}
+.ccard::before{content:'';position:absolute;inset:-30px;z-index:-1;pointer-events:none;background:radial-gradient(55% 60% at 92% 0%,color-mix(in srgb,var(--accent) 26%,transparent),transparent 70%)}
+.ccard.active{box-shadow:0 0 0 1.5px var(--accent-line),var(--shadow-sm)}
+.cc-top{display:flex;align-items:flex-start;gap:12px}
+.cc-id{flex:1;min-width:0}
+.cc-eye{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-name{font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-ring{position:relative;flex:none;width:48px;height:48px;display:grid;place-items:center;margin:-2px -2px 0 0}
+.cc-ring .ring{position:absolute;inset:0;width:100%;height:100%}
+.cc-ring .ring .rv{stroke:var(--accent)} .cc-ring .ring.full .rv{stroke:var(--ok)}
+.cc-ring b{position:relative;font-size:13px;font-weight:800;letter-spacing:-.02em}
+.cc-ring b small{font-size:9px;font-weight:700;margin-left:1px;color:var(--ink-2)}
+.cc-next{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;margin-top:14px;padding:10px 12px;border-radius:14px;background:var(--sunken);color:var(--ink);text-decoration:none}
+.cc-next:hover{text-decoration:none;background:var(--hover)}
+.cc-nl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.cc-nm{min-width:0;display:flex;flex-direction:column}
+.cc-nm b{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-nm small{font-size:11.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ccard .facts{margin-top:10px;gap:6px}
+.ccard .fact{height:26px;font-size:12px;padding:0 9px;background:transparent}
+.ccard .fact svg{width:12px;height:12px}
+.ccard .fact.quiet{color:var(--ink-3)} .ccard .fact.quiet svg{color:var(--ok)}
+/* nothing coming up: small neutral cards, two per row */
+.cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ccard.sm{margin:0;padding:12px 14px;border-radius:18px}
+.ccard.sm::before{display:none}
+.ccard.sm .cc-name{font-size:15px;font-weight:700;margin:0}
+.ccard.sm .cc-sub{font-size:11.5px;color:var(--ink-3);margin-top:3px}
 .cview2{padding-top:12px}
 .hero.cli{min-height:0!important}
 .hero.cli .cname{display:flex;align-items:center;gap:12px;margin-top:6px}
-.hero.cli .cname .avatar.lg{width:52px;height:52px;font-size:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 6px 16px -6px rgba(0,0,0,.35)}
 .hero.cli .cname .nameinput{margin:0 0 0 -6px!important;flex:1;min-width:0}
 .cnext{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;margin-top:12px;color:var(--ink);text-decoration:none}
 .cnext:hover{text-decoration:none}
@@ -3083,9 +3106,6 @@ function renderEventList(L){
   L.querySelectorAll('.nextup[data-id]').forEach(n=>n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); go('e',n.dataset.id); } }));
   if(focus==='fl-q'){ const i=$('#fl-q'); i.focus(); i.setSelectionRange(i.value.length,i.value.length); }
 }
-// client avatar like iOS Contacts: initials on a gradient disc, blue = something coming up, grey = nothing; no name = person glyph
-const avatar=(c,up,cls='')=>{ const w=(c.name||'').trim().split(/\s+/).filter(Boolean), t=w.length>1?w[0][0]+w[1][0]:(w[0]||'').slice(0,1);
-  return `<span class="avatar ${cls} ${up?'up':''}" aria-hidden="true">${t?esc(t.toUpperCase()):ic('user',2)}</span>`; };
 let cliQ='', cliPast=false; // clients list search, client page: past events open
 const cliStats=c=>{ const ev=S.events.filter(e=>e.clientId===c.id).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
   const up=ev.filter(e=>!isPast(e)), past=ev.filter(isPast).reverse(), next=up.find(e=>e.dateStart);
@@ -3097,21 +3117,26 @@ function renderClientList(L){
   const cs=all.filter(x=>!q||[x.c.name,x.c.contact,x.c.email].some(v=>(v||'').toLowerCase().includes(q)));
   const withNext=cs.filter(x=>x.next).sort((a,b)=>a.next.dateStart.localeCompare(b.next.dateStart));
   const without=cs.filter(x=>!x.next).sort((a,b)=>(a.c.name||'').localeCompare(b.c.name||''));
-  const row=({c,ev,up,next,oq,avg})=>{ const h=priv()?sumH(entriesOf(x=>x.clientId===c.id&&isOpen(x))):0, cd=next?countdown(next):null, contact=c.contact&&c.contact.trim().toLowerCase()!==(c.name||'').trim().toLowerCase()?c.contact:'';
-    return `<button class="row client ${c.id===route.id?'active':''}" data-id="${esc(c.id)}" type="button">${avatar(c,up.length)}
-      <span class="rm"><span class="rn"><span>${esc(c.name)||'<i>untitled</i>'}</span>${contact?`<span class="cct">${esc(contact)}</span>`:''}</span>
-        <span class="rs">${next?`${ic('flag',2)}<span class="rst">${esc(next.name||'untitled')}</span><span class="rcl">· ${up.length} upcoming</span>`:`<span class="rst">${plural(ev.length,'event','events')} · nothing coming up</span>`}</span></span>
-      <span class="rr">${cd?`<span class="cd ${cd.c}">${cd.t}</span>`:''}<span class="ri">${oq?`<span class="qb" title="${plural(oq,'open question','open questions')}">${oq}?</span>`:''}${h?`<span>${fmtN(h)} h</span>`:''}${up.length?`<span title="${Math.round(avg*100)}% prepared (upcoming, avg.)">${ring(avg,14,2.2)}</span>`:''}</span></span></button>`; };
+  const contactOf=c=>c.contact&&c.contact.trim().toLowerCase()!==(c.name||'').trim().toLowerCase()?c.contact:'';
+  const big=({c,ev,up,next,oq,avg})=>{ const h=priv()?sumH(entriesOf(x=>x.clientId===c.id&&isOpen(x))):0, cd=countdown(next), rt=rangeText(next.dateStart,next.dateEnd).main.replace(/ \d{4}$/,''), ct=contactOf(c);
+    return `<div class="ccard ${c.id===route.id?'active':''}" data-id="${esc(c.id)}" role="button" tabindex="0">
+      <div class="cc-top"><div class="cc-id"><div class="cc-eye">${plural(ev.length,'event','events')}${ct?` · ${esc(ct)}`:''}</div><div class="cc-name">${esc(c.name)||'<i>untitled</i>'}</div></div>
+        <span class="cc-ring" title="${Math.round(avg*100)}% prepared (upcoming, avg.)">${ring(avg,48,4.5)}<b>${Math.round(avg*100)}<small>%</small></b></span></div>
+      <a class="cc-next" href="#/e/${encodeURIComponent(next.id)}" data-ev="${esc(next.id)}"><span class="cc-nl">Next</span>
+        <span class="cc-nm"><b>${esc(next.name||'untitled')}</b><small>${esc([rt,next.location].filter(Boolean).join(' · '))}</small></span><span class="cd ${cd.c}">${cd.t}</span></a>
+      <div class="facts"><span class="fact">${ic('flag',2)}<b>${up.length}</b> upcoming</span>${oq?`<span class="fact warn">${ic('inbox',2)}<b>${oq}</b> open ${oq===1?'question':'questions'}</span>`:`<span class="fact quiet">${ic('check',2.2)}no open questions</span>`}${h?`<span class="fact">${ic('hours',2)}<b>${fmtN(h)}</b> h open</span>`:''}</div>
+    </div>`; };
+  const small=({c,ev,past})=>{ const last=past[0], s=last?.dateStart?parse(last.dateStart):null;
+    return `<div class="ccard sm ${c.id===route.id?'active':''}" data-id="${esc(c.id)}" role="button" tabindex="0"><div class="cc-name">${esc(c.name)||'<i>untitled</i>'}</div>
+      <div class="cc-sub">${ev.length?`${plural(ev.length,'event','events')}${s?` · last ${MON[s.getMonth()]} ${s.getFullYear()}`:''}`:'no events yet'}</div></div>`; };
   L.innerHTML=`<div class="lhead clhead"><div class="in group">${ic('search')}<input class="bare" type="search" id="cl-q" placeholder="Search client, contact" value="${esc(cliQ)}" aria-label="Search clients"></div></div>
-    <div class="lscroll">
-      ${withNext.length?`<div class="mh"><span>Coming up</span><span class="mc">· ${plural(withNext.length,'client','clients')}</span></div>${withNext.map(row).join('')}`:''}
-      ${without.length?`<div class="mh"><span>Nothing coming up</span><span class="mc">· ${without.length}</span></div>${without.map(row).join('')}`:''}
+    <div class="lscroll ccards">
+      ${withNext.length?`<div class="cc-h">Coming up <span>${withNext.length}</span></div>${withNext.map(big).join('')}`:''}
+      ${without.length?`<div class="cc-h">Nothing coming up <span>${without.length}</span></div><div class="cc-grid">${without.map(small).join('')}</div>`:''}
       ${cs.length?'':'<div class="lempty">No clients found.</div>'}</div>
     <div class="listfoot"><span>${plural(S.clients.length,'client','clients')}</span></div>`;
-  on(L,'[data-id]',b=>go('c',b.dataset.id));
-  const qi=L.querySelector('#cl-q'); qi.oninput=e=>{ cliQ=e.target.value; const p=qi.selectionStart; renderClientList(L); const n=L.querySelector('#cl-q'); n.focus(); n.setSelectionRange(p,p); };
-}
-
+  L.querySelectorAll('.ccard').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('.cc-next')) return; go('c',el.dataset.id); }));
+  const qi=L.querySelector('#cl-q'); qi.oninput=e=>{ cliQ=e.target.value; const p=qi.selectionStart; renderClientList(L); const n=L.querySelector('#cl-q'); n.focus(); n.setSelectionRange(p,p); };}
 function focusKey(D){
   const a=document.activeElement; if(!a||a===document.body||!D.contains(a)) return null;
   let sel=null; try{ if(typeof a.selectionStart==='number') sel=[a.selectionStart,a.selectionEnd]; }catch{}
@@ -3551,7 +3576,7 @@ function renderClient(D){
   <div class="hero cli" id="s-top" style="--tint:var(--accent)"><div class="hscrim"></div>
     <div class="hlay"><div class="hmain">
       <div class="hovl"><span>Client</span>${contact?`<i class="sep"></i><span>${esc(contact)}</span>`:''}<i class="sep"></i><span>${plural(ev.length,'event','events')}</span></div>
-      <div class="cname">${avatar(c,up.length,'lg')}<input class="nameinput" data-o="${ref(c)}" data-k="name" value="${esc(c.name)}" placeholder="Client name" aria-label="Client name"></div>
+      <div class="cname"><input class="nameinput" data-o="${ref(c)}" data-k="name" value="${esc(c.name)}" placeholder="Client name" aria-label="Client name"></div>
       ${next?`<a class="cnext" href="#/e/${encodeURIComponent(next.id)}"><span class="lab">Next</span><span class="cnn">${esc(next.name||'untitled')}</span><span class="cnd">${esc(rangeText(next.dateStart,next.dateEnd).main.replace(/ \d{4}$/,''))}</span><span class="hin ${cd.c||''}"><i class="live"></i>${esc(cd.t)}</span></a>`:`<div class="cnext none"><span class="lab">Next</span><span class="cnn">Nothing coming up</span></div>`}
       <div class="facts">
         <a class="fact" href="#s-cevents" data-jump>${ic('flag',2)}<b>${up.length}</b> upcoming</a>
