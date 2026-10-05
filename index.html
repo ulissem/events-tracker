@@ -140,6 +140,9 @@ input[type=checkbox].ck:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)
 .switch input:checked::after{transform:translateX(10px)}
 .switch input:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)}
 
+/* login: storage choice */
+.s-backend{margin:2px 0 10px} .s-backend button{padding:0 12px}
+#loginform[data-backend="github"] .s-sb,#loginform[data-backend="supabase"] .s-gh{display:none}
 /* segmented control (Active / Passive) */
 .seg{display:inline-flex;align-items:stretch;gap:2px;height:32px;padding:2px;border:1px solid var(--line-2);border-radius:7px;background:var(--sunken);box-shadow:var(--shadow-sm)}
 .seg button{display:flex;align-items:center;gap:7px;height:100%;padding:0 10px 0 2px;border:1px solid transparent;border-radius:5px;background:none;color:var(--ink-3);font-weight:500;transition:background-color .12s,color .12s}
@@ -2329,12 +2332,15 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
     <!-- A real login form (username + current-password + submit) so Bitwarden and the OS can autofill it. -->
     <form id="loginform" method="post" action="#" autocomplete="on">
       <h2 id="s-title">Log in</h2>
-      <p>The password is your GitHub token. It stays in this browser only.</p>
-      <div class="fld"><label class="lab" for="s-owner">User</label><input class="in" id="s-owner" name="username" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" required placeholder="github-user"></div>
-      <div class="fld"><label class="lab" for="s-token">Password</label><div class="in group"><input class="bare" id="s-token" name="password" type="password" autocomplete="current-password" required placeholder="ghp_…"><button class="btn ghost sm" type="button" id="s-show">Show</button></div></div>
+      <div class="seg s-backend" role="radiogroup" aria-label="Data storage"><button type="button" role="radio" data-backend="supabase">Supabase</button><button type="button" role="radio" data-backend="github">GitHub</button></div>
+      <p id="s-lead"></p>
+      <div class="fld"><label class="lab" for="s-owner" id="s-ulab">User</label><input class="in" id="s-owner" name="username" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>
+      <div class="fld"><label class="lab" for="s-token">Password</label><div class="in group"><input class="bare" id="s-token" name="password" type="password" autocomplete="current-password" required><button class="btn ghost sm" type="button" id="s-show">Show</button></div></div>
       <details class="adv"><summary>Data location</summary>
-        <div class="fld"><label class="lab" for="s-repo">Data repository</label><input class="in mono" id="s-repo" name="repo" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-        <div class="fld"><label class="lab" for="s-dir">Folder</label><input class="in mono" id="s-dir" name="folder" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+        <div class="s-gh"><div class="fld"><label class="lab" for="s-repo">Data repository</label><input class="in mono" id="s-repo" name="repo" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+        <div class="fld"><label class="lab" for="s-dir">Folder</label><input class="in mono" id="s-dir" name="folder" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>
+        <div class="s-sb"><div class="fld"><label class="lab" for="s-sburl">Project URL</label><input class="in mono" id="s-sburl" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+        <div class="fld"><label class="lab" for="s-sbkey">Publishable key</label><input class="in mono" id="s-sbkey" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>
       </details>
       <div class="msg" id="s-msg" role="alert"></div>
       <div class="acts">
@@ -2469,7 +2475,173 @@ const DemoStore={
   async get(name){ const r=await fetch('../data/'+name,{cache:'no-store'}); return r.ok?r.text():null; },
   async put(){ await new Promise(r=>setTimeout(r,250)); }
 };
-const Store=DEMO?DemoStore:GitHubStore;
+/* Supabase (Oct 2026, SCHEMA.md): tables behind the same virtual files (config.json, clients.json, events-YYYY.json,
+   agenda.json, hours.json), so load / merge / offline stay as they are. Each put writes only the rows that changed;
+   versioned rows (events, clients, owner_docs) are updated "where version = v" → 0 rows = ConflictError → merge, retry.
+   Login: email + password → a session; only the refresh token is kept (cfg.token, encrypted by the app lock). */
+const SB_DEFAULT={url:'https://vpnkzlnpuozytpjlvgwy.supabase.co',key:'sb_publishable_bVEn-CDabDXWDZ_CEMbkWA_OHKlj_a1'}; // events-dev; the key is public by design (RLS protects the data)
+const isSB=()=>!DEMO&&cfg.backend==='supabase';
+const where=()=>DEMO?'the demo files':isSB()?'Supabase':'GitHub';
+const nz=v=>v===undefined||v===null||v===''?null:v;
+const isUuid=s=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(s||''));
+const inList=a=>`in.(${a.map(x=>'"'+String(x).replace(/["\\]/g,'\\$&')+'"').join(',')})`;
+const rateAt=(rates,cid,d)=>{ const r=rates?.[cid]||[]; if(!r.length) return undefined; let v=r[0].coefficient; for(const x of r) if(x.from<=d) v=x.coefficient; return v; };
+const SupabaseStore={
+  access:'', exp:0, refreshing:null, org:null, snap:null,
+  rows:{}, ver:{}, year:{}, q:{}, h:{}, rates:{},          // last known state of each row (canonical JSON), for the per-row diff
+  base(){ return (cfg.sbUrl||SB_DEFAULT.url).replace(/\/+$/,''); },
+  key(){ return cfg.sbKey||SB_DEFAULT.key; },
+  reset(){ Object.assign(this,{access:'',exp:0,org:null,snap:null,rows:{},ver:{},year:{},q:{},h:{},rates:{}}); },
+  async auth(body,grant){
+    const r=await fetch(`${this.base()}/auth/v1/token?grant_type=${grant}`,{method:'POST',headers:{apikey:this.key(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok){ const m=j.error_description||j.msg||j.message||`Supabase ${r.status}`;
+      throw new Error(grant==='password'?(/invalid/i.test(m)?'Wrong email or password':m):'Session expired — log in again'); }
+    this.access=j.access_token; this.exp=Date.now()+(j.expires_in||3600)*1000; cfg.token=j.refresh_token; saveCfg(); return j; },
+  login(email,password){ this.reset(); return this.auth({email,password},'password'); },
+  async token(force=false){
+    if(!force&&this.access&&Date.now()<this.exp-60e3) return this.access;
+    if(!cfg.token) throw new Error('Session expired — log in again');
+    if(!this.refreshing) this.refreshing=this.auth({refresh_token:cfg.token},'refresh_token').finally(()=>{ this.refreshing=null; });
+    await this.refreshing; return this.access; },
+  async logout(){ try{ if(this.access) await fetch(`${this.base()}/auth/v1/logout`,{method:'POST',headers:{apikey:this.key(),Authorization:`Bearer ${this.access}`}}); }catch{} this.reset(); },
+  async rest(path,{method='GET',body,prefer,keepalive=false}={},retry=true){
+    const h={apikey:this.key(),Authorization:`Bearer ${await this.token()}`};
+    if(body!==undefined) h['Content-Type']='application/json'; if(prefer) h.Prefer=prefer;
+    const json=body===undefined?undefined:JSON.stringify(body);
+    const r=await fetch(`${this.base()}/rest/v1/${path}`,{method,headers:h,body:json,cache:'no-store',keepalive:keepalive&&(json||'').length<60000});
+    if(r.status===401&&retry){ await this.token(true); return this.rest(path,{method,body,prefer,keepalive},false); }
+    if(!r.ok){ const j=await r.json().catch(()=>({}));
+      if(r.status===409&&j.code!=='23503') throw new ConflictError(path); // same id created elsewhere
+      throw new Error(`Supabase ${r.status}: ${j.message||path}`); }
+    return r.status===204||r.status===201&&!prefer?.includes('representation')?null:r.json().catch(()=>null); },
+  async orgId(){ if(this.org) return this.org;
+    const r=await this.rest('members?select=org_id&role=eq.owner&limit=1');
+    if(!r?.length) throw new Error('This account has no data (not an owner)'); return this.org=r[0].org_id; },
+  /* ---- rows ⇄ app objects ---- */
+  evRow(e){ const {id,clientId,name,dateStart,dateEnd,location,geo,tz,type,status,website,rr14EventId,portalVisible,notes,questions,...data}=e;
+    const live=S?.events.find(x=>x.id===id)||e; let progress_=null, step=null;
+    try{ progress_=Math.round(progress(live)*100); step=status==='closed'?5:status==='ready'?4:status==='testing'?3:openQ(live).length?1:2; }catch{}
+    return {id,client_id:nz(clientId),name:name||'',date_start:nz(dateStart),date_end:nz(dateEnd),location:nz(location),geo:geo||null,tz:nz(tz),
+      type:nz(type),status:nz(status),website:nz(website),rr14_event_id:nz(rr14EventId),portal_visible:portalVisible!==false,progress:progress_,step,data,notes:nz(notes)}; },
+  evObj(r,qs){ return {id:r.id,clientId:r.client_id||'',name:r.name||'',dateStart:r.date_start||'',dateEnd:r.date_end||'',location:r.location||'',type:r.type||'',
+      status:r.status||'',website:r.website||'',rr14EventId:r.rr14_event_id||'',...r.data,questions:qs.map(q=>this.qObj(q)),notes:r.notes||'',
+      ...(r.geo?{geo:r.geo}:{}),...(r.tz?{tz:r.tz}:{}),...(r.portal_visible===false?{portalVisible:false}:{})}; },
+  qObj(q){ return {id:q.id,n:q.n,text:q.text,answer:q.answer,resolved:q.resolved,...(q.author==='client'?{author:'client'}:{})}; },
+  qRow(q,eid){ return {event_id:eid,n:q.n,text:q.text||'',answer:q.answer||'',resolved:!!q.resolved}; },
+  clRow(c){ const {id,name,contact,email,phone,rrCustomerId,notes,coefficient,...data}=c;
+    return {id,name:name||'',contact:nz(contact),email:nz(email),phone:nz(phone),rr_customer_id:nz(rrCustomerId),notes:nz(notes),data}; },
+  clObj(r){ return {id:r.id,name:r.name||'',contact:r.contact||'',email:r.email||'',phone:r.phone||'',rrCustomerId:r.rr_customer_id||'',notes:r.notes||'',...r.data}; },
+  hRow(x){ return {id:x.id,client_id:x.clientId,event_id:nz(x.eventId),date:x.date,hours:num(x.hours),note:x.note||'',note_hidden:!!x.noteHidden,closure_id:x.closure||null}; },
+  hObj(r){ return {id:r.id,clientId:r.client_id,eventId:r.event_id||'',date:r.date,hours:Number(r.hours),note:r.note||'',closure:r.closure_id||null,...(r.note_hidden?{noteHidden:true}:{})}; },
+  kRow(x,entries){ const {id,clientId,until,ref,hours,coefficient,value,from,...data}=x;
+    const first=(x.entryIds||[]).map(i=>entries.find(h=>h.id===i)?.date).filter(Boolean).sort()[0];
+    return {id,client_id:clientId,date_from:nz(from)||first||null,until:nz(until),ref:nz(ref),hours:hours===''||hours==null?null:num(hours),
+      coefficient:coefficient===''||coefficient==null?null:num(coefficient),value:value===''||value==null?null:num(value),data}; },
+  kObj(r){ return {id:r.id,clientId:r.client_id,...r.data,until:r.until||'',ref:r.ref||'',hours:r.hours==null?'':Number(r.hours),
+      coefficient:r.coefficient==null?'':Number(r.coefficient),value:r.value==null?'':Number(r.value)}; },
+  strip(r){ const o={...r}; for(const k of ['org_id','version','updated_at','updated_by']) delete o[k]; return o; },
+  track(kind,r){ const k=kind+':'+r.id; this.rows[k]=canon(kind==='e'?{...this.strip(r)}:this.strip(r)); this.ver[k]=r.version;
+    if(kind==='e') this.year[k]=(r.date_start||'').slice(0,4)||String(new Date().getFullYear()); },
+  trackQ(q){ const row=this.qRow(q,q.event_id); this.q[q.id]={ev:q.event_id,n:q.n,obj:row,row:canon(row)}; },
+  /* ---- the virtual files ---- */
+  order:n=>n==='config.json'?0:n==='clients.json'?1:n.startsWith('events-')?2:n==='agenda.json'?3:4, // parents before children (foreign keys)
+  async list(){
+    const o=await this.orgId(), f=`org_id=eq.${o}`;
+    const [ev,cl,docs,qs]=await Promise.all([this.rest(`events?select=*&${f}`),this.rest(`clients?select=*&${f}&order=name`),
+      this.rest(`owner_docs?select=*&${f}`),this.rest(`questions?select=*&${f}&order=n`)]);
+    this.snap={ev,cl,docs,qs}; this.rows={}; this.ver={}; this.year={}; this.q={};
+    for(const r of ev) this.track('e',r); for(const r of cl) this.track('c',r); for(const q of qs) this.trackQ(q);
+    for(const d of docs) this.ver['d:'+d.key]=d.version;
+    const years=new Set(ev.map(r=>this.year['e:'+r.id]));
+    return ['config.json','clients.json','agenda.json','hours.json',...[...years].sort().map(y=>`events-${y}.json`)];
+  },
+  async get(name){
+    if(name==='hours.json') return this.getHours();
+    if(!this.snap) await this.list();
+    const {ev,cl,docs,qs}=this.snap, doc=k=>docs.find(d=>d.key===k);
+    if(name==='config.json'){ const d=doc('config'); return d?JSON.stringify({version:2,...d.data},null,2):null; }
+    if(name==='agenda.json'){ const d=doc('agenda'); return d?JSON.stringify({version:1,...d.data},null,2):null; }
+    if(name==='clients.json') return JSON.stringify({version:2,clients:cl.map(r=>this.clObj(r))},null,2);
+    const m=/^events-(.+)\.json$/.exec(name); if(!m) return null;
+    const list=ev.filter(r=>this.year['e:'+r.id]===m[1]).map(r=>this.evObj(r,qs.filter(q=>q.event_id===r.id)))
+      .sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
+    return JSON.stringify({version:2,year:+m[1]||m[1],events:list},null,2);
+  },
+  async getHours(){
+    const o=await this.orgId(), f=`org_id=eq.${o}`;
+    const [en,cl,ra]=await Promise.all([this.rest(`hour_entries?select=*&${f}&order=date,id`),this.rest(`closures?select=*&${f}&order=id`),
+      this.rest(`client_rates?select=*&${f}&order=valid_from`)]);
+    const rates={}; for(const r of ra)(rates[r.client_id]=rates[r.client_id]||[]).push({from:r.valid_from,coefficient:Number(r.coefficient)});
+    const coefficients={}; for(const c of Object.keys(rates)) coefficients[c]=rateAt(rates,c,today());
+    const entries=en.map(r=>this.hObj(r)), closures=cl.map(r=>this.kObj(r));
+    this.h={}; for(const x of entries) this.h['h:'+x.id]=canon(this.hRow(x)); for(const x of closures) this.h['k:'+x.id]=canon(this.kRow(x,entries));
+    this.rates=rates;
+    const out={version:2,entries,closures}; if(Object.keys(coefficients).length) out.coefficients=coefficients; if(Object.keys(rates).length) out.rates=rates;
+    return JSON.stringify(out,null,2);
+  },
+  async put(name,text,_msg,{keepalive=false}={}){
+    const o=await this.orgId(), f=`org_id=eq.${o}`, kp={keepalive}, j=JSON.parse(text);
+    const doc=async key=>{ const {version,...data}=j, k='d:'+key;
+      if(this.ver[k]===undefined){ const r=await this.rest('owner_docs',{method:'POST',body:{org_id:o,key,data},prefer:'return=representation',...kp}); this.ver[k]=r[0].version; return; }
+      const r=await this.rest(`owner_docs?${f}&key=eq.${key}&version=eq.${this.ver[k]}`,{method:'PATCH',body:{data},prefer:'return=representation',...kp});
+      if(!r?.length) throw new ConflictError(name); this.ver[k]=r[0].version; };
+    if(name==='config.json') return doc('config');
+    if(name==='agenda.json') return doc('agenda');
+    if(name==='hours.json') return this.putHours(o,j,kp);
+    /* versioned rows: insert new, update changed "where version = v", delete gone */
+    const rowsOf=async(kind,table,items,toRow,gone)=>{
+      for(const x of items){ const row=toRow(x), k=kind+':'+x.id;
+        if(this.rows[k]===undefined){ const r=await this.rest(table,{method:'POST',body:{org_id:o,...row},prefer:'return=representation',...kp}); this.track(kind,r[0]); }
+        else if(this.rows[k]!==canon(row)){ const r=await this.rest(`${table}?${f}&id=eq.${encodeURIComponent(x.id)}&version=eq.${this.ver[k]}`,{method:'PATCH',body:row,prefer:'return=representation',...kp});
+          if(!r?.length) throw new ConflictError(name); this.track(kind,r[0]); }
+        if(kind==='e') await this.putQuestions(o,x,kp);
+      }
+      for(const k of Object.keys(this.rows).filter(k=>k.startsWith(kind+':')&&gone(k.slice(2),k))){
+        await this.rest(`${table}?${f}&id=eq.${encodeURIComponent(k.slice(2))}`,{method:'DELETE',...kp});
+        delete this.rows[k]; delete this.ver[k]; delete this.year[k];
+        if(kind==='e') for(const [id,q] of Object.entries(this.q)) if(q.ev===k.slice(2)) delete this.q[id]; }
+    };
+    if(name==='clients.json'){ const ids=new Set(j.clients.map(c=>c.id)); return rowsOf('c','clients',j.clients,c=>this.clRow(c),id=>!ids.has(id)); }
+    const m=/^events-(.+)\.json$/.exec(name); if(!m) return;
+    // an event missing from this year's file may have moved to another year: delete only what is gone from the app
+    return rowsOf('e','events',j.events,e=>this.evRow(e),(id,k)=>this.year[k]===m[1]&&!S.events.some(e=>e.id===id));
+  },
+  async putQuestions(o,e,kp){
+    const mine=Object.entries(this.q).filter(([,q])=>q.ev===e.id), seen=new Set();
+    for(const q of e.questions||[]){
+      if(!isUuid(q.id)){ // older ids (q1, q-…): reuse the row with the same number, else a new uuid; the app keeps the new id
+        const old=q.id, hit=mine.find(([id,x])=>x.n===q.n&&!seen.has(id)); q.id=hit?hit[0]:crypto.randomUUID();
+        const lq=S?.events.find(x=>x.id===e.id)?.questions.find(x=>x.id===old); if(lq) lq.id=q.id; }
+      seen.add(q.id); const row=this.qRow(q,e.id), cur=this.q[q.id];
+      if(!cur){ const r=await this.rest('questions',{method:'POST',body:{id:q.id,org_id:o,author:'owner',...row},prefer:'return=representation',...kp}); this.trackQ(r[0]); }
+      else if(cur.row!==canon(row)){ // only the fields changed here: an answer the client wrote meanwhile is not overwritten
+        const body=Object.fromEntries(Object.entries(row).filter(([k,v])=>canon(v)!==canon(cur.obj[k])));
+        const r=await this.rest(`questions?id=eq.${q.id}`,{method:'PATCH',body,prefer:'return=representation',...kp}); if(r?.[0]) this.trackQ(r[0]); }
+    }
+    const gone=mine.map(([id])=>id).filter(id=>!seen.has(id));
+    if(gone.length){ await this.rest(`questions?id=${inList(gone)}`,{method:'DELETE',...kp}); for(const id of gone) delete this.q[id]; }
+  },
+  async putHours(o,j,kp){
+    const f=`org_id=eq.${o}`, entries=j.entries||[], closures=j.closures||[];
+    const changed=(p,list,toRow)=>list.map(x=>[x,toRow(x)]).filter(([x,r])=>this.h[p+x.id]!==canon(r));
+    const up=async(table,rows)=>{ if(rows.length) await this.rest(`${table}?on_conflict=org_id,id`,{method:'POST',body:rows.map(([,r])=>({org_id:o,...r})),prefer:'resolution=merge-duplicates,return=minimal',...kp}); };
+    const kc=changed('k:',closures,x=>this.kRow(x,entries)), hc=changed('h:',entries,x=>this.hRow(x));
+    await up('closures',kc); await up('hour_entries',hc);                 // closures first: entries point to them
+    for(const [x,r] of kc) this.h['k:'+x.id]=canon(r); for(const [x,r] of hc) this.h['h:'+x.id]=canon(r);
+    const goneOf=(p,list)=>{ const ids=new Set(list.map(x=>x.id)); return Object.keys(this.h).filter(k=>k.startsWith(p)&&!ids.has(k.slice(2))).map(k=>k.slice(2)); };
+    const gh=goneOf('h:',entries), gk=goneOf('k:',closures);
+    if(gh.length){ await this.rest(`hour_entries?${f}&id=${inList(gh)}`,{method:'DELETE',...kp}); for(const id of gh) delete this.h['h:'+id]; }
+    if(gk.length){ await this.rest(`closures?${f}&id=${inList(gk)}`,{method:'DELETE',...kp}); for(const id of gk) delete this.h['k:'+id]; }
+    // a changed coefficient is a new rate from today on: earlier hours keep theirs
+    const d=today(), nr=Object.entries(j.coefficients||{}).filter(([cid,v])=>v!==''&&v!=null&&isFinite(num(v))&&num(v)!==rateAt(this.rates,cid,d));
+    if(nr.length){ await this.rest('client_rates?on_conflict=org_id,client_id,valid_from',{method:'POST',body:nr.map(([cid,v])=>({org_id:o,client_id:cid,valid_from:d,coefficient:num(v)})),prefer:'resolution=merge-duplicates,return=minimal',...kp});
+      for(const [cid,v] of nr){ const r=(this.rates[cid]=(this.rates[cid]||[]).filter(x=>x.from!==d)); r.push({from:d,coefficient:num(v)}); r.sort((a,b)=>a.from.localeCompare(b.from)); } }
+  }
+};
+let Store=DemoStore;
+const pickStore=()=>{ Store=DEMO?DemoStore:isSB()?SupabaseStore:GitHubStore; };
+pickStore();
 /* fetch() rejects with a TypeError when there is no network */
 const isNetErr=err=>err instanceof TypeError||!navigator.onLine;
 
@@ -2652,7 +2824,7 @@ async function loadAll(){
 }
 function snapshotItems(){ savedItems={}; for(const e of S.events) savedItems['e:'+e.id]=JSON.stringify(e); for(const c of S.clients) savedItems['c:'+c.id]=JSON.stringify(c); }
 const yearOf=e=>(e.dateStart||'').slice(0,4)||String(new Date().getFullYear());
-function hoursText(){ const h=S.hours, o={version:2,entries:h.entries,closures:h.closures}; if(Object.keys(h.coefficients||{}).length) o.coefficients=h.coefficients; return JSON.stringify(o,null,2); }
+function hoursText(){ const h=S.hours, o={version:2,entries:h.entries,closures:h.closures}; if(Object.keys(h.coefficients||{}).length) o.coefficients=h.coefficients; if(Object.keys(h.rates||{}).length) o.rates=h.rates; return JSON.stringify(o,null,2); }
 /* CRITICAL: hours.json is part of the save set only while it is loaded (unlocked, or locked with changes still to save).
    It comes first so a coefficient move writes hours.json before clients.json drops them. */
 function serialize(){
@@ -2704,12 +2876,13 @@ async function save({unload=false,quiet=false,retry=0}={}){
   saving=true; errMsg=null; updSave();
   let file=null; const done=[];
   try{
-    if(needRemote&&unload){ saving=false; updSave(); persistLocal(); return; } // GitHub not read yet: the local copy keeps the changes
+    if(needRemote&&unload){ saving=false; updSave(); persistLocal(); return; } // remote not read yet: the local copy keeps the changes
     if(needRemote){ const ch=await syncFromRemote(); if(ch) render(); }
     if(!dirty){ saving=false; updSave(); persistLocal(); return; }
     dirty=false;
-    const out=serialize();
-    for(const [n,t] of Object.entries(out)){
+    const out=serialize(), files=Object.entries(out);
+    if(Store.order) files.sort((a,b)=>Store.order(a[0])-Store.order(b[0])); // Supabase: parents before children
+    for(const [n,t] of files){
       if(saved[n]===t) continue; file=n; const msg=commitMessage(n);
       await Store.put(n,t,msg,{keepalive:unload}); saved[n]=t; done.push([n,msg]);
       if(n.startsWith('events-')) eventFiles.add(n);
@@ -2718,7 +2891,7 @@ async function save({unload=false,quiet=false,retry=0}={}){
     snapshotItems(); saving=false; lastSaved=Date.now(); importUndo=null; if(!dirty) markClean(); updSave();
     if(done.some(d=>d[0]==='hours.json')){ if(encKey) sealHours(); else if(hoursRec){ hoursRec.synced=true; hoursRec.pending=false; } }
     persistLocal();
-    if(wasOffline&&done.length) toast('Back online','changes pushed to GitHub','check');
+    if(wasOffline&&done.length) toast('Back online',`changes pushed to ${where()}`,'check');
     else if(!unload&&!quiet) toast(!done.length?'Everything is saved':DEMO?'Demo · nothing written':'Saved',
       done.length===1?`${done[0][0]} · “${done[0][1]}”`:done.length?done.map(d=>d[0]).join(', '):'nothing to commit');
     dropHoursIfLocked();
@@ -2826,7 +2999,7 @@ function mergeHours(B,L,Rm){ B=B||{}; Rm=Rm||{};
 const parseH=t=>{ const j=t?JSON.parse(t):{}; const o=Object.assign({},j,{entries:j.entries||[],closures:j.closures||[],coefficients:j.coefficients||{}}); delete o.version; return o; };
 /* read GitHub and merge it into what is on screen. Returns true if anything on screen changed. */
 async function syncFromRemote(){
-  const names=await Store.list(); if(names===null) throw new Error('Data folder not found on GitHub');
+  const names=await Store.list(); if(names===null) throw new Error(`Data folder not found on ${where()}`);
   const want=names.filter(n=>n!=='hours.json'||S.hours), txt={};
   await Promise.all(want.map(async n=>{ txt[n]=await Store.get(n); }));
   for(const n of Object.keys(GitHubStore.sha)) if(!names.includes(n)) delete GitHubStore.sha[n];
@@ -2915,7 +3088,14 @@ const openQ=e=>(e.questions||[]).filter(q=>!q.resolved);
 const priv=()=>unlocked&&!!S?.hours;
 const entriesOf=f=>S.hours?S.hours.entries.filter(f):[];
 const sumH=a=>a.reduce((s,h)=>s+num(h.hours),0);
-const coefOf=id=>{ const v=S.hours?.coefficients?.[id]; return v===undefined||v===''?1:num(v); };
+/* 🍦 coefficient of a client on a day. With a rate history (Supabase: hours.rates) each day has its own rate;
+   a coefficient just changed in the app (not saved yet) counts from today on. Without history: one coefficient. */
+const coefOf=(id,date=TODAY)=>{ const v=S.hours?.coefficients?.[id], r=S.hours?.rates?.[id];
+  if(r?.length){ const now=rateAt(S.hours.rates,id,TODAY); if(v!==undefined&&v!==''&&num(v)!==now&&(date||'')>=TODAY) return num(v); return rateAt(S.hours.rates,id,date||''); }
+  return v===undefined||v===''?1:num(v); };
+/* coefficient used for an entry: its closure's (when it has a single one), else the rate of the day of the work */
+const hCoef=h=>{ const cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure); return cl&&cl.coefficient!==''&&cl.coefficient!=null?num(cl.coefficient):coefOf(h.clientId,h.date); };
+const coefTxt=x=>x.coefficient!==''&&x.coefficient!=null?fmtN(num(x.coefficient)):(x.rates||[]).map(fmtN).join(' → ')||'—';
 const U=()=>S?.config?.unit||{label:'ice creams',icon:'🍦'};
 const val=v=>`${fmtN(v)} ${esc(U().icon)}`;
 const isOpen=h=>!h.closure;
@@ -3875,7 +4055,7 @@ function bindAddHours(p,target){
 function hoursTable(rows,{showEvent=true,showClient=true}={}){
   if(!rows.length) return emptyBox('hours','No hours logged yet.');
   return `<div class="hs"><div class="tbox hsc"><table class="t htab"><thead><tr><th class="stk stk1">Date</th>${showClient?'<th>Client</th>':''}${showEvent?'<th>Event</th>':''}<th>Activity</th><th class="num">h</th><th class="num">${esc(U().icon)}</th><th></th><th></th></tr></thead><tbody>
-  ${rows.map(h=>{ const c=clientOf(h.clientId), cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure), coef=cl?num(cl.coefficient):coefOf(h.clientId), ev=S.events.find(x=>x.id===h.eventId);
+  ${rows.map(h=>{ const c=clientOf(h.clientId), cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure), coef=hCoef(h), ev=S.events.find(x=>x.id===h.eventId);
     return `<tr><td class="txt stk stk1" style="white-space:nowrap;color:var(--ink-2)">${h.closure?esc(fmtDay(h.date)):`<button type="button" class="cell btncell dtrig" data-hdate="${ref(h)}" aria-label="Date ${esc(h.date)}">${esc(fmtDay(h.date))}</button>`}</td>
       ${showClient?`<td class="txt">${esc(c?.name||'—')}</td>`:''}
       ${showEvent?`<td class="txt">${ev?`<a href="#/e/${encodeURIComponent(ev.id)}" data-go="e:${esc(ev.id)}">${esc(ev.name||'untitled')}</a>`:'<span class="hint">general</span>'}</td>`:''}
@@ -3974,7 +4154,7 @@ function renderClient(D){
       ${F(c,'rrCustomerId','RR customer ID',{ph:'e.g. 60788',mono:true,r:'change',attrs:'inputmode="numeric" autocomplete="off"'})}
       ${F(c,'email','Email',{type:'email',ph:'name@example.com'})}
       ${F(c,'phone','Phone',{type:'tel',ph:'+33…'})}
-      ${showH?F(S.hours.coefficients,c.id,'Coefficient',{ph:'1',hint:'· hours × coefficient = '+esc(U().icon),t:'num',r:'change'}):''}
+      ${showH?F(S.hours.coefficients,c.id,'Coefficient',{ph:'1',hint:'· hours × coefficient = '+esc(U().icon)+(S.hours.rates?' · a change counts from today, earlier hours keep their rate':''),t:'num',r:'change'}):''}
       ${T(c,'notes','Notes',{ph:'Anything about this client…'})}
     </div>
     <p class="hint chelp">RR customer ID is used for the “Open in RR14” links of this client's events.</p>
@@ -3986,26 +4166,29 @@ function renderClient(D){
     </div>`:emptyBox('flag','No events for this client yet.')}
       ${showH?`<div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Open hours <span class="count">${fmtN(sumH(open))} h</span></h3></div>${open.length?`<div class="ccard hr2-g">${open.sort((a,b)=>a.date.localeCompare(b.date)).map(h=>hRow(h,{showClient:false})).join('')}</div>`:emptyBox('hours','No open hours.')}</div>
       <div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Close period</h3></div>
-        <p class="hint" style="margin:0 0 10px">Marks open hours up to the chosen date as closed. Today's coefficient is frozen into the closure.</p>
+        <p class="hint" style="margin:0 0 10px">Marks open hours up to the chosen date as closed. Their value is frozen into the closure.</p>
         <div class="closebox"><div class="fld"><span class="lab">Up to</span>${dateBtn('cl-until',fmtDay,'Up to')}</div>
           <div class="fld"><label class="lab" for="cl-ref">Reference</label><input class="in" id="cl-ref" placeholder="e.g. 2026-10"></div>
           <button class="btn primary" id="cl-go" type="button" ${open.length?'':'disabled'}>Close period</button></div>
         <p class="hint" id="cl-preview" style="margin:6px 0 0"></p></div>
       <div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Closures <span class="count">${closures.length}</span></h3></div>
         ${closures.length?`<div class="hs"><div class="tbox hsc"><table class="t cltab"><thead><tr><th class="stk stk1">Closed on</th><th>Up to</th><th>Ref.</th><th class="num">Hours</th><th class="num">Coeff.</th><th class="num">${esc(U().icon)}</th><th></th></tr></thead><tbody>
-          ${closures.map(x=>`<tr><td class="txt stk stk1">${esc(fmtDay(x.date))}</td><td class="txt">${esc(fmtDay(x.until))}</td><td class="txt">${esc(x.ref)}</td><td class="num">${fmtN(num(x.hours))}</td><td class="num">${fmtN(num(x.coefficient))}</td><td class="num">${val(num(x.value))}</td><td class="x"><button class="btn sm ghost" data-reopen="${esc(x.id)}" type="button" title="Reopen these hours">Undo</button></td></tr>`).join('')}</tbody></table></div></div>`:emptyBox('hours','No closures yet.')}</div>`:''}
+          ${closures.map(x=>`<tr><td class="txt stk stk1">${esc(fmtDay(x.date))}</td><td class="txt">${esc(fmtDay(x.until))}</td><td class="txt">${esc(x.ref)}</td><td class="num">${fmtN(num(x.hours))}</td><td class="num">${coefTxt(x)}</td><td class="num">${val(num(x.value))}</td><td class="x"><button class="btn sm ghost" data-reopen="${esc(x.id)}" type="button" title="Reopen these hours">Undo</button></td></tr>`).join('')}</tbody></table></div></div>`:emptyBox('hours','No closures yet.')}</div>`:''}
     </section></div></div>
   <div class="foot"><span class="mono">id: ${esc(c.id)}</span><button class="btn sm ghost del dangerous" id="delcl" type="button">Delete client</button></div></div>`;
   if(showH){
     bindHoursTable(D);
     const until=()=>$('#cl-until').dataset.date;
     const preview=()=>{ const u=until(), rows=open.filter(h=>!u||h.date<=u);
-      $('#cl-preview').textContent=rows.length?`${plural(rows.length,'entry','entries')} · ${fmtN(sumH(rows))} h · ${fmtN(sumH(rows)*coef)} ${U().icon}`:'No open hours in this range.'; return rows; };
+      $('#cl-preview').textContent=rows.length?`${plural(rows.length,'entry','entries')} · ${fmtN(sumH(rows))} h · ${fmtN(rows.reduce((t,h)=>t+hValOf(h),0))} ${U().icon}`:'No open hours in this range.'; return rows; };
     preview();
     bindDateBtn($('#cl-until'),fmtDay,preview);
     $('#cl-go').onclick=()=>{ const rows=preview(); if(!rows.length) return;
       if(!confirm(`Close ${plural(rows.length,'entry','entries')} (${fmtN(sumH(rows))} h)?`)) return;
-      const h=sumH(rows), x={id:uid('cl'),clientId:c.id,date:TODAY,until:until(),ref:$('#cl-ref').value.trim(),hours:h,coefficient:coef,value:Math.round(h*coef*100)/100,entryIds:rows.map(r=>r.id)};
+      // value = sum of the rows, each with the rate of its day; one coefficient when they all share it, else the rates used ("75 → 80")
+      const h=sumH(rows), ks=[...new Set(rows.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(hCoef))];
+      const x={id:uid('cl'),clientId:c.id,date:TODAY,until:until(),ref:$('#cl-ref').value.trim(),hours:h,coefficient:ks.length===1?ks[0]:'',value:Math.round(rows.reduce((t,r)=>t+hValOf(r),0)*100)/100,entryIds:rows.map(r=>r.id)};
+      if(ks.length>1) x.rates=ks;
       S.hours.closures.push(x); for(const r of rows) r.closure=x.id; touch(); renderDetail(); toast('Period closed',`${fmtN(h)} h · ${fmtN(x.value)} ${U().icon}`,'check'); };
     on(D,'[data-reopen]',b=>{ const x=S.hours.closures.find(y=>y.id===b.dataset.reopen); if(!x||!confirm('Reopen the hours of this closure?')) return;
       for(const h of S.hours.entries) if(h.closure===x.id) h.closure=null; S.hours.closures=S.hours.closures.filter(y=>y!==x); touch(); renderDetail(); });
@@ -4027,7 +4210,7 @@ function renderClient(D){
    ===================================================================== */
 const hf={client:'',state:'open',month:''};
 /* Hours (Oct 2026): totals, open by client, filters as chips + month ‹ ›, log card, entries as rows grouped by month */
-const hValOf=h=>{ const cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure); return num(h.hours)*(cl?num(cl.coefficient):coefOf(h.clientId)); };
+const hValOf=h=>num(h.hours)*hCoef(h);
 const hRow=(h,{showClient=true,showEvent=true}={})=>{ const c=clientOf(h.clientId), ev=S.events.find(x=>x.id===h.eventId), d=h.date?parse(h.date):null, cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure);
     return `<div class="hr2 ${h.closure?'closed':''}">
       <span class="rd">${h.closure||!d?`<b>${d?d.getDate():'–'}</b><small>${d?DOW[d.getDay()]:''}</small>`:`<button type="button" class="hr2-d" data-hdate="${ref(h)}" aria-label="Date ${esc(h.date)}"><b>${d.getDate()}</b><small>${DOW[d.getDay()]}</small></button>`}</span>
@@ -4743,7 +4926,7 @@ function renderCmd(){
     {t:'Save',icon:'save',k:`${MOD}S`,run:()=>save()},
     {t:'Copy AI prompt',icon:'sparkle',sub:'for a new event from an email',run:()=>openPrompt()},
     {t:'Import from AI (JSON)',icon:'upload',run:()=>openImport()},
-    {t:'Refresh data',icon:'refresh',sub:DEMO?'re-read the demo files':'re-read from GitHub (saves first)',run:refreshData},
+    {t:'Refresh data',icon:'refresh',sub:`re-read from ${where()} (saves first)`,run:refreshData},
     {t:'Reload app',icon:'refresh',sub:'saves first',run:reloadApp},
     ...(importUndo?[{t:'Undo import',icon:'back',sub:'until the next save',run:undoImport}]:[]),
     {t:isDark()?'Switch to light theme':'Switch to dark theme',icon:isDark()?'sun':'moon',run:toggleTheme},
@@ -5531,7 +5714,7 @@ $('#al-pinf').addEventListener('submit',async ev=>{ ev.preventDefault(); const p
   catch{ $('#al-msg').textContent='Wrong PIN'; $('#al-pin').select(); shake($('#al-pin')); }
   finally{ $('#al-pgo').disabled=false; } });
 $('#al-reset').onclick=()=>{
-  if(!confirm('Reset this device?\n\nThis removes the app lock, the GitHub token and the offline copy from this device. Changes not yet saved to GitHub are lost.\n\nYou log in again with your token (Bitwarden).')) return;
+  if(!confirm('Reset this device?\n\nThis removes the app lock, the login and the offline copy from this device. Changes not yet saved are lost.\n\nYou log in again with Bitwarden.')) return;
   idbKey('del').catch(()=>{});
   try{ localStorage.removeItem(LOCK_KEY); localStorage.removeItem(LOCAL_KEY()); const c=readLS(CFG_KEY); delete c.tokenEnc; c.token=''; localStorage.setItem(CFG_KEY,JSON.stringify(c)); }catch{}
   location.reload(); };
@@ -5614,6 +5797,7 @@ async function logout(){
   if(dirty) await save({quiet:true});
   if(dirty&&!confirm('Some changes could not be saved and will be lost. Log out anyway?')) return;
   if(hoursWaiting()&&!confirm('Hours changed offline have not been pushed yet (unlock to sync them). Log out anyway and lose them?')) return;
+  if(isSB()) await SupabaseStore.logout();
   clearLocal(); try{ localStorage.removeItem(LOCK_KEY); }catch{} idbKey('del').catch(()=>{}); LOCK=null; cfg.token=''; delete cfg.tokenEnc; saveCfg(); dirty=false; unlocked=false; location.hash=''; location.reload();
 }
 const dlg=$('#settings');
@@ -5622,9 +5806,9 @@ function openSettings(msg=''){
   const loggedIn=!!S;
   $('#s-prefs').hidden=!loggedIn; $('#loginform').hidden=DEMO; $('#s-democlose').hidden=!DEMO;
   $('#s-cancel').hidden=!loggedIn; $('#s-cancel').textContent='Close';
-  $('#s-title').textContent=loggedIn?'GitHub connection':'Log in';
+  $('#s-title').textContent=loggedIn?'Connection':'Log in';
   $('#s-save').textContent=loggedIn?'Reconnect':'Log in';
-  $('#s-owner').value=cfg.owner; $('#s-repo').value=cfg.repo; $('#s-dir').value=cfg.dir; $('#s-token').value=cfg.token; $('#s-msg').textContent=msg;
+  loginBackend(cfg.backend||(cfg.owner?'github':'supabase')); $('#s-msg').textContent=msg;
   if(loggedIn){ $('#s-rr14user').value=S.config.rr14User||''; $('#s-carto').value=S.config.cartoKey||'';
     $('#s-swinfo').textContent=!hasSafeword()?'Not set yet — set it the first time you unlock.':priv()?'Set. You can change it while unlocked.':'Set. Unlock first to change it.';
     $('#s-swset').disabled=!priv(); lockInfo(); }
@@ -5638,13 +5822,29 @@ $('#s-cancel').onclick=()=>dlg.close();
 $('#s-show').onclick=()=>{ const i=$('#s-token'); i.type=i.type==='password'?'text':'password'; $('#s-show').textContent=i.type==='password'?'Show':'Hide'; };
 dlg.addEventListener('cancel',e=>{ if(!S) e.preventDefault(); }); // Esc can't dismiss the login before data is loaded
 dlg.addEventListener('close',()=>{ $('#s-token').type='password'; $('#s-show').textContent='Show'; if(S) render(); });
+/* Supabase: email + password (never stored: only the session). GitHub: user + token, as before. */
+function loginBackend(be){
+  const f=$('#loginform'), sb=be==='supabase', cur=(cfg.backend||'github')===be&&!!cfg.owner;
+  f.dataset.backend=be; f.querySelectorAll('[data-backend]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.backend===be)));
+  $('#s-lead').textContent=sb?'Your Supabase account. The password is not stored: this device keeps only a session (encrypted by the app lock).':'The password is your GitHub token. It stays in this browser only.';
+  $('#s-ulab').textContent=sb?'Email':'User'; const u=$('#s-owner'); u.placeholder=sb?'you@example.com':'github-user'; u.inputMode=sb?'email':'text';
+  $('#s-token').placeholder=sb?'':'ghp_…';
+  u.value=cur?cfg.owner:''; $('#s-token').value=cur&&!sb?cfg.token:'';
+  $('#s-repo').value=cfg.repo&&!/^supabase:/.test(cfg.repo)?cfg.repo:'events-tracker-data'; $('#s-dir').value=cfg.dir&&cfg.dir!=='supabase'?cfg.dir:'data';
+  $('#s-sburl').value=cfg.sbUrl||SB_DEFAULT.url; $('#s-sbkey').value=cfg.sbKey||SB_DEFAULT.key;
+}
+$('#loginform').querySelectorAll('[data-backend]').forEach(b=>b.onclick=()=>{ loginBackend(b.dataset.backend); $('#s-msg').textContent=''; $('#s-owner').focus(); });
 $('#loginform').onsubmit=async ev=>{ ev.preventDefault();
-  const next={owner:$('#s-owner').value.trim(),repo:$('#s-repo').value.trim()||'events-tracker-data',dir:$('#s-dir').value.trim()||'data',token:$('#s-token').value.trim()};
-  if(!next.owner||!next.token){ $('#s-msg').textContent='Fill in user and password.'; return; }
+  const sb=$('#loginform').dataset.backend==='supabase', user=$('#s-owner').value.trim(), pw=$('#s-token').value.trim();
+  if(!user||!pw){ $('#s-msg').textContent=sb?'Fill in email and password.':'Fill in user and password.'; return; }
+  const sbUrl=$('#s-sburl').value.trim().replace(/\/+$/,'')||SB_DEFAULT.url, sbKey=$('#s-sbkey').value.trim()||SB_DEFAULT.key;
+  const next=sb?{backend:'supabase',owner:user.toLowerCase(),token:'',sbUrl,sbKey,repo:'supabase:'+(/^https:\/\/([^.]+)\./.exec(sbUrl)?.[1]||sbUrl),dir:'supabase'}
+    :{backend:'github',owner:user,repo:$('#s-repo').value.trim()||'events-tracker-data',dir:$('#s-dir').value.trim()||'data',token:pw};
   if(S&&dirty){ await save({quiet:true}); if(dirty&&!confirm('Some changes could not be saved and will be lost. Reconnect anyway?')) return; }
-  cfg=next;
+  cfg=next; pickStore();
   try{
     $('#s-save').disabled=true;
+    if(sb) await SupabaseStore.login(user,pw);
     let res=await loadAll();
     if(res==='missing'){
       if(!confirm(`The folder «${cfg.dir}» doesn't exist in ${cfg.owner}/${cfg.repo}. Create it with empty files?`)) return;
@@ -5652,7 +5852,7 @@ $('#loginform').onsubmit=async ev=>{ ev.preventDefault();
       normalizeConfig(); dirty=true; await save({quiet:true});
     }
     saveCfg(); dlg.close(); parseRoute(); render();
-  }catch(err){ $('#s-msg').textContent=err.message+'. Check user, password (token) and its permissions.'; }
+  }catch(err){ $('#s-msg').textContent=isSB()?(isNetErr(err)?'No connection to Supabase.':err.message):err.message+'. Check user, password (token) and its permissions.'; }
   finally{ $('#s-save').disabled=false; }
 };
 
@@ -5682,7 +5882,7 @@ async function refreshData(){
     // merge GitHub into what is here (unsaved changes are kept), then push what is pending
     await syncFromRemote(); if(errMsg==='Offline') errMsg=null; parseRoute(); render();
     if(dirty) await save({quiet:true});
-    toast('Data refreshed',`from GitHub${S.hours?' · hours too':''}${dirty?' · some changes not saved':''}`,'check');
+    toast('Data refreshed',`from ${where()}${S.hours?' · hours too':''}${dirty?' · some changes not saved':''}`,'check');
   }catch(err){
     if(isNetErr(err)){ errMsg='Offline'; updSave(); toast('Offline','showing the copy on this device','wifi','warn'); }
     else{ errMsg=err.message; updSave(); toast('Could not refresh',err.message,'warn','err'); } }
