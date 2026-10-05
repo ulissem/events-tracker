@@ -5931,8 +5931,14 @@ narrow.addEventListener('change',()=>{ closeDrawer(true); closePops(); render();
 wide.addEventListener('change',()=>{ if(route.view==='e'&&route.id) renderDetail(); }); // side column cards on / off
 document.fonts?.ready.then(()=>document.querySelectorAll('textarea.auto').forEach(fitTA));
 
+/* Oct 2026: the app lives at hub.ulissemariangeli.com (Netlify). The old GitHub Pages copy only points there:
+   no automatic redirect, so pending changes on this device are saved first (another address = other browser storage). */
+const NEW_HOME='https://hub.ulissemariangeli.com/';
+function movedNotice(){ toast('This app moved to hub.ulissemariangeli.com','there: log in once, turn the app lock on again, add it to the Home Screen','bolt','warn',
+  {label:'Open',run:async()=>{ if(await saveBeforeReload('Open the new address')) location.href=NEW_HOME+location.hash; else movedNotice(); }},true); }
 (async()=>{
   parseRoute(); routeKey=location.hash; renderTop();
+  if(location.hostname==='ulissem.github.io') setTimeout(movedNotice,1200);
   if(lockOn()) await showLock();
   if(!DEMO&&(!cfg.token||!cfg.owner)){ openSettings(); return; }
   if(!DEMO&&bootLocal()){ parseRoute(); render(); syncNow(); if(!navigator.onLine){ errMsg='Offline'; updSave(); } return; }
