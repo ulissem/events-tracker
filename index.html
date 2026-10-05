@@ -5938,7 +5938,9 @@ function movedNotice(){ toast('This app moved to hub.ulissemariangeli.com','ther
   {label:'Open',run:async()=>{ if(await saveBeforeReload('Open the new address')) location.href=NEW_HOME+location.hash; else movedNotice(); }},true); }
 (async()=>{
   parseRoute(); routeKey=location.hash; renderTop();
-  if(location.hostname==='ulissem.github.io') setTimeout(movedNotice,1200);
+  if(location.hostname==='ulissem.github.io'){ setTimeout(movedNotice,1200);
+    // the login dialog is modal (the toast can't be clicked behind it): the link goes into the dialog too
+    $('#s-title').insertAdjacentHTML('afterend',`<p class="msg" style="margin:0 0 10px">This app moved: <a href="${NEW_HOME}">hub.ulissemariangeli.com</a></p>`); }
   if(lockOn()) await showLock();
   if(!DEMO&&(!cfg.token||!cfg.owner)){ openSettings(); return; }
   if(!DEMO&&bootLocal()){ parseRoute(); render(); syncNow(); if(!navigator.onLine){ errMsg='Offline'; updSave(); } return; }
