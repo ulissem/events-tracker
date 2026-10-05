@@ -2179,6 +2179,11 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .scard .qbox{background:none;box-shadow:none;padding:0}
   .scard .q:last-child{border-bottom:0}
 }
+/* "+ Add …" at the end of each list (links, timing points, races, questions): new items appear right there, no scrolling up */
+.addline{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;padding:10px 14px;border:0;border-radius:14px;background:none;color:var(--ink-3);font:inherit;font-size:13.5px;text-align:left;cursor:pointer;box-shadow:inset 0 0 0 1px var(--line);-webkit-tap-highlight-color:transparent}
+.addline svg{width:14px;height:14px}
+.addline:hover{color:var(--accent);background:var(--hover);box-shadow:inset 0 0 0 1px var(--accent-line)}
+.addline:active{transform:scale(.99)}
 /* day cards: past days dimmed; rings: a green check at 100 % */
 .agdc.past{opacity:.55}
 .agdc.past .cc-eye{color:var(--ink-3)}
@@ -3518,19 +3523,22 @@ function renderEvent(D){
     <div class="fld"><span class="lab">Timing technology</span><div class="seg" role="radiogroup" aria-label="Timing technology">${Object.entries(TECH).map(([k,v])=>`<button type="button" role="radio" data-tech="${k}" aria-checked="${e.technology===k}"><img class="hwimg" src="${v.img}" alt="">${v.label}</button>`).join('')}</div></div>
   </div></section>
 
-  <section class="sec" id="s-links"><div class="sech" style="--sc:${SECC.links}"><h3>${secBadge('links')}Links and documents ${e.links.length?`<span class="count">${e.links.length}</span>`:''}</h3><span class="sp"></span><button class="btn sm" id="addlink" type="button">${ic('plus',2.2)} Link</button></div>
+  <section class="sec" id="s-links"><div class="sech" style="--sc:${SECC.links}"><h3>${secBadge('links')}Links and documents ${e.links.length?`<span class="count">${e.links.length}</span>`:''}</h3><span class="sp"></span></div>
   ${e.links.length?`<div class="tbox"><table class="t links"><tbody>${e.links.map((l,i)=>`<tr><td style="width:34%"><div style="display:flex;align-items:center;gap:4px;padding-left:4px"><span style="color:var(--ink-3);display:flex">${ic('link',1.8).replace('<svg','<svg width="14" height="14"')}</span>${cell(l,'label',{ph:'Regulations, GPX, branding…'})}</div></td><td>${cell(l,'url',{ph:'https://…',type:'url',label:'Address',cls:'tu',r:'change'})}</td><td class="x">${linkBtn(l.url)}</td><td class="x"><button class="btn icon sm ghost del rowact" data-dellink="${i}" type="button" aria-label="Remove link">${ic('x')}</button></td></tr>`).join('')}</tbody></table></div>`:emptyBox('link','Regulations, GPX, branding, shared folder…')}
+  <button type="button" class="addline" id="addlink">${ic('plus',2)}<span>Add a link</span></button>
   </section>
 
-  <section class="sec" id="s-tps"><div class="sech" style="--sc:${SECC.tps}"><h3>${secBadge('tps')}Timing points <span class="count">${e.timingPoints.length}</span></h3><span class="sp"></span>${e.timingPoints.length?`<span class="deskonly" style="display:contents">${tpTools}</span>`:''}<button class="btn sm" id="addtp" type="button">${ic('plus',2.2)} Point</button></div>
+  <section class="sec" id="s-tps"><div class="sech" style="--sc:${SECC.tps}"><h3>${secBadge('tps')}Timing points <span class="count">${e.timingPoints.length}</span></h3><span class="sp"></span>${e.timingPoints.length?`<span class="deskonly" style="display:contents">${tpTools}</span>`:''}</div>
   ${kitShelf(e)}
   ${e.timingPoints.length?`<div class="hs"><div class="tbox hsc"><table class="t tps" style="min-width:${820-(tpc.ch?0:62)-(tpc.loop?0:62)-(tpc.mode?0:108)}px"><colgroup><col class="c1"><col class="c2"><col class="c3">${tpc.ch?'<col class="c4">':''}${tpc.loop?'<col class="c5">':''}${tpc.mode?'<col class="c6">':''}<col class="c7">${narrow.matches?'':'<col class="c8">'}<col class="c9"></colgroup><thead><tr><th class="stk stk1"></th><th class="stk stk2">Name</th><th>Hardware</th>${tpc.ch?'<th>Ch.</th>':''}${tpc.loop?'<th>L.</th>':''}${tpc.mode?'<th>Mode</th>':''}<th title="Position (lat, lon)${narrow.matches?' and note':''}">${narrow.matches?'Pos. · Note':'Pos.'}</th>${narrow.matches?'':'<th>Notes</th>'}<th></th></tr></thead><tbody data-sort="${ref(e.timingPoints)}">${e.timingPoints.map((t,i)=>tpRow(e,t,i,dups,tpc)).join('')}</tbody></table></div></div>
   ${dups.length?`<div class="empty" style="border-color:var(--danger);color:var(--danger);margin-top:8px">${ic('warn')}<span>${dups.map(([k,v])=>`Ch. ${esc(k.split('/')[0])}${k.endsWith('–')?'':` / L. ${esc(k.split('/')[1])}`} is used ${v.length} times: ${v.map(t=>esc(t.name||'untitled')).join(', ')}`).join('<br>')}</span></div>`:''}
   <div class="toolbar phoneonly">${tpTools}</div>`:emptyBox('pin','The hardware on the course: start, finish, intermediate points. Races use them in their splits.')}
+  <button type="button" class="addline" id="addtp">${ic('plus',2)}<span>Add a timing point</span></button>
   </section>
 
-  <section class="sec" id="s-races"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Races <span class="count">${e.contests.length}</span></h3><span class="sp"></span>${e.contests.length>1?`<button class="btn sm ghost" id="ctall" type="button">${e.contests.every(c=>openRaces.has(c.id))?'Collapse all':'Expand all'}</button>`:''}<button class="btn sm" id="addct" type="button">${ic('plus',2.2)} Race</button></div>
+  <section class="sec" id="s-races"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Races <span class="count">${e.contests.length}</span></h3><span class="sp"></span>${e.contests.length>1?`<button class="btn sm ghost" id="ctall" type="button">${e.contests.every(c=>openRaces.has(c.id))?'Collapse all':'Expand all'}</button>`:''}</div>
   ${e.contests.map((c,ci)=>raceCard(e,c,ci,tpOpts)).join('')||emptyBox('flag','No races yet.')}
+  <button type="button" class="addline" id="addct">${ic('plus',2)}<span>Add a race</span></button>
   </section>
 
   <section class="sec" id="s-registration"><div class="sech" style="--sc:${SECC.registration}"><h3>${secBadge('registration')}Registration / Kiosk</h3></div>
@@ -3553,13 +3561,14 @@ function renderEvent(D){
     ${showH?`<button type="button" data-rail="s-hours" title="Hours">${ic('hours',1.8)}${fmtN(sumH(evHours))}h</button>`:''}
     <button type="button" data-rail="s-notes" title="Notes">${ic('doc',1.8)}</button>
   </div><div class="sidefull">
-  <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''}</h3><span class="sp"></span><button class="btn sm" id="addq" type="button">${ic('plus',2.2)} Question</button></div>
+  <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''}</h3><span class="sp"></span></div>
   ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}">
      <span class="qn">Q${q.n}</span>
      <div class="qbody"><textarea class="in auto qt" rows="1" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
      <textarea class="in auto qa" rows="1" data-o="${ref(q)}" data-k="answer" placeholder="Answer…" aria-label="Answer Q${q.n}">${esc(q.answer)}</textarea></div>
      <span class="qc"><label class="chk" title="Resolved"><input type="checkbox" class="ck" data-o="${ref(q)}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> Resolved</label><button class="btn icon sm ghost del" data-delq="${i}" type="button" aria-label="Delete question Q${q.n}">${ic('x')}</button></span>
    </div>`).join('')}${e.questions.length?'</div>':emptyBox('inbox','Open questions go into the client summary, numbered Q1, Q2…')}
+  <button type="button" class="addline" id="addq">${ic('plus',2)}<span>Add a question</span></button>
   </section>
 
   <section class="sec" id="s-checklist"><div class="sech" style="--sc:${SECC.checklist}"><h3>${secBadge('checklist')}Checklist</h3></div>
@@ -3596,9 +3605,9 @@ function renderEvent(D){
   $('#datebtn').onclick=ev=>openDate(ev.currentTarget,{s:e.dateStart,e:e.dateEnd,allowRange:true,excludeId:e.id,onChange:(s,en)=>{ e.dateStart=s; e.dateEnd=en||''; touch(); const r=rangeText(s,en); const b=$('#datebtn'); if(b){ b.querySelector('.tv').textContent=r.main; b.querySelector('.ts').textContent=r.sub; } },onClose:()=>renderDetail()});
   // moving the event to another client moves its open hours too (only possible while they are loaded; otherwise fixed on unlock)
   D.querySelector('[data-k=clientId]')?.addEventListener('change',ev=>{ if(priv()) for(const h of entriesOf(h=>h.eventId===e.id)) if(isOpen(h)) h.clientId=ev.target.value; });
-  $('#addlink').onclick=()=>{ e.links.push({label:'',url:''}); touch(); renderDetail(); };
+  $('#addlink').onclick=()=>{ e.links.push({label:'',url:''}); touch(); renderDetail(); focusNew('#s-links tbody tr:last-child'); };
   on(D,'[data-dellink]',b=>{ e.links.splice(+b.dataset.dellink,1); touch(); renderDetail(); });
-  $('#addtp').onclick=()=>{ e.timingPoints.push({id:uid('tp'),name:'',hardware:'',ch:'',loop:'',mode:'',color:nextColor(e),position:'',notes:''}); touch(); renderDetail(); };
+  $('#addtp').onclick=()=>{ e.timingPoints.push({id:uid('tp'),name:'',hardware:'',ch:'',loop:'',mode:'',color:nextColor(e),position:'',notes:''}); touch(); renderDetail(); focusNew('#s-tps tbody tr:last-child'); };
   on(D,'[data-tpcolors]',()=>{ e.timingPoints.forEach((t,i)=>t.color=PASTEL[i%PASTEL.length]); touch(); renderDetail(); toast('Colours reassigned','','check'); });
   on(D,'[data-tpexport]',()=>exportTimingPoints(e));
   on(D,'[data-deltp]',b=>{ const t=e.timingPoints[+b.dataset.deltp]; const used=e.contests.filter(c=>c.splits.some(s=>s.tp===t.id));
@@ -3636,6 +3645,8 @@ function renderEvent(D){
     if(confirm(`Delete «${e.name||'untitled'}»? It stays in the commit history.`)){ S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
   if(wide.matches) sideCards(D,e); // only where the side column is a column (≥ 1720 px)
 }
+// after an "+ Add …" at the end of a list: focus the first field of the new row, keep it in view
+function focusNew(sel){ const r=$('#detail').querySelector(sel), f=r?.querySelector('[data-k=name],[data-k=label]')||r?.querySelector('input:not([type=checkbox]):not([type=color]),textarea'); if(!f) return; f.focus({preventScroll:true}); r.scrollIntoView({block:'nearest'}); }
 /* wide screens: the side column (Questions, Checklist, Notes) as separate cards with eyebrow + title and a meaningful glow */
 function sideCards(D,e){
   D.querySelectorAll('.sidefull > .sec').forEach(sec=>{
