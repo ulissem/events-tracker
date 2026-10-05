@@ -1,5 +1,6 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v168';
+const CACHE = 'events-tracker-v169';
+const BADGE = 'race-hub-badge'; // app icon badge: client messages since the hub was last opened (the page clears it)
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/mbox.png', './img/trackbox-active.png', './img/trackbox-passive.png',
   './vendor/leaflet/leaflet.js', './vendor/leaflet/leaflet.css', './vendor/tz-lookup/tz.js'];
@@ -12,7 +13,7 @@ self.addEventListener('message', e => {
   if (e.data && e.data.type === 'skipWaiting') self.skipWaiting();
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== BADGE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 // Network first, so a new version shows up immediately; cache only as offline fallback.
 self.addEventListener('fetch', e => {
@@ -37,6 +38,8 @@ self.addEventListener('push', e => {
     const ans = list.filter(x => x.kind === 'answered').map(x => 'Q' + x.n), ask = list.filter(x => x.kind === 'asked').length;
     const head = [ans.length ? `Answered ${ans.join(', ')}` : '', ask ? (ask > 1 ? `${ask} new questions` : 'New question') : ''].filter(Boolean).join(' · ');
     const body = list.length > 1 ? `${head} — ${d.text || ''}` : (d.body || '');
+    try { const c = await caches.open(BADGE), r = await c.match('n'), n = (r ? +(await r.text()) || 0 : 0) + 1;
+      await c.put('n', new Response(String(n))); await self.navigator.setAppBadge?.(n); } catch {}
     await self.registration.showNotification(d.title || 'Race Hub', { body, tag: d.tag, renotify: !!d.tag, timestamp: Date.now(),
       data: { url: d.url || './', list }, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', actions: [{ action: 'open', title: 'Open event' }] });
   })());

@@ -3145,6 +3145,9 @@ function Live({url,key,token,topic,me,onPing}){
   return { stop(){ stopped=true; clearTimeout(wait); ws?.close(); }, get on(){ return ws?.readyState===1; } };
 }
 const jwtSub=t=>{ try{ return JSON.parse(atob(String(t).split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub; }catch{ return ''; } };
+/* app icon badge (iPhone Home Screen / installed app): set by the service worker on each push, cleared when the hub is in view */
+function clearBadge(){ if(document.visibilityState!=='visible') return; try{ navigator.clearAppBadge?.(); window.caches?.open('race-hub-badge').then(c=>c.delete('n')); }catch{} }
+clearBadge(); document.addEventListener('visibilitychange',clearBadge);
 let live=null;
 function startLive(){ if(live||!isSB()||!S||DEMO) return;
   live=Live({url:SupabaseStore.base(),key:SupabaseStore.key(),token:()=>SupabaseStore.token(),topic:async()=>'rh:'+await SupabaseStore.orgId(),
