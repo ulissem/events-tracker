@@ -1923,6 +1923,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 /* list */
 .clhead{display:block;padding:8px 12px 4px}
 .clhead .group{width:100%}
+.clhead + .lscroll .mh{position:static} /* few clients: plain group headers (sticky, with the notch's top inset, they slid over the first row) */
 .row.client .rn{display:flex;align-items:baseline;gap:6px;min-width:0}
 .row.client .rn .cct{font-weight:400;color:var(--ink-3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row.client .rs svg{width:11px;height:11px;flex:none;color:var(--ink-3);margin-right:4px}
