@@ -2031,6 +2031,31 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .cg-l .sec > .grid > *{grid-column:1/-1}
   .cg-l > .sec,.cg-r > .sec:first-child{margin-top:22px} /* Details and Events titles level; the contact buttons are a full row above */
 }
+/* Home bottom cards (Oct 2026): open questions as tiles, to-dos with due pills, trips and hours as tiles */
+.home .hm-head{align-items:flex-end}
+.home .hm-head h1{margin-top:4px}
+.hm2-grid{gap:12px;align-items:start}
+.hm2{margin:0}
+.hm2.warn::before{background:radial-gradient(55% 60% at 95% 0%,color-mix(in srgb,var(--warn) 18%,transparent),transparent 70%)}
+.hm2.warn .ov-ch .cc-eye{color:var(--warn)}
+.hm2 .cc-next{margin:0 0 8px}
+.hm2 .ov-t small .w{color:var(--warn)}
+.hm2-more{font-size:12px;color:var(--ink-3);padding:2px 4px 6px}
+.hm2-ft{display:flex;gap:6px;margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}
+.hm2-tds{display:flex;flex-direction:column}
+.hm2-t{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.hm2-t:last-child{border-bottom:0}
+.hm2-t .tx{flex:1;min-width:0;font-size:13.5px;font-weight:500}
+.hm2-t .tx small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:400}
+.hm2 .agtd{min-width:0;height:20px;padding:0 8px 0 7px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:var(--sunken);color:var(--ink-2);box-shadow:none;flex:none}
+.hm2 .agtd::before{content:'';width:7px;height:7px;border-radius:50%;box-sizing:border-box;border:1.5px solid currentColor}
+.hm2 .agtd.soon{background:var(--warn-soft);color:var(--warn)} .hm2 .agtd.late{background:var(--danger-soft);color:var(--danger)}
+.hm2-sub{margin:14px 2px 8px;color:var(--ink-3)}
+.hm2-h{grid-template-columns:auto minmax(0,1fr) auto;margin:0}
+.agt-i.hrs{background:var(--warn-soft);font-size:15px}
+.hm-grid.hm2-grid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr)}
+.hm2-h .cc-nm small{white-space:normal}
+@media (max-width:1180px){ .hm-grid.hm2-grid{grid-template-columns:1fr 1fr} .hm-grid.hm2-grid > :first-child{grid-column:1/-1} }
 /* clients overview (desktop, no client open) */
 .cov .hm-head{align-items:flex-end;margin-bottom:18px}
 .cov .hm-head h1{margin-top:4px}
@@ -3365,31 +3390,37 @@ function renderHome(D){
   const h=new Date().getHours(), greet=h<5?'Good night':h<12?'Good morning':h<18?'Good afternoon':'Good evening';
   const end=addDays(TODAY,27), scope=e=>!flt.client||e.clientId===flt.client;
   const soon=S.events.filter(e=>scope(e)&&e.dateStart&&e.dateStart<=end&&(e.dateEnd||e.dateStart)>=TODAY);
-  const qEv=S.events.filter(e=>scope(e)&&!isPast(e)&&openQ(e).length).sort((a,b)=>openQ(b).length-openQ(a).length||(a.dateStart||'9').localeCompare(b.dateStart||'9'));
+  const qEv=S.events.filter(e=>scope(e)&&!isPast(e)&&openQ(e).length).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
   const qTot=qEv.reduce((a,e)=>a+openQ(e).length,0), qMax=Math.max(1,...qEv.map(e=>openQ(e).length));
   const tds=S.agenda.todos.filter(t=>!t.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,8);
   const ens=agEntries().filter(i=>i.e>=TODAY&&i.s<=end).sort((a,b)=>a.s.localeCompare(b.s));
   const showH=priv(), openHours=showH?sumH(entriesOf(isOpen)):0;
   const cName=flt.client?clientName(flt.client):'';
+  const MAXQ=6;
+  const qTile=e=>{ const q=openQ(e).length, p=progress(e), cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd).main.replace(/ \d{4}$/,'');
+    return `<a class="cc-next ov-t" href="#/e/${encodeURIComponent(e.id)}"><span class="cc-nl">${esc(clientName(e.clientId)||'—')}</span>
+      <span class="cc-nm"><b>${esc(e.name||'untitled')}</b><small>${esc(rt)} · <span class="w">${plural(q,'open question','open questions')}</span></small></span>
+      <span class="agt-r"><span class="cd ${cd.c}">${cd.t}</span><span class="cc-ring sm">${ring(p,36,3.5)}${ringV(p)}</span></span></a>`; };
+  const cardQ=`<section class="ccard ov-c hm2 ${qTot?'warn':''}"><div class="ov-ch"><div><div class="cc-eye">Open questions</div><h3>${qTot?`${qTot} at ${plural(qEv.length,'event','events')}`:'All answered'}</h3></div></div>
+    ${qEv.length?qEv.slice(0,MAXQ).map(qTile).join('')+(qEv.length>MAXQ?`<div class="hm2-more">+ ${plural(qEv.length-MAXQ,'more event','more events')}</div>`:''):`<div class="ov-empty">${ic('check',2.2)} No open questions. Nice.</div>`}
+    ${qTot?`<div class="hm2-ft"><button class="tbtn" type="button" id="hm-copyq">${ic('copy',2)} Copy all${cName?' for '+esc(cName):''}</button></div>`:''}</section>`;
+  // 3. to-dos with the due pill (orange soon, red late)
+  const pill=t=>{ if(!t.due) return ''; const c=t.due<TODAY?'late':t.due<=addDays(TODAY,3)?'soon':''; return `<span class="agtd ${c}">${esc(dueTxt(t.due))}</span>`; };
+  const cardT=`<section class="ccard ov-c hm2"><div class="ov-ch"><div><div class="cc-eye">To-dos</div><h3>${tds.length?`${tds.length} open`:'Nothing to do'}</h3></div></div>
+    ${tds.length?`<div class="hm2-tds">${tds.map(t=>{ const l=linkOf(t); return `<label class="hm2-t"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}${l?`<small>${esc(l.name)}</small>`:''}</span>${pill(t)}</label>`; }).join('')}</div>`:`<div class="ov-empty">Add one for the next event.</div>`}
+    <div class="hm2-ft"><button class="tbtn" type="button" id="hm-addtd">${ic('plus',2.4)} To-do</button><button class="tbtn quiet" type="button" data-go="a">${ic('cal',2)} Open Agenda</button></div></section>`;
+  // 4. travel & away as trip tiles, hours below
+  const enTile=i=>`<a class="cc-next agt en ${esc(i.o.type)}" href="#/a"><span class="agt-i">${ic(AG_TYPES[i.o.type]?.icon||'clock',2)}</span><span class="cc-nm"><b>${esc(i.o.title||AG_TYPES[i.o.type]?.label||'')}</b><small>${esc(fmtShort(i.s))}${i.e>i.s?' – '+esc(fmtShort(i.e)):''}${i.o.time?' · '+esc(i.o.time):''}</small></span></a>`;
+  const nTrip=ens.filter(i=>i.o.type==='travel').length;
+  const cardE=`<section class="ccard ov-c hm2"><div class="ov-ch"><div><div class="cc-eye">Travel &amp; away</div><h3>${ens.length?(nTrip===ens.length?plural(nTrip,'trip','trips'):plural(ens.length,'entry','entries')):'Nothing planned'}</h3></div></div>
+    ${ens.length?ens.map(enTile).join(''):`<div class="ov-empty">No trips in the next 4 weeks.</div>`}
+    <div class="cc-eye hm2-sub">Hours</div>
+    <div class="cc-next hm2-h"><span class="agt-i hrs">${esc(U().icon)}</span>${showH?`<span class="cc-nm"><b>${fmtN(openHours)} h open</b><small>${val(openHours)} · never in the summary</small></span><button class="tbtn" type="button" data-go="h">Open</button>`:`<span class="cc-nm"><b>Locked</b><small>safe-word required · never in the summary</small></span><button class="tbtn" type="button" id="hm-unlock">Unlock</button>`}</div></section>`;
   D.innerHTML=`<div class="home">
-    <div class="hm-head"><h1>${greet}</h1><span class="hm-date">${esc(DOWL[parse(TODAY).getDay()])} ${esc(fmtLong(TODAY).slice(4))} · ${plural(soon.length,'event','events')} in the next 4 weeks${cName?` · ${esc(cName)}`:''}</span></div>
+    <div class="hm-head"><div><div class="cc-eye">${esc(DOWL[parse(TODAY).getDay()])} ${esc(fmtLong(TODAY).slice(4))} · ${plural(soon.length,'event','events')} in the next 4 weeks${cName?` · ${esc(cName)}`:''}</div><h1>${greet}</h1></div></div>
     ${nextUpCard(true)}
     ${filmStrip()}
-    <div class="hm-grid">
-      <div class="hm-card"><h4>Open questions <b class="w">${qTot||''}</b></h4>
-        ${qEv.length?qEv.map(e=>`<button type="button" class="hm-q" data-id="${esc(e.id)}"><span class="n">${esc(e.name)||'untitled'}</span><span class="c">${openQ(e).length}</span><span class="bar"><i style="width:${Math.round(openQ(e).length/qMax*100)}%"></i></span></button>`).join(''):`<div class="hm-empty">No open questions. Nice.</div>`}
-        ${qTot?`<div class="hm-ft"><button class="tbtn" type="button" id="hm-copyq">${ic('copy',2)} Copy all${cName?' for '+esc(cName):''}</button></div>`:''}
-      </div>
-      <div class="hm-card"><h4>To-dos <b>${tds.length||''}</b></h4>
-        ${tds.length?tds.map(t=>{ const l=linkOf(t); return `<label class="hm-t ${dueCls(t)}"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}${l?`<small>${esc(l.name)}</small>`:''}</span>${t.due?`<span class="when">${esc(dueTxt(t.due))}</span>`:''}</label>`; }).join(''):`<div class="hm-empty">Nothing to do. Add one for the next event.</div>`}
-        <div class="hm-ft"><button class="tbtn" type="button" id="hm-addtd">${ic('plus',2.4)} To-do</button><button class="tbtn quiet" type="button" data-go="a">${ic('cal',2)} Open Agenda</button></div>
-      </div>
-      <div class="hm-card"><h4>Travel &amp; away</h4>
-        ${ens.length?`${ens.map(i=>`<a class="hm-t" href="#/a">${ic(AG_TYPES[i.o.type]?.icon||'clock',1.9)}<span class="tx">${esc(i.o.title||AG_TYPES[i.o.type]?.label||'')}<small>${esc(fmtShort(i.s))}${i.e>i.s?' – '+esc(fmtShort(i.e)):''}${i.o.time?' · '+esc(i.o.time):''}</small></span><span class="tag ${esc(i.o.type)}">${esc(AG_TYPES[i.o.type]?.label||i.o.type)}</span></a>`).join('')}`:`<div class="hm-empty">No trips in the next 4 weeks.</div>`}
-        <h4 class="hm-sub">Hours</h4>
-        <div class="hm-hours"><span class="big">${esc(U().icon)}</span>${showH?`<span><b>${fmtN(openHours)} h</b> open · ${val(openHours)}<br>never in the summary</span><button class="tbtn" type="button" data-go="h" style="margin-left:auto">Open</button>`:`<span>Locked · safe-word required.<br>Never in the summary.</span><button class="tbtn" type="button" id="hm-unlock" style="margin-left:auto">Unlock</button>`}</div>
-      </div>
-    </div>
+    <div class="hm-grid hm2-grid">${cardQ}${cardT}${cardE}</div>
     <div class="hm-keys"><span><kbd>${MOD}</kbd><kbd>K</kbd> jump to…</span><span><kbd>J</kbd><kbd>K</kbd> next / previous</span><span><kbd>?</kbd> all shortcuts</span><span><kbd>/</kbd> search</span></div>
   </div>`;
   bindDays(D);
