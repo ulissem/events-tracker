@@ -2894,7 +2894,7 @@ async function loadAll(){
   hoursRec=readLocal()?.hours||null; persistLocal(); markClean(); updSave();
   return 'ok';
 }
-function snapshotItems(){ savedItems={}; for(const e of S.events) savedItems['e:'+e.id]=JSON.stringify(e); for(const c of S.clients) savedItems['c:'+c.id]=JSON.stringify(c); }
+function snapshotItems(){ savedItems={}; for(const e of S.events) savedItems['e:'+e.id]=canon(e); for(const c of S.clients) savedItems['c:'+c.id]=canon(c); } // canon: key order does not count (items merged from Supabase come back in another order)
 const yearOf=e=>(e.dateStart||'').slice(0,4)||String(new Date().getFullYear());
 function hoursText(){ const h=S.hours, o={version:2,entries:h.entries,closures:h.closures}; if(Object.keys(h.coefficients||{}).length) o.coefficients=h.coefficients; if(h.rates) o.rates=h.rates; return JSON.stringify(o,null,2); }
 /* CRITICAL: hours.json is part of the save set only while it is loaded (unlocked, or locked with changes still to save).
@@ -2918,7 +2918,7 @@ function dropHoursIfLocked(){ if(S?.hours&&!unlocked&&!hoursDirty()) S.hours=nul
 function changedNames(list,p,all=list,y=null){
   const ids=new Set(all.map(x=>x.id)), here=new Set(list.map(x=>x.id));
   const was=k=>{ try{ return JSON.parse(savedItems[k]); }catch{ return null; } };
-  const ch=list.filter(x=>savedItems[p+x.id]!==JSON.stringify(x)).map(x=>x.name||'untitled');
+  const ch=list.filter(x=>savedItems[p+x.id]!==canon(x)).map(x=>x.name||'untitled');
   const old=Object.keys(savedItems).filter(k=>k.startsWith(p)&&!here.has(k.slice(2))&&(y===null||yearOf(was(k)||{})===y));
   const moved=old.filter(k=>ids.has(k.slice(2))).map(k=>{ const x=all.find(z=>z.id===k.slice(2)); return `${x.name||'untitled'} → ${yearOf(x)}`; });
   const gone=old.filter(k=>!ids.has(k.slice(2))).length;
@@ -3042,7 +3042,7 @@ function bootLocal(){
   dirty=Object.entries(serialize()).some(([n,t])=>n!=='hours.json'&&saved[n]!==t);
   unlocked=false; needRemote=true; stateMsg=null; cleanSnap=dirty?null:serialize(); updSave(); return true;
 }
-function snapshotFrom(m){ savedItems={}; for(const e of m.events) savedItems['e:'+e.id]=JSON.stringify(e); for(const c of m.clients) savedItems['c:'+c.id]=JSON.stringify(c); }
+function snapshotFrom(m){ savedItems={}; for(const e of m.events) savedItems['e:'+e.id]=canon(e); for(const c of m.clients) savedItems['c:'+c.id]=canon(c); }
 function modelOf(t){
   const j=n=>{ try{ return t[n]?JSON.parse(t[n]):null; }catch{ return null; } }, events=[];
   for(const n of Object.keys(t)) if(/^events-.+\.json$/.test(n)) events.push(...((j(n)||{}).events||[]));
