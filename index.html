@@ -1118,6 +1118,7 @@ main.agenda #detail{max-width:1560px}
 .agmini .g button.t.s b{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--accent)}
 .agmini .g u{display:flex;gap:2px;text-decoration:none;height:5px;margin-top:3px}
 .agmini .g u i{width:5px;height:5px;border-radius:50%}
+.agmini .g u i.r{box-sizing:border-box;border:1.3px solid currentColor;background:none}
 .agmini .g{position:relative}
 .agln{position:absolute;inset:0;pointer-events:none}
 .agln i{position:absolute;height:3px;opacity:.85} .agln i.st{border-top-left-radius:3px;border-bottom-left-radius:3px} .agln i.en{border-top-right-radius:3px;border-bottom-right-radius:3px}
@@ -1133,7 +1134,6 @@ main.agenda #detail{max-width:1560px}
 .phtd .tdue{font-size:12px;opacity:1;padding:0}
 .phtd.add{color:var(--ink-3)} .phtd.add svg{width:16px;height:16px;flex:none;margin-left:1px} .phtd.add .cell{flex:1;height:40px;padding:0 10px;margin:4px 0}
 .phnotes textarea{display:block;width:100%;border:0;background:none;color:var(--ink);padding:12px 0;min-height:56px;resize:none;font:inherit;font-size:15px;line-height:1.5;outline:none}
-@media (max-width:860px), (pointer:coarse) and (max-height:500px){ .newbtn.onag{display:none!important} }
 #tdform .fld,#entryform .fld{margin-bottom:10px}
 #tdform .lab,#entryform .lab{display:flex;align-items:center;gap:4px}
 #tdform .acts{display:flex;gap:8px;align-items:center;margin-top:8px}
@@ -3627,8 +3627,8 @@ function agMonthGrid(){
   <div class="aglegend"><span><i class="ev"></i>Event (dot = status)</span><span><i class="travel"></i>Travel</span><span><i class="away"></i>Away</span><span><i class="other"></i>Other</span><span><i class="td"></i>To-dos due</span><span class="hint">Click a day, or drag across days, to add an entry</span></div>`;
 }
 /* everything on one day, as cards (phone day view and list view) */
-function agDayCards(d,{empty=true}={}){
-  const ev=agF.ev?agEvents().filter(i=>onDay(i,d)):[], en=agF.mine?agEntries().filter(i=>onDay(i,d)):[], td=agF.todo?S.agenda.todos.filter(t=>t.due===d&&!t.done):[];
+function agDayCards(d,{empty=true,todos=true}={}){
+  const ev=agF.ev?agEvents().filter(i=>onDay(i,d)):[], en=agF.mine?agEntries().filter(i=>onDay(i,d)):[], td=agF.todo&&todos?S.agenda.todos.filter(t=>t.due===d&&!t.done):[];
   if(!ev.length&&!en.length&&!td.length) return empty?`<div class="agempty">Nothing on this day.</div>`:'';
   return `${ev.map(({o:e})=>`<a class="agcard" href="#/e/${encodeURIComponent(e.id)}"><i class="dot" style="background:${esc(statusColor(e.status))}"></i><span><b>${esc(e.name||'untitled')}</b><small>${esc([clientName(e.clientId),e.location,evMeta(e),e.status].filter(Boolean).join(' · '))}</small></span>${ic('chev',2)}</a>`).join('')}
     ${en.map(({o:x})=>`<button type="button" class="agcard ${x.type}" data-agen="${esc(x.id)}">${ic(AG_TYPES[x.type].icon,2)}<span><b>${esc(enLabel(x))}</b><small>${esc([x.from!==(x.to||x.from)?rangeText(x.from,x.to).main:'',x.time,x.note].filter(Boolean).join(' · '))||'&nbsp;'}</small></span></button>`).join('')}
@@ -3650,8 +3650,8 @@ function agMini(){
       const st=i.s>=ws, en=i.e<=we, l=a/7*100, w=(b-a+1)/7*100;
       return `<i class="${i.o.type} ${st?'st':''} ${en?'en':''}" style="left:calc(${l}% + ${st?5:0}px);width:calc(${w}% - ${(st?5:0)+(en?5:0)}px);bottom:${3+k*5}px"></i>`; }).join('');
     return `<div class="g">${days.map(d=>{
-      const dots=[...ev.filter(i=>onDay(i,d)).map(i=>statusColor(i.o.status)),...td.filter(t=>t.due===d).map(()=>d<TODAY?'var(--danger)':'var(--ink-3)')].slice(0,4);
-      return `<button type="button" data-sel="${d}" class="${d.slice(0,7)!==agMonth?'o':''} ${d===TODAY?'t':''} ${d===agSel?'s':''}" aria-label="${esc(fmtLong(d))}"><b>${parse(d).getDate()}</b><u>${dots.map(c=>`<i style="background:${esc(c)}"></i>`).join('')}</u></button>`; }).join('')}<span class="agln">${segs}</span></div>`; }).join('')}</div>`;
+      const dots=[...ev.filter(i=>onDay(i,d)).map(i=>statusColor(i.o.status)),...td.filter(t=>t.due===d).map(()=>'r '+(d<TODAY?'var(--danger)':'var(--ink-3)'))].slice(0,4); // events = filled dot in the status colour, to-dos = ring
+      return `<button type="button" data-sel="${d}" class="${d.slice(0,7)!==agMonth?'o':''} ${d===TODAY?'t':''} ${d===agSel?'s':''}" aria-label="${esc(fmtLong(d))}"><b>${parse(d).getDate()}</b><u>${dots.map(c=>c.startsWith('r ')?`<i class="r" style="color:${esc(c.slice(2))}"></i>`:`<i style="background:${esc(c)}"></i>`).join('')}</u></button>`; }).join('')}<span class="agln">${segs}</span></div>`; }).join('')}</div>`;
 }
 function linkOpts(link){
   const evOpts=S.events.filter(e=>!isPast(e)||link==='e:'+e.id).sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
@@ -3700,11 +3700,11 @@ function renderAgenda(D){
     ${ph?'':`${chips}<span class="agseg" role="group" aria-label="View"><button type="button" data-agview="month" aria-pressed="${agView==='month'}">Month</button><button type="button" data-agview="list" aria-pressed="${agView==='list'}">List</button></span>`}</div>`;
   if(ph) D.innerHTML=`<div class="agph">${head}${agMini()}
       <div class="agdh"><span>${esc(fmtShort(agSel))}${agSel===TODAY?' · today':''}</span></div>
-      <div class="agday">${agDayCards(agSel)}</div>
+      <div class="agday">${agDayCards(agSel,{todos:false})}</div>
       ${agTodosPhone()}
       <div class="agdh"><span>Notes</span></div><div class="phcard phnotes"><textarea class="auto" rows="2" data-o="${ref(S.agenda)}" data-k="notes" placeholder="Anything to keep in mind…" aria-label="Agenda notes">${esc(S.agenda.notes)}</textarea></div>
       <button type="button" class="btn sm ghost agics" id="agics" style="margin-top:14px">${ic('cal',1.8)} Export .ics</button></div>
-      <button type="button" class="agfab" id="agfab" aria-label="New entry">${ic('plus',2.4)}</button>`;
+`; /* new entry: the + in the top bar (a floating button covered the to-do list) */
   else D.innerHTML=`<div class="agwrap"><div class="agmain">${head}${agView==='month'?agMonthGrid():agListView()}</div>
       <aside class="agside">${agTodos()}${agNotes()}<button type="button" class="btn sm ghost agics" id="agics">${ic('cal',1.8)} Export .ics <span class="hint">events + my entries</span></button></aside></div>`;
   bindAgenda(D);
@@ -3716,7 +3716,6 @@ function bindAgenda(D){
   on(D,'[data-agf]',b=>{ const k=b.dataset.agf; agF[k]=!agF[k]; LS.set('events-tracker-ag-'+k,agF[k]); renderDetail(); });
   on(D,'[data-agen]',b=>openEntry(S.agenda.entries.find(x=>x.id===b.dataset.agen)));
   on(D,'[data-sel]',b=>{ agSel=b.dataset.sel; if(agSel.slice(0,7)!==agMonth) agMonth=agSel.slice(0,7); renderDetail(); });
-  D.querySelector('#agfab')?.addEventListener('click',()=>openEntry(null,agSel));
   on(D,'[data-tdedit]',b=>openTodo(OBJ[+b.dataset.tdedit]));
   D.querySelector('#agics')?.addEventListener('click',exportICS);
   // click a day, or drag across days, to add an entry
