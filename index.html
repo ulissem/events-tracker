@@ -737,7 +737,6 @@ dialog::backdrop{background:var(--scrim)}
   #detail{padding:16px 16px 72px}
   body.showing-detail #list{display:none}
   body:not(.showing-detail) main:not(.full) #detail{display:none}
-  .dtitle .back{display:inline-flex}
   .crumbs{display:none}
   .nameinput{font-size:20px}
   .jump{margin:12px -16px 0;padding:8px 16px}
@@ -1646,7 +1645,6 @@ table.t tbody tr:hover > .stk{background:var(--panel)}
 @media (max-width:860px), (pointer:coarse) and (max-height:500px){
   .hero{margin:0 -4px;border-radius:22px;min-height:380px}
   .hero:not(.hasmap){min-height:220px}
-  .hero .back{display:inline-flex;background:color-mix(in srgb,var(--panel) 72%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2);color:var(--ink)}
   .hacts .sumtxt{display:none}
   .hacts #sumbtn{width:40px;padding:0}
   .hlay{padding:18px 18px 18px;grid-template-columns:1fr;gap:14px}
@@ -1900,7 +1898,6 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .tabbar .tsave i{top:7px;left:calc(50% - 18px)}
   /* event hero as on desktop (map on the right, title on the left): the phone's stacked hero was taller than the screen */
   .hero,.hero:not(.hasmap){min-height:0;--fx:.72;--fy:.45;--tw:22%}
-  .hero .back,.dtitle .back{display:none} /* ‹ is in the top bar */
   .hpin{display:block}
   .hero.hasmap .hscrim{background:linear-gradient(90deg,var(--panel) 0%,color-mix(in srgb,var(--panel) 88%,transparent) 30%,transparent 60%)!important}
   .hero:not(.hasmap) .hscrim{background:linear-gradient(135deg,var(--tint-soft),transparent 60%)!important}
