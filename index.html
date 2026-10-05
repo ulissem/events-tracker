@@ -2027,10 +2027,9 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 /* client page on wide screens: contact + details on the left, events (and private hours) on the right */
 @media (min-width:1180px) and (min-height:501px), (min-width:1180px) and (pointer:fine){
   .cgrid2{display:grid;grid-template-columns:360px minmax(0,1fr);gap:24px;align-items:start;margin-top:4px}
-  .cg-l .cacts{margin:12px 0 0}
   .cg-l .sec > .grid{grid-template-columns:1fr}
   .cg-l .sec > .grid > *{grid-column:1/-1}
-  .cg-l > .sec{margin-top:22px} .cg-r > .sec:first-child{margin-top:12px} /* Events title level with the contact buttons */
+  .cg-l > .sec,.cg-r > .sec:first-child{margin-top:22px} /* Details and Events titles level; the contact buttons are a full row above */
 }
 /* clients overview (desktop, no client open) */
 .cov .hm-head{align-items:flex-end;margin-bottom:18px}
@@ -3792,11 +3791,11 @@ function renderClient(D){
     ${up.length?`<div class="hr"><span class="ringbox">${ring(avg,84,7)}<span class="ringv">${Math.round(avg*100)}%<small>prepared</small></span></span><span class="hlab">avg. of ${plural(up.length,'upcoming event','upcoming events')}</span></div>`:''}
     </div>
   </div>
-  <div class="cgrid2"><div class="cg-l">
   <div class="cacts">
     <a class="btn ${mail?'':'off'}" ${mail?`href="${esc(mail)}"`:'role="button" tabindex="0" data-f="[data-k=email]"'}>${ic('mail',1.9)}<span>${mail?'Email':'No email'}</span></a>
     ${tel&&!narrow.matches?`<button type="button" class="btn" id="cphone">${ic('copy',1.9)}<span>Copy phone</span></button>`:`<a class="btn ${tel?'':'off'}" ${tel?`href="${esc(tel)}"`:'role="button" tabindex="0" data-f="[data-k=phone]"'}>${ic('phone',1.9)}<span>${tel?'Call':'No phone'}</span></a>`}
   </div>
+  <div class="cgrid2"><div class="cg-l">
   <section class="sec" id="s-cdetails"><div class="sech" style="--sc:${SECC.general}"><h3>${secBadge('general')}Details</h3></div>
     <div class="grid">
       ${F(c,'contact','Contact person',{ph:'Name'})}
