@@ -28,7 +28,7 @@
   --glass:rgba(242,242,247,.72); --seg-on:#ffffff;
   --shadow-sm:0 0 0 .5px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.04);
   --shadow-pop:0 0 0 .5px rgba(0,0,0,.06),0 14px 36px -10px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.06);
-  --r-card:18px; --r-row:12px;
+  --r-card:22px; --r-row:12px; /* 22 = the card radius of the phone pass (clients, agenda), one value everywhere */
   --chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E");
   --check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8.5l2.6 2.5L12 5.5'/%3E%3C/svg%3E");
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px); --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
@@ -2156,6 +2156,10 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .cpast{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;color:var(--ink-2);font:inherit;font-weight:600;padding:12px 10px 8px;border-top:1px solid var(--line);margin-top:4px;text-align:left}
 .cpast svg{width:13px;height:13px;transition:transform .2s} .cpast.open svg{transform:rotate(90deg)}
 .cpast .count{margin-left:auto;font-weight:500;color:var(--ink-3)}
+/* questions in a card like every other section; film strip in the list column fades out clearly at the right edge */
+.qbox{background:var(--panel);border-radius:var(--r-card);box-shadow:var(--shadow-sm);padding:2px 14px}
+.qbox .q:last-child{border-bottom:0}
+#list .film{mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent);-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent)}
 /* day cards: past days dimmed; rings: a green check at 100 % */
 .agdc.past{opacity:.55}
 .agdc.past .cc-eye{color:var(--ink-3)}
@@ -3531,12 +3535,12 @@ function renderEvent(D){
     <button type="button" data-rail="s-notes" title="Notes">${ic('doc',1.8)}</button>
   </div><div class="sidefull">
   <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''}</h3><span class="sp"></span><button class="btn sm" id="addq" type="button">${ic('plus',2.2)} Question</button></div>
-  ${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}">
+  ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}">
      <span class="qn">Q${q.n}</span>
      <div class="qbody"><textarea class="in auto qt" rows="1" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
      <textarea class="in auto qa" rows="1" data-o="${ref(q)}" data-k="answer" placeholder="Answer…" aria-label="Answer Q${q.n}">${esc(q.answer)}</textarea></div>
      <span class="qc"><label class="chk" title="Resolved"><input type="checkbox" class="ck" data-o="${ref(q)}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> Resolved</label><button class="btn icon sm ghost del" data-delq="${i}" type="button" aria-label="Delete question Q${q.n}">${ic('x')}</button></span>
-   </div>`).join('')||emptyBox('inbox','Open questions go into the client summary, numbered Q1, Q2…')}
+   </div>`).join('')}${e.questions.length?'</div>':emptyBox('inbox','Open questions go into the client summary, numbered Q1, Q2…')}
   </section>
 
   <section class="sec" id="s-checklist"><div class="sech" style="--sc:${SECC.checklist}"><h3>${secBadge('checklist')}Checklist</h3></div>
