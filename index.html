@@ -2132,6 +2132,13 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .cpast{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;color:var(--ink-2);font:inherit;font-weight:600;padding:12px 10px 8px;border-top:1px solid var(--line);margin-top:4px;text-align:left}
 .cpast svg{width:13px;height:13px;transition:transform .2s} .cpast.open svg{transform:rotate(90deg)}
 .cpast .count{margin-left:auto;font-weight:500;color:var(--ink-3)}
+/* day cards: past days dimmed; rings: a green check at 100 % */
+.agdc.past{opacity:.55}
+.agdc.past .cc-eye{color:var(--ink-3)}
+.cc-ring b.ok{color:var(--ok);display:grid;place-items:center} .cc-ring b.ok svg{width:16px;height:16px}
+.cc-ring.sm b.ok svg{width:14px;height:14px}
+.cc-ring.sm b{font-size:10.5px;letter-spacing:-.04em;display:flex;align-items:baseline;justify-content:center;width:100%;padding-left:1px}
+.cc-ring.sm b small{margin-left:0}
 </style>
 </head>
 <body>
@@ -2874,6 +2881,7 @@ const extBtn=l=>l.url?`<a class="btn icon sm ghost" href="${esc(l.url)}" target=
 const metaLink=l=>l.url?`<a class="mlink" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" title="${esc(l.label)}">${ic(l.icon,1.8)}${l.short}${ic('ext',2)}</a>`:`<span class="mlink off" title="${esc(l.label)} — ${esc(l.why)}">${ic(l.icon,1.8)}${l.short}</span>`;
 const MOD=/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)?'⌘':'Ctrl';
 const GRIP='<span class="grip" aria-hidden="true" title="Drag to reorder"><svg viewBox="0 0 8 14" fill="currentColor"><circle cx="2" cy="2" r="1.3"/><circle cx="6" cy="2" r="1.3"/><circle cx="2" cy="7" r="1.3"/><circle cx="6" cy="7" r="1.3"/><circle cx="2" cy="12" r="1.3"/><circle cx="6" cy="12" r="1.3"/></svg></span>';
+const ringV=p=>p>=1?`<b class="ok">${ic('check',3)}</b>`:`<b>${Math.round(p*100)}<small>%</small></b>`; // inside .cc-ring: % or a green check when done
 function ring(p,size=16,stroke=2.4){ const r=(size-stroke)/2, c=2*Math.PI*r; return `<svg class="ring ${p>=1?'full':''}" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-label="${Math.round(p*100)}% prepared"><circle class="rt" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="${stroke}"/><circle class="rv" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg>`; }
 
 /* =====================================================================
@@ -3271,7 +3279,7 @@ function renderClientList(L){
   const big=({c,ev,up,next,oq,avg})=>{ const h=priv()?sumH(entriesOf(x=>x.clientId===c.id&&isOpen(x))):0, cd=countdown(next), rt=rangeText(next.dateStart,next.dateEnd).main.replace(/ \d{4}$/,''), ct=contactOf(c);
     return `<div class="ccard ${c.id===route.id?'active':''}" data-id="${esc(c.id)}" role="button" tabindex="0">
       <div class="cc-top"><div class="cc-id"><div class="cc-eye">${plural(ev.length,'event','events')}${ct?` · ${esc(ct)}`:''}</div><div class="cc-name">${esc(c.name)||'<i>untitled</i>'}</div></div>
-        <span class="cc-ring" title="${Math.round(avg*100)}% prepared (upcoming, avg.)">${ring(avg,48,4.5)}<b>${Math.round(avg*100)}<small>%</small></b></span></div>
+        <span class="cc-ring" title="${Math.round(avg*100)}% prepared (upcoming, avg.)">${ring(avg,48,4.5)}${ringV(avg)}</span></div>
       <a class="cc-next" href="#/e/${encodeURIComponent(next.id)}" data-ev="${esc(next.id)}"><span class="cc-nl">Next</span>
         <span class="cc-nm"><b>${esc(next.name||'untitled')}</b><small>${esc([rt,next.location].filter(Boolean).join(' · '))}</small></span><span class="cd ${cd.c}">${cd.t}</span></a>
       <div class="facts"><span class="fact">${ic('flag',2)}<b>${up.length}</b> upcoming</span>${oq?`<span class="fact warn">${ic('inbox',2)}<b>${oq}</b> open ${oq===1?'question':'questions'}</span>`:`<span class="fact quiet">${ic('check',2.2)}no open questions</span>`}${h?`<span class="fact">${ic('hours',2)}<b>${fmtN(h)}</b> h open</span>`:''}</div>
@@ -3730,7 +3738,7 @@ function clientsOverview(D){
     const why=[q?plural(q,'open question','open questions'):'',e.dateStart<=addDays(TODAY,13)&&p<1?`${Math.round(p*100)}% prepared`:''].filter(Boolean).join(' · ');
     return `<a class="cc-next ov-t" href="#/e/${encodeURIComponent(e.id)}"><span class="cc-nl">${esc(clientName(e.clientId)||'—')}</span>
       <span class="cc-nm"><b>${esc(e.name||'untitled')}</b><small>${esc(rt)}${why?` · <span class="${q?'w':''}">${esc(why)}</span>`:''}</small></span>
-      <span class="agt-r"><span class="cd ${cd.c}">${cd.t}</span><span class="cc-ring sm">${ring(p,36,3.5)}<b>${Math.round(p*100)}<small>%</small></b></span></span></a>`; };
+      <span class="agt-r"><span class="cd ${cd.c}">${cd.t}</span><span class="cc-ring sm">${ring(p,36,3.5)}${ringV(p)}</span></span></a>`; };
   // next 30 days: one track per client with something in the window
   const rows=all.map(x=>({...x,evs:x.up.filter(e=>e.dateStart&&e.dateStart<=end30)})).filter(x=>x.evs.length).sort((a,b)=>a.evs[0].dateStart.localeCompare(b.evs[0].dateStart));
   const dayX=d=>Math.max(0,Math.min(29,Math.round((parse(d)-parse(TODAY))/864e5)))/29*100;
@@ -3968,9 +3976,9 @@ const agDayCard=(d,o={})=>{ const on1=i=>o.starts?i.s===d||(i.s<d&&d===`${agMont
   const n=ev.length+en.length, dd=parse(d), cnt=[ev.length?plural(ev.length,'event','events'):'',en.length?plural(en.length,'entry','entries'):''].filter(Boolean).join(' · ');
   const evT=({o:e})=>{ const p=progress(e), cd=countdown(e), t=evMeta(e);
     return `<a class="cc-next agt" href="#/e/${encodeURIComponent(e.id)}"><span class="cc-nl">${esc(t||'Race')}</span><span class="cc-nm"><b>${esc(e.name||'untitled')}</b><small>${esc([e.type,clientName(e.clientId),e.status].filter(Boolean).join(' · '))}</small></span>
-      <span class="agt-r">${d===TODAY||cd.c==='now'?'':`<span class="cd ${cd.c}">${cd.t}</span>`}<span class="cc-ring sm" title="${Math.round(p*100)}% prepared">${ring(p,36,3.5)}<b>${Math.round(p*100)}<small>%</small></b></span></span></a>`; };
+      <span class="agt-r">${d===TODAY||cd.c==='now'?'':`<span class="cd ${cd.c}">${cd.t}</span>`}<span class="cc-ring sm" title="${Math.round(p*100)}% prepared">${ring(p,36,3.5)}${ringV(p)}</span></span></a>`; };
   const enT=({o:x})=>`<button type="button" class="cc-next agt en ${x.type}" data-agen="${esc(x.id)}"><span class="agt-i">${ic(AG_TYPES[x.type].icon,2)}</span><span class="cc-nm"><b>${esc(enLabel(x))}</b><small>${esc([x.from!==(x.to||x.from)?rangeText(x.from,x.to).main:'',x.time,x.note].filter(Boolean).join(' · '))||'&nbsp;'}</small></span></button>`;
-  return `<div class="agdc ${d===TODAY?'today':''}"><div class="agdc-top"><div><div class="cc-eye">${esc(rel(d))}${cnt?' · '+esc(cnt):''}</div><div class="agdc-title">${esc(DOW[dd.getDay()])} ${dd.getDate()} ${MON[dd.getMonth()]}</div></div></div>
+  return `<div class="agdc ${d===TODAY?'today':''} ${d<TODAY?'past':''}"><div class="agdc-top"><div><div class="cc-eye">${esc(rel(d))}${cnt?' · '+esc(cnt):''}</div><div class="agdc-title">${esc(DOW[dd.getDay()])} ${dd.getDate()} ${MON[dd.getMonth()]}</div></div></div>
     ${n?`${ev.map(evT).join('')}${en.map(enT).join('')}`:'<div class="agdc-empty">Nothing on this day.</div>'}</div>`; };
 
 function linkOpts(link){
