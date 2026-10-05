@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Client area · Ulisse Mariangeli</title>
+<title>Client area · Race Hub</title>
 <meta name="description" content="Your events with Ulisse Mariangeli, race timing: questions, preparation, ice creams.">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
@@ -330,7 +330,7 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 .login{min-height:100vh;display:grid;place-items:center;padding:24px;position:relative;isolation:isolate;overflow:hidden}
 .login::before{content:'';position:absolute;inset:-20%;z-index:-1;background:radial-gradient(40% 40% at 70% 20%,color-mix(in srgb,#7a5af5 30%,transparent),transparent 70%),radial-gradient(40% 40% at 25% 80%,color-mix(in srgb,var(--accent) 26%,transparent),transparent 70%)}
 .lcard{width:min(400px,100%);padding:30px 28px;text-align:center}
-.lcard .logo{width:52px;height:52px;border-radius:15px;margin:0 auto 16px}
+.lcard .logo{width:52px;height:52px;border-radius:15px;margin:0 auto 16px;color:#fff;background:linear-gradient(135deg,#7a5af5,#0a7aff)}
 .lcard h1{font-size:28px}
 .lcard .field{text-align:center;margin:18px 0 10px;min-height:46px;resize:none;height:46px}
 .lcard .btn{width:100%;height:44px;justify-content:center;font-size:15px}
@@ -346,7 +346,7 @@ main.bare{padding:0;max-width:none}
 .lcard input.code{text-align:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:20px;letter-spacing:.2em;margin-top:16px}
 .lcard input.code::placeholder{font-family:-apple-system,system-ui,sans-serif;font-size:15px;letter-spacing:0}
 .lcard .fine a{color:var(--ink-2);text-decoration:underline}
-.contact a.btn{flex:1;justify-content:center;height:38px}
+.wa-note{display:flex;align-items:center;gap:7px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--sunken);font-size:13px;font-weight:600;color:var(--ink-2)}
 a.btn{text-decoration:none}
 
 /* ---------- responsive ---------- */
@@ -412,7 +412,7 @@ a.btn{text-decoration:none}
    A client never reads tables: only these functions, which return his own visible events. Sign-in = a link by email. */
 const SB={url:'https://vpnkzlnpuozytpjlvgwy.supabase.co',key:'sb_publishable_bVEn-CDabDXWDZ_CEMbkWA_OHKlj_a1'}; // events-dev; public by design
 const SKEY='hub-portal-session';
-const OP_DEFAULT={name:'Ulisse Mariangeli',role:'Race timing',email:'ulissemariangeli@gmail.com'};
+const OP_DEFAULT={name:'Ulisse Mariangeli',role:'Race timing'}; // no phone number in this page: it is public (bots)
 const HOME=location.origin+'/portal';
 const STEPS=[['Brief','Your event details'],['Questions','Ulisse needs answers'],['Timing setup','Races, splits, points'],['Test','Dry run with test data'],['Ready','All set for race day'],['Results','Published online']];
 const TINTS=[[/vertical|hill/i,'#a855f7','#6d28d9'],[/tri|aqua/i,'#30b0c7','#0e7490'],[/multi|relay/i,'#7a5af5','#4c35b5'],[/cycl|bike|gravel/i,'#ff9500','#c2410c'],[/trail/i,'#2fb36d','#0b7a4a'],[/road|run/i,'#0a7aff','#0050b3']];
@@ -511,6 +511,7 @@ const I={
   check:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"/></svg>',
   pin:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
   info:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>',
+  wa:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l1.3-4A8.5 8.5 0 1 1 8 19.6z"/><path d="M9 9.5c.3 2.2 2.3 4.3 4.6 4.8l1.2-1.1 1.9.8-.4 1.6c-3.7.2-7.6-3.6-7.5-7.3l1.6-.4.8 1.9z"/></svg>',
   mail:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
   phone:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
   ext:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4 10 14M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>'
@@ -523,7 +524,7 @@ const animateRings=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>docum
 function chrome(route){
   const n=totalOpen(), cur=r=>route===r?'aria-current="page"':'';
   $('#top').innerHTML=`<div class="top-in">
-    <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>${esc(OP().name)}</b><small>${esc(OP().role)} · Client area</small></span></a>
+    <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>Race Hub</b><small>Client area</small></span></a>
     <nav class="tabs"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a><a href="#ic" ${cur('ic')}>Ice creams</a></nav>
     <button class="ibtn" data-act="account" aria-label="Account">${I.user}</button>
     <div class="who"><span>${esc(ME?.client||'')}<small>${esc(ME?.email||'')}</small></span></div></div>`;
@@ -589,7 +590,7 @@ function vHome(){
 }
 const sinceTxt=()=>{ const u=ICE.closed.map(c=>c.until).filter(Boolean).sort().pop(); return u?` · since ${fmtD(u,{day:'numeric',month:'short'})}`:''; };
 function timerCard(){ const o=OP(); return `<div class="card"><div class="eye mute">Your timer</div><div style="font-size:16px;font-weight:700;margin-top:6px">${esc(o.name)}</div><div class="ic-sub">${esc(o.role)}</div>
-  <div class="contact">${o.email?`<a class="btn" href="mailto:${esc(o.email)}">${I.mail} Email</a>`:''}${o.phone?`<a class="btn" href="tel:${esc(o.phone)}">${I.phone} Call</a>`:''}</div></div>`; }
+  <div class="wa-note">${I.wa} Questions? WhatsApp me</div></div>`; }
 function evCard(e){
   const n=days(e), oq=openN(e), s=stepOf(e);
   return `<div class="card glow ev rise" style="${tstyle(e)}" data-go="#e/${encodeURIComponent(e.id)}">
@@ -670,7 +671,7 @@ function vIce(){
 }
 let linkSent='';
 function vLogin(){
-  return `<div class="login"><div class="card lcard rise"><span class="logo">${logo.replace(/16/g,24)}</span><div class="eye" style="color:var(--ink-3)">${esc(OP_DEFAULT.name)} · ${esc(OP_DEFAULT.role)}</div><h1>Your events</h1>
+  return `<div class="login"><div class="card lcard rise"><span class="logo">${logo.replace(/16/g,24)}</span><div class="eye" style="color:var(--ink-3)">Race Hub</div><h1>Your events</h1>
   ${linkSent?`<p class="ic-sub" style="font-size:14px;margin-top:14px">If <b>${esc(linkSent)}</b> has access, an email with a sign-in button and a code is on its way.</p>
     <form id="cf"><input class="field code" id="lcode" inputmode="numeric" autocomplete="one-time-code" maxlength="14" required placeholder="Code from the email"><button class="btn primary" type="submit" id="cgo">Sign in</button></form>
     <div class="lerr" id="lerr"></div>
@@ -678,7 +679,7 @@ function vLogin(){
   :`<p class="ic-sub" style="font-size:14px">Answer questions, follow the preparation, see your ice creams.</p>
   <form id="lf"><input class="field" id="lmail" type="email" inputmode="email" autocomplete="email" required placeholder="you@email.com"><button class="btn primary" type="submit" id="lgo">Email me a sign-in link</button></form>
   <div class="lerr" id="lerr">${esc(linkError)}</div>`}
-  <div class="fine">No password. The link works once, for 1 hour.<br>Questions? Write to <a href="mailto:${esc(OP_DEFAULT.email)}">${esc(OP_DEFAULT.email)}</a></div></div></div>`;
+  <div class="fine">No password. The link works once, for 1 hour.<br>Questions? WhatsApp me</div></div></div>`;
 }
 function vState(title,text,btn=''){ return `<div class="login"><div class="card lcard rise"><span class="logo">${logo.replace(/16/g,24)}</span><h1 style="font-size:24px">${title}</h1><p class="ic-sub" style="font-size:14px">${text}</p>${btn}</div></div>`; }
 
