@@ -135,6 +135,7 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 .qn{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:700;color:var(--warn);background:var(--warn-soft);font-family:var(--round)}
 .q.done .qn{color:var(--ok);background:var(--ok-soft)}
 .q.mine .qn{color:var(--accent);background:var(--accent-soft)}
+.from.op{color:var(--ink-3)}
 .from{display:block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
 .compose{margin-top:0}
 .qt{font-size:14.5px;line-height:1.4;padding-top:3px}
@@ -666,10 +667,11 @@ const composing={};
 function qItem(e,q){
   if(q.author==='client') return `<div class="q mine"><span class="qn">Q${q.n}</span><div class="qt"><span class="from">You asked · ${esc(when(q.createdAt))}</span>${esc(q.text)}</div>
     <div class="qa">${q.answer?`<div class="bubble op">${esc(q.answer)}<small>${esc(OP().name.split(' ')[0])}${q.answeredAt?' · '+esc(when(q.answeredAt)):''}</small></div>`:`<span class="wait">${I.check} Sent to ${esc(OP().name.split(' ')[0])}</span>`}</div></div>`;
-  if(!isOpenQ(q)) return `<div class="q done"><span class="qn">${I.check}</span><div class="qt">${esc(q.text)}</div>
+  const asked=q.createdAt?`<span class="from op">${esc(OP().name.split(' ')[0])} asked · ${esc(when(q.createdAt))}</span>`:''; // when Ulisse asked it
+  if(!isOpenQ(q)) return `<div class="q done"><span class="qn">${I.check}</span><div class="qt">${asked}${esc(q.text)}</div>
     <div class="qa">${q.answer?`<div class="bubble">${esc(q.answer)}<small>${q.answeredByMe?'You':q.answeredAt?esc(OP().name.split(' ')[0]):'Answered'}${q.answeredAt?' · '+esc(when(q.answeredAt)):''}</small></div>`:`<span class="wait">${I.check} Resolved</span>`}</div></div>`;
   const d=drafts[q.id]||'';
-  return `<div class="q"><span class="qn">Q${q.n}</span><div class="qt">${esc(q.text)}</div>
+  return `<div class="q"><span class="qn">Q${q.n}</span><div class="qt">${asked}${esc(q.text)}</div>
     <div class="qa ${d?'has':''}"><textarea class="field" rows="1" placeholder="Write your answer…" data-q="${esc(q.id)}">${esc(d)}</textarea>
     <div class="qbar"><button class="btn primary" data-send="${esc(q.id)}" ${d.trim()?'':'disabled'}>Send ${I.send}</button></div></div></div>`;
 }
