@@ -326,6 +326,75 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 /* bottom tab bar (phone) */
 .tbar{display:none}
 
+/* ---------- Home (Oct 2026): built around the next event ---------- */
+.tbtn{width:34px;height:34px;border-radius:50%;border:0;background:var(--sunken);display:grid;place-items:center;color:var(--ink-2);flex:none}
+.tbtn:hover{background:var(--fill-2)}
+.status{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px 0 10px;border-radius:999px;font-size:13.5px;font-weight:600;margin:2px 0 22px;cursor:pointer;border:0}
+.status i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font-style:normal;font-size:11px;font-weight:800;font-family:var(--round)}
+.status.ok{background:var(--ok-soft);color:var(--ok)} .status.ok i{background:var(--ok)}
+.status.warn{background:var(--warn-soft);color:var(--warn)} .status.warn i{background:var(--warn)}
+.status .arr{opacity:.7;margin-left:2px}
+
+/* next event: the centre of the page */
+.next{position:relative;isolation:isolate;overflow:hidden;border-radius:26px;background:var(--panel);box-shadow:var(--shadow-sm);padding:24px 26px 22px;cursor:pointer}
+.next::before{content:'';position:absolute;inset:-40px;background:radial-gradient(55% 60% at 75% 0%,color-mix(in srgb,var(--tint) 34%,transparent),transparent 70%);z-index:-1}
+.next .tiles{width:58%}
+.next .eyebrow{color:var(--tint)}
+.next h2{font-size:40px;font-weight:800;letter-spacing:-.04em;line-height:1.04;margin:8px 0 12px;max-width:62%}
+.next .hfacts{max-width:62%}
+.next .open{position:absolute;top:22px;right:22px;height:34px;padding:0 14px;border-radius:999px;border:0;background:color-mix(in srgb,var(--panel) 75%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 .5px var(--line-2);font-size:13px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:4px}
+.next .stepper{margin:26px 0 0;background:color-mix(in srgb,var(--panel) 70%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:18px;padding:14px 6px 12px}
+.next .stnote{margin-top:12px;background:color-mix(in srgb,var(--panel) 70%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.next .stnote.warn{background:color-mix(in srgb,var(--warn) 16%,var(--panel))}
+.next .stnote.ok svg{color:var(--ok)}
+.next .mini{display:none}
+
+/* questions waiting: full width, answer in place */
+.qlist{display:flex;flex-direction:column;gap:12px}
+.qcard{padding:0 20px 8px}
+.qhead{display:flex;align-items:center;gap:12px;margin:0 -20px 4px;padding:16px 20px 14px;border-bottom:.5px solid var(--line);background:color-mix(in srgb,var(--tint) 7%,transparent)}
+.qdot{width:10px;height:10px;border-radius:50%;background:var(--tint);flex:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--tint) 22%,transparent)}
+.qhm{flex:1;min-width:0}
+.qhm b{display:block;font-size:18px;font-weight:800;letter-spacing:-.025em;line-height:1.15;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qopen{font-size:13px;font-weight:500;white-space:nowrap}
+.qcard .qn{color:var(--tint);background:color-mix(in srgb,var(--tint) 16%,transparent)}
+
+/* bottom row: ice creams + contact, always the same place */
+.duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:stretch}
+.duo .card{display:flex;flex-direction:column}
+.icrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:6px}
+.icrow .ic-big{margin:0}
+.ic-empty{font-size:15px;font-weight:600;margin-top:10px}
+.contact-c{display:flex;gap:14px;align-items:center;margin-top:10px}
+.av{width:48px;height:48px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;font-size:17px;color:#fff;background:linear-gradient(135deg,#7a5af5,#0a7aff);font-family:var(--round)}
+.contact-c b{display:block;font-size:16px;font-weight:700;letter-spacing:-.015em}
+.contact-c small{display:block;font-size:12.5px;color:var(--ink-2)}
+.duo .wa-note{margin-top:auto}
+.duo .card .push{flex:1;min-height:12px}
+.cardlink{margin-left:auto;font-size:13px;font-weight:500}
+.cardh{display:flex;align-items:baseline}
+
+/* past events: quieter */
+.past .ev{opacity:.78}
+.past .ev .steps i.d{background:var(--ok)}
+
+/* phone: new Home */
+@media (max-width:640px){
+  .next{padding:18px;border-radius:22px;min-height:0}
+  .next .tiles{width:100%;bottom:auto;height:200px;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 45%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 45%,transparent 100%)}
+  .next h2{font-size:30px;max-width:100%;margin-top:120px}
+  .next .hfacts{max-width:100%}
+  .next .open{top:14px;right:14px;height:30px;font-size:12px}
+  .next .stepper{display:none}
+  .next .mini{display:block;margin-top:16px}
+  .next .mini .stepl{font-size:12px;color:var(--ink-2);display:flex;justify-content:space-between;margin-top:7px}
+  .next .mini .stepl b{color:var(--ink)}
+  .duo{grid-template-columns:1fr;gap:10px}
+  .status{margin-bottom:16px}
+  .qcard{padding:0 16px 6px} .qhead{margin:0 -16px 4px;padding:14px 16px 12px} .qhead .chip{display:none} .qhm b{font-size:16px}
+}
+
+
 /* motion */
 .still .rise{animation:none!important} .still .rv{transition:none!important}
 .rise{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
@@ -417,7 +486,7 @@ a.btn{text-decoration:none}
    A client never reads tables: only these functions, which return his own visible events. Sign-in = a link by email. */
 const SB={url:'https://vpnkzlnpuozytpjlvgwy.supabase.co',key:'sb_publishable_bVEn-CDabDXWDZ_CEMbkWA_OHKlj_a1'}; // events-dev; public by design
 const SKEY='hub-portal-session';
-const OP_DEFAULT={name:'Ulisse Mariangeli',role:'Race timing'}; // no phone number in this page: it is public (bots)
+const OP_DEFAULT={name:'Ulisse Mariangeli',role:'Race support'}; // no phone number in this page: it is public (bots)
 const HOME=location.origin+'/portal';
 const STEPS=[['Brief','Your event details'],['Questions','Ulisse needs answers'],['Timing setup','Races, splits, points'],['Test','Dry run with test data'],['Ready','All set for race day'],['Results','Published online']];
 const TINTS=[[/vertical|hill/i,'#a855f7','#6d28d9'],[/tri|aqua/i,'#30b0c7','#0e7490'],[/multi|relay/i,'#7a5af5','#4c35b5'],[/cycl|bike|gravel/i,'#ff9500','#c2410c'],[/trail/i,'#2fb36d','#0b7a4a'],[/road|run/i,'#0a7aff','#0050b3']];
@@ -478,6 +547,15 @@ async function signOut(){ try{ if(sess) await fetch(`${SB.url}/auth/v1/logout`,{
 /* ---------- data ---------- */
 let ME=null, EVENTS=[], ICE={open:[],closed:[],coefficient:1}, DET={}, state='loading', loadErr='';
 const OP=()=>({...OP_DEFAULT,...(ME?.operator||{})});
+/* appearance: Auto (the device) → Light → Dark, remembered on this device */
+const THEME_KEY='racehub-portal-theme', darkMQ=matchMedia('(prefers-color-scheme:dark)');
+let themePref=(()=>{ try{ return localStorage.getItem(THEME_KEY)||'auto'; }catch{ return 'auto'; } })();
+const isDark=()=>themePref==='dark'||themePref==='auto'&&darkMQ.matches;
+function applyTheme(){ const r=document.documentElement; if(themePref==='auto') delete r.dataset.theme; else r.dataset.theme=themePref;
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.content=themePref==='auto'?(m.media.includes('dark')?'#000000':'#f2f2f7'):isDark()?'#000000':'#f2f2f7'); }
+function cycleTheme(){ themePref=themePref==='auto'?'light':themePref==='light'?'dark':'auto'; try{ localStorage.setItem(THEME_KEY,themePref); }catch{}
+  applyTheme(); rerender(); toast(`Appearance: ${themePref==='auto'?'Auto (like this device)':themePref==='light'?'Light':'Dark'}`); }
+applyTheme(); darkMQ.addEventListener('change',()=>{ if(themePref==='auto'&&state==='ok') rerender(); });
 const U=()=>ME?.unit?.icon||'🍦';
 const evOf=r=>({id:r.id,name:r.name||'Untitled event',start:r.dateStart||'',end:r.dateEnd||'',loc:r.location||'',type:r.type||'',status:r.status||'',
   geo:r.geo&&isFinite(+r.geo.lat)?[+r.geo.lat,+r.geo.lon]:null,progress:r.progress??0,step:r.step,rr:r.rr14EventId||'',open:r.openQuestions||0,races:r.races||0});
@@ -494,7 +572,7 @@ async function loadAll(){
     ME=await rpc('portal_me');
     const [evs,ice]=await Promise.all([rpc('portal_events'),rpc('portal_icecreams')]);
     EVENTS=(evs||[]).map(evOf); ICE=ice||ICE;
-    await Promise.all(EVENTS.filter(e=>e.open).map(e=>loadEvent(e.id))); // the open questions are answered on Home
+    const nx=upcoming()[0]; await Promise.all(EVENTS.filter(e=>e.open||e===nx||DET[e.id]).map(e=>loadEvent(e.id))); // open questions are answered on Home; the next event shows its start time; details already here are refreshed too (a question closed elsewhere must not linger)
     if(state==='ok'){ rerender(); return; } // a refresh: no entrance animations, map tiles kept
     state='ok';
   }catch(err){
@@ -516,6 +594,13 @@ const I={
   chev:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
   check:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10"/></svg>',
   pin:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  fwd:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+  cal:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  flag:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>',
+  okc:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>',
+  sun:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+  auto:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>',
   info:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>',
   wa:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l1.3-4A8.5 8.5 0 1 1 8 19.6z"/><path d="M9 9.5c.3 2.2 2.3 4.3 4.6 4.8l1.2-1.1 1.9.8-.4 1.6c-3.7.2-7.6-3.6-7.5-7.3l1.6-.4.8 1.9z"/></svg>',
   mail:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
@@ -523,7 +608,6 @@ const I={
   ext:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4 10 14M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>'
 };
 const logo='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg>';
-function ring(p,size){ const r=15.9,c=2*Math.PI*r; return `<div class="ringw ${p>=100?'full':''}" style="width:${size}px;height:${size}px"><svg viewBox="0 0 36 36"><circle class="rt" cx="18" cy="18" r="${r}" fill="none" stroke-width="3.2"/><circle class="rv" cx="18" cy="18" r="${r}" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c}" data-off="${c*(1-p/100)}"/></svg><b style="font-size:${size*.27}px">${p}<small>%</small></b></div>`; }
 const animateRings=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.rv[data-off]').forEach(c=>c.style.strokeDashoffset=c.dataset.off)));
 
 /* ---------- chrome ---------- */
@@ -532,6 +616,7 @@ function chrome(route){
   $('#top').innerHTML=`<div class="top-in">
     <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>Race Hub</b><small>Client area</small></span></a>
     <nav class="tabs"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a><a href="#ic" ${cur('ic')}>Ice creams</a></nav>
+    <button class="tbtn" data-act="theme" aria-label="Appearance" title="Appearance: ${themePref==='auto'?'Auto':themePref==='light'?'Light':'Dark'}">${themePref==='auto'?I.auto:themePref==='light'?I.sun:I.moon}</button>
     <button class="ibtn" data-act="account" aria-label="Account">${I.user}</button>
     <div class="who"><span>${esc(ME?.client||'')}<small>${esc(ME?.email||'')}</small></span></div></div>`;
   $('#tbar').innerHTML=`<a href="#home" ${cur('home')}>${I.home.replace(/17/g,24)}Home</a><a href="#q" ${cur('q')}>${I.q.replace(/17/g,24)}Questions${n?`<span class="badge">${n}</span>`:''}</a><a href="#ic" ${cur('ic')}>${I.ic.replace(/17/g,24)}Ice creams</a>`;
@@ -567,50 +652,86 @@ const pastEvents=()=>EVENTS.filter(e=>!upcoming().includes(e)).sort((a,b)=>b.sta
 const iceTotal=()=>ICE.open.reduce((s,h)=>s+(+h.icecreams||0),0), iceHours=()=>ICE.open.reduce((s,h)=>s+(+h.hours||0),0);
 const coefChip=()=>`<span class="coef">1 h = <b>${ic(ICE.coefficient)}</b> ${U()}</span>`;
 function vHome(){
-  const up=upcoming(), today=up.find(e=>days(e)===0||(e.start<=isoToday()&&e.end>=isoToday())), next=up.find(e=>days(e)>0);
-  const avg=up.length?Math.round(up.reduce((s,e)=>s+prep(e),0)/up.length):0, qn=totalOpen(), waiting=up.filter(e=>openN(e)).slice(0,3);
+  const up=upcoming(), today=up.find(e=>days(e)===0||(e.start<=isoToday()&&e.end>=isoToday())), next=today||up[0], rest=up.filter(e=>e!==next), past=pastEvents(), qn=totalOpen();
   return `<div class="rise">
   <div class="eyebrow">${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}</div>
   <h1>${greet()}, ${esc(ME.client||'')}</h1>
-  <p class="lede">${plural(up.length,'event','events')} coming up with ${esc(OP().name.split(' ')[0])}${qn?` · <b>${plural(qn,'question','questions')}</b> waiting for your answer`:' · nothing waiting for you'}.</p>
-  ${today?`<div class="raceday" style="${tstyle(today)}" data-go="#e/${encodeURIComponent(today.id)}">
-    <div><div class="eye"><span class="live"></span>Race day · today</div><h3>${esc(today.name)}</h3><div class="meta">${esc(today.loc)}</div></div>
-    ${today.rr?`<div class="acts"><a class="wbtn solid" href="https://my.raceresult.com/${encodeURIComponent(today.rr)}/" target="_blank" rel="noopener" data-stop>Live results ${I.ext}</a></div>`:''}</div>`:''}
-  <div class="stats">
-    <div class="card glow warn stat ${qn?'warn':''}" data-go="#q"><div class="eye">Waiting for you</div><b>${qn}</b><div class="sub">open questions · ${plural(EVENTS.filter(e=>openN(e)).length,'event','events')}</div></div>
-    ${next?`<div class="card glow stat" style="${tstyle(next)}" data-go="#e/${encodeURIComponent(next.id)}"><div class="eye">Next race · ${cd(days(next))}</div><div class="nm">${esc(next.name)}</div><div class="sub">${fmtD(next.start,{weekday:'short',day:'numeric',month:'short'})}${next.loc?' · '+esc(next.loc.split(',')[0]):''}</div></div>`
-      :`<div class="card stat"><div class="eye mute">Next race</div><div class="nm">None planned</div><div class="sub">new events appear here</div></div>`}
-    <div class="card stat"><div class="srow"><div><div class="eye mute">Preparation</div><div class="nm">${avg}% on average</div><div class="sub">${up.filter(e=>prep(e)>=90).length} of ${up.length} ready</div></div>${ring(avg,52)}</div></div>
-    <div class="card glow stat" style="--tint:#ff2d92" data-go="#ic"><div class="eye">Ice creams to close</div><b>${ic(iceTotal())}<small>${U()}</small></b><div class="sub">${ic(iceHours())} h · 1 h = ${ic(ICE.coefficient)} ${U()}</div></div>
-  </div>
-  <div class="g2">
-    <div class="col"><div class="h2">Waiting for you <span>answer here</span>${qn?`<a href="#q">All ${qn} ›</a>`:''}</div>
-      <div class="card">${waiting.map(e=>qGroup(e)).join('')||'<div class="lede" style="margin:0">All answered — thank you!</div>'}</div></div>
-    <div class="col"><div class="h2">Ice creams <span>open</span><a href="#ic">Details ›</a></div>
-      <div class="card glow" style="--tint:#ff2d92"><div class="eye">To close · ${plural(ICE.open.length,'entry','entries')}</div><div class="ic-big"><b>${ic(iceTotal())}</b><span>${U()}</span></div><div class="ic-sub">${ic(iceHours())} hours · ${coefChip()}${sinceTxt()}</div>
-      ${ICE.open.length?`<div style="margin-top:10px">${ICE.open.slice(0,3).map(hRow).join('')}</div>`:''}</div>${timerCard()}</div>
-  </div>
-  <div class="h2">Your events <span>${up.length} coming up</span></div>
-  ${up.length?`<div class="evgrid">${up.map(evCard).join('')}</div>`:`<div class="card"><div class="lede" style="margin:0">No events coming up yet — ${esc(OP().name.split(' ')[0])} adds them here.</div></div>`}
-  ${pastEvents().length?`<div class="h2">Past events <span>${pastEvents().length}</span></div><div class="evgrid">${pastEvents().map(evCard).join('')}</div>`:''}</div>`;
+  <p class="lede" style="margin-bottom:10px">${up.length?`${plural(up.length,'event','events')} coming up with ${esc(OP().name.split(' ')[0])}.`:`No events coming up yet — ${esc(OP().name.split(' ')[0])} adds them here.`}</p>
+  ${qn?`<button class="status warn" data-act="towait"><i>${qn}</i>${plural(qn,'question','questions')} waiting for your answer<span class="arr">↓</span></button>`
+      :`<button class="status ok" data-go="#q"><i>${I.check}</i>All answered — nothing waiting for you</button>`}
+  ${today?raceDay(today):next?nextCard(next):''}
+  ${waitBlock(up)}
+  ${rest.length?`<div class="h2">Also coming up <span>${rest.length}</span></div><div class="evgrid">${rest.map(e=>evCard(e)).join('')}</div>`:''}
+  <div class="h2">Ice creams &amp; contact</div>
+  ${duo()}
+  ${past.length?`<div class="h2">Past events <span>${past.length}</span></div><div class="evgrid past">${past.map(e=>evCard(e,true)).join('')}</div>`:''}</div>`;
+}
+function raceDay(e){
+  return `<div class="raceday" style="${tstyle(e)}" data-go="#e/${encodeURIComponent(e.id)}">
+    <div><div class="eye"><span class="live"></span>Race day · today</div><h3>${esc(e.name)}</h3><div class="meta">${esc(e.loc)}</div></div>
+    ${e.rr?`<div class="acts"><a class="wbtn solid" href="https://my.raceresult.com/${encodeURIComponent(e.rr)}/" target="_blank" rel="noopener" data-stop>Live results ${I.ext}</a></div>`:''}</div>`;
+}
+/* one sentence under the steps: what Ulisse needs from the client, or that nothing is needed */
+function stepNote(e){
+  const s=stepOf(e), oq=openN(e), first=esc(OP().name.split(' ')[0]);
+  if(s===1&&oq) return `<div class="stnote warn">${I.info}<span>${first} is waiting for <b>${plural(oq,'answer','answers')}</b> from you to go on with the timing setup.</span></div>`;
+  if(s===4) return `<div class="stnote ok">${I.okc}<span>Everything is set. Results appear live on <b>my.raceresult.com</b> during the race.</span></div>`;
+  if(s===5) return `<div class="stnote ok">${I.okc}<span>The race is over — the results are online.</span></div>`;
+  return `<div class="stnote ok">${I.okc}<span><b>Nothing needed from you.</b> ${first} is working on the ${STEPS[s][0].toLowerCase()} — you will hear from him if something comes up.</span></div>`;
+}
+const stepperHtml=s=>`<div class="stepper">${STEPS.map((x,i)=>`<div class="st ${i<s?'d':i===s?'c':''}"><i>${i<s?I.check:''}</i><span><b>${x[0]}</b><small>${x[1]}</small></span></div>`).join('')}</div>`;
+const firstStart=e=>(DET[e.id]?.races||[]).map(r=>r.startTime).filter(Boolean).sort()[0]||'';
+function nextCard(e){
+  const s=stepOf(e), oq=openN(e), t=firstStart(e);
+  return `<section class="next" style="${tstyle(e)}" data-go="#e/${encodeURIComponent(e.id)}">${tilesFor(e)}
+    <a class="open" href="#e/${encodeURIComponent(e.id)}">Open event ${I.fwd}</a>
+    <div class="eyebrow">Next race<span class="sep"></span>${cd(days(e))}</div>
+    <h2>${esc(e.name)}</h2>
+    <div class="hfacts">${e.start?`<span class="fact">${I.cal} ${fmtD(e.start,{weekday:'short',day:'numeric',month:'short'})}${t?' · '+esc(t):''}</span>`:''}${e.loc?`<span class="fact">${I.pin} ${esc(e.loc)}</span>`:''}${e.races?`<span class="fact">${I.flag} ${plural(e.races,'race','races')}</span>`:''}${oq?`<span class="fact warn">${plural(oq,'open question','open questions')}</span>`:''}</div>
+    ${stepperHtml(s)}
+    <div class="mini"><div class="steps">${STEPS.map((_,i)=>`<i class="${i<s?'d':i===s?'c':''}"></i>`).join('')}</div><div class="stepl"><span>Now: <b>${STEPS[s][0]}</b></span><span>${s+1}/6</span></div></div>
+    ${stepNote(e)}
+  </section>`;
+}
+/* the questions to answer: one card per event, in the event's colour */
+function waitBlock(up){
+  const w=up.filter(e=>openQs(e).length); if(!w.length) return '';
+  const tot=w.reduce((n,e)=>n+openQs(e).length,0);
+  return `<div class="h2" id="wait">Waiting for you <span>answer here · ${esc(OP().name.split(' ')[0])} gets it at once</span></div>
+  <div class="qlist">${w.map(e=>`<div class="card glow qcard" style="${tstyle(e)}">
+    <div class="qhead"><span class="qdot"></span><div class="qhm"><div class="eye">${e.start?fmtD(e.start,{weekday:'short',day:'numeric',month:'short'})+' · ':''}${cd(days(e))}</div><b>${esc(e.name)}</b></div>
+      <span class="chip warn">${plural(openQs(e).length,'question','questions')}</span><a class="qopen" href="#e/${encodeURIComponent(e.id)}">Open event ›</a></div>
+    ${openQs(e).map(q=>qItem(e,q)).join('')}</div>`).join('')}</div>`;
+}
+function duo(){
+  const o=OP(), ini=o.name.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase(), last=ICE.closed.map(c=>c.until).filter(Boolean).sort().pop();
+  return `<div class="duo">
+    <div class="card glow" style="--tint:#ff2d92" data-go="#ic"><div class="cardh"><div class="eye">Ice creams · open</div><a class="cardlink" href="#ic">Details ›</a></div>
+      ${ICE.open.length?`<div class="icrow"><div class="ic-big"><b>${ic(iceTotal())}</b><span>${U()}</span></div></div><div class="ic-sub">${ic(iceHours())} hours${sinceTxt()} · 1 h = ${ic(ICE.coefficient)} ${U()}</div>`
+        :`<div class="ic-empty">Nothing open</div><div class="ic-sub">${last?`Last period closed on ${fmtD(last,{day:'numeric',month:'short'})} · `:''}1 h = ${ic(ICE.coefficient)} ${U()}</div>`}
+      <div class="push"></div></div>
+    <div class="card"><div class="eye mute">Your contact</div>
+      <div class="contact-c"><div class="av">${esc(ini)}</div><div><b>${esc(o.name)}</b><small>${esc(o.role)}</small></div></div>
+      <div class="push"></div><div class="wa-note">${I.wa} Questions? WhatsApp me</div></div>
+  </div>`;
 }
 const sinceTxt=()=>{ const u=ICE.closed.map(c=>c.until).filter(Boolean).sort().pop(); return u?` · since ${fmtD(u,{day:'numeric',month:'short'})}`:''; };
 function timerCard(){ const o=OP(); return `<div class="card"><div class="eye mute">Your timer</div><div style="font-size:16px;font-weight:700;margin-top:6px">${esc(o.name)}</div><div class="ic-sub">${esc(o.role)}</div>
   <div class="wa-note">${I.wa} Questions? WhatsApp me</div></div>`; }
-function evCard(e){
-  const n=days(e), oq=openN(e), s=stepOf(e);
+function evCard(e,past=false){
+  const n=days(e), oq=openN(e), s=past?6:stepOf(e);
   return `<div class="card glow ev rise" style="${tstyle(e)}" data-go="#e/${encodeURIComponent(e.id)}">
-    <div class="top2"><div style="flex:1;min-width:0"><div class="eye">${e.start?fmtD(e.start,{weekday:'short',day:'numeric',month:'short'})+' · ':''}${cd(n)}</div><div class="nm">${esc(e.name)}</div><div class="loc">${esc(e.loc)}</div></div>${ring(prep(e),46)}</div>
-    <div class="chips">${n===0?'<span class="chip tint">● Race day</span>':''}${oq?`<span class="chip warn">${plural(oq,'question','questions')}</span>`:'<span class="chip ok">No questions</span>'}${e.races?`<span class="chip">${plural(e.races,'race','races')}</span>`:''}${e.type?`<span class="chip">${esc(e.type)}</span>`:''}</div>
+    <div><div class="eye">${e.start?fmtD(e.start,{weekday:'short',day:'numeric',month:'short'})+' · ':''}${past?'done':cd(n)}</div><div class="nm">${esc(e.name)}</div><div class="loc">${esc(e.loc)}</div></div>
+    <div class="chips">${n===0?'<span class="chip tint">● Race day</span>':''}${past?'<span class="chip ok">Results online</span>':oq?`<span class="chip warn">${plural(oq,'question','questions')}</span>`:'<span class="chip ok">Nothing needed</span>'}${e.races?`<span class="chip">${plural(e.races,'race','races')}</span>`:''}${e.type?`<span class="chip">${esc(e.type)}</span>`:''}</div>
     <div class="steps">${STEPS.map((_,i)=>`<i class="${i<s?'d':i===s?'c':''}"></i>`).join('')}</div>
-    <div class="stepl"><span>Now: <b>${STEPS[s][0]}</b></span><span>${s+1}/6</span></div></div>`;
+    <div class="stepl"><span>${past?'Finished':`Now: <b>${STEPS[s][0]}</b>`}</span><span>${past?'6/6':`${s+1}/6`}</span></div></div>`;
 }
 function hRow(h){ const d=D(h.date);
   return `<div class="hr"><div class="d"><b>${d.getDate()}</b>${MON[d.getMonth()]}</div><div class="t"><b>${esc(h.event||'General')}</b><small class="${h.hidden?'hidden-note':''}">${esc(h.note||'—')}</small></div><div class="v">${ic(h.icecreams)} ${U()}<small>${ic(h.hours)} h</small></div></div>`; }
 function tilesFor(e){
   if(!e.geo) return '';
   const z=10,[lat,lon]=e.geo,n=2**z,x=(lon+180)/360*n,y=(1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n;
-  const set=matchMedia('(prefers-color-scheme:dark)').matches?'World_Dark_Gray_Base':'World_Light_Gray_Base', tx=Math.floor(x), ty=Math.floor(y), fx=x-tx, fy=y-ty; let h='';
+  const set=isDark()?'World_Dark_Gray_Base':'World_Light_Gray_Base', tx=Math.floor(x), ty=Math.floor(y), fx=x-tx, fy=y-ty; let h='';
   for(let dx=-3;dx<=2;dx++) for(let dy=-2;dy<=2;dy++) h+=`<img alt="" src="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${set}/MapServer/tile/${z}/${ty+dy}/${tx+dx}" style="left:calc(62% + ${(dx-fx)*256}px);top:calc(42% + ${(dy-fy)*256}px)">`;
   return `<div class="tiles">${h}<span class="pin" style="left:62%;top:42%"></span></div>`;
 }
@@ -618,13 +739,10 @@ function vEvent(id){
   const e=ev(id), d=DET[id]; if(!e) return `<div class="rise"><a class="back" href="#home">${I.chev} Home</a><div class="card"><div class="lede" style="margin:0">This event is not available.</div></div></div>`;
   if(!d){ loadEvent(id).then(rerender).catch(()=>{}); return `<div class="rise"><a class="back" href="#home">${I.chev} Home</a><div class="card"><div class="lede" style="margin:0">Loading…</div></div></div>`; }
   const n=days(e), oq=openN(e), s=stepOf(e), eh=ICE.open.filter(h=>h.eventId===e.id), first=OP().name.split(' ')[0];
-  const note=s===1?`<div class="stnote warn">${I.info}<span>${esc(first)} is waiting for <b>${plural(oq,'answer','answers')}</b> from you to go on with the timing setup.</span></div>`
-    :s===4?`<div class="stnote">${I.info}<span>Everything is set. Results appear live on <b>my.raceresult.com</b> during the race.</span></div>`
-    :s===5?`<div class="stnote">${I.info}<span>The race is over — the results are online.</span></div>`
-    :`<div class="stnote">${I.info}<span>${esc(first)} is building the races and timing points. Nothing needed from you right now.</span></div>`;
+  const note=stepNote(e);
   return `<div class="rise" style="${tstyle(e)}">
   <a class="back" href="#home">${I.chev} Home</a>
-  <div class="hero">${tilesFor(e)}${ring(prep(e),84)}
+  <div class="hero">${tilesFor(e)}
     <div class="eyebrow">${esc(e.type||'Event')}${e.start?`<span class="sep"></span>${fmtD(e.start,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}`:''}</div>
     <h1>${esc(e.name)}</h1>
     <div class="hfacts"><span class="fact tint">${n===0?'● Race day':cd(n)}</span>${e.loc?`<span class="fact">${I.pin} ${esc(e.loc)}</span>`:''}<span class="fact">${plural(d.races.length,'race','races')}</span><span class="fact">${plural(d.timingPoints.length,'timing point','timing points')}</span>${oq?`<a class="fact warn" href="#qs">${plural(oq,'open question','open questions')}</a>`:''}${e.rr?`<a class="fact" href="https://my.raceresult.com/${encodeURIComponent(e.rr)}/" target="_blank" rel="noopener">Results page ${I.ext}</a>`:''}</div>
@@ -710,6 +828,8 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('button'); if(!b) return;
   const act=b.dataset.act;
   if(act==='account') return account();
+  if(act==='theme') return cycleTheme();
+  if(act==='towait') return document.getElementById('wait')?.scrollIntoView({behavior:'smooth',block:'start'});
   if(act==='signout'){ closeSheet(); return signOut(); }
   if(act==='again'){ linkSent=''; render(); return; }
   if(act==='compose'){ composing[b.dataset.id]=true; rerender(); document.querySelector(`[data-c="${CSS.escape(b.dataset.id)}"]`)?.focus(); return; }

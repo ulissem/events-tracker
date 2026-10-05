@@ -944,8 +944,9 @@ table.t.cltab{min-width:520px}
 .sheet .s-splits .s-no{width:26px;color:#8a909b}
 .sheet .s-splits .s-km{text-align:right;width:64px;padding-right:2px}
 .sheet .s-splits .s-fin td{font-weight:600}
-.sheet .s-leg td{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#596170;padding:9px 0 3px 10px;border-bottom:1px solid #e7e9ee;border-left:3px solid #3b8fd9}
-.sheet .s-leg.l1 td{border-left-color:#e07b2c} .sheet .s-leg.l2 td{border-left-color:#2f9e5b}
+.sheet .s-leg td{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#596170;padding:9px 0 3px;border-bottom:1px solid #e7e9ee}
+.sheet .s-leg .ld{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b8fd9;margin-right:7px;vertical-align:1px}
+.sheet .s-leg.l1 .ld{background:#e07b2c} .sheet .s-leg.l2 .ld{background:#2f9e5b}
 
 .sheet .s-qs{margin:0;padding:0;list-style:none}
 .sheet .s-qs li{display:grid;grid-template-columns:40px 1fr;padding:5px 0;border-bottom:1px solid #f0f1f4}
@@ -5071,7 +5072,7 @@ function summaryHTML(e,withResolved){
     const rows=c.splits.filter(x=>c.startSplit||x.role!=='start');
     const legLen=g=>{ const ks=rows.filter(x=>L.map.get(x).seg===g).map(x=>L.map.get(x).km).filter(isFinite); return ks.length?Math.max(...ks):NaN; };
     let n=0, prev=-1;
-    const body=rows.map(x=>{ const li=L.map.get(x), head=L.multi&&li.seg!==prev?`<tr class="s-leg l${li.seg%3}"><td colspan="5">Leg ${li.seg+1}${isFinite(legLen(li.seg))&&legLen(li.seg)?` · ${esc(fmtKm(legLen(li.seg)))} km`:''}</td></tr>`:''; prev=li.seg;
+    const body=rows.map(x=>{ const li=L.map.get(x), head=L.multi&&li.seg!==prev?`<tr class="s-leg l${li.seg%3}"><td colspan="5"><span class="ld"></span>Leg ${li.seg+1}${isFinite(legLen(li.seg))&&legLen(li.seg)?` · ${esc(fmtKm(legLen(li.seg)))} km`:''}</td></tr>`:''; prev=li.seg;
       const nm=x.role==='start'?'Start':x.role==='finish'?'Finish':String(++n), lb=(x.label||'').trim()||(x.role==='finish'?'Finish':x.role==='start'?'Start':'');
       return `${head}<tr class="${x.role==='finish'?'s-fin':''}"><td class="s-no">${nm==='Start'||nm==='Finish'?'':nm}</td><td>${esc(lb)}</td><td>${dot(x)}</td><td class="s-km">${isFinite(li.km)?esc(fmtKm(li.km)):''}</td>${L.multi?`<td class="s-km s-dim">${isFinite(li.cum)?esc(fmtKm(li.cum)):''}</td>`:''}</tr>`; }).join('');
     return `<div class="s-race"><div class="s-rh"><b>${esc(c.name)}</b><span>${esc(start)}</span></div>
