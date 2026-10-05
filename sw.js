@@ -1,5 +1,5 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v167';
+const CACHE = 'events-tracker-v168';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/mbox.png', './img/trackbox-active.png', './img/trackbox-passive.png',
   './vendor/leaflet/leaflet.js', './vendor/leaflet/leaflet.css', './vendor/tz-lookup/tz.js'];
@@ -30,7 +30,16 @@ self.addEventListener('fetch', e => {
 // Web Push (owner): a client answered or asked. The page payload is {title, body, url, tag}.
 self.addEventListener('push', e => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : '' }; }
-  e.waitUntil(self.registration.showNotification(d.title || 'Race Hub', { body: d.body || '', tag: d.tag, data: { url: d.url || './' }, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png' }));
+  e.waitUntil((async () => {
+    // one notification per event: a new answer / question of the same event updates it ("Answered Q2, Q3 — latest text")
+    let list = d.kind ? [{ kind: d.kind, n: d.n }] : [];
+    if (d.tag) for (const old of await self.registration.getNotifications({ tag: d.tag })) { list = [...(old.data?.list || []), ...list]; old.close(); }
+    const ans = list.filter(x => x.kind === 'answered').map(x => 'Q' + x.n), ask = list.filter(x => x.kind === 'asked').length;
+    const head = [ans.length ? `Answered ${ans.join(', ')}` : '', ask ? (ask > 1 ? `${ask} new questions` : 'New question') : ''].filter(Boolean).join(' · ');
+    const body = list.length > 1 ? `${head} — ${d.text || ''}` : (d.body || '');
+    await self.registration.showNotification(d.title || 'Race Hub', { body, tag: d.tag, renotify: !!d.tag, timestamp: Date.now(),
+      data: { url: d.url || './', list }, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', actions: [{ action: 'open', title: 'Open event' }] });
+  })());
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();
