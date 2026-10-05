@@ -140,8 +140,28 @@ input[type=checkbox].ck:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)
 .switch input:checked::after{transform:translateX(10px)}
 .switch input:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)}
 
-/* login: storage choice */
-.s-backend{margin:2px 0 10px} .s-backend button{padding:0 12px}
+/* login: storage choice (inside Data location) */
+.s-backend{margin:4px 0 12px} .s-backend button{padding:0 12px}
+/* sign-in page */
+#signin{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;overflow:auto;isolation:isolate;background:var(--bg);
+  padding:calc(24px + var(--sat)) 16px calc(24px + var(--sab))}
+#signin[hidden]{display:none}
+#signin::before{content:'';position:fixed;inset:-20%;z-index:-1;pointer-events:none;
+  background:radial-gradient(40% 40% at 70% 20%,color-mix(in srgb,#7a5af5 30%,transparent),transparent 70%),radial-gradient(40% 40% at 25% 80%,color-mix(in srgb,var(--accent) 26%,transparent),transparent 70%)}
+.si-card{width:min(400px,100%);padding:30px 28px 22px;border-radius:var(--r-card);background:var(--panel);box-shadow:var(--shadow-pop);text-align:center;animation:si-rise .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes si-rise{from{opacity:0;transform:translateY(10px)}}
+@media (prefers-reduced-motion:reduce){ .si-card{animation:none} }
+.si-logo{width:52px;height:52px;border-radius:15px;margin:0 auto 16px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7a5af5,var(--accent))}
+.si-logo svg{width:26px;height:26px}
+.si-eye{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--ink-3)}
+#signin h1{margin:4px 0 6px;font-size:28px;letter-spacing:-.02em}
+.si-sub{margin:0 0 20px;color:var(--ink-2);font-size:14px}
+#signin #loginform{text-align:left}
+#signin #s-title,#signin #s-cancel,#signin #loginform[data-backend="supabase"] #s-lead{display:none}
+#signin #s-lead{font-size:13px;color:var(--ink-2)}
+#signin .acts{margin-top:14px} #signin #s-save{width:100%;height:44px;font-size:15px;justify-content:center}
+#signin .adv{margin-top:4px;font-size:13px}
+#signin .fld{margin:0 0 12px} #signin .msg:empty{display:none}
 #loginform[data-backend="github"] .s-sb,#loginform[data-backend="supabase"] .s-gh{display:none}
 /* segmented control (Active / Passive) */
 .seg{display:inline-flex;align-items:stretch;gap:2px;height:32px;padding:2px;border:1px solid var(--line-2);border-radius:7px;background:var(--sunken);box-shadow:var(--shadow-sm)}
@@ -2332,11 +2352,11 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
     <!-- A real login form (username + current-password + submit) so Bitwarden and the OS can autofill it. -->
     <form id="loginform" method="post" action="#" autocomplete="on">
       <h2 id="s-title">Log in</h2>
-      <div class="seg s-backend" role="radiogroup" aria-label="Data storage"><button type="button" role="radio" data-backend="supabase">Supabase</button><button type="button" role="radio" data-backend="github">GitHub</button></div>
       <p id="s-lead"></p>
       <div class="fld"><label class="lab" for="s-owner" id="s-ulab">User</label><input class="in" id="s-owner" name="username" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" required></div>
       <div class="fld"><label class="lab" for="s-token">Password</label><div class="in group"><input class="bare" id="s-token" name="password" type="password" autocomplete="current-password" required><button class="btn ghost sm" type="button" id="s-show">Show</button></div></div>
-      <details class="adv"><summary>Data location</summary>
+      <details class="adv" id="s-adv"><summary>Data location</summary>
+        <div class="seg s-backend" role="radiogroup" aria-label="Data storage"><button type="button" role="radio" data-backend="supabase">Supabase</button><button type="button" role="radio" data-backend="github">GitHub</button></div>
         <div class="s-gh"><div class="fld"><label class="lab" for="s-repo">Data repository</label><input class="in mono" id="s-repo" name="repo" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
         <div class="fld"><label class="lab" for="s-dir">Folder</label><input class="in mono" id="s-dir" name="folder" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>
         <div class="s-sb"><div class="fld"><label class="lab" for="s-sburl">Project URL</label><input class="in mono" id="s-sburl" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
@@ -2360,6 +2380,11 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
     <div class="acts"><button class="btn" type="button" id="ul-cancel">Cancel</button><button class="btn primary" type="submit" id="ul-go">Unlock</button></div>
   </form>
 </dialog>
+<!-- Sign-in page (Oct 2026, style of the approved portal mockup): the login form is moved in here while logged out -->
+<div id="signin" hidden><div class="si-card">
+  <span class="si-logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg></span>
+  <div class="si-eye">Ulisse Mariangeli · Race timing</div><h1>Hub</h1><p class="si-sub">Events, races and preparation.</p>
+  <div id="si-slot"></div></div></div>
 <div id="applock" hidden><div class="alk">
   <div class="alogo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
   <h2>Events tracker</h2><p id="al-msg">Locked</p>
@@ -5801,6 +5826,10 @@ async function logout(){
   clearLocal(); try{ localStorage.removeItem(LOCK_KEY); }catch{} idbKey('del').catch(()=>{}); LOCK=null; cfg.token=''; delete cfg.tokenEnc; saveCfg(); dirty=false; unlocked=false; location.hash=''; location.reload();
 }
 const dlg=$('#settings');
+/* logged out: the login form lives on the full sign-in page (nothing of the app behind it); logged in: back in Settings */
+const loginHome=document.createComment('loginform'); $('#loginform').before(loginHome);
+function showSignin(){ $('#si-slot').append($('#loginform')); $('#signin').hidden=false; if(dlg.open) dlg.close(); setTimeout(()=>$('#s-owner').focus(),60); }
+function hideSignin(){ if($('#signin').hidden) return; loginHome.after($('#loginform')); $('#signin').hidden=true; }
 function openSettings(msg=''){
   closePops(); closeCmd();
   const loggedIn=!!S;
@@ -5809,6 +5838,7 @@ function openSettings(msg=''){
   $('#s-title').textContent=loggedIn?'Connection':'Log in';
   $('#s-save').textContent=loggedIn?'Reconnect':'Log in';
   loginBackend(cfg.backend||(cfg.owner?'github':'supabase')); $('#s-msg').textContent=msg;
+  if(!loggedIn&&!DEMO){ showSignin(); return; } hideSignin();
   if(loggedIn){ $('#s-rr14user').value=S.config.rr14User||''; $('#s-carto').value=S.config.cartoKey||'';
     $('#s-swinfo').textContent=!hasSafeword()?'Not set yet — set it the first time you unlock.':priv()?'Set. You can change it while unlocked.':'Set. Unlock first to change it.';
     $('#s-swset').disabled=!priv(); lockInfo(); }
@@ -5826,6 +5856,7 @@ dlg.addEventListener('close',()=>{ $('#s-token').type='password'; $('#s-show').t
 function loginBackend(be){
   const f=$('#loginform'), sb=be==='supabase', cur=(cfg.backend||'github')===be&&!!cfg.owner;
   f.dataset.backend=be; f.querySelectorAll('[data-backend]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.backend===be)));
+  if(be==='github') $('#s-adv').open=true; // a device still on GitHub sees where its data is
   $('#s-lead').textContent=sb?'Your Supabase account. The password is not stored: this device keeps only a session (encrypted by the app lock).':'The password is your GitHub token. It stays in this browser only.';
   $('#s-ulab').textContent=sb?'Email':'User'; const u=$('#s-owner'); u.placeholder=sb?'you@example.com':'github-user'; u.inputMode=sb?'email':'text';
   $('#s-token').placeholder=sb?'':'ghp_…';
@@ -5851,7 +5882,7 @@ $('#loginform').onsubmit=async ev=>{ ev.preventDefault();
       S={config:structuredClone(DEFAULT_CONFIG),clients:[],events:[],agenda:{todos:[],entries:[],notes:''},hours:{entries:[],closures:[],coefficients:{}}}; saved={}; savedItems={}; eventFiles=new Set(); hoursInRepo=false; unlocked=false;
       normalizeConfig(); dirty=true; await save({quiet:true});
     }
-    saveCfg(); dlg.close(); parseRoute(); render();
+    saveCfg(); dlg.close(); hideSignin(); parseRoute(); render();
   }catch(err){ $('#s-msg').textContent=isSB()?(isNetErr(err)?'No connection to Supabase.':err.message):err.message+'. Check user, password (token) and its permissions.'; }
   finally{ $('#s-save').disabled=false; }
 };
