@@ -2189,6 +2189,11 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .addline.empty1:hover{color:var(--accent)}
 .scard .addline.empty1{background:var(--sunken);box-shadow:none;border-radius:14px} /* inside a side card: a tile, not a card in a card */
 .qbox .addline{margin:0 -14px;width:calc(100% + 28px);border-radius:0 0 var(--r-card) var(--r-card);border-top:1px solid var(--line);padding:11px 18px}
+/* checklist in a card in the main column (summary tile on top, items below), like every other section */
+.ckbox{background:var(--panel);border-radius:var(--r-card);box-shadow:var(--shadow-sm);padding:10px 12px 6px}
+.ckbox .ckhead{border:0;background:var(--sunken);border-radius:14px}
+.ckbox .check{margin-bottom:4px}
+.scard .ckbox{background:none;box-shadow:none;padding:0;border-radius:0} /* the side card is already the card */
 /* day cards: past days dimmed; rings: a green check at 100 % */
 .agdc.past{opacity:.55}
 .agdc.past .cc-eye{color:var(--ink-3)}
@@ -3577,9 +3582,9 @@ function renderEvent(D){
   </section>
 
   <section class="sec" id="s-checklist"><div class="sech" style="--sc:${SECC.checklist}"><h3>${secBadge('checklist')}Checklist</h3></div>
-  <div class="ckhead">${ring(p,40,4)}<div><b>${pct}%</b><span>${ckDone} of ${ckTot} done</span></div>
+  <div class="ckbox"><div class="ckhead">${ring(p,40,4)}<div><b>${pct}%</b><span>${ckDone} of ${ckTot} done</span></div>
     <div class="ckbars">${[...new Set(ck.map(x=>x.group))].map(g=>{ const [d,t]=grpStat(g); return t?`<div><span>${g}</span><u><i style="width:${Math.round(d/t*100)}%"></i></u><span style="text-align:right">${d}/${t}</span></div>`:''; }).join('')}</div></div>
-  <ul class="check">${ck.map((x,i)=>`${x.group!==ck[i-1]?.group?`<li class="grp">${esc(x.group)}</li>`:''}${x.sub&&(x.sub!==ck[i-1]?.sub||x.group!==ck[i-1]?.group)?`<li class="sub">${esc(x.sub)}</li>`:''}<li class="${x.auto?'auto':''} ${x.child?'kid':''}"><label>${x.auto?`<span class="autock ${x.done?'on':''}">${x.done?ic('check',3):''}</span>`:x.task?`<input type="checkbox" class="ck" data-o="${ref(x.task)}" data-k="done" data-r="detail" ${x.done?'checked':''}>`:`<input type="checkbox" class="ck" data-ck="${esc(x.key)}" ${x.done?'checked':''}>`}<span class="ckl ${x.done?'done':''}">${esc(x.label)}</span>${x.auto?'<span class="tag auto" title="Ticked automatically from the event data">auto</span>':''}</label></li>`).join('')}</ul>
+  <ul class="check">${ck.map((x,i)=>`${x.group!==ck[i-1]?.group?`<li class="grp">${esc(x.group)}</li>`:''}${x.sub&&(x.sub!==ck[i-1]?.sub||x.group!==ck[i-1]?.group)?`<li class="sub">${esc(x.sub)}</li>`:''}<li class="${x.auto?'auto':''} ${x.child?'kid':''}"><label>${x.auto?`<span class="autock ${x.done?'on':''}">${x.done?ic('check',3):''}</span>`:x.task?`<input type="checkbox" class="ck" data-o="${ref(x.task)}" data-k="done" data-r="detail" ${x.done?'checked':''}>`:`<input type="checkbox" class="ck" data-ck="${esc(x.key)}" ${x.done?'checked':''}>`}<span class="ckl ${x.done?'done':''}">${esc(x.label)}</span>${x.auto?'<span class="tag auto" title="Ticked automatically from the event data">auto</span>':''}</label></li>`).join('')}</ul></div>
   ${Tasks(e,'checklistExtra','Extra items','Add an item…',`ck-${e.id}`,false)}
   ${linkedTodos(e)}
   </section>
