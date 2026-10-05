@@ -495,6 +495,7 @@ async function loadAll(){
     const [evs,ice]=await Promise.all([rpc('portal_events'),rpc('portal_icecreams')]);
     EVENTS=(evs||[]).map(evOf); ICE=ice||ICE;
     await Promise.all(EVENTS.filter(e=>e.open).map(e=>loadEvent(e.id))); // the open questions are answered on Home
+    if(state==='ok'){ state='ok'; quietRender(); return; } // a refresh: no entrance animations, map tiles kept
     state='ok';
   }catch(err){
     if(err.signedOut){ state='signin'; }
@@ -742,6 +743,9 @@ document.addEventListener('submit',async e=>{
 
 /* ---------- router ---------- */
 function rerender(){ const y=scrollY; document.body.classList.add('still'); render(); scrollTo(0,y); setTimeout(()=>document.body.classList.remove('still'),50); }
+/* re-render without reloading the map tiles: identical tile blocks get their old, already painted nodes back (no flash) */
+function quietRender(){ const old=new Map([...document.querySelectorAll('.tiles')].map(n=>[n.outerHTML,n]));
+  rerender(); for(const n of document.querySelectorAll('.tiles')){ const o=old.get(n.outerHTML); if(o&&o!==n) n.replaceWith(o); } }
 function render(){
   const h=decodeURIComponent(location.hash.slice(1))||'home', bare=!sess||state!=='ok';
   $('#top').style.display=$('#tbar').style.display=bare?'none':'';
