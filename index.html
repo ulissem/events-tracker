@@ -165,11 +165,12 @@ input[type=checkbox].ck:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)
 .si-alt{margin:16px 0 0;font-size:13px;color:var(--ink-3)}
 /* client portal bits in the app */
 .qfrom{display:block;font-size:11px;font-weight:600;color:var(--accent);margin:0 0 2px}
+.qwhen{display:block;font-size:11px;color:var(--ink-3);margin:4px 2px 0} .qwhen.cl{color:var(--ok);font-weight:600}
 .hidenote{display:block;border:0;background:none;padding:2px 0 0;font-size:11.5px;color:var(--ink-3);cursor:pointer;text-align:left}
 .hidenote:hover{color:var(--ink-2)} .hidenote.on{color:var(--accent)} .hidenote:disabled{display:none}
 .pc-list{padding:4px 12px;margin-bottom:10px}
 .pc-row{display:flex;align-items:center;gap:8px;padding:8px 0} .pc-row+.pc-row{border-top:1px solid var(--line)}
-.pc-m{flex:1;min-width:0} .pc-m b{display:block;font-weight:600;overflow-wrap:break-word;line-height:1.3} .pc-m small{color:var(--ink-3);font-size:12px}
+.pc-m{flex:1;min-width:0} .pc-act{display:block;margin-top:3px;color:var(--ink-2)!important;line-height:1.4} .pc-m b{display:block;font-weight:600;overflow-wrap:break-word;line-height:1.3} .pc-m small{color:var(--ink-3);font-size:12px}
 .pc-add{display:flex;gap:8px;margin-bottom:8px} .pc-add .in{flex:1;min-width:0}
 #loginform[data-backend="github"] .s-sb,#loginform[data-backend="supabase"] .s-gh{display:none}
 /* segmented control (Active / Passive) */
@@ -2582,7 +2583,8 @@ const SupabaseStore={
   evObj(r,qs){ return {id:r.id,clientId:r.client_id||'',name:r.name||'',dateStart:r.date_start||'',dateEnd:r.date_end||'',location:r.location||'',type:r.type||'',
       status:r.status||'',website:r.website||'',rr14EventId:r.rr14_event_id||'',...r.data,questions:qs.map(q=>this.qObj(q)),notes:r.notes||'',
       ...(r.geo?{geo:r.geo}:{}),...(r.tz?{tz:r.tz}:{}),...(r.portal_visible===false?{portalVisible:false}:{})}; },
-  qObj(q){ return {id:q.id,n:q.n,text:q.text,answer:q.answer,resolved:q.resolved,...(q.author==='client'?{author:'client'}:{})}; },
+  qObj(q){ return {id:q.id,n:q.n,text:q.text,answer:q.answer,resolved:q.resolved,...(q.author==='client'?{author:'client'}:{}),
+    ...(q.author==='client'&&q.created_at?{askedAt:q.created_at}:{}),...(q.answered_at&&q.answer?{answeredAt:q.answered_at,answeredBy:q.answered_by&&q.answered_by===jwtSub(this.access)?'you':'client'}:{})}; }, // who / when: read only (set by the database)
   qRow(q,eid){ return {event_id:eid,n:q.n,text:q.text||'',answer:q.answer||'',resolved:!!q.resolved}; },
   clRow(c){ const {id,name,contact,email,phone,rrCustomerId,notes,coefficient,...data}=c;
     return {id,name:name||'',contact:nz(contact),email:nz(email),phone:nz(phone),rr_customer_id:nz(rrCustomerId),notes:nz(notes),data}; },
@@ -3981,8 +3983,8 @@ function renderEvent(D){
   <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''}</h3><span class="sp"></span></div>
   ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>`<div class="q ${q.resolved?'resolved':''}" data-qn="${q.n}">
      <span class="qn">Q${q.n}</span>
-     <div class="qbody">${q.author==='client'?'<small class="qfrom">From the client</small>':''}<textarea class="in auto qt" rows="1" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
-     <textarea class="in auto qa" rows="1" data-o="${ref(q)}" data-k="answer" placeholder="Answer…" aria-label="Answer Q${q.n}">${esc(q.answer)}</textarea></div>
+     <div class="qbody">${q.author==='client'?`<small class="qfrom">From the client${q.askedAt?' · '+esc(whenTs(q.askedAt)):''}</small>`:''}<textarea class="in auto qt" rows="1" data-o="${ref(q)}" data-k="text" placeholder="Question" aria-label="Question Q${q.n}">${esc(q.text)}</textarea>
+     <textarea class="in auto qa" rows="1" data-o="${ref(q)}" data-k="answer" placeholder="Answer…" aria-label="Answer Q${q.n}">${esc(q.answer)}</textarea>${q.answeredAt&&q.answer?`<small class="qwhen ${q.answeredBy==='client'?'cl':''}">${q.answeredBy==='client'?`${esc(clientName(e.clientId)||'Client')} answered`:'You answered'} · ${esc(whenTs(q.answeredAt))}</small>`:''}</div>
      <span class="qc"><label class="chk" title="Resolved"><input type="checkbox" class="ck" data-o="${ref(q)}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> Resolved</label><button class="btn icon sm ghost del" data-delq="${i}" type="button" aria-label="Delete question Q${q.n}">${ic('x')}</button></span>
    </div>`).join('')}
   <button type="button" class="addline ${e.questions.length?'':'empty1'}" id="addq">${ic('plus',2)}<span>Add a question${e.questions.length?'':'<small>Open questions go into the client summary, numbered Q1, Q2…</small>'}</span></button>${e.questions.length?'</div>':''}
@@ -4355,6 +4357,8 @@ function renderClient(D){
 
 /* 🍦 rates of a client (Supabase): each hour uses the rate valid on the day of the work; closed periods keep their value */
 const dLong=s=>parse(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+const whenTs=ts=>{ const d=new Date(ts); if(isNaN(d)) return ''; const t=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}), day=isoOf(d);
+  return day===TODAY?`Today, ${t}`:day===addDays(TODAY,-1)?`Yesterday, ${t}`:`${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',...(day.slice(0,4)!==TODAY.slice(0,4)?{year:'numeric'}:{})})}, ${t}`; };
 function ratesBlock(c){
   const l=(S.hours.rates?.[c.id]||[]).slice().sort((a,b)=>b.from.localeCompare(a.from)), cur=l.find(x=>x.from<=TODAY);
   const row=(x,i)=>{ const newer=l[i-1], tag=x.from>TODAY?'upcoming':x===cur?'current':`until ${dLong(addDays(newer.from,-1))}`;
@@ -4394,12 +4398,19 @@ async function portalInvite(action,c,email){
   const r=await fetch(`${SupabaseStore.base()}/functions/v1/invite`,{method:'POST',headers:{apikey:SupabaseStore.key(),Authorization:`Bearer ${await SupabaseStore.token()}`,'Content-Type':'application/json'},body:JSON.stringify({action,clientId:c.id,email})});
   const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||`Error ${r.status}`); return j;
 }
+/* last activity of a portal contact: last sign-in, last answer, last question asked (the newest of the two) */
+function pcAct(a){ if(!a) return '';
+  const last=[a.lastAnswer&&{...a.lastAnswer,v:'answered'},a.lastAsk&&{...a.lastAsk,v:'asked'}].filter(Boolean).sort((x,y)=>String(y.at).localeCompare(String(x.at)))[0];
+  const bits=[a.lastSignIn?`Last seen ${whenTs(a.lastSignIn)}`:'Never signed in', last?`${last.v==='answered'?'Answered':'Asked'} Q${last.n} · ${last.event} · ${whenTs(last.at)}`:''].filter(Boolean);
+  return `<small class="pc-act">${bits.map(esc).join('<br>')}</small>`; }
 async function loadPortalContacts(c){
   const box=$('#cportal'); if(!box) return; let rows;
-  try{ const o=await SupabaseStore.orgId(); rows=await SupabaseStore.rest(`client_contacts?select=email,name,user_id,invited_at&org_id=eq.${o}&client_id=eq.${encodeURIComponent(c.id)}&order=email`); }
+  let act=[];
+  try{ const o=await SupabaseStore.orgId(); [rows,act]=await Promise.all([SupabaseStore.rest(`client_contacts?select=email,name,user_id,invited_at&org_id=eq.${o}&client_id=eq.${encodeURIComponent(c.id)}&order=email`),
+      SupabaseStore.rest('rpc/portal_activity',{method:'POST',body:{p_client:c.id}}).catch(()=>[])]); }
   catch(err){ box.innerHTML=`<p class="hint">${esc(isNetErr(err)?'Offline: portal contacts need a connection.':err.message)}</p>`; return; }
   if($('#cportal')!==box) return; // another page meanwhile
-  box.innerHTML=`${rows.length?`<div class="ccard pc-list">${rows.map(r=>`<div class="pc-row"><span class="pc-m"><b>${r.name?esc(r.name):esc(r.email).replace('@','<wbr>@')}</b><small>${r.name?esc(r.email)+' · ':''}${r.invited_at?'invited '+esc(fmtDay(r.invited_at.slice(0,10))):'added'}</small></span>
+  box.innerHTML=`${rows.length?`<div class="ccard pc-list">${rows.map(r=>`<div class="pc-row"><span class="pc-m"><b>${r.name?esc(r.name):esc(r.email).replace('@','<wbr>@')}</b><small>${r.name?esc(r.email)+' · ':''}${r.invited_at?'invited '+esc(fmtDay(r.invited_at.slice(0,10))):'added'}</small>${pcAct((act||[]).find(a=>a.email===r.email))}</span>
       <button class="btn sm ghost" data-pcre="${esc(r.email)}" type="button" title="Send a new sign-in link">Send link</button><button class="btn icon sm ghost del" data-pcdel="${esc(r.email)}" type="button" aria-label="Remove ${esc(r.email)} from the portal">${ic('x')}</button></div>`).join('')}</div>`:''}
     <form class="pc-add" id="pc-add" autocomplete="off"><input class="in" type="email" id="pc-mail" placeholder="client@email.com" required data-bwignore="true" data-1p-ignore data-lpignore="true"><button class="btn primary" type="submit">Invite</button></form>
     <p class="hint">${rows.length?'Each person signs in with a link by email, no password.':`Invite ${esc(c.name||'this client')}: an email with a sign-in link to <b>hub.ulissemariangeli.com/portal</b> — visible events, questions to answer, ${esc(U().icon)}.`}</p>`;
