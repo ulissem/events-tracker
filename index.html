@@ -2648,14 +2648,19 @@ const SupabaseStore={
       if(!isUuid(q.id)){ // older ids (q1, q-…): reuse the row with the same number, else a new uuid; the app keeps the new id
         const old=q.id, hit=mine.find(([id,x])=>x.n===q.n&&!seen.has(id)); q.id=hit?hit[0]:crypto.randomUUID();
         const lq=S?.events.find(x=>x.id===e.id)?.questions.find(x=>x.id===old); if(lq) lq.id=q.id; }
-      seen.add(q.id); const row=this.qRow(q,e.id), cur=this.q[q.id];
+      seen.add(q.id); }
+    /* the number is unique per event: delete first, then park the renumbered rows on free numbers, then write */
+    const gone=mine.map(([id])=>id).filter(id=>!seen.has(id));
+    if(gone.length){ await this.rest(`questions?id=${inList(gone)}`,{method:'DELETE',...kp}); for(const id of gone) delete this.q[id]; }
+    for(const q of e.questions||[]){ const cur=this.q[q.id]; if(!cur||cur.n===q.n) continue;
+      const r=await this.rest(`questions?id=eq.${q.id}`,{method:'PATCH',body:{n:-q.n},prefer:'return=representation',...kp}); if(r?.[0]) this.trackQ(r[0]); }
+    for(const q of e.questions||[]){
+      const row=this.qRow(q,e.id), cur=this.q[q.id];
       if(!cur){ const r=await this.rest('questions',{method:'POST',body:{id:q.id,org_id:o,author:'owner',...row},prefer:'return=representation',...kp}); this.trackQ(r[0]); }
       else if(cur.row!==canon(row)){ // only the fields changed here: an answer the client wrote meanwhile is not overwritten
         const body=Object.fromEntries(Object.entries(row).filter(([k,v])=>canon(v)!==canon(cur.obj[k])));
         const r=await this.rest(`questions?id=eq.${q.id}`,{method:'PATCH',body,prefer:'return=representation',...kp}); if(r?.[0]) this.trackQ(r[0]); }
     }
-    const gone=mine.map(([id])=>id).filter(id=>!seen.has(id));
-    if(gone.length){ await this.rest(`questions?id=${inList(gone)}`,{method:'DELETE',...kp}); for(const id of gone) delete this.q[id]; }
   },
   async putHours(o,j,kp){
     const f=`org_id=eq.${o}`, entries=j.entries||[], closures=j.closures||[];
@@ -3082,7 +3087,7 @@ async function autoPull(){
   if(!isSB()||!S||dirty||saving||syncing||refreshing||errMsg||needRemote||document.visibilityState!=='visible') return;
   const a=document.activeElement; if(a&&a.matches?.('input,textarea,select,[contenteditable]')||document.querySelector('dialog[open]')||!$('#scrim').hidden) return;
   lastPull=Date.now();
-  try{ const y=scrollY; if(await syncFromRemote()){ keepImgs(()=>{ parseRoute(); render(); }); scrollTo(0,y); } }catch(err){ if(isNetErr(err)){ errMsg='Offline'; updSave(); } }
+  try{ const y=scrollY; if(await syncFromRemote()){ parseRoute(); render(); scrollTo(0,y); } }catch(err){ if(isNetErr(err)){ errMsg='Offline'; updSave(); } }
 }
 /* re-render without reloading images: map tile blocks and pictures that did not change get their old, already painted nodes back (a new <img> paints empty for a frame in Safari = flash) */
 function keepImgs(fn){
@@ -3720,7 +3725,9 @@ function pageAnchor(D){ const band=($('#jump')?.getBoundingClientRect().bottom||
 let ancGen=0; for(const t of ['touchstart','wheel']) addEventListener(t,()=>{ ancGen++; },{passive:true,capture:true}); // the user scrolls: late fixes stand down
 function keepAnchor(a){ const g=ancGen, fix=()=>{ if(spyHold||g!==ancGen) return; const el=document.getElementById(a.id); if(!el) return; const d=el.getBoundingClientRect().top-a.top; if(Math.abs(d)>1) window.scrollBy(0,d); };
   fix(); requestAnimationFrame(fix); setTimeout(fix,250); }
-function renderDetail(){
+/* every redraw of the detail keeps the pictures and map tiles that did not change (no flash on add / delete / refresh) */
+function renderDetail(){ keepImgs(renderDetail0); }
+function renderDetail0(){
   if(!S) return;
   const D=$('#detail'), key=route.view+':'+(route.id||''), same=D.dataset.k===key;
   if(!same) ghostPane(D);
