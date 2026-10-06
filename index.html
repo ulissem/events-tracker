@@ -569,6 +569,7 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .task:hover{background:var(--panel-2)}
 .tkids{margin-left:22px;border-left:1px solid var(--line);padding-left:6px}
 .task .cell.tn{color:var(--ink-2);font-size:12.5px}
+.task textarea.tx{display:block;resize:none;overflow:hidden;height:28px;min-height:28px;padding:4px 7px;line-height:18px;white-space:pre-wrap;overflow-wrap:anywhere}
 .task.done .tx{text-decoration:line-through;text-decoration-color:var(--ink-3);color:var(--ink-3)}
 .task .btn{opacity:0}
 .task:hover .btn,.task .btn:focus-visible{opacity:1}
@@ -602,7 +603,7 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .check li label{display:flex;gap:9px;align-items:center;padding:5px 4px;border-radius:6px;cursor:pointer;font-size:13px}
 .check li label:hover{background:var(--panel-2)}
 .check li.auto label{cursor:default}
-.check li .ckl{flex:1;min-width:0}
+.check li .ckl{flex:1;min-width:0;white-space:pre-line}
 .check .sub{font-size:11.5px;color:var(--ink-3);margin:6px 0 0;padding:0 4px 0 29px}
 .check li.kid label{padding-left:29px}
 .check li .done{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--line-3)}
@@ -882,7 +883,7 @@ dialog::backdrop{background:var(--scrim)}
   textarea.in,.q textarea.in{font-size:16px}
   .q textarea.in{min-height:42px;padding:9px 10px}
   .bare{font-size:16px}
-  .cell{height:38px;font-size:16px}
+  .cell{height:38px;font-size:16px} .task textarea.tx{min-height:38px;padding:9px 7px;line-height:20px}
   input[type=checkbox].ck{width:20px;height:20px;border-radius:5px;background-size:14px}
   .switch input{width:36px;height:22px} .switch input::after{width:18px;height:18px} .switch input:checked::after{transform:translateX(14px)}
   .seg{height:42px;border-radius:9px} .seg button{height:100%;border-radius:7px} .seg .hwimg{width:30px;height:30px}
@@ -3497,6 +3498,7 @@ window.addEventListener('beforeunload',e=>{ if(dirty||saving){ save({unload:true
    ===================================================================== */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const escBr=s=>esc(s).replace(/\n/g,'<br>'); // multi-line list items
 const on=(root,sel,fn,ev='click')=>root.querySelectorAll(sel).forEach(el=>el.addEventListener(ev,e=>fn(el,e)));
 const pad=n=>String(n).padStart(2,'0');
 const isoOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -3763,11 +3765,85 @@ function bind(root){
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); add(true); } });
     el.addEventListener('change',()=>afterPress(()=>add(false)));
   });
+  root.querySelectorAll('.tasks textarea.tx[data-lk]').forEach(el=>el.addEventListener('keydown',e=>taskKey(e,el)));
   on(root,'[data-tnote]',b=>{ const it=OBJ[+b.dataset.tnote]; openNote(b,it,'note',`Note · ${it.text||'item'}`); });
   on(root,'[data-addsub]',b=>{ const ch=OBJ[+b.dataset.addsub]; ch.push(mkTask()); const lk=`${b.dataset.lk}.${ch.length}`; touch(); renderDetail();
     root.querySelector(`[data-lk="${CSS.escape(lk)}"]`)?.focus(); });
   on(root,'[data-delitem]',b=>{ const [a,i]=b.dataset.delitem.split(':').map(Number); OBJ[a].splice(i,1); touch(); renderDetail(); });
   root.querySelectorAll('textarea.auto').forEach(autosize);
+}
+/* List items: drag in two directions. Up / down = the place, sideways = the level: about 28 px to the right makes it a
+   sub-item of the row above, to the left a main item again (a moved main item takes its sub-items along; indented,
+   they become sub-items of the same row; a main item dropped between sub-items takes the ones below it).
+   Same mechanics as sortable(): everything on the grab-time layout, transforms only, the data is rebuilt on drop. */
+function dragTask(g,ev,item){
+  const T=item.closest('.tasks'), topBox=T.querySelector(':scope > [data-sort]'), top=OBJ[+topBox.dataset.sort];
+  // the rows on screen, flat: {it, lv, els (what moves), grp}
+  const rows=[]; for(const grp of topBox.children){ const it=top[+grp.dataset.si];
+    rows.push({it,lv:0,grp,els:[...grp.children].filter(x=>!x.classList.contains('tkids'))});
+    grp.querySelectorAll(':scope > .tkids > .trow').forEach(tr=>rows.push({it:it.children[+tr.dataset.si],lv:1,grp,els:[tr]})); }
+  const isGrp=item.classList.contains('tgroup'), inBlk=r=>isGrp?r.grp===item:r.els[0]===item;
+  const blk=rows.filter(inBlk), others=rows.filter(r=>!inBlk(r)), lv0=blk[0].lv, from=others.filter(r=>rows.indexOf(r)<rows.indexOf(blk[0])).length;
+  for(const r of rows){ const a=r.els[0].getBoundingClientRect(), z=r.els[r.els.length-1].getBoundingClientRect(); r.top=a.top; r.bot=z.bottom; r.mid=(a.top+z.bottom)/2; }
+  const bTop=blk[0].top, bBot=blk[blk.length-1].bot, bMid=(bTop+bBot)/2, allTop=rows[0].top, allBot=rows[rows.length-1].bot;
+  const gap=rows.length>1?Math.max(0,rows[1].top-rows[0].bot):0, step=bBot-bTop+gap, IND=28;
+  const sc=scrollParent(T), sTop=()=>sc===window?scrollY:sc.scrollTop, s0=sTop(), x0=ev.clientX, y0=ev.clientY;
+  let x=x0, y=y0, k=from, lv=lv0, raf=0;
+  const moved=new Set(); const put=(el,t)=>{ el.style.transform=t; if(t) moved.add(el); };
+  item.classList.add('dragging'); document.body.classList.add('sorting');
+  for(const grp of topBox.children) for(const el of [grp,...grp.querySelectorAll('.task,.tnote,.trow')]){ el.style.transition=item.contains(el)||el===item?'none':'transform .2s cubic-bezier(.2,.7,.2,1)'; }
+  const layout=()=>{
+    const raw=y-y0+sTop()-s0, dy=Math.max(allTop-bTop,Math.min(allBot-bBot,raw)), c=bMid+Math.max(allTop-bTop-step/2,Math.min(allBot-bBot+step/2,raw));
+    k=others.filter(r=>r.mid<c).length; // the block goes before others[k]
+    const dx=x-x0; lv=dx>IND?1:-dx>IND?0:lv0; if(!others[k-1]) lv=0; // nothing above: a main item
+    for(const el of moved) el.style.transform=''; moved.clear();
+    const off=r=>{ const oi=others.indexOf(r); return oi<0?0:oi>=from&&oi<k?-step:oi<from&&oi>=k?step:0; };
+    // whole groups move as one (their sub-item line with them); a group split by the slot moves row by row
+    for(const grp of topBox.children){
+      if(grp===item) continue; const rs=rows.filter(r=>r.grp===grp&&!inBlk(r)), o=rs.map(off);
+      if(o.every(v=>v===o[0])){ if(o[0]) put(grp,`translateY(${o[0]}px)`); } else rs.forEach((r,i)=>{ if(o[i]) for(const el of r.els) put(el,`translateY(${o[i]}px)`); }); }
+    const ox=(lv-lv0)*IND, head=blk[0].els;
+    if(isGrp){ put(item,`translateY(${dy}px)`); if(ox) for(const el of head) put(el,`translateX(${ox}px)`); }
+    else put(item,`translate(${ox}px,${dy}px)`);
+  };
+  const tick=()=>{ raf=0; const r=sc===window?{top:0,bottom:innerHeight}:sc.getBoundingClientRect();
+    const t=Math.max(r.top,0)+(narrow.matches?90:70), b=Math.min(r.bottom,innerHeight)-(narrow.matches?110:60);
+    const v=y<t?-Math.min(16,(t-y)/4+2):y>b?Math.min(16,(y-b)/4+2):0; if(!v) return;
+    const before=sTop(); if(sc===window) scrollBy(0,v); else sc.scrollTop+=v; if(sTop()===before) return;
+    layout(); raf=requestAnimationFrame(tick); };
+  const move=e=>{ x=e.clientX; y=e.clientY; layout(); if(!raf) raf=requestAnimationFrame(tick); };
+  const end=keep=>{ cancelAnimationFrame(raf);
+    g.removeEventListener('pointermove',move); g.removeEventListener('pointerup',drop); g.removeEventListener('pointercancel',cancel); removeEventListener('keydown',esc,true);
+    item.classList.remove('dragging'); document.body.classList.remove('sorting');
+    for(const el of moved) el.style.transform=''; for(const grp of topBox.children) for(const el of [grp,...grp.querySelectorAll('.task,.tnote,.trow')]) el.style.transition='';
+    if(keep&&(k!==from||lv!==lv0)){
+      // the new order on screen with levels; the block's first row gets lv, its sub-items stay sub-items
+      const seq=others.map(r=>({it:r.it,lv:r.lv})); seq.splice(k,0,...blk.map((r,i)=>({it:r.it,lv:i?1:lv})));
+      const out=[]; for(const r of seq){ if(r.lv===0||!out.length){ r.it.children=[]; out.push(r.it); } else out[out.length-1].children.push(r.it); }
+      top.splice(0,top.length,...out); touch(); }
+    renderDetail(); };
+  const drop=()=>end(true), cancel=()=>end(false), esc=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); cancel(); } };
+  g.addEventListener('pointermove',move); g.addEventListener('pointerup',drop); g.addEventListener('pointercancel',cancel); addEventListener('keydown',esc,true);
+}
+/* List items (rankings, registration, outputs…): Enter = done with this one, on to the next (or to "Add…" after the last);
+   ⌘/Ctrl+Enter or Shift+Enter = a new line in the text; Tab = make it a sub-item of the row above, Shift+Tab = back to the main level. */
+function taskKey(e,el){
+  if(e.isComposing) return;
+  if(e.key==='Enter'){ e.preventDefault();
+    if(e.metaKey||e.ctrlKey||e.shiftKey){ el.setRangeText('\n',el.selectionStart,el.selectionEnd,'end'); el.dispatchEvent(new Event('input',{bubbles:true})); return; }
+    const f=[...el.closest('.tasks').querySelectorAll('textarea.tx,[data-addto]')]; const n=f[f.indexOf(el)+1]; if(n){ n.focus(); if(n.setSelectionRange) n.setSelectionRange(n.value.length,n.value.length); } return; }
+  if(e.key!=='Tab'||e.altKey||e.metaKey||e.ctrlKey) return;
+  const g=el.closest('.tgroup'), top=OBJ[+g?.parentElement?.dataset.sort], p=+g?.dataset.si, tr=el.closest('.trow'), it=OBJ[+el.dataset.o];
+  if(!top||!it) return;
+  const key=el.dataset.lk.slice(0,el.dataset.lk.lastIndexOf(':')), caret=el.selectionStart;
+  let pos=null;
+  if(!e.shiftKey&&!tr&&p>0){ // indent: into the row above, its own sub-items come along (one level only)
+    const prev=top[p-1]; top.splice(p,1); prev.children.push(it,...it.children); it.children=[]; pos=`${p}.${prev.children.indexOf(it)+1}`; }
+  else if(e.shiftKey&&tr){ // outdent: right under its parent; the sub-items below it become its own (the order on screen stays)
+    const par=top[p], j=+tr.dataset.si, after=par.children.splice(j+1); par.children.splice(j,1); it.children=after; top.splice(p+1,0,it); pos=`${p+2}`; }
+  if(pos===null) return; // nothing to do here: Tab moves on as usual
+  e.preventDefault(); touch(); renderDetail();
+  const n=$('#detail').querySelector(`[data-lk="${CSS.escape(key+':'+pos)}"]`); if(n){ n.focus(); n.setSelectionRange(caret,caret); }
 }
 /* auto-grow textareas: refit on input, on width change and when they become visible */
 const taRO=new ResizeObserver(es=>es.forEach(en=>fitTA(en.target)));
@@ -3800,6 +3876,7 @@ function sortable(root){
     if(ev.button>0) return;
     const item=g.closest('[data-si]'), box=item?.parentElement; if(!box?.dataset.sort) return;
     ev.preventDefault(); try{ g.setPointerCapture(ev.pointerId); }catch{}
+    if(item.matches('.tgroup,.trow')) return dragTask(g,ev,item);
     const unit=x=>{ const u=[x]; for(let n=x.nextElementSibling;n?.classList.contains('tpnote');n=n.nextElementSibling) u.push(n); return u; };
     const items=[...box.children].filter(x=>x.dataset.si!==undefined), from=items.indexOf(item), last=items.length-1;
     const geo=items.map(x=>{ const u=unit(x), a=u[0].getBoundingClientRect(), z=u[u.length-1].getBoundingClientRect(); return {u,top:a.top,bot:z.bottom,mid:(a.top+z.bottom)/2}; });
@@ -4581,7 +4658,7 @@ function Tasks(o,k,label,ph,lk,withUrl){
   const row=(it,list,i,child,pos)=>`${child?`<div class="trow" data-si="${i}">`:''}<div class="task ${it.done?'done':''}">
       ${GRIP}
       <input type="checkbox" class="ck" data-o="${ref(it)}" data-k="done" data-r="detail" ${it.done?'checked':''} aria-label="Done: ${esc(it.text)}">
-      <input class="cell tx" data-o="${ref(it)}" data-k="text" value="${esc(it.text)}" data-lk="${esc(lk)}:${pos}" aria-label="${esc(label)} ${pos}" placeholder="${child?'Sub-item':'Item'}">
+      <textarea class="cell tx auto" rows="1" data-o="${ref(it)}" data-k="text" data-lk="${esc(lk)}:${pos}" aria-label="${esc(label)} ${pos}" placeholder="${child?'Sub-item':'Item'}">${esc(it.text)}</textarea>
       ${withUrl?`<input class="cell tu" type="url" data-o="${ref(it)}" data-k="url" data-r="change" value="${esc(it.url)}" placeholder="https://…" aria-label="URL ${esc(it.text)}">${linkBtn(it.url)}`:''}
       <button class="btn icon sm ghost notebtn ${it.note?'set':''}" data-tnote="${ref(it)}" type="button" title="${it.note?'Edit note':'Add note'}" aria-label="${it.note?'Edit':'Add'} note for ${esc(it.text||'item')}">${ic('note',1.8)}</button>
       ${child?'<span class="addsub"></span>':`<button class="btn icon sm ghost addsub" data-addsub="${ref(it.children)}" data-lk="${esc(lk)}:${pos}" type="button" title="Add sub-item" aria-label="Add sub-item to ${esc(it.text||'item')}">${ic('plus',2.2)}</button>`}
@@ -5434,7 +5511,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='233'; let APPV=HV, UPD=false;
+const HV='234'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
@@ -5832,7 +5909,7 @@ function summaryHTML(e,withResolved){
   const multi=eventDays(e).length>0, anyDate=multi&&e.contests.some(c=>raceDate(e,c)), anyTime=e.contests.some(c=>c.startTime), anyEl=e.contests.some(c=>c.elevation), anyElig=e.contests.some(c=>c.eligibility);
   const routeOf=c=>{ const n=r=>{ const sp=c.splits.find(x=>x.role===r); return sp?.tp?tpName(sp.tp):''; }, a=c.startSplit?n('start'):'', b=n('finish'); return a&&b&&a!==b?`${a} → ${b}`:''; };
   const sub=c=>[routeOf(c),c.startType&&`${c.startType} start`,c.relay&&`Relay: ${c.relay}`,c.results==='special'&&'Special results'].filter(Boolean).map(esc).join(' · ');
-  const item=t=>`${esc(t.text)}${t.note?` <span class="s-note">— ${esc(t.note)}</span>`:''}${t.children.length?`<div style="margin:2px 0 4px 14px;font-size:12.5px">${t.children.map(c=>'· '+esc(c.text)+(c.note?` <span class="s-note">— ${esc(c.note)}</span>`:'')).join('<br>')}</div>`:''}`;
+  const item=t=>`${escBr(t.text)}${t.note?` <span class="s-note">— ${esc(t.note)}</span>`:''}${t.children.length?`<div style="margin:2px 0 4px 14px;font-size:12.5px">${t.children.map(c=>'· '+escBr(c.text)+(c.note?` <span class="s-note">— ${esc(c.note)}</span>`:'')).join('<br>')}</div>`:''}`;
   const anyBasis=e.contests.some(c=>c.timeBasis);
   const timed=e.contests.filter(c=>c.results!=='special'&&c.splits.some(x=>x.tp||x.label));
   // one table per race: a row per timing point, grouped by leg (multisport), km in the leg and from the start; no RR14 split names
