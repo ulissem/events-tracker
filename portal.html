@@ -13,6 +13,7 @@
 <link rel="icon" href="icons/portal-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/portal-apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Race Hub">
 <style>
 
@@ -523,10 +524,10 @@ body.mapon{overflow:hidden}
 .pmap .leaflet-container,.pmap.leaflet-container{background:var(--bg);font:inherit}
 .leaflet-container.leaflet-container{background:var(--bg);font:inherit}
 .leaflet-container.leaflet-container img.leaflet-tile{mix-blend-mode:normal;width:256.5px!important;height:256.5px!important} /* no seams at a fractional scale (as in the hub) */
-.leaflet-container .leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--panel) 75%,transparent);color:var(--ink-3);border-radius:6px;padding:1px 6px;margin:0 8px 6px 0}
-.leaflet-container .leaflet-control-attribution a{color:var(--ink-2)}
-.leaflet-container .leaflet-bar{border:0;border-radius:12px;overflow:hidden;box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -12px rgba(0,0,0,.4)}
-.leaflet-container .leaflet-bar a{background:color-mix(in srgb,var(--panel) 85%,transparent);color:var(--ink);border-bottom-color:var(--line)}
+.leaflet-container.leaflet-container .leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--panel) 75%,transparent);color:var(--ink-3);border-radius:6px;padding:1px 6px;margin:0 8px 6px 0}
+.leaflet-container.leaflet-container .leaflet-control-attribution a{color:var(--ink-2)}
+.leaflet-container.leaflet-container .leaflet-bar{border:0;border-radius:12px;overflow:hidden;box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -12px rgba(0,0,0,.4)}
+.leaflet-container.leaflet-container .leaflet-bar a{background:color-mix(in srgb,var(--panel) 85%,transparent);color:var(--ink);border-bottom-color:var(--line)}
 .leaflet-top.leaflet-right{top:6px;right:6px}
 .ppin{width:22px;height:22px;display:grid;place-items:center;position:relative;cursor:pointer}
 .ppin i{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 1.5px var(--panel),0 1px 3px rgba(0,0,0,.3);display:grid;place-items:center;font:700 9.5px var(--round);color:#fff;font-style:normal;transition:transform .15s}
@@ -598,6 +599,8 @@ body.mapon{overflow:hidden}
 .pav.big{width:42px;height:42px;font-size:15px;margin:0;cursor:default} .pav.big:hover{box-shadow:none}
 .pav.um{width:34px;height:34px;margin:0;background:linear-gradient(140deg,#5b5bf0,var(--accent));cursor:default} .pav.um:hover{box-shadow:none}
 .island{display:none}
+.stnote.go{color:inherit;text-decoration:none;cursor:pointer} .stnote.go .arr{margin-left:auto;font-size:18px;opacity:.6;padding-left:8px}
+.stnote.go:hover .arr{opacity:1}
 .pver{font-style:normal;font-size:10.5px;font-weight:600;color:var(--ink-3);margin-left:4px;vertical-align:2px;cursor:pointer;font-family:var(--round)}
 .pver:hover{color:var(--accent)} .pver.new{color:#fff;background:var(--accent);padding:1px 7px;border-radius:999px}
 .tbar svg path.f{fill:none} .tbar a[aria-current="page"] svg path.f{fill:currentColor;fill-opacity:.16}
@@ -877,7 +880,7 @@ function raceDay(e){
 /* one sentence under the steps: what Ulisse needs from the client, or that nothing is needed */
 function stepNote(e){
   const s=stepOf(e), oq=openN(e), first=esc(OP().name.split(' ')[0]);
-  if(s===1&&oq) return `<div class="stnote warn">${I.info}<span>${first} is waiting for <b>${plural(oq,'answer','answers')}</b> from you to go on with the timing setup.</span></div>`;
+  if(s===1&&oq) return `<a class="stnote warn go" href="#e/${encodeURIComponent(e.id)}/q">${I.info}<span>${first} is waiting for <b>${plural(oq,'answer','answers')}</b> from you to go on with the timing setup.</span><span class="arr">›</span></a>`;
   if(s===4) return `<div class="stnote ok">${I.okc}<span>Everything is set. Results appear live on <b>my.raceresult.com</b> during the race.</span></div>`;
   if(s===5) return `<div class="stnote ok">${I.okc}<span>The race is over — the results are online.</span></div>`;
   return `<div class="stnote ok">${I.okc}<span><b>Nothing needed from you.</b> ${first} is working on the ${STEPS[s][0].toLowerCase()} — you will hear from him if something comes up.</span></div>`;
@@ -1028,7 +1031,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='199'; let PV_NEW=false, APPV=PV;
+const PV='200'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
@@ -1221,9 +1224,12 @@ function render(){
   if(h==='map'){ chrome('map'); vMap(); return; }
   if(PM){ PM.map.remove(); PM=null; } document.body.classList.remove('mapon');
   chrome(h.startsWith('e/')?'home':h);
-  $('#app').innerHTML=h.startsWith('e/')?vEvent(h.slice(2)):h==='q'?vQuestions():h==='ic'?vIce():vHome();
+  const [eid,esub]=h.startsWith('e/')?h.slice(2).split('/'):[]; if(esub==='q'){ goQ=eid; history.replaceState(null,'','#e/'+encodeURIComponent(eid)); lastHash=location.hash; }
+  $('#app').innerHTML=h.startsWith('e/')?vEvent(eid):h==='q'?vQuestions():h==='ic'?vIce():vHome();
   animateRings();
+  if(goQ&&$('#qs')){ const id=goQ; goQ=null; setTimeout(()=>{ const t=$('#qs .lq.turn')||$('#qs'); t.scrollIntoView({behavior:'smooth',block:'center'}); t.querySelector?.('textarea')?.focus({preventScroll:true}); },60); } // #e/<id>/q: straight to the open question
 }
+let goQ=null;
 let lastHash=location.hash;
 addEventListener('hashchange',()=>{
   if(location.hash==='#qs'){ history.replaceState(null,'',lastHash); document.getElementById('qs')?.scrollIntoView({behavior:'smooth',block:'start'}); return; }
