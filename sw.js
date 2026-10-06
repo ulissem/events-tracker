@@ -1,5 +1,5 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v220';
+const CACHE = 'events-tracker-v221';
 const BADGE = 'race-hub-badge'; // app icon badge: client messages since the hub was last opened (the page clears it)
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/mbox.png', './img/trackbox-active.png', './img/trackbox-passive.png',
@@ -28,15 +28,15 @@ self.addEventListener('fetch', e => {
   );
 });
 
-// Web Push (owner): a client answered or asked. The page payload is {title, body, url, tag}.
+// Web Push (owner): a client answered, asked or uploaded a file. The page payload is {title, body, url, tag}.
 self.addEventListener('push', e => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : '' }; }
   e.waitUntil((async () => {
     // one notification per event: a new answer / question of the same event updates it ("Answered Q2, Q3 — latest text")
     let list = d.kind ? [{ kind: d.kind, n: d.n }] : [];
     if (d.tag) for (const old of await self.registration.getNotifications({ tag: d.tag })) { list = [...(old.data?.list || []), ...list]; old.close(); }
-    const ans = list.filter(x => x.kind === 'answered').map(x => 'Q' + x.n), ask = list.filter(x => x.kind === 'asked').length;
-    const head = [ans.length ? `Answered ${ans.join(', ')}` : '', ask ? (ask > 1 ? `${ask} new questions` : 'New question') : ''].filter(Boolean).join(' · ');
+    const ans = list.filter(x => x.kind === 'answered').map(x => 'Q' + x.n), ask = list.filter(x => x.kind === 'asked').length, fil = list.filter(x => x.kind === 'file').length;
+    const head = [ans.length ? `Answered ${ans.join(', ')}` : '', ask ? (ask > 1 ? `${ask} new questions` : 'New question') : '', fil ? (fil > 1 ? `${fil} new files` : 'New file') : ''].filter(Boolean).join(' · ');
     const body = list.length > 1 ? `${head} — ${d.text || ''}` : (d.body || '');
     try { const c = await caches.open(BADGE), r = await c.match('n'), n = (r ? +(await r.text()) || 0 : 0) + 1;
       await c.put('n', new Response(String(n))); await self.navigator.setAppBadge?.(n); } catch {}

@@ -2517,6 +2517,13 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .rrow2.old{opacity:.6}
 .rgrp + .rgrp{margin-top:8px}
 .rnone{font-size:12px;color:var(--ink-3);margin:10px 0 0}
+.flist{padding:6px 10px 6px} .flist.over{box-shadow:0 0 0 2px var(--accent),var(--shadow-sm)}
+.frow{display:grid;grid-template-columns:38px minmax(0,1fr) 30px;gap:10px;align-items:center;padding:8px 4px;border-bottom:.5px solid var(--line)}
+.fic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:#fff;background:var(--ft)}
+.fn{border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0;display:flex;flex-direction:column}
+.fn b{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .fn:hover b{color:var(--accent)}
+.fn small{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fprog{font-size:12px;color:var(--accent);padding:4px 16px 6px}
 /* client page: one column + section bar (6 Oct 2026, mockup/client-page.html) */
 .cv3 .jump{margin-top:16px}
 .hero.cli .fact.prep{display:none}
@@ -3466,7 +3473,7 @@ clearBadge(); document.addEventListener('visibilitychange',clearBadge);
 let live=null;
 function startLive(){ if(live||!isSB()||!S||DEMO) return;
   live=Live({url:SupabaseStore.base(),key:SupabaseStore.key(),token:()=>SupabaseStore.token(),topic:async()=>'rh:'+await SupabaseStore.orgId(),
-    me:()=>jwtSub(SupabaseStore.access),onPing:()=>{ lastPull=0; autoPull(); }}); }
+    me:()=>jwtSub(SupabaseStore.access),onPing:p=>{ lastPull=0; autoPull(); if(p?.t==='files'&&route.view==='e'&&route.id===p.e){ const e=S.events.find(x=>x.id===p.e); if(e) loadEventFiles(e); } }}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-lastPull>20e3) setTimeout(autoPull,600); });
 window.addEventListener('offline',()=>{ if(!errMsg){ errMsg='Offline'; updSave(); } });
 setInterval(()=>{ if((errMsg==='Offline'||needRemote)&&document.visibilityState==='visible') syncNow(); },30e3);
@@ -3668,8 +3675,8 @@ const P={
   refresh:'<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/>',
 };
 const ic=(n,sw=2)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
-const SECC={general:'#64748b',rr14:'#e5484d',links:'#0ea5e9',tps:'#f59e0b',races:'#22a06b',scoring:'#8b5cf6',registration:'#ec4899',outputs:'#06b6d4',questions:'#f97316',checklist:'#3b82f6',hours:'#14b8a6',notes:'#94a3b8'};
-const SECI={general:'info',rr14:'stopwatch',links:'link',tps:'pin',races:'flag',scoring:'trophy',registration:'user',outputs:'layers',questions:'inbox',checklist:'checkc',hours:'clock',notes:'doc'};
+const SECC={general:'#64748b',rr14:'#e5484d',links:'#0ea5e9',tps:'#f59e0b',races:'#22a06b',scoring:'#8b5cf6',registration:'#ec4899',outputs:'#06b6d4',questions:'#f97316',files:'#6366f1',checklist:'#3b82f6',hours:'#14b8a6',notes:'#94a3b8'};
+const SECI={general:'info',rr14:'stopwatch',links:'link',tps:'pin',races:'flag',scoring:'trophy',registration:'user',outputs:'layers',questions:'inbox',files:'file',checklist:'checkc',hours:'clock',notes:'doc'};
 const secBadge=(k,cls='sb')=>`<span class="${cls}" style="--sc:${SECC[k]}" aria-hidden="true">${ic(SECI[k],2)}</span>`;
 /* external links of an event: my.raceresult results page and the RR14 web app */
 function evLinks(e){
@@ -4272,7 +4279,7 @@ function renderEvent(D){
   ${roadToRace(e)}
   <nav class="jump" id="jump" aria-label="Sections">
     <a href="#s-top" data-jump><span class="ji" style="--sc:var(--accent)" aria-hidden="true">${ic('flag',2)}</span>Overview</a><a href="#s-general" data-jump>${secBadge('general','ji')}General</a><a href="#s-rr14" data-jump>${secBadge('rr14','ji')}RR14</a><a href="#s-links" data-jump>${secBadge('links','ji')}Links <em>${e.links.length||''}</em></a><a href="#s-tps" data-jump>${secBadge('tps','ji')}Timing points <em>${e.timingPoints.length}</em></a><a href="#s-races" data-jump>${secBadge('races','ji')}Races <em>${e.contests.length}</em></a><a href="#s-registration" data-jump>${secBadge('registration','ji')}Registration <em>${regN||''}</em></a><a href="#s-scoring" data-jump>${secBadge('scoring','ji')}Scoring <em>${scoreN||''}</em></a><a href="#s-outputs" data-jump>${secBadge('outputs','ji')}Outputs <em>${outN||''}</em></a>
-    <a href="#s-questions" data-jump>${secBadge('questions','ji')}Questions <em class="${oq?'w':''}">${oq||''}</em></a><a href="#s-checklist" data-jump>${secBadge('checklist','ji')}Checklist <em>${pct}%</em></a>${showH?`<a href="#s-hours" data-jump>${secBadge('hours','ji')}${esc(UC())} <em>${fmtN(sumV(evHours))}</em></a>`:''}<a href="#s-notes" data-jump>${secBadge('notes','ji')}Notes</a>
+    <a href="#s-questions" data-jump>${secBadge('questions','ji')}Questions <em class="${oq?'w':''}">${oq||''}</em></a>${isSB()?`<a href="#s-files" data-jump>${secBadge('files','ji')}Files <em id="jfn"></em></a>`:''}<a href="#s-checklist" data-jump>${secBadge('checklist','ji')}Checklist <em>${pct}%</em></a>${showH?`<a href="#s-hours" data-jump>${secBadge('hours','ji')}${esc(UC())} <em>${fmtN(sumV(evHours))}</em></a>`:''}<a href="#s-notes" data-jump>${secBadge('notes','ji')}Notes</a>
   </nav>
   <div class="evgrid ${sideOpen?'':'collapsed'}"><div class="evmain">
 
@@ -4339,6 +4346,8 @@ function renderEvent(D){
   <button type="button" class="addline ${e.questions.length?'':'empty1'}" id="addq">${ic('plus',2)}<span>Add a question${e.questions.length?'':'<small>Open questions go into the client summary, numbered Q1, Q2…</small>'}</span></button>${e.questions.length?'</div>':''}
   </section>
 
+  ${isSB()?`<section class="sec" id="s-files"><div class="sech" style="--sc:${SECC.files}"><h3>${secBadge('files')}Files <span class="count" id="fcount"></span></h3><span class="sp"></span><span class="hint">shared with the client · max 10 MB</span></div>
+    <div id="efiles"><p class="hint">Loading…</p></div></section>`:''}
   <section class="sec" id="s-checklist"><div class="sech" style="--sc:${SECC.checklist}"><h3>${secBadge('checklist')}Checklist</h3></div>
   <div class="ckbox"><div class="ckhead">${ring(p,40,4)}<div><b>${pct}%</b><span>${ckDone} of ${ckTot} done</span></div>
     <div class="ckbars">${[...new Set(ck.map(x=>x.group))].map(g=>{ const [d,t]=grpStat(g); return t?`<div><span>${g}</span><u><i style="width:${Math.round(d/t*100)}%"></i></u><span style="text-align:right">${d}/${t}</span></div>`:''; }).join('')}</div></div>
@@ -4415,7 +4424,8 @@ function renderEvent(D){
   $('#delev').onclick=()=>{
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this event','lock'); return; }
     if(evHours.length){ alert(`This event has ${plural(evHours.length,'charge','charges')}. Delete or move them first (${UC()} section).`); return; }
-    if(confirm(`Delete «${e.name||'untitled'}»? It stays in the commit history.`)){ S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
+    if(confirm(`Delete «${e.name||'untitled'}»? It stays in the commit history.${isSB()&&EF.list.length&&EF.ev===e.id?`\n\nIts ${plural(EF.list.length,'file','files')} will be deleted too.`:''}`)){ if(isSB()) dropEventFiles(e.id); S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
+  if(isSB()) loadEventFiles(e);
   if(wide.matches) sideCards(D,e); // only where the side column is a column (≥ 1720 px)
 }
 // after an "+ Add …" at the end of a list: focus the first field of the new row, keep it in view
@@ -4617,6 +4627,63 @@ function bindHoursTable(D){
   on(D,'[data-delh]',b=>{ if(!confirm('Delete this charge?')) return; S.hours.entries=S.hours.entries.filter(h=>h.id!==b.dataset.delh); touch(); renderDetail(); });
   on(D,'[data-hdate]',b=>{ const h=OBJ[+b.dataset.hdate]; openDate(b,{s:h.date,allowRange:false,onChange:s=>{ if(!s) return; h.date=s; touch('none'); b.textContent=fmtDay(s); },onClose:()=>renderDetail()}); });
 }
+
+/* =====================================================================
+   EVENT FILES (Supabase, Oct 2026): private bucket "event-files", path <org>/<event>/<uuid>-<name>, max 10 MB each.
+   Shared with the client in the portal. You can open / upload / delete any file; a client deletes only his own (storage policy).
+   ===================================================================== */
+const FMAX=10*1024*1024, EF={ev:null,list:[]};
+const fSize=n=>n<1024?`${n} B`:n<1048576?`${Math.round(n/1024)} KB`:`${(n/1048576).toFixed(1).replace(/\.0$/,'')} MB`;
+const fExt=n=>(/\.([a-z0-9]{1,5})$/i.exec(n||'')?.[1]||'file').toUpperCase();
+const fTint=n=>{ const x=fExt(n); return /PDF/.test(x)?'#e5484d':/JPE?G|PNG|HEIC|HEIF|WEBP|GIF/.test(x)?'#22a06b':/GPX|KMZ?/.test(x)?'#0ea5e9':/XLSX?|CSV/.test(x)?'#16a34a':/DOCX?|TXT/.test(x)?'#3b82f6':/PPTX?/.test(x)?'#f97316':'#8e8e93'; };
+const encPath=p=>p.split('/').map(encodeURIComponent).join('/');
+const safeName=n=>String(n||'file').normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').replace(/^_+|_+$/g,'').slice(-100)||'file';
+async function sbStorage(path,opt={}){
+  const r=await fetch(`${SupabaseStore.base()}/storage/v1/${path}`,{...opt,headers:{apikey:SupabaseStore.key(),Authorization:`Bearer ${await SupabaseStore.token()}`,...(opt.headers||{})}});
+  if(!r.ok){ const j=await r.json().catch(()=>({})), m=String(j.message||j.error||''); throw new Error(r.status===413||/size/i.test(m)?'Too big: max 10 MB':/mime|type/i.test(m)?'This type of file is not accepted':m||`Storage ${r.status}`); }
+  return r; }
+async function loadEventFiles(e){
+  const box=$('#efiles'); if(!box) return;
+  try{ if(!SupabaseStore.rows['e:'+e.id]){ box.innerHTML=`<p class="hint">Saving the event first…</p>`; await save({quiet:true}); }
+    const o=await SupabaseStore.orgId(); EF.list=await SupabaseStore.rest(`files?select=*&org_id=eq.${o}&event_id=eq.${encodeURIComponent(e.id)}&order=created_at`)||[]; EF.ev=e.id; }
+  catch(err){ box.innerHTML=`<p class="hint">${esc(isNetErr(err)?'Offline: files need a connection.':err.message)}</p>`; return; }
+  if($('#efiles')!==box) return;
+  const me=jwtSub(SupabaseStore.access), cn=clientName(e.clientId)||'Client';
+  $('#fcount').textContent=EF.list.length||''; const j=$('#jfn'); if(j) j.textContent=EF.list.length||'';
+  box.innerHTML=`<div class="ccard flist" id="fdrop">${EF.list.map(f=>`<div class="frow"><span class="fic" style="--ft:${fTint(f.name)}">${esc(fExt(f.name))}</span>
+      <button type="button" class="fn" data-fopen="${esc(f.id)}"><b>${esc(f.name)}</b><small>${esc(fSize(+f.size||0))} · ${f.uploader_role==='owner'?(f.uploaded_by===me?'You':'Owner'):esc(cn)} · ${esc(whenTs(f.created_at))}</small></button>
+      <button type="button" class="btn icon sm ghost del" data-fdel="${esc(f.id)}" aria-label="Delete ${esc(f.name)}">${ic('x')}</button></div>`).join('')}
+    <button type="button" class="addline" id="fadd">${ic('plus',2)}<span>${EF.list.length?'Add files':'Add files'}<small>${EF.list.length?'or drop them here':`GPX, rules, start lists, logos… ${esc(cn)} sees them in the portal · or drop them here`}</small></span></button>
+    <input type="file" id="fpick" multiple hidden><div class="fprog" id="fprog" hidden></div></div>`;
+  const pick=$('#fpick'); $('#fadd').onclick=()=>pick.click(); pick.onchange=()=>{ if(pick.files.length) uploadFiles(e,[...pick.files]); };
+  const drop=$('#fdrop'); drop.addEventListener('dragover',ev=>{ ev.preventDefault(); drop.classList.add('over'); }); drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+  drop.addEventListener('drop',ev=>{ ev.preventDefault(); drop.classList.remove('over'); if(ev.dataTransfer?.files?.length) uploadFiles(e,[...ev.dataTransfer.files]); });
+  on(box,'[data-fopen]',b=>openFile(EF.list.find(f=>f.id===b.dataset.fopen)));
+  on(box,'[data-fdel]',async b=>{ const f=EF.list.find(x=>x.id===b.dataset.fdel); if(!f||!confirm(`Delete «${f.name}»?${f.uploader_role==='client'?`\n\nIt was uploaded by ${cn}: it disappears from the portal too.`:''}`)) return;
+    b.disabled=true; try{ await sbStorage('object/event-files',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[f.path]})});
+      await SupabaseStore.rest(`files?id=eq.${f.id}`,{method:'DELETE'}); toast('File deleted',f.name,'x'); }
+    catch(err){ toast(isNetErr(err)?'Offline':err.message,'not deleted','warn','err'); } loadEventFiles(e); });
+}
+async function uploadFiles(e,files){
+  const pr=$('#fprog'), o=await SupabaseStore.orgId().catch(()=>null); if(!o) return; let ok=0;
+  for(const f of files){
+    if(f.size>FMAX){ toast('Too big',`${f.name} · ${fSize(f.size)} — max 10 MB`,'warn','warn'); continue; }
+    if(pr){ pr.hidden=false; pr.textContent=`Uploading ${f.name}…`; }
+    const path=`${o}/${e.id}/${crypto.randomUUID()}-${safeName(f.name)}`, mime=f.type||'application/octet-stream';
+    try{ await sbStorage(`object/event-files/${encPath(path)}`,{method:'POST',headers:{'Content-Type':mime,'x-upsert':'false'},body:f});
+      await SupabaseStore.rest('files',{method:'POST',body:{org_id:o,event_id:e.id,path,name:f.name,size:f.size,mime,uploader_role:'owner'}}); ok++; }
+    catch(err){ toast(isNetErr(err)?'Offline':err.message,f.name,'warn','err'); }
+  }
+  if(ok) toast(ok===1?'File added':`${ok} files added`,`${clientName(e.clientId)||'The client'} sees ${ok===1?'it':'them'} in the portal`,'check');
+  loadEventFiles(e);
+}
+/* a signed link valid 5 minutes, opened in a new tab (PDFs and pictures show in the browser, the rest downloads) */
+async function openFile(f){ if(!f) return; const w=window.open('about:blank','_blank');
+  try{ const r=await sbStorage(`object/sign/event-files/${encPath(f.path)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:300})}), j=await r.json();
+    const u=`${SupabaseStore.base()}/storage/v1${j.signedURL||j.signedUrl}`; if(w) w.location.href=u; else location.href=u; }
+  catch(err){ w?.close(); toast('Could not open the file',isNetErr(err)?'offline':err.message,'warn','warn'); } }
+async function dropEventFiles(id){ try{ const o=await SupabaseStore.orgId(), l=await SupabaseStore.rest(`files?select=path&org_id=eq.${o}&event_id=eq.${encodeURIComponent(id)}`)||[];
+  if(l.length) await sbStorage('object/event-files',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:l.map(x=>x.path)})}); }catch{} }
 
 /* =====================================================================
    CLIENT
@@ -5283,7 +5350,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='220'; let APPV=HV, UPD=false;
+const HV='221'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });

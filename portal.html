@@ -276,7 +276,14 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 .compose{border-top:.5px solid var(--line);padding:12px 0 2px;display:flex;flex-direction:column;gap:8px}
 .compose .lbl{font-size:12px;font-weight:600;color:var(--ink-2)}
 .compose .qbar{display:flex}
-.hidden-note{color:var(--ink-3)!important;font-style:italic}
+.hidden-note{color:var(--ink-3)!important;font-style:italic}.frow{display:grid;grid-template-columns:40px minmax(0,1fr) 28px;gap:10px;align-items:center;padding:9px 0;border-bottom:.5px solid var(--line)}
+.fic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:#fff;background:var(--ft)}
+.fn{border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0;display:flex;flex-direction:column}
+.fn b{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .fn:hover b{color:var(--accent)}
+.fn small{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fx{border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;width:28px;height:28px;border-radius:50%} .fx:hover{background:var(--sunken);color:var(--ink)}
+.fprog{font-size:12.5px;color:var(--accent);padding:8px 0 0}
+.addline span{display:flex;flex-direction:column;gap:1px} .addline span small{font-size:12px;color:var(--ink-3);font-weight:400}
 .kb{width:22px;height:22px;border-radius:7px;display:inline-grid;place-items:center;flex:none;color:#fff;background:var(--k)}
 .kb svg{width:13px;height:13px}
 .kg + .kg{border-top:.5px solid var(--line);margin-top:4px}
@@ -1030,6 +1037,7 @@ function vEvent(id){
       <div class="card"><div class="eye">Progress · step ${s+1} of 6</div>
         <div class="stepper">${STEPS.map((t,i)=>`<div class="st ${i<s?'d':i===s?'c':''}"><i>${i<s?I.check:''}</i><span><b>${t[0]}</b><small>${t[1]}</small></span></div>`).join('')}</div>${note}</div>
       <div class="card ${oq?'glow warn':''}" id="qs"><div class="eye ${oq?'':'mute'}">Questions & messages${d.questions.length?` · ${oq} open`:''}</div>${d.questions.map(q=>qItem(e,q)).join('')}${writeBlock(e)}</div>
+      ${filesCard(e,d)}
       <div class="card"><div class="eye">Races · ${d.races.length}</div>${d.races.map(raceBlock).join('')||'<div class="ic-sub" style="margin-top:8px">Not defined yet.</div>'}</div>
     </div>
     <div class="col">
@@ -1041,6 +1049,44 @@ function vEvent(id){
       ${timerCard()}
     </div></div></div>`;
 }
+/* files of the event (phase 2, Oct 2026): private bucket, path <org>/<event>/<uuid>-<name>, max 10 MB; the client deletes only his own */
+const FMAX=10*1024*1024;
+const fSize=n=>n<1024?`${n} B`:n<1048576?`${Math.round(n/1024)} KB`:`${(n/1048576).toFixed(1).replace(/\.0$/,'')} MB`;
+const fExt=n=>(/\.([a-z0-9]{1,5})$/i.exec(n||'')?.[1]||'file').toUpperCase();
+const fTint=n=>{ const x=fExt(n); return /PDF/.test(x)?'#e5484d':/JPE?G|PNG|HEIC|HEIF|WEBP|GIF/.test(x)?'#22a06b':/GPX|KMZ?/.test(x)?'#0ea5e9':/XLSX?|CSV/.test(x)?'#16a34a':/DOCX?|TXT/.test(x)?'#3b82f6':/PPTX?/.test(x)?'#f97316':'#8e8e93'; };
+const encPath=p=>p.split('/').map(encodeURIComponent).join('/');
+const safeName=n=>String(n||'file').normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').replace(/^_+|_+$/g,'').slice(-100)||'file';
+async function sto(path,opt={}){
+  const r=await fetch(`${SB.url}/storage/v1/${path}`,{...opt,headers:{apikey:SB.key,Authorization:`Bearer ${await token()}`,...(opt.headers||{})}});
+  if(!r.ok){ const j=await r.json().catch(()=>({})), m=String(j.message||j.error||''); throw new Error(r.status===413||/size/i.test(m)?'Too big: max 10 MB':/mime|type/i.test(m)?'This type of file is not accepted':/security|policy|Unauthorized/i.test(m)||r.status===403?(ME?.demo?'Uploads are off in the demo':'Not allowed'):m||`Error ${r.status}`); }
+  return r; }
+let fBusy='';
+function filesCard(e,d){
+  const fs=d.files||[], who=f=>f.uploaderRole==='owner'?esc(OP().name.split(' ')[0]):f.mine?'You':esc(ME?.client||'Client');
+  return `<div class="card" id="files"><div class="eye ${fs.length?'':'mute'}">Files${fs.length?` · ${fs.length}`:''}</div>
+    ${fs.map(f=>`<div class="frow"><span class="fic" style="--ft:${fTint(f.name)}">${esc(fExt(f.name))}</span>
+      <button type="button" class="fn" data-fopen="${esc(f.id)}"><b>${esc(f.name)}</b><small>${esc(fSize(+f.size||0))} · ${who(f)} · ${esc(when(f.createdAt))}</small></button>
+      ${f.mine&&!PREVIEW?`<button type="button" class="fx" data-fdel="${esc(f.id)}" aria-label="Delete ${esc(f.name)}">×</button>`:'<span></span>'}</div>`).join('')}
+    ${fBusy?`<div class="fprog">${esc(fBusy)}</div>`:''}
+    <button type="button" class="addline" data-act="fadd" data-ev="${esc(e.id)}"><i>+</i><span>${fs.length?'Add files':`Share a file with ${esc(OP().name.split(' ')[0])}`}<small>GPX, rules, start lists, logos · max 10 MB</small></span></button>
+    <input type="file" id="fpick" data-ev="${esc(e.id)}" multiple hidden></div>`; }
+async function uploadFiles(eid,files){
+  if(PREVIEW){ toast('Preview: read only — nothing is sent'); return; }
+  let ok=0;
+  for(const f of files){
+    if(f.size>FMAX){ toast(`${f.name} is too big (${fSize(f.size)}) — max 10 MB`); continue; }
+    fBusy=`Uploading ${f.name}…`; rerender();
+    const path=`${ME.orgId}/${eid}/${crypto.randomUUID()}-${safeName(f.name)}`, mime=f.type||'application/octet-stream';
+    try{ await sto(`object/event-files/${encPath(path)}`,{method:'POST',headers:{'Content-Type':mime,'x-upsert':'false'},body:f});
+      await rpc('register_file',{p_event:eid,p_path:path,p_name:f.name,p_size:f.size,p_mime:mime}); ok++; }
+    catch(err){ toast(err instanceof TypeError?'No connection — try again.':`${f.name}: ${err.message}`); }
+  }
+  fBusy=''; await loadEvent(eid); rerender(); if(ok) toast(ok===1?`File shared with ${OP().name.split(' ')[0]}`:`${ok} files shared`);
+}
+async function openFile(f){ if(!f) return; const w=window.open('about:blank','_blank');
+  try{ const r=await sto(`object/sign/event-files/${encPath(f.path)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:300})}), j=await r.json();
+    const u=`${SB.url}/storage/v1${j.signedURL||j.signedUrl}`; if(w) w.location.href=u; else location.href=u; }
+  catch(err){ w?.close(); toast(err.message||'Could not open the file'); } }
 function tpCard(d){
   const tps=d.timingPoints||[]; if(!tps.length) return `<div class="card"><div class="eye">Timing points</div><div class="ic-sub" style="margin-top:8px">Not defined yet — added during the timing setup.</div></div>`;
   const g={}; tps.forEach(t=>{ if(t.hardware) g[t.hardware]=(g[t.hardware]||0)+1; }); const miss=tps.filter(t=>!t.hardware).length;
@@ -1109,7 +1155,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='220'; let PV_NEW=false, APPV=PV;
+const PV='221'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
@@ -1151,6 +1197,11 @@ document.addEventListener('click',async e=>{
   if(act==='towait') return document.getElementById('wait')?.scrollIntoView({behavior:'smooth',block:'start'});
   if(act==='signout'){ closeSheet(); return signOut(); }
   if(act==='pvclose') return closePreview();
+  if(act==='fadd'){ if(PREVIEW){ toast('Preview: read only — nothing is sent'); return; } $('#fpick')?.click(); return; }
+  if(b.dataset.fopen){ const f=Object.values(DET).flatMap(d=>d.files||[]).find(x=>x.id===b.dataset.fopen); return openFile(f); }
+  if(b.dataset.fdel){ const eid=Object.keys(DET).find(k=>(DET[k].files||[]).some(x=>x.id===b.dataset.fdel)), f=DET[eid]?.files.find(x=>x.id===b.dataset.fdel); if(!f||!confirm(`Delete «${f.name}»?`)) return;
+    b.disabled=true; try{ await sto('object/event-files',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[f.path]})}); await rpc('delete_my_file',{p_id:f.id}); await loadEvent(eid); rerender(); toast('File deleted'); }
+    catch(err){ b.disabled=false; toast(err.message||'Not deleted — try again'); } return; }
   if(act==='again'){ linkSent=''; render(); return; }
   if(act==='demo') return startDemo(b);
   if(act==='compose'){ composing[b.dataset.id]=true; rerender(); document.querySelector(`[data-c="${CSS.escape(b.dataset.id)}"]`)?.focus(); return; }
@@ -1173,6 +1224,7 @@ async function startDemo(b){
   if(b) b.disabled=true; const er=$('#lerr'); if(er) er.textContent='';
   try{ await demoSignIn(); linkError=''; state='loading'; render(); location.hash='home'; await loadAll(); }
   catch(err){ state='signin'; render(); const e2=$('#lerr'); if(e2) e2.textContent=err instanceof TypeError?'No connection — try again.':err.message; } }
+document.addEventListener('change',e=>{ if(e.target.id==='fpick'&&e.target.files.length) uploadFiles(e.target.dataset.ev,[...e.target.files]); });
 document.addEventListener('submit',async e=>{
   if(e.target.id==='cf'){ e.preventDefault(); const c=$('#lcode').value.replace(/\D/g,''); if(!c) return;
     $('#cgo').disabled=true; $('#lerr').textContent='';
