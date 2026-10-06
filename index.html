@@ -4180,14 +4180,15 @@ function renderDetail0(){
   if(!S) return;
   const D=$('#detail'), key=route.view+':'+(route.id||''), same=D.dataset.k===key;
   if(!same) ghostPane(D);
-  const keep=same?[...D.querySelectorAll('.evside,.hsc,.tpwrap,.jump')].map(x=>[x.scrollTop,x.scrollLeft]):null, fk=same?focusKey(D):null;
+  const SCR=['.evside','.jump','.tpwrap','.hsc']; // each kind on its own: opening a race adds tables (.hsc) before the side panel, a shared index gave the panel a table's scroll (back to the top)
+  const keep=same?SCR.map(c=>[...D.querySelectorAll(c)].map(x=>[x.scrollTop,x.scrollLeft])):null, fk=same?focusKey(D):null;
   const curJ=same?D.querySelector('#jump a.cur')?.getAttribute('href'):null; // the section bar keeps its chip and position (no slide on redraw)
   const anc=same?pageAnchor(D):null;
   OBJ=[]; taRO.disconnect(); hsRO.disconnect();
   if(MAP&&route.view!=='m'){ MAP.remove(); MAP=null; MAPL=null; }
   if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else if(route.view==='a') renderAgenda(D); else if(route.view==='m') renderMap(D); else renderHours(D);
   D.dataset.k=key;
-  if(keep) D.querySelectorAll('.evside,.hsc,.tpwrap,.jump').forEach((x,i)=>{ if(keep[i]){ x.scrollTop=keep[i][0]; x.scrollLeft=keep[i][1]; } });
+  if(keep) SCR.forEach((c,j)=>D.querySelectorAll(c).forEach((x,i)=>{ const k=keep[j][i]; if(k){ x.scrollTop=k[0]; x.scrollLeft=k[1]; } }));
   if(curJ) D.querySelector(`#jump a[href="${curJ}"]`)?.classList.add('cur');
   bind(D); sortable(D); hscroll(D); refocus(D,fk); placeFilms(D);
   if(anc) keepAnchor(anc);
@@ -5394,7 +5395,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='228'; let APPV=HV, UPD=false;
+const HV='229'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
