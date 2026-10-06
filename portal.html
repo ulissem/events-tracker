@@ -279,7 +279,7 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 .kg + .kg{border-top:.5px solid var(--line);margin-top:4px}
 .kh{display:flex;align-items:center;gap:9px;padding:9px 0 3px;font-size:14px}
 .kh b{font-weight:700} .kh > span:last-child{margin-left:auto;font-family:var(--round);font-weight:700}
-.kh.ev{padding:8px 0} .kh.ev > span:nth-child(2){display:flex;flex-direction:column;line-height:1.2} .kh.ev small{font-size:12px;color:var(--ink-2)}
+.kh.kev{padding:8px 0} .kh.kev > span:nth-child(2){display:flex;flex-direction:column;line-height:1.2} .kh.kev small{font-size:12px;color:var(--ink-2)}
 .kg .hr{padding-left:31px}
 .kbar{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:14px 0 8px;background:var(--sunken)}
 .kbar i{display:block;height:100%} .kbar i + i{box-shadow:inset 2px 0 0 var(--panel)}
@@ -1017,7 +1017,7 @@ function vEvent(id){
       ${tpCard(d)}
       ${noIce()||!eh.length?'':`<div class="card glow" style="--tint:#ff2d92"><div class="eye">${esc(UC())} · this event</div>
         ${KO.map(k=>{ const r=eh.filter(c=>c.kind===k); if(!r.length) return ''; const q=k==='hours'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' h':k==='travel'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' km':k==='hardware'?plural(r.reduce((s,c)=>s+(+c.qty||0)*(+c.days||1),0),'piece-day','piece-days'):k==='material'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' pcs':plural(r.length,'expense','expenses');
-          return `<div class="kh ev">${kb(k)}<span><b>${KN(k).n}</b><small>${q}</small></span><span>${ic(r.reduce((s,c)=>s+c.value,0))} ${U()}</span></div>`; }).join('')}
+          return `<div class="kh kev">${kb(k)}<span><b>${KN(k).n}</b><small>${q}</small></span><span>${ic(r.reduce((s,c)=>s+c.value,0))} ${U()}</span></div>`; }).join('')}
         <div class="mh" style="border-top:.5px solid var(--line);padding-top:10px;margin-top:4px">Total${eh.some(c=>c.open>1e-9)?` <small class="coef">${ic(eh.reduce((s,c)=>s+c.open,0))} ${U()} open</small>`:' <small class="coef">closed</small>'}<span>${ic(eh.reduce((s,c)=>s+c.value,0))} ${U()}</span></div></div>`}
       ${timerCard()}
     </div></div></div>`;
@@ -1090,7 +1090,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='213'; let PV_NEW=false, APPV=PV;
+const PV='214'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
