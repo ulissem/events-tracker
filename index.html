@@ -2463,15 +2463,54 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .hr2-v{text-align:right;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
 .hr2.closed{opacity:.6}
 @media (max-width:860px), (pointer:coarse) and (max-height:500px){
-  .hr2{grid-template-columns:40px minmax(0,1fr) 60px 26px;grid-template-areas:"d m h x" "d m v s"}
+  .hr2{grid-template-columns:40px minmax(0,1fr) 68px 26px;grid-template-areas:"d m h x" "d m v s"}
   .hr2 .rd{grid-area:d} .hr2-m{grid-area:m} .hr2-h{grid-area:h} .hr2-v{grid-area:v;font-size:11.5px} .hr2-s{grid-area:s} .hr2-x{grid-area:x}
   .hr2-s .tag{font-size:10px}
   .hr2-log .hoursadd{grid-template-columns:1fr 1fr}
+  .cf-f{grid-template-columns:1fr 1fr} .cf-f .grow{grid-column:1/-1} .cf-f .in{height:40px}
+  .radd{grid-template-columns:1fr 1fr} .radd .btn.primary{grid-column:1/2}
   .hr2-log .hoursadd .grow,.hr2-log .hoursadd .btn{grid-column:1/-1}
   .hr2-tools .spacer{display:none}
 }
 .hr2-ev{padding:8px 10px 10px}
 .hr2-ev .cc-eye.w{color:var(--warn)}
+/* ice creams v2: kinds of charges (mockup/charges.html) */
+.kbg{width:20px;height:20px;border-radius:6px;display:inline-grid;place-items:center;flex:none;color:#fff;background:var(--k);vertical-align:-5px;margin-right:6px}
+.kbg svg{width:12px;height:12px}
+.hr2-m small .kbg{width:15px;height:15px;border-radius:5px;margin-right:4px;vertical-align:-3px} .hr2-m small .kbg svg{width:9px;height:9px}
+.kgrp + .kgrp{margin-top:4px}
+.kgh{display:flex;align-items:center;gap:2px;padding:10px 8px 6px;font-size:13.5px}
+.kgh b{font-weight:700}
+.kgh span:last-child{margin-left:auto;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+.kbar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:4px 8px 8px;background:var(--sunken)}
+.kbar i{display:block;height:100%} .kbar i + i{box-shadow:inset 2px 0 0 var(--panel)}
+.klegend{display:flex;flex-wrap:wrap;gap:4px 12px;padding:0 8px 4px;font-size:12px;color:var(--ink-2)}
+.klegend span{display:inline-flex;align-items:center;gap:5px} .klegend i{width:7px;height:7px;border-radius:50%} .klegend b{color:var(--ink);font-weight:600}
+.hr2-v small{display:block;font-size:10.5px;color:var(--ink-3)}
+.hr2-it{color:var(--ink);font-weight:500;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.hr2-it .cell.dcell{display:inline-block;flex:none;width:38px;min-width:38px;text-align:right;padding:2px 4px;font-weight:700}
+.tag.part{background:var(--warn-soft,rgba(255,149,0,.14));color:var(--warn)}
+.cf{padding:12px 8px 4px;border-top:1px solid var(--line)}
+.hr2-log .cf{border-top:0;padding:6px 0 4px}
+.cf-sugg{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:0 0 10px;border-radius:14px;background:var(--panel-2,var(--sunken));box-shadow:inset 0 0 0 1px var(--line)}
+.cf-sugg > span:not(.kbg){flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px} .cf-sugg small{font-size:12px;color:var(--ink-2)}
+.cf-sugg .kbg{margin:0}
+.cf-k{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.cf-chip{height:30px;padding:0 11px 0 5px;border-radius:999px;border:0;background:var(--sunken);color:var(--ink-2);font:inherit;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;cursor:pointer}
+.cf-chip .kbg{margin-right:6px}
+.cf-chip[aria-pressed="true"]{background:color-mix(in srgb,var(--k) 15%,transparent);color:var(--k);box-shadow:inset 0 0 0 1.5px var(--k)}
+.cf-f{display:grid;grid-template-columns:130px repeat(auto-fit,minmax(110px,1fr));gap:6px}
+.cf-f .in{height:34px} .cf-f .grow{grid-column:span 2}
+.cf-b{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:var(--ink-2)}
+.cf-r{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cf-r b{color:var(--ink)} .cf-r small{font-size:11.5px;color:var(--warn)}
+.cf-ri{width:150px} .cf-ri .in{height:32px}
+.cf-v{font-size:14px} .cf-v b{font-family:var(--round);font-size:18px;color:var(--ink)}
+.hoursadd2{display:grid;grid-template-columns:1fr 1.4fr;gap:6px;margin:8px 0 2px} .hoursadd2 .in{height:34px}
+.rgrp + .rgrp{margin-top:6px}
+.rgrp .kgh{padding-left:0}
+.rrow .ri{color:var(--ink);font-weight:600;margin-right:4px}
+.radd{grid-template-columns:130px minmax(0,1fr) minmax(120px,auto) minmax(0,1fr) auto auto}
 .hr2-add{display:grid;grid-template-columns:130px 76px minmax(0,1fr) auto;gap:6px;padding:10px 8px 2px;border-top:1px solid var(--line)}
 .hr2-add .in{height:32px}
 
@@ -2756,7 +2795,7 @@ const where=()=>DEMO?'the demo files':isSB()?'Supabase':'GitHub';
 const nz=v=>v===undefined||v===null||v===''?null:v;
 const isUuid=s=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(s||''));
 const inList=a=>`in.(${a.map(x=>'"'+String(x).replace(/["\\]/g,'\\$&')+'"').join(',')})`;
-const rateAt=(rates,cid,d)=>{ const r=rates?.[cid]||[]; if(!r.length) return undefined; let v=r[0].coefficient; for(const x of r) if(x.from<=d) v=x.coefficient; return v; };
+const rateAt=(rates,cid,d)=>{ const r=(rates?.[cid]||[]).filter(x=>!x.kind||x.kind==='hours'); if(!r.length) return undefined; let v=r[0].coefficient; for(const x of r) if(x.from<=d) v=x.coefficient; return v; };
 const SupabaseStore={
   access:'', exp:0, refreshing:null, org:null, snap:null,
   rows:{}, ver:{}, year:{}, q:{}, h:{}, rates:{},          // last known state of each row (canonical JSON), for the per-row diff
@@ -2804,14 +2843,13 @@ const SupabaseStore={
   clRow(c){ const {id,name,contact,email,phone,rrCustomerId,notes,coefficient,...data}=c;
     return {id,name:name||'',contact:nz(contact),email:nz(email),phone:nz(phone),rr_customer_id:nz(rrCustomerId),notes:nz(notes),data}; },
   clObj(r){ return {id:r.id,name:r.name||'',contact:r.contact||'',email:r.email||'',phone:r.phone||'',rrCustomerId:r.rr_customer_id||'',notes:r.notes||'',...r.data}; },
-  hRow(x){ return {id:x.id,client_id:x.clientId,event_id:nz(x.eventId),date:x.date,hours:num(x.hours),note:x.note||'',note_hidden:!!x.noteHidden,closure_id:x.closure||null}; },
-  hObj(r){ return {id:r.id,clientId:r.client_id,eventId:r.event_id||'',date:r.date,hours:Number(r.hours),note:r.note||'',closure:r.closure_id||null,...(r.note_hidden?{noteHidden:true}:{})}; },
-  kRow(x,entries){ const {id,clientId,until,ref,hours,coefficient,value,from,...data}=x;
-    const first=(x.entryIds||[]).map(i=>entries.find(h=>h.id===i)?.date).filter(Boolean).sort()[0];
-    return {id,client_id:clientId,date_from:nz(from)||first||null,until:nz(until),ref:nz(ref),hours:hours===''||hours==null?null:num(hours),
-      coefficient:coefficient===''||coefficient==null?null:num(coefficient),value:value===''||value==null?null:num(value),data}; },
-  kObj(r){ return {id:r.id,clientId:r.client_id,...r.data,until:r.until||'',ref:r.ref||'',hours:r.hours==null?'':Number(r.hours),
-      coefficient:r.coefficient==null?'':Number(r.coefficient),value:r.value==null?'':Number(r.value)}; },
+  /* charges (ice creams v2): hours keep their "hours" field in the app, the other kinds "qty" (+ item, days, own rate) */
+  hRow(x){ const k=kindOf(x); return {id:x.id,client_id:x.clientId,event_id:nz(x.eventId),date:x.date,kind:k,item:KIND(k).items?String(x.item||''):'',qty:qtyOf(x),
+    days:KIND(k).days?num(x.days||1):null,rate:x.rate===''||x.rate==null?null:num(x.rate),note:x.note||'',note_hidden:!!x.noteHidden}; },
+  hObj(r){ return {id:r.id,clientId:r.client_id,eventId:r.event_id||'',date:r.date,...(r.kind==='hours'?{hours:Number(r.qty)}:{kind:r.kind,qty:Number(r.qty)}),
+    ...(r.item?{item:r.item}:{}),...(r.days!=null?{days:Number(r.days)}:{}),...(r.rate!=null?{rate:Number(r.rate)}:{}),note:r.note||'',...(r.note_hidden?{noteHidden:true}:{})}; },
+  kRow(x){ const {id,clientId,date,amount,note,...data}=x; return {id,client_id:clientId,date:date||today(),amount:num(amount)||0,note:nz(note),data}; },
+  kObj(r){ return {id:r.id,clientId:r.client_id,...r.data,date:r.date,amount:Number(r.amount),note:r.note||''}; },
   strip(r){ const o={...r}; for(const k of ['org_id','version','updated_at','updated_by']) delete o[k]; return o; },
   track(kind,r){ const k=kind+':'+r.id; this.rows[k]=canon(kind==='e'?{...this.strip(r)}:this.strip(r)); this.ver[k]=r.version;
     if(kind==='e') this.year[k]=(r.date_start||'').slice(0,4)||String(new Date().getFullYear()); },
@@ -2842,12 +2880,12 @@ const SupabaseStore={
   },
   async getHours(){
     const o=await this.orgId(), f=`org_id=eq.${o}`;
-    const [en,cl,ra]=await Promise.all([this.rest(`hour_entries?select=*&${f}&order=date,id`),this.rest(`closures?select=*&${f}&order=id`),
+    const [en,cl,ra]=await Promise.all([this.rest(`charges?select=*&${f}&order=date,id`),this.rest(`closures?select=*&${f}&order=id`),
       this.rest(`client_rates?select=*&${f}&order=valid_from`)]);
-    const rates={}; for(const r of ra)(rates[r.client_id]=rates[r.client_id]||[]).push({from:r.valid_from,coefficient:Number(r.coefficient)});
+    const rates={}; for(const r of ra)(rates[r.client_id]=rates[r.client_id]||[]).push({from:r.valid_from,coefficient:Number(r.rate),...(r.kind!=='hours'?{kind:r.kind}:{}),...(r.item?{item:r.item}:{})});
     const coefficients={}; for(const c of Object.keys(rates)) coefficients[c]=rateAt(rates,c,today());
     const entries=en.map(r=>this.hObj(r)).sort(hOrder), closures=cl.map(r=>this.kObj(r)).sort(idOrder);
-    this.h={}; for(const x of entries) this.h['h:'+x.id]=canon(this.hRow(x)); for(const x of closures) this.h['k:'+x.id]=canon(this.kRow(x,entries));
+    this.h={}; for(const x of entries) this.h['h:'+x.id]=canon(this.hRow(x)); for(const x of closures) this.h['k:'+x.id]=canon(this.kRow(x));
     this.rates=rates;
     const out={version:2,entries,closures}; if(Object.keys(coefficients).length) out.coefficients=coefficients; if(Object.keys(rates).length) out.rates=rates;
     return JSON.stringify(out,null,2);
@@ -2903,26 +2941,27 @@ const SupabaseStore={
     const f=`org_id=eq.${o}`, entries=j.entries||[], closures=j.closures||[];
     const changed=(p,list,toRow)=>list.map(x=>[x,toRow(x)]).filter(([x,r])=>this.h[p+x.id]!==canon(r));
     const up=async(table,rows)=>{ if(rows.length) await this.rest(`${table}?on_conflict=org_id,id`,{method:'POST',body:rows.map(([,r])=>({org_id:o,...r})),prefer:'resolution=merge-duplicates,return=minimal',...kp}); };
-    const kc=changed('k:',closures,x=>this.kRow(x,entries)), hc=changed('h:',entries,x=>this.hRow(x));
-    await up('closures',kc); await up('hour_entries',hc);                 // closures first: entries point to them
+    const kc=changed('k:',closures,x=>this.kRow(x)), hc=changed('h:',entries,x=>this.hRow(x));
+    await up('closures',kc); await up('charges',hc);
     for(const [x,r] of kc) this.h['k:'+x.id]=canon(r); for(const [x,r] of hc) this.h['h:'+x.id]=canon(r);
     const goneOf=(p,list)=>{ const ids=new Set(list.map(x=>x.id)); return Object.keys(this.h).filter(k=>k.startsWith(p)&&!ids.has(k.slice(2))).map(k=>k.slice(2)); };
     const gh=goneOf('h:',entries), gk=goneOf('k:',closures);
-    if(gh.length){ await this.rest(`hour_entries?${f}&id=${inList(gh)}`,{method:'DELETE',...kp}); for(const id of gh) delete this.h['h:'+id]; }
+    if(gh.length){ await this.rest(`charges?${f}&id=${inList(gh)}`,{method:'DELETE',...kp}); for(const id of gh) delete this.h['h:'+id]; }
     if(gk.length){ await this.rest(`closures?${f}&id=${inList(gk)}`,{method:'DELETE',...kp}); for(const id of gk) delete this.h['k:'+id]; }
-    /* the rate list of the client page: insert / change / delete rows of client_rates (key: client + valid from) */
-    if(j.rates){ const key=(c,f)=>c+'|'+f, cur=new Map(), want=new Map();
-      for(const [c,l] of Object.entries(this.rates)) for(const x of l) cur.set(key(c,x.from),x.coefficient);
-      for(const [c,l] of Object.entries(j.rates)) for(const x of l||[]) if(x.from&&isFinite(num(x.coefficient))) want.set(key(c,x.from),num(x.coefficient));
-      const put=[...want].filter(([k,v])=>cur.get(k)!==v).map(([k,v])=>{ const [c,fr]=k.split('|'); return {org_id:o,client_id:c,valid_from:fr,coefficient:v}; });
-      if(put.length) await this.rest('client_rates?on_conflict=org_id,client_id,valid_from',{method:'POST',body:put,prefer:'resolution=merge-duplicates,return=minimal',...kp});
-      for(const k of [...cur.keys()].filter(k=>!want.has(k))){ const [c,fr]=k.split('|');
-        await this.rest(`client_rates?${f}&client_id=eq.${encodeURIComponent(c)}&valid_from=eq.${fr}`,{method:'DELETE',...kp}); }
-      const nr={}; for(const [k,v] of want){ const [c,fr]=k.split('|'); (nr[c]=nr[c]||[]).push({from:fr,coefficient:v}); }
+    /* the rate list of the client page: insert / change / delete rows of client_rates (key: client + kind + item + valid from) */
+    const RK='org_id,client_id,kind,item,valid_from', rk=(c,x)=>JSON.stringify([c,x.kind||'hours',x.item||'',x.from]);
+    if(j.rates){ const cur=new Map(), want=new Map();
+      for(const [c,l] of Object.entries(this.rates)) for(const x of l) cur.set(rk(c,x),x.coefficient);
+      for(const [c,l] of Object.entries(j.rates)) for(const x of l||[]) if(x.from&&isFinite(num(x.coefficient))) want.set(rk(c,x),num(x.coefficient));
+      const put=[...want].filter(([k,v])=>cur.get(k)!==v).map(([k,v])=>{ const [c,kind,item,fr]=JSON.parse(k); return {org_id:o,client_id:c,kind,item,valid_from:fr,rate:v}; });
+      if(put.length) await this.rest(`client_rates?on_conflict=${RK}`,{method:'POST',body:put,prefer:'resolution=merge-duplicates,return=minimal',...kp});
+      for(const k of [...cur.keys()].filter(k=>!want.has(k))){ const [c,kind,item,fr]=JSON.parse(k);
+        await this.rest(`client_rates?${f}&client_id=eq.${encodeURIComponent(c)}&kind=eq.${encodeURIComponent(kind)}&item=eq.${encodeURIComponent(item)}&valid_from=eq.${fr}`,{method:'DELETE',...kp}); }
+      const nr={}; for(const [k,v] of want){ const [c,kind,item,fr]=JSON.parse(k); (nr[c]=nr[c]||[]).push({from:fr,coefficient:v,...(kind!=='hours'?{kind}:{}),...(item?{item}:{})}); }
       for(const l of Object.values(nr)) l.sort((a,b)=>a.from.localeCompare(b.from)); this.rates=nr; }
     // a changed coefficient is a new rate from today on: earlier hours keep theirs
     const d=today(), nr=Object.entries(j.coefficients||{}).filter(([cid,v])=>v!==''&&v!=null&&isFinite(num(v))&&num(v)!==rateAt(this.rates,cid,d));
-    if(nr.length){ await this.rest('client_rates?on_conflict=org_id,client_id,valid_from',{method:'POST',body:nr.map(([cid,v])=>({org_id:o,client_id:cid,valid_from:d,coefficient:num(v)})),prefer:'resolution=merge-duplicates,return=minimal',...kp});
+    if(nr.length){ await this.rest(`client_rates?on_conflict=${RK}`,{method:'POST',body:nr.map(([cid,v])=>({org_id:o,client_id:cid,kind:'hours',item:'',valid_from:d,rate:num(v)})),prefer:'resolution=merge-duplicates,return=minimal',...kp});
       for(const [cid,v] of nr){ const r=(this.rates[cid]=(this.rates[cid]||[]).filter(x=>x.from!==d)); r.push({from:d,coefficient:num(v)}); r.sort((a,b)=>a.from.localeCompare(b.from)); } }
   }
 };
@@ -3116,7 +3155,7 @@ const evOrder=(a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9')||idOrder
 const idOrder=(a,b)=>String(a.id).localeCompare(String(b.id));
 const clOrder=(a,b)=>(a.name||'').localeCompare(b.name||'')||idOrder(a,b);
 const hOrder=(a,b)=>String(a.date||'').localeCompare(String(b.date||''))||idOrder(a,b);
-function hoursText(){ const h=S.hours, o={version:2,entries:h.entries.slice().sort(hOrder),closures:h.closures.slice().sort(idOrder)}; if(Object.keys(h.coefficients||{}).length) o.coefficients=h.coefficients; if(h.rates) o.rates=h.rates; return JSON.stringify(o,null,2); }
+function hoursText(){ const h=S.hours, o={version:3,entries:h.entries.slice().sort(hOrder),closures:h.closures.slice().sort(idOrder)}; if(Object.keys(h.coefficients||{}).length) o.coefficients=h.coefficients; if(h.rates) o.rates=h.rates; return JSON.stringify(o,null,2); }
 /* CRITICAL: hours.json is part of the save set only while it is loaded (unlocked, or locked with changes still to save).
    It comes first so a coefficient move writes hours.json before clients.json drops them. */
 function serialize(){
@@ -3154,7 +3193,7 @@ function commitMessage(file){
 }
 
 let dirty=false,saving=false,stateMsg=null,errMsg=null,lastSaved=null;
-function touch(what){ dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); if(what!=='hold') autoSave(); }
+function touch(what){ _cov=null; dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); if(what!=='hold') autoSave(); }
 /* Supabase: every change is saved by itself 1.5 s after the last one (only changed rows are written; GitHub stays manual: one commit per save).
    'hold' = not yet (the location text: it is saved with its coordinates after the pin lookup, or with the next change) */
 var autoT=null, autoPending=false, saveT0=0; // var: updSave may read them before this line runs
@@ -3271,7 +3310,7 @@ function modelOf(t){
   const j=n=>{ try{ return t[n]?JSON.parse(t[n]):null; }catch{ return null; } }, events=[];
   for(const n of Object.keys(t)) if(/^events-.+\.json$/.test(n)) events.push(...((j(n)||{}).events||[]));
   const h=j('hours.json');
-  return {config:j('config.json'),clients:(j('clients.json')||{}).clients||[],events,agenda:j('agenda.json'),hours:h?{entries:h.entries||[],closures:h.closures||[],coefficients:h.coefficients||{}}:null};
+  return {config:j('config.json'),clients:(j('clients.json')||{}).clients||[],events,agenda:j('agenda.json'),hours:h?convH({entries:h.entries||[],closures:h.closures||[],coefficients:h.coefficients||{},...(h.rates?{rates:h.rates}:{})}):null};
 }
 const canon=v=>v===undefined?undefined:JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(y=>[y,x[y]])):x);
 /* three-way merge by id: base (last sync), mine (this device), theirs (GitHub now) */
@@ -3295,11 +3334,18 @@ const asker=(kind,name)=>(mine,theirs)=>{ const n=name(mine||theirs)||'untitled'
   return confirm(`${kind} “${n}” was ${mine?'changed':'deleted'} on this device and ${theirs?'changed':'deleted'} on another device.\n\nOK: keep the version on this device.\nCancel: take the other version.`); };
 const asMap=o=>Object.entries(o||{}).map(([id,v])=>({id,v})), fromMap=a=>Object.fromEntries(a.map(x=>[x.id,x.v]));
 function mergeHours(B,L,Rm){ B=B||{}; Rm=Rm||{};
-  const dt=h=>[h.date,h.hours+' h',h.note].filter(Boolean).join(' · ');
-  return {...Rm,...L,entries:merge3(B.entries,L.entries,Rm.entries,asker('Hours entry',dt)),
+  const dt=h=>[h.date,h.kind&&h.kind!=='hours'?h.kind+' '+h.qty:h.hours+' h',h.item,h.note].filter(Boolean).join(' · ');
+  return {...Rm,...L,entries:merge3(B.entries,L.entries,Rm.entries,asker('Charge',dt)),
     closures:merge3(B.closures,L.closures,Rm.closures,asker('Closure',x=>x.date)),
     coefficients:fromMap(merge3(asMap(B.coefficients),asMap(L.coefficients),asMap(Rm.coefficients),asker('Coefficient of client',x=>clientName(x.id))))}; }
-const parseH=t=>{ const j=t?JSON.parse(t):{}; const o=Object.assign({},j,{entries:j.entries||[],closures:j.closures||[],coefficients:j.coefficients||{}}); delete o.version; return o; };
+const parseH=t=>{ const j=t?JSON.parse(t):{}; const o=Object.assign({},j,{entries:j.entries||[],closures:j.closures||[],coefficients:j.coefficients||{}}); delete o.version; return convH(o); };
+/* hours.json v2 → v3 (Oct 2026): a closure was a period whose entries pointed to it; now it is an amount that covers the oldest
+   charges first. Its frozen coefficient becomes the entries' own rate, its value the amount. */
+function convH(o){
+  const old=new Map((o.closures||[]).filter(x=>x.amount===undefined).map(x=>[x.id,x]));
+  for(const h of o.entries||[]){ const x=h.closure&&old.get(h.closure); if(x&&x.coefficient!==''&&x.coefficient!=null&&h.rate==null) h.rate=num(x.coefficient); delete h.closure; }
+  if(old.size) o.closures=o.closures.map(x=>x.amount!==undefined?x:{id:x.id,clientId:x.clientId,date:x.date||x.until||'',amount:num(x.value)||0,note:[x.ref,x.until?'up to '+x.until:''].filter(Boolean).join(' · ')});
+  return o; }
 /* read GitHub and merge it into what is on screen. Returns true if anything on screen changed. */
 async function syncFromRemote(){
   const names=await Store.list(); if(names===null) throw new Error(`Data folder not found on ${where()}`);
@@ -3437,18 +3483,49 @@ const openQ=e=>(e.questions||[]).filter(q=>!q.resolved);
 /* hours helpers — only ever called while unlocked (S.hours loaded) */
 const priv=()=>unlocked&&!!S?.hours;
 const entriesOf=f=>S.hours?S.hours.entries.filter(f):[];
-const sumH=a=>a.reduce((s,h)=>s+num(h.hours),0);
-/* 🍦 coefficient of a client on a day. With a rate history (Supabase: hours.rates) each day has its own rate;
+/* ice creams v2 (Oct 2026, mockup/charges.html): an entry is a charge of a kind; value = qty (× days) × the client's rate for that
+   kind / item on its day, or its own rate; expenses are typed straight in the unit. Hours keep their "hours" field. */
+const KSV={
+  hours:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  hardware:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>',
+  travel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3"/></svg>',
+  material:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.2"/></svg>',
+  expense:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>'};
+const KINDS=[
+  {id:'hours',name:'Hours',unit:'h',per:'h',k:'#0a7aff',q:'Hours',ph:'What you did'},
+  {id:'hardware',name:'Hardware',unit:'pc',per:'day',k:'#7a5af5',q:'Pieces',items:()=>Object.keys(HW),pick:true,days:true},
+  {id:'travel',name:'Travel',unit:'km',per:'km',k:'#30b0c7',q:'Kilometres',ph:'From – to'},
+  {id:'material',name:'Material',unit:'pc',per:'pc',k:'#ff9500',q:'Pieces',items:()=>['BiB tags','Shoe chips','Active transponders']},
+  {id:'expense',name:'Expenses',unit:null,per:null,k:'#ff2d92',q:'Amount',ph:'Tolls, ferry, hotel…'}];
+const KIND=id=>KINDS.find(k=>k.id===(id||'hours'))||KINDS[0];
+const kindOf=h=>h.kind||'hours';
+const qtyOf=h=>kindOf(h)==='hours'?num(h.hours):num(h.qty);
+const kBadge=k=>`<span class="kbg" style="--k:${k.k}" aria-hidden="true">${KSV[k.id]}</span>`;
+const sumH=a=>a.reduce((s,h)=>s+(kindOf(h)==='hours'?num(h.hours):0),0);
+/* rate of a kind / item for a client on a day (rate list of the client page); hours: coefOf; none → null */
+const rateK=(cid,kind,item,d=TODAY)=>{ if(kind==='hours') return coefOf(cid,d); if(kind==='expense') return null;
+  const l=(S.hours?.rates?.[cid]||[]).filter(x=>(x.kind||'hours')===kind&&(x.item||'')===(item||'')).sort((a,b)=>a.from.localeCompare(b.from));
+  if(!l.length) return null; let v=l[0].coefficient; for(const x of l) if(x.from<=d) v=x.coefficient; return num(v); };
+const hRate=h=>kindOf(h)==='expense'?null:h.rate!=null&&h.rate!==''?num(h.rate):kindOf(h)==='hours'?coefOf(h.clientId,h.date):rateK(h.clientId,kindOf(h),h.item,h.date)??0;
+const hValOf=h=>{ const k=kindOf(h), v=k==='expense'?qtyOf(h):qtyOf(h)*(KIND(k).days?num(h.days||1):1)*hRate(h); return Math.round((v||0)*100)/100; };
+const sumV=a=>a.reduce((s,h)=>s+hValOf(h),0);
+/* closures cover the oldest charges of their client first (date, then id); memo for one synchronous render */
+let _cov=null;
+function covMap(){ if(_cov) return _cov; const m=new Map(), left={};
+  if(S?.hours){ for(const c of S.hours.closures) left[c.clientId]=(left[c.clientId]||0)+num(c.amount);
+    for(const h of S.hours.entries.slice().sort(hOrder)){ const v=hValOf(h), l=left[h.clientId]||0, t=Math.min(v,Math.max(0,l)); left[h.clientId]=l-t; m.set(h.id,{t,full:v-t<=1e-9&&(v>0||l>1e-9)}); } }
+  _cov=m; queueMicrotask(()=>{ _cov=null; }); return m; }
+const covOf=h=>covMap().get(h.id)?.t||0;
+const openOf=h=>Math.max(0,Math.round((hValOf(h)-covOf(h))*100)/100);
+const isOpen=h=>!covMap().get(h.id)?.full;
+/* 🍦 coefficient of a client on a day (hours). With a rate history (Supabase: hours.rates) each day has its own rate;
    a coefficient just changed in the app (not saved yet) counts from today on. Without history: one coefficient. */
-const coefOf=(id,date=TODAY)=>{ const v=S.hours?.coefficients?.[id], r=S.hours?.rates?.[id];
-  if(r?.length){ const now=rateAt(S.hours.rates,id,TODAY); if(v!==undefined&&v!==''&&num(v)!==now&&(date||'')>=TODAY) return num(v); return rateAt(S.hours.rates,id,date||''); }
+const coefOf=(id,date=TODAY)=>{ const v=S.hours?.coefficients?.[id], r=(S.hours?.rates?.[id]||[]).filter(x=>!x.kind||x.kind==='hours');
+  if(r.length){ const now=rateAt(S.hours.rates,id,TODAY); if(v!==undefined&&v!==''&&num(v)!==now&&(date||'')>=TODAY) return num(v); return rateAt(S.hours.rates,id,date||''); }
   return v===undefined||v===''?1:num(v); };
-/* coefficient used for an entry: its closure's (when it has a single one), else the rate of the day of the work */
-const hCoef=h=>{ const cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure); return cl&&cl.coefficient!==''&&cl.coefficient!=null?num(cl.coefficient):coefOf(h.clientId,h.date); };
-const coefTxt=x=>x.coefficient!==''&&x.coefficient!=null?fmtN(num(x.coefficient)):(x.rates||[]).map(fmtN).join(' → ')||'—';
 const U=()=>S?.config?.unit||{label:'ice creams',icon:'🍦'};
+const UC=()=>{ const l=U().label||'ice creams'; return l[0].toUpperCase()+l.slice(1); };
 const val=v=>`${fmtN(v)} ${esc(U().icon)}`;
-const isOpen=h=>!h.closure;
 /* Checklist = items derived from what the event contains (auto: computed; manual: you tick) + your fixed items + extras. */
 function checklistItems(e){
   const it=[], A=(key,label,done,group)=>it.push({key,label,done:!!done,auto:true,group}), M=(key,label,group)=>it.push({key,label,done:!!e.checklist[key],auto:false,group});
@@ -3701,24 +3778,24 @@ function setTheme(p,quiet=false){ themePref=p; try{ themePref==='auto'?localStor
   applyTheme(); renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); if(!quiet) toast(`Appearance: ${themePref==='auto'?'Auto (like this device)':themeName()}`,'','check'); }
 function toggleTheme(){ setTheme(nextTheme()); }
 function renderTop(){
-  const vt={e:'Events',c:'Clients',a:'Agenda',h:'Hours',m:'Map'}[route.view];
+  const vt={e:'Events',c:'Clients',a:'Agenda',h:UC(),m:'Map'}[route.view];
   const tabOn=v=>route.view===v;
-  const nv=route.view==='c'?'client':route.view==='h'?'hours':route.view==='a'?'agenda entry':'event';
+  const nv=route.view==='c'?'client':route.view==='h'?'charge':route.view==='a'?'agenda entry':'event';
   $('#top').innerHTML=`
     ${route.id&&(route.view==='e'||route.view==='c')?`<button id="topback" class="btn icon ghost topback" type="button" aria-label="Back to the list">${ic('back',2)}</button>`:''}
     ${route.view!=='h'&&route.view!=='a'&&route.view!=='m'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
     <div class="brand" id="brand" data-tip="Reload app · gets the newest version (saves first)"><span class="logo">${ic('flag',2.4)}</span><b>Race Hub</b><span class="ver ${UPD?'new':''}" id="brandver">v${esc(HV)}${UPD?' · Update':''}</span></div><span class="ptitle">${vt}<button type="button" class="pv" id="pver" aria-label="Version ${esc(HV)} · reload with the newest">v${esc(HV)}</button></span>
     <div class="island">
-      <nav class="tabs" aria-label="Sections">${[['e','Events'],['m','Map'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav><span class="isep"></span>
+      <nav class="tabs" aria-label="Sections">${[['e','Events'],['m','Map'],['c','Clients'],['a','Agenda'],...(priv()?[['h',UC()]]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav><span class="isep"></span>
       <button class="cmdtrig" id="cmdtrig" type="button" aria-label="Jump to" data-tip="Jump to an event, client or action" data-kbd="${MOD} K">${ic('search')}<span>Jump to</span><kbd>${MOD==='⌘'?'⌘K':'Ctrl K'}</kbd></button>
     </div>
     <span class="spacer"></span>
     <button id="savepill" class="savepill" type="button" hidden>${ic('save',2)}<span>Save</span></button>
-    <button id="newbtn" class="btn primary newbtn ${route.view==='a'?'onag':''}" type="button" data-tip="${route.view==='h'?'Log hours':'New '+nv}" data-kbd="N" aria-label="${route.view==='h'?'Log hours':'New '+nv}">${ic('plus',2.4)}<span>${route.view==='c'?'Client':route.view==='h'?'Hours':route.view==='a'?'Entry':'Event'}</span></button>
+    <button id="newbtn" class="btn primary newbtn ${route.view==='a'?'onag':''}" type="button" data-tip="${route.view==='h'?'Add a charge':'New '+nv}" data-kbd="N" aria-label="${route.view==='h'?'Add a charge':'New '+nv}">${ic('plus',2.4)}<span>${route.view==='c'?'Client':route.view==='h'?'Charge':route.view==='a'?'Entry':'Event'}</span></button>
     <button id="updpill" class="updpill" type="button" ${UPD?'':'hidden'} aria-label="Update to the newest version">${ic('refresh',2.2)}Update</button>
     <button id="acctbtn" class="acct" type="button" aria-haspopup="menu">UM<i class="adot"></i></button>
 `;
-  $('#tabbar').innerHTML=[['e','Events','flag'],['m','Map','map'],['c','Clients','user'],['a','Agenda','cal'],...(priv()?[['h','Hours','hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join(''); // save state = the dot on the avatar (top bar)
+  $('#tabbar').innerHTML=[['e','Events','flag'],['m','Map','map'],['c','Clients','user'],['a','Agenda','cal'],...(priv()?[['h',UC(),'hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join(''); // save state = the dot on the avatar (top bar)
   updSave();
   const tabGo=v=>go(v,narrow.matches?null:v==='e'?(route.view==='e'?route.id:lastEvent):v==='c'?(route.view==='c'?route.id:lastClient):null);
   on($('#top'),'[data-view]',b=>tabGo(b.dataset.view));
@@ -3772,7 +3849,7 @@ window.addEventListener('popstate',()=>applyRoute());
 document.addEventListener('click',ev=>{ const g=ev.target.closest?.('[data-go]'); if(!g) return; ev.preventDefault(); const v=g.dataset.go, i=v.indexOf(':'); if(i<0) go(v); else go(v.slice(0,i),v.slice(i+1)); });
 const curEvent=()=>route.view==='e'&&S?S.events.find(x=>x.id===route.id):null;
 
-function render(){
+function render(){ _cov=null;
   today(); startLive();
   if(route.view==='h'&&!priv()){ go('e'); return; }
   renderTop(); if(!S) return;
@@ -4030,7 +4107,7 @@ let ancGen=0; for(const t of ['touchstart','wheel']) addEventListener(t,()=>{ an
 function keepAnchor(a){ const g=ancGen, fix=()=>{ if(spyHold||g!==ancGen) return; const el=document.getElementById(a.id); if(!el) return; const d=el.getBoundingClientRect().top-a.top; if(Math.abs(d)>1) window.scrollBy(0,d); };
   fix(); requestAnimationFrame(fix); setTimeout(fix,250); }
 /* every redraw of the detail keeps the pictures and map tiles that did not change (no flash on add / delete / refresh) */
-function renderDetail(){ keepImgs(renderDetail0); }
+function renderDetail(){ _cov=null; keepImgs(renderDetail0); }
 function renderDetail0(){
   if(!S) return;
   const D=$('#detail'), key=route.view+':'+(route.id||''), same=D.dataset.k===key;
@@ -4067,7 +4144,7 @@ function renderHome(D){
   const qTot=qEv.reduce((a,e)=>a+openQ(e).length,0), qMax=Math.max(1,...qEv.map(e=>openQ(e).length));
   const tds=S.agenda.todos.filter(t=>!t.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,8);
   const ens=agEntries().filter(i=>i.e>=TODAY&&i.s<=end).sort((a,b)=>a.s.localeCompare(b.s));
-  const showH=priv(), openHours=showH?sumH(entriesOf(isOpen)):0;
+  const showH=priv(), openHours=showH?sumH(entriesOf(isOpen)):0, openVal=showH?entriesOf(isOpen).reduce((s,h)=>s+openOf(h),0):0;
   const cName=flt.client?clientName(flt.client):'';
   const MAXQ=6;
   const qTile=e=>{ const q=openQ(e).length, p=progress(e), cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd).main.replace(/ \d{4}$/,'');
@@ -4087,8 +4164,8 @@ function renderHome(D){
   const nTrip=ens.filter(i=>i.o.type==='travel').length;
   const cardE=`<section class="ccard ov-c hm2"><div class="ov-ch"><div><div class="cc-eye">Travel &amp; away</div><h3>${ens.length?(nTrip===ens.length?plural(nTrip,'trip','trips'):plural(ens.length,'entry','entries')):'Nothing planned'}</h3></div></div>
     ${ens.length?ens.map(enTile).join(''):`<div class="ov-empty">No trips in the next 4 weeks.</div>`}
-    <div class="cc-eye hm2-sub">Hours</div>
-    <div class="cc-next hm2-h"><span class="agt-i hrs">${esc(U().icon)}</span>${showH?`<span class="cc-nm"><b>${fmtN(openHours)} h open</b><small>${val(openHours)} · never in the summary</small></span><button class="tbtn" type="button" data-go="h">Open</button>`:`<span class="cc-nm"><b>Locked</b><small>safe-word required · never in the summary</small></span><button class="tbtn" type="button" id="hm-unlock">Unlock</button>`}</div></section>`;
+    <div class="cc-eye hm2-sub">${esc(UC())}</div>
+    <div class="cc-next hm2-h"><span class="agt-i hrs">${esc(U().icon)}</span>${showH?`<span class="cc-nm"><b>${val(openVal)} open</b><small>${openHours?fmtN(openHours)+' h · ':''}never in the summary</small></span><button class="tbtn" type="button" data-go="h">Open</button>`:`<span class="cc-nm"><b>Locked</b><small>safe-word required · never in the summary</small></span><button class="tbtn" type="button" id="hm-unlock">Unlock</button>`}</div></section>`;
   D.innerHTML=`<div class="home">
     <div class="hm-head"><div><div class="cc-eye">${esc(DOWL[parse(TODAY).getDay()])} ${esc(fmtLong(TODAY).slice(4))} · ${plural(soon.length,'event','events')} in the next 4 weeks${cName?` · ${esc(cName)}`:''}</div><h1>${greet}</h1></div></div>
     ${nextUpCard(true)}
@@ -4147,7 +4224,7 @@ function renderEvent(D){
   ${roadToRace(e)}
   <nav class="jump" id="jump" aria-label="Sections">
     <a href="#s-top" data-jump><span class="ji" style="--sc:var(--accent)" aria-hidden="true">${ic('flag',2)}</span>Overview</a><a href="#s-general" data-jump>${secBadge('general','ji')}General</a><a href="#s-rr14" data-jump>${secBadge('rr14','ji')}RR14</a><a href="#s-links" data-jump>${secBadge('links','ji')}Links <em>${e.links.length||''}</em></a><a href="#s-tps" data-jump>${secBadge('tps','ji')}Timing points <em>${e.timingPoints.length}</em></a><a href="#s-races" data-jump>${secBadge('races','ji')}Races <em>${e.contests.length}</em></a><a href="#s-registration" data-jump>${secBadge('registration','ji')}Registration <em>${regN||''}</em></a><a href="#s-scoring" data-jump>${secBadge('scoring','ji')}Scoring <em>${scoreN||''}</em></a><a href="#s-outputs" data-jump>${secBadge('outputs','ji')}Outputs <em>${outN||''}</em></a>
-    <a href="#s-questions" data-jump>${secBadge('questions','ji')}Questions <em class="${oq?'w':''}">${oq||''}</em></a><a href="#s-checklist" data-jump>${secBadge('checklist','ji')}Checklist <em>${pct}%</em></a>${showH?`<a href="#s-hours" data-jump>${secBadge('hours','ji')}Hours <em>${fmtN(sumH(evHours))}</em></a>`:''}<a href="#s-notes" data-jump>${secBadge('notes','ji')}Notes</a>
+    <a href="#s-questions" data-jump>${secBadge('questions','ji')}Questions <em class="${oq?'w':''}">${oq||''}</em></a><a href="#s-checklist" data-jump>${secBadge('checklist','ji')}Checklist <em>${pct}%</em></a>${showH?`<a href="#s-hours" data-jump>${secBadge('hours','ji')}${esc(UC())} <em>${fmtN(sumV(evHours))}</em></a>`:''}<a href="#s-notes" data-jump>${secBadge('notes','ji')}Notes</a>
   </nav>
   <div class="evgrid ${sideOpen?'':'collapsed'}"><div class="evmain">
 
@@ -4206,7 +4283,7 @@ function renderEvent(D){
     <button type="button" data-rail="" title="Show side panel ( ] )" aria-label="Show side panel">${ic('side',1.9)}</button><hr>
     <button type="button" data-rail="s-questions" title="Questions for the client" class="${oq?'rq':''}">${ic('inbox',1.8)}${oq}</button>
     <button type="button" data-rail="s-checklist" title="Checklist">${ring(p,18,2.4)}${pct}%</button>
-    ${showH?`<button type="button" data-rail="s-hours" title="Hours">${ic('hours',1.8)}${fmtN(sumH(evHours))}h</button>`:''}
+    ${showH?`<button type="button" data-rail="s-hours" title="${esc(UC())}">${ic('hours',1.8)}${fmtN(sumV(evHours))}</button>`:''}
     <button type="button" data-rail="s-notes" title="Notes">${ic('doc',1.8)}</button>
   </div><div class="sidefull">
   <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''}</h3><span class="sp"></span></div>
@@ -4222,10 +4299,10 @@ function renderEvent(D){
   ${linkedTodos(e)}
   </section>
 
-  ${showH?`<section class="sec" id="s-hours"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Hours</h3><span class="sp"></span><span class="hint">${ic('unlock',2).replace('<svg','<svg width="12" height="12" style="display:inline;vertical-align:-1px"')} unlocked · locks after 10 min idle</span></div>
-  <div class="ccard hr2-g hr2-ev"><div class="hr2-gh"><span class="cc-eye ${evHours.some(isOpen)?'w':''}">${fmtN(sumH(evHours))} h logged · ${fmtN(sumH(evHours.filter(isOpen)))} h open · ${val(evHours.filter(isOpen).reduce((s,h)=>s+hValOf(h),0))}</span>${e.clientId?`<span class="hint">× ${fmtN(coefOf(e.clientId))}</span>`:''}</div>
-    ${evHours.map(h=>hRow(h,{showClient:false,showEvent:false})).join('')}
-    <div class="hr2-add">${dateBtn('h-date')}<input class="in" inputmode="decimal" id="h-hours" placeholder="Hours" aria-label="Hours"><input class="in grow" id="h-note" placeholder="${evHours.length?'What you did':'Log the first hours: what you did'}" aria-label="Activity"><button class="btn sm" id="h-add" type="button" ${e.clientId?'':'disabled title="Assign a client first"'}>${ic('plus',2.2)} Log</button></div></div>
+  ${showH?`<section class="sec" id="s-hours"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}${esc(UC())}</h3><span class="sp"></span><span class="hint">${ic('unlock',2).replace('<svg','<svg width="12" height="12" style="display:inline;vertical-align:-1px"')} unlocked · locks after 10 min idle</span></div>
+  <div class="ccard hr2-g hr2-ev"><div class="hr2-gh"><span class="cc-eye ${evHours.some(isOpen)?'w':''}">${val(sumV(evHours))}${evHours.length?` · ${evHours.some(isOpen)?val(evHours.reduce((s,h)=>s+openOf(h),0))+' open':'all closed'}`:''}</span>${e.clientId?`<span class="hint">${esc(clientName(e.clientId))}'s rates</span>`:''}</div>
+    ${kindBar(evHours)}${byKind(evHours,{showClient:false,showEvent:false})}
+    ${e.clientId?chargeForm('h',{event:e}):'<p class="hint" style="padding:8px">Assign a client first: charges use the client\'s rates.</p>'}</div>
   </section>`:''}
 
   <section class="sec" id="s-notes"><div class="sech" style="--sc:${SECC.notes}"><h3>${secBadge('notes')}Notes</h3><span class="sp"></span><span class="hint">never in the summary</span></div>
@@ -4282,14 +4359,14 @@ function renderEvent(D){
   markSeen(D,e);
   D.querySelectorAll('[data-ck]').forEach(c=>c.onchange=()=>{ e.checklist[c.dataset.ck]=c.checked; touch(); renderDetail(); });
   if(showH){
-    bindAddHours('h',()=>({clientId:e.clientId,eventId:e.id}));
+    bindChargeForm('h',()=>({clientId:e.clientId,eventId:e.id,event:e}));
     bindHoursTable(D);
   }
   on(D,'[data-jump]',(a,ev)=>{ if(ev.button===0) ev.preventDefault(); },'mousedown'); // desktop: a click must not focus the chip — focusing it (in the sticky bar) stops Chrome's smooth scroll, so the first jump went nowhere
   on(D,'[data-jump]',(a,ev)=>{ ev.preventDefault(); const t=document.querySelector(a.getAttribute('href')); if(!t) return; let delay=0; if(t.closest('.evside')&&!sideOpen&&wide.matches){ toggleSide(); delay=280; } spyPick(a.getAttribute('href')); setTimeout(()=>t.id==='s-top'?window.scrollTo({top:0,behavior:'smooth'}):t.scrollIntoView({behavior:'smooth',block:'start'}),delay); }); // Overview = back to the very top
   $('#delev').onclick=()=>{
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this event','lock'); return; }
-    if(evHours.length){ alert(`This event has ${plural(evHours.length,'hours entry','hours entries')}. Delete or move them first (Hours section).`); return; }
+    if(evHours.length){ alert(`This event has ${plural(evHours.length,'charge','charges')}. Delete or move them first (${UC()} section).`); return; }
     if(confirm(`Delete «${e.name||'untitled'}»? It stays in the commit history.`)){ S.events=S.events.filter(x=>x!==e); touch(); go('e'); } };
   if(wide.matches) sideCards(D,e); // only where the side column is a column (≥ 1720 px)
 }
@@ -4420,30 +4497,76 @@ function exportTimingPoints(e){
 /* button that looks like a date field (one day): shows fmt(date), keeps the ISO date in data-date */
 const dateBtn=(id,fmt=fmtShort,label='Date')=>`<button class="in trig dtrig" type="button" id="${id}" data-date="${TODAY}" aria-label="${label}">${ic('cal',1.8)}<span class="tv">${esc(fmt(TODAY))}</span></button>`;
 function bindDateBtn(b,fmt=fmtShort,after=null){ b.onclick=()=>openDate(b,{s:b.dataset.date,allowRange:false,onChange:s=>{ if(!s) return; b.dataset.date=s; b.querySelector('.tv').textContent=fmt(s); after?.(); }}); }
-/* "Add hours" row: #<p>-date, #<p>-hours, #<p>-note, #<p>-add; target() gives {clientId, eventId} */
-function bindAddHours(p,target){
-  const add=()=>{ const h=num($(`#${p}-hours`).value), t=target(); if(!h){ $(`#${p}-hours`).focus(); return; } if(!t.clientId) return;
-    S.hours.entries.push({id:uid('h'),clientId:t.clientId,eventId:t.eventId||null,date:$(`#${p}-date`).dataset.date||TODAY,hours:h,note:$(`#${p}-note`).value.trim(),closure:null}); touch(); renderDetail(); };
-  bindDateBtn($(`#${p}-date`)); $(`#${p}-add`).onclick=add; $(`#${p}-note`).onkeydown=ev=>{ if(ev.key==='Enter') add(); };
+/* "Add a charge" (ice creams v2): kind chips, the fields of that kind, the client's rate (or one for this charge), the value.
+   The form state survives redraws (CF); target() gives {clientId, eventId}. Ids: #<p>-… */
+const CF={kind:'hours',item:'',qty:'',days:'1',note:'',rate:'',own:false};
+function chargeForm(p,{event=null}={}){
+  const k=KIND(CF.kind), its=k.items?k.items():[];
+  if(k.pick&&!its.includes(CF.item)) CF.item=its[0]||'';
+  const sg=event?raceDaySugg(event):null;
+  return `<div class="cf" id="${p}-cf">
+    ${sg?`<div class="cf-sugg">${kBadge(KIND('hours'))}<span><b>Race day · ${fmtN(sg.hours)} h</b><small>${sg.from} – ${sg.to}: 2 h before the first start (${sg.first}), 1 h after the expected last finish (~${sg.last})</small></span><button type="button" class="btn sm primary" id="${p}-sugg">Add</button></div>`:''}
+    <div class="cf-k" role="group" aria-label="Kind">${KINDS.map(x=>`<button type="button" class="cf-chip" style="--k:${x.k}" data-cfk="${x.id}" aria-pressed="${x.id===k.id}">${kBadge(x)}${x.name}</button>`).join('')}</div>
+    <div class="cf-f">${dateBtn(`${p}-date`)}
+      ${k.items?(k.pick?`<select class="in" id="${p}-item" aria-label="${k.name}">${its.map(i=>`<option ${i===CF.item?'selected':''}>${esc(i)}</option>`).join('')}</select>`
+        :`<input class="in" id="${p}-item" list="${p}-items" value="${esc(CF.item)}" placeholder="Item" aria-label="Item"><datalist id="${p}-items">${its.map(i=>`<option value="${esc(i)}">`).join('')}</datalist>`):''}
+      <span class="rin"><input class="in" id="${p}-qty" inputmode="decimal" value="${esc(CF.qty)}" placeholder="${k.q}" aria-label="${k.q}"><i>${k.unit?k.unit:esc(U().icon)}</i></span>
+      ${k.days?`<span class="rin"><input class="in" id="${p}-days" inputmode="decimal" value="${esc(CF.days)}" placeholder="1" aria-label="Days"><i>days</i></span>`:''}
+      ${k.items?'':`<input class="in grow" id="${p}-note" value="${esc(CF.note)}" placeholder="${esc(k.ph)}" aria-label="Note">`}</div>
+    <div class="cf-b"><span class="cf-r" id="${p}-rate"></span><span class="cf-v" id="${p}-calc"></span><button class="btn primary" id="${p}-add" type="button">Add</button></div></div>`;
 }
-function hoursTable(rows,{showEvent=true,showClient=true}={}){
-  if(!rows.length) return emptyBox('hours','No hours logged yet.');
-  return `<div class="hs"><div class="tbox hsc"><table class="t htab"><thead><tr><th class="stk stk1">Date</th>${showClient?'<th>Client</th>':''}${showEvent?'<th>Event</th>':''}<th>Activity</th><th class="num">h</th><th class="num">${esc(U().icon)}</th><th></th><th></th></tr></thead><tbody>
-  ${rows.map(h=>{ const c=clientOf(h.clientId), cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure), coef=hCoef(h), ev=S.events.find(x=>x.id===h.eventId);
-    return `<tr><td class="txt stk stk1" style="white-space:nowrap;color:var(--ink-2)">${h.closure?esc(fmtDay(h.date)):`<button type="button" class="cell btncell dtrig" data-hdate="${ref(h)}" aria-label="Date ${esc(h.date)}">${esc(fmtDay(h.date))}</button>`}</td>
-      ${showClient?`<td class="txt">${esc(c?.name||'—')}</td>`:''}
-      ${showEvent?`<td class="txt">${ev?`<a href="#/e/${encodeURIComponent(ev.id)}" data-go="e:${esc(ev.id)}">${esc(ev.name||'untitled')}</a>`:'<span class="hint">general</span>'}</td>`:''}
-      <td class="wide2">${h.closure?`<span class="txt" style="padding:0 8px">${esc(h.note)}</span>`:cell(h,'note',{ph:'—',label:'Activity'})}</td>
-      <td class="num" style="width:64px">${h.closure?esc(fmtN(num(h.hours))):cell(h,'hours',{label:'Hours',t:'num',r:'change',style:'text-align:right'})}</td>
-      <td class="num">${val(num(h.hours)*coef)}</td>
-      <td style="width:56px">${h.closure?`<span class="tag" title="${esc(cl?.ref||'')}">closed</span>`:'<span class="tag open">open</span>'}</td>
-      <td class="x">${h.closure?'':`<button class="btn icon sm ghost del rowact" data-delh="${esc(h.id)}" type="button" aria-label="Delete entry">${ic('x')}</button>`}</td></tr>`; }).join('')}
-  </tbody></table></div></div>`;
+function bindChargeForm(p,target){
+  const box=$(`#${p}-cf`); if(!box) return; const db=$(`#${p}-date`);
+  const k=()=>KIND(CF.kind), auto=()=>{ const t=target(); return t.clientId?rateK(t.clientId,CF.kind,CF.item,db.dataset.date||TODAY):null; };
+  const val0=()=>{ const q=num(CF.qty)||0; if(CF.kind==='expense') return q; const r=CF.own||auto()==null?num(CF.rate):auto(); return Math.round(q*(k().days?num(CF.days)||1:1)*(r||0)*100)/100; };
+  const upd=()=>{ const a=auto(), K=k(), t=target(), cn=clientName(t.clientId)||'the client', R=$(`#${p}-rate`);
+    if(K.id==='expense') R.innerHTML='At cost, typed in '+esc(U().label);
+    else if(CF.own||a==null) R.innerHTML=`<span class="rin cf-ri"><input class="in" id="${p}-rv" inputmode="decimal" value="${esc(CF.rate)}" placeholder="Rate" aria-label="Rate"><i>${esc(U().icon)} / ${K.per}</i></span>${a==null?`<small>no rate for ${esc(CF.item||K.name)} yet · saved in ${esc(cn)}'s rates</small>`:`<button type="button" class="tbtn quiet" id="${p}-own">${esc(cn)}'s rate</button>`}`;
+    else R.innerHTML=`${esc(cn)}'s rate <b>${fmtN(a)} ${esc(U().icon)} / ${K.per}</b> <button type="button" class="tbtn quiet" id="${p}-own">other rate</button>`;
+    const rv=$(`#${p}-rv`); if(rv) rv.oninput=()=>{ CF.rate=rv.value; calc(); };
+    const ow=$(`#${p}-own`); if(ow) ow.onclick=()=>{ CF.own=!CF.own; if(CF.own&&!CF.rate&&a!=null) CF.rate=String(a); upd(); if(CF.own) $(`#${p}-rv`)?.focus(); };
+    calc(); };
+  const calc=()=>{ const v=val0(); $(`#${p}-calc`).innerHTML=v?`= <b>${fmtN(v)}</b> ${esc(U().icon)}`:''; $(`#${p}-add`).textContent=v?`Add ${fmtN(v)} ${U().icon}`:'Add'; };
+  box.querySelectorAll('[data-cfk]').forEach(b=>b.onclick=()=>{ if(CF.kind===b.dataset.cfk) return; CF.kind=b.dataset.cfk; CF.item=''; CF.rate=''; CF.own=false; const d=db.dataset.date;
+    box.outerHTML=chargeForm(p,{event:target().event}); $(`#${p}-date`).dataset.date=d; $(`#${p}-date`).querySelector('.tv').textContent=fmtShort(d); bindChargeForm(p,target); $(`#${p}-qty`).focus(); });
+  for(const [f,id] of [['qty','qty'],['days','days'],['note','note'],['item','item']]){ const el=$(`#${p}-${id}`); if(!el) continue;
+    el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{ CF[f]=el.value; if(f==='item'){ CF.own=false; upd(); } else calc(); });
+    if(el.tagName==='INPUT') el.addEventListener('keydown',ev=>{ if(ev.key==='Enter') add(); }); }
+  bindDateBtn(db,fmtShort,upd);
+  const sg=$(`#${p}-sugg`); if(sg) sg.onclick=()=>{ const e=target().event, r=raceDaySugg(e); Object.assign(CF,{kind:'hours',item:'',qty:String(r.hours),note:'Race day',rate:'',own:false});
+    box.outerHTML=chargeForm(p,{event:e}); const b=$(`#${p}-date`); b.dataset.date=e.dateStart; b.querySelector('.tv').textContent=fmtShort(e.dateStart); bindChargeForm(p,target); $(`#${p}-qty`).focus(); $(`#${p}-qty`).select(); };
+  const add=()=>{ const t=target(), K=k(), q=num(CF.qty), d=db.dataset.date||TODAY, a=auto();
+    if(!t.clientId){ toast('Pick a client first','charges belong to a client','warn','warn'); return; }
+    if(!(q>0)){ $(`#${p}-qty`).focus(); return; }
+    if(K.items&&!String(CF.item).trim()){ $(`#${p}-item`).focus(); return; }
+    const r=num(CF.rate), needR=K.id!=='expense'&&(CF.own||a==null);
+    if(needR&&!(r>=0&&String(CF.rate).trim()!=='')){ $(`#${p}-rv`)?.focus(); return; }
+    const h={id:uid('h'),clientId:t.clientId,eventId:t.eventId||null,date:d};
+    if(K.id==='hours') h.hours=q; else { h.kind=K.id; h.qty=q; }
+    if(K.items) h.item=String(CF.item).trim(); if(K.days) h.days=num(CF.days)||1; if(!K.items) h.note=CF.note.trim();
+    if(needR&&a==null&&K.id!=='hours'){ S.hours.rates=S.hours.rates||{}; (S.hours.rates[t.clientId]=S.hours.rates[t.clientId]||[]).push({from:d,coefficient:r,kind:K.id,...(h.item?{item:h.item}:{})}); }
+    else if(needR) h.rate=r;
+    S.hours.entries.push(h); Object.assign(CF,{qty:'',note:'',rate:'',own:false}); touch(); renderDetail();
+    toast(`${K.name} added`,`${fmtN(hValOf(h))} ${U().icon}${t.eventId?'':' · general'}`,'check'); };
+  $(`#${p}-add`).onclick=add; upd();
+}
+/* race day hours, suggested once the race day is here: 2 h before the first start → 1 h after the expected last finish
+   (finish = start + a slow pace for the distance / climb of each race); rounded to half hours */
+function raceDaySugg(e){
+  if(!e||!e.dateStart||e.dateStart>TODAY||!e.clientId) return null;
+  if(entriesOf(h=>h.eventId===e.id&&kindOf(h)==='hours'&&h.date===e.dateStart).length) return null;
+  const mins=t=>{ const m=/^(\d{1,2})[:.h](\d{2})/.exec(String(t||'')); return m?+m[1]*60+ +m[2]:null; };
+  const ty=String(e.type||''), dur=c=>{ const km=num(c.distance)||0, up=num(c.elevation)||0;
+    return /cycl|bike|gravel|mtb|vtt/i.test(ty)?km/15:/tri|aqua|duath/i.test(ty)?km/14:/vertical|hill/i.test(ty)?(km+up/100)/3:/trail/i.test(ty)?(km+up/100)/5.5:km/7.5; };
+  const rs=(e.contests||[]).filter(c=>mins(c.startTime)!=null&&(!c.date||c.date===e.dateStart)); if(!rs.length) return null;
+  const first=Math.min(...rs.map(c=>mins(c.startTime))), last=Math.max(...rs.map(c=>mins(c.startTime)+Math.round(dur(c)*60)));
+  const from=Math.floor((first-120)/30)*30, to=Math.ceil((last+60)/30)*30, hm=m=>`${pad(Math.floor(((m%1440)+1440)%1440/60))}:${pad(((m%60)+60)%60)}`;
+  return {hours:(to-from)/60,from:hm(from),to:hm(to),first:hm(first),last:hm(Math.round(last/5)*5)};
 }
 function bindHoursTable(D){
   on(D,'[data-hideh]',b=>{ const h=S.hours.entries.find(x=>x.id===b.dataset.hideh); if(!h) return; if(h.noteHidden) delete h.noteHidden; else h.noteHidden=true; touch('none');
     b.classList.toggle('on',!!h.noteHidden); b.textContent=h.noteHidden?'Note hidden from the client · shows “Timing work”':'Hide note from the client'; });
-  on(D,'[data-delh]',b=>{ if(!confirm('Delete this hours entry?')) return; S.hours.entries=S.hours.entries.filter(h=>h.id!==b.dataset.delh); touch(); renderDetail(); });
+  on(D,'[data-delh]',b=>{ if(!confirm('Delete this charge?')) return; S.hours.entries=S.hours.entries.filter(h=>h.id!==b.dataset.delh); touch(); renderDetail(); });
   on(D,'[data-hdate]',b=>{ const h=OBJ[+b.dataset.hdate]; openDate(b,{s:h.date,allowRange:false,onChange:s=>{ if(!s) return; h.date=s; touch('none'); b.textContent=fmtDay(s); },onClose:()=>renderDetail()}); });
 }
 
@@ -4494,7 +4617,7 @@ function renderClient(D){
   if(!c&&!narrow.matches) return clientsOverview(D);
   if(!c){ D.innerHTML=`<div class="bigempty"><div class="ill">${ic('user',1.8)}</div><h2>Pick a client</h2><p>Contacts, RR customer ID and all their events in one place.</p><p><button class="btn primary" type="button" id="bc-new">${ic('plus',2.4)} New client</button></p></div>`; $('#bc-new').onclick=newItem; return; }
   const {ev,up,past,next,oq,avg}=cliStats(c), cd=next?countdown(next):null;
-  const showH=priv(), all=showH?entriesOf(h=>h.clientId===c.id):[], open=all.filter(isOpen), coef=showH?coefOf(c.id):0;
+  const showH=priv(), all=showH?entriesOf(h=>h.clientId===c.id):[], open=all.filter(isOpen), openV=open.reduce((s,h)=>s+openOf(h),0);
   const closures=showH?S.hours.closures.filter(x=>x.clientId===c.id).sort((a,b)=>b.date.localeCompare(a.date)):[];
   const contact=c.contact&&c.contact.trim().toLowerCase()!==(c.name||'').trim().toLowerCase()?c.contact:'';
   const evRow=e=>{ const k=countdown(e), p=progress(e), q=openQ(e).length, s=e.dateStart?parse(e.dateStart):null, multi=e.dateEnd&&e.dateEnd>e.dateStart, en=multi?parse(e.dateEnd):null;
@@ -4530,48 +4653,48 @@ function renderClient(D){
       ${F(c,'rrCustomerId','RR customer ID',{ph:'e.g. 60788',mono:true,r:'change',attrs:'inputmode="numeric" autocomplete="off"'})}
       ${F(c,'email','Email',{type:'email',ph:'name@example.com'})}
       ${F(c,'phone','Phone',{type:'tel',ph:'+33…'})}
-      ${showH&&!isSB()?F(S.hours.coefficients,c.id,'Coefficient',{ph:'1',hint:'· hours × coefficient = '+esc(U().icon)+(S.hours.rates?' · a change counts from today, earlier hours keep their rate':''),t:'num',r:'change'}):''}
+      ${showH&&!isSB()&&!(S.hours.rates?.[c.id]||[]).some(x=>!x.kind||x.kind==='hours')?F(S.hours.coefficients,c.id,'Coefficient',{ph:'1',hint:'· hours × coefficient = '+esc(U().icon)+(S.hours.rates?' · a change counts from today, earlier hours keep their rate':''),t:'num',r:'change'}):''}
       ${T(c,'notes','Notes',{ph:'Anything about this client…'})}
     </div>
     <p class="hint chelp">RR customer ID is used for the “Open in RR14” links of this client's events.</p>
-  </section>${showH&&isSB()?ratesBlock(c):''}${isSB()?`<section class="sec" id="s-cportal"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Client portal</h3></div><div id="cportal"><p class="hint">Loading…</p></div></section>`:''}</div>
+  </section>${showH?ratesBlock(c):''}${isSB()?`<section class="sec" id="s-cportal"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Client portal</h3></div><div id="cportal"><p class="hint">Loading…</p></div></section>`:''}</div>
   <div class="cg-r"><section class="sec" id="s-cevents"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Events <span class="count">${ev.length}</span></h3></div>
     ${ev.length?`<div class="cevs">
       ${up.length?`<div class="cgh">Upcoming · ${up.length}</div>${up.map(evRow).join('')}`:'<div class="cgh">Nothing coming up</div>'}
       ${past.length?`<button type="button" class="cpast ${cliPast?'open':''}" id="cpast">${ic('chev',2.2)}<span>Past events</span><span class="count">${past.length}</span></button>${cliPast?past.map(evRow).join(''):''}`:''}
     </div>`:emptyBox('flag','No events for this client yet.')}
-      ${showH?`<div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Open hours <span class="count">${fmtN(sumH(open))} h</span></h3></div>${open.length?`<div class="ccard hr2-g">${open.sort((a,b)=>a.date.localeCompare(b.date)).map(h=>hRow(h,{showClient:false})).join('')}</div>`:emptyBox('hours','No open hours.')}</div>
-      <div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Close period</h3></div>
-        <p class="hint" style="margin:0 0 10px">Marks open hours up to the chosen date as closed. Their value is frozen into the closure.</p>
-        <div class="closebox"><div class="fld"><span class="lab">Up to</span>${dateBtn('cl-until',fmtDay,'Up to')}</div>
-          <div class="fld"><label class="lab" for="cl-ref">Reference</label><input class="in" id="cl-ref" placeholder="e.g. 2026-10"></div>
-          <button class="btn primary" id="cl-go" type="button" ${open.length?'':'disabled'}>Close period</button></div>
+      ${showH?`<div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Open <span class="count">${val(openV)}</span></h3></div>${open.length?`<div class="ccard hr2-g">${kindBar(open,openOf)}${open.sort(hOrder).map(h=>hRow(h,{showClient:false,showKind:true})).join('')}</div>`:emptyBox('hours','Nothing open.')}</div>
+      <div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Close</h3></div>
+        <p class="hint" style="margin:0 0 10px">A closure is an amount covered on a date: it covers the oldest open charges first. Less than what is open = a partial closure, the rest stays open.</p>
+        <div class="closebox"><div class="fld"><label class="lab" for="cl-amt">Covered (${esc(U().icon)})</label><input class="in" id="cl-amt" inputmode="decimal" value="${openV?esc(String(Math.round(openV*100)/100)):''}"></div>
+          <div class="fld"><label class="lab" for="cl-ref">Note</label><input class="in" id="cl-ref" placeholder="e.g. Bank transfer"></div>
+          <button class="btn primary" id="cl-go" type="button" ${open.length?'':'disabled'}>Close</button></div>
         <p class="hint" id="cl-preview" style="margin:6px 0 0"></p></div>
       <div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Closures <span class="count">${closures.length}</span></h3></div>
-        ${closures.length?`<div class="hs"><div class="tbox hsc"><table class="t cltab"><thead><tr><th class="stk stk1">Closed on</th><th>Up to</th><th>Ref.</th><th class="num">Hours</th><th class="num">Coeff.</th><th class="num">${esc(U().icon)}</th><th></th></tr></thead><tbody>
-          ${closures.map(x=>`<tr><td class="txt stk stk1">${esc(fmtDay(x.date))}</td><td class="txt">${esc(fmtDay(x.until))}</td><td class="txt">${esc(x.ref)}</td><td class="num">${fmtN(num(x.hours))}</td><td class="num">${coefTxt(x)}</td><td class="num">${val(num(x.value))}</td><td class="x"><button class="btn sm ghost" data-reopen="${esc(x.id)}" type="button" title="Reopen these hours">Undo</button></td></tr>`).join('')}</tbody></table></div></div>`:emptyBox('hours','No closures yet.')}</div>`:''}
+        ${closures.length?`<div class="hs"><div class="tbox hsc"><table class="t cltab"><thead><tr><th class="stk stk1">Date</th><th>Note</th><th class="num">${esc(U().icon)}</th><th></th></tr></thead><tbody>
+          ${closures.map(x=>`<tr><td class="txt stk stk1">${esc(fmtDay(x.date))}</td><td class="txt">${esc(x.note)}</td><td class="num">${val(num(x.amount))}</td><td class="x"><button class="btn sm ghost" data-reopen="${esc(x.id)}" type="button" title="Delete this closure: what it covered is open again">Undo</button></td></tr>`).join('')}</tbody></table></div></div>`:emptyBox('hours','No closures yet.')}</div>`:''}
     </section></div></div>
   <div class="foot"><span class="mono">id: ${esc(c.id)}</span><button class="btn sm ghost del dangerous" id="delcl" type="button">Delete client</button></div></div>`;
   if(showH){
     bindHoursTable(D);
-    const until=()=>$('#cl-until').dataset.date;
-    const preview=()=>{ const u=until(), rows=open.filter(h=>!u||h.date<=u);
-      $('#cl-preview').textContent=rows.length?`${plural(rows.length,'entry','entries')} · ${fmtN(sumH(rows))} h · ${fmtN(rows.reduce((t,h)=>t+hValOf(h),0))} ${U().icon}`:'No open hours in this range.'; return rows; };
-    preview();
-    bindDateBtn($('#cl-until'),fmtDay,preview);
-    $('#cl-go').onclick=()=>{ const rows=preview(); if(!rows.length) return;
-      if(!confirm(`Close ${plural(rows.length,'entry','entries')} (${fmtN(sumH(rows))} h)?`)) return;
-      // value = sum of the rows, each with the rate of its day; one coefficient when they all share it, else the rates used ("75 → 80")
-      const h=sumH(rows), ks=[...new Set(rows.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(hCoef))];
-      const x={id:uid('cl'),clientId:c.id,date:TODAY,until:until(),ref:$('#cl-ref').value.trim(),hours:h,coefficient:ks.length===1?ks[0]:'',value:Math.round(rows.reduce((t,r)=>t+hValOf(r),0)*100)/100,entryIds:rows.map(r=>r.id)};
-      if(ks.length>1) x.rates=ks;
-      S.hours.closures.push(x); for(const r of rows) r.closure=x.id; touch(); renderDetail(); toast('Period closed',`${fmtN(h)} h · ${fmtN(x.value)} ${U().icon}`,'check'); };
-    on(D,'[data-reopen]',b=>{ const x=S.hours.closures.find(y=>y.id===b.dataset.reopen); if(!x||!confirm('Reopen the hours of this closure?')) return;
-      for(const h of S.hours.entries) if(h.closure===x.id) h.closure=null; S.hours.closures=S.hours.closures.filter(y=>y!==x); touch(); renderDetail(); });
+    // what the amount would cover, oldest first
+    const preview=()=>{ let left=num($('#cl-amt').value)||0; const amt=left; let full=0, part=null;
+      for(const h of open.slice().sort(hOrder)){ const o=openOf(h); if(left<=1e-9) break; if(left>=o-1e-9){ full++; left-=o; } else { part={h,t:left,o}; left=0; } }
+      const rest=Math.max(0,openV-amt);
+      $('#cl-preview').innerHTML=amt>0?`Covers ${plural(full,'charge','charges')}${part?` and ${fmtN(part.t)} of ${fmtN(part.o)} ${esc(U().icon)} (${esc(fmtShort(part.h.date))})`:''} · ${rest>1e-9?`<b style="color:var(--warn)">partial: ${val(rest)} stay open</b>`:'everything open is covered'}${amt>openV+1e-9?` · ${val(amt-openV)} more than what is open`:''}`:'Type the amount covered.';
+      $('#cl-go').textContent=amt>0?`Close ${fmtN(amt)} ${U().icon}`:'Close'; return amt; };
+    preview(); $('#cl-amt').oninput=preview;
+    $('#cl-go').onclick=()=>{ const amt=preview(); if(!(amt>0)){ $('#cl-amt').focus(); return; }
+      const rest=Math.max(0,openV-amt);
+      if(!confirm(`Close ${fmtN(amt)} ${U().icon} for ${c.name||'this client'}?${rest>1e-9?`\n\nPartial: ${fmtN(rest)} ${U().icon} stay open.`:''}`)) return;
+      S.hours.closures.push({id:uid('cl'),clientId:c.id,date:TODAY,amount:Math.round(amt*100)/100,note:$('#cl-ref').value.trim()});
+      touch(); renderDetail(); toast(rest>1e-9?'Closed (partial)':'Closed',`${fmtN(amt)} ${U().icon}${rest>1e-9?` · ${fmtN(rest)} still open`:''}`,'check'); };
+    on(D,'[data-reopen]',b=>{ const x=S.hours.closures.find(y=>y.id===b.dataset.reopen); if(!x||!confirm(`Delete the closure of ${fmtN(num(x.amount))} ${U().icon} (${fmtDay(x.date)})?\n\nWhat it covered is open again.`)) return;
+      S.hours.closures=S.hours.closures.filter(y=>y!==x); touch(); renderDetail(); });
   }
   D.querySelector('#cpast')?.addEventListener('click',()=>{ cliPast=!cliPast; const y=scrollY; renderClient(D); scrollTo(0,y); });
   if(isSB()) loadPortalContacts(c);
-  if(isSB()&&S.hours) bindRates(D,c);
+  if(priv()) bindRates(D,c);
   on(D,'[data-jump]',(a,e)=>{ e.preventDefault(); D.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth',block:'start'}); });
   D.querySelector('#closebtn')?.addEventListener('click',()=>go('c')); // back to the overview (Esc too)
   D.querySelector('#cphone')?.addEventListener('click',async()=>{ if(await copyText(c.phone)) toast('Phone copied',c.phone,'copy'); }); // desktop: no calls, copy the number
@@ -4579,7 +4702,7 @@ function renderClient(D){
   $('#delcl').onclick=()=>{
     if(ev.length){ alert('This client has events: move or delete them first.'); return; }
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this client','lock'); return; }
-    if(all.length){ alert('This client has hours: move or delete them first.'); return; }
+    if(all.length){ alert(`This client has ${UC().toLowerCase()} charges: move or delete them first.`); return; }
     if(confirm(`Delete the client «${c.name||'untitled'}»?`)){ S.clients=S.clients.filter(x=>x!==c); if(S.hours){ delete S.hours.coefficients[c.id]; if(S.hours.rates) delete S.hours.rates[c.id]; } touch(); go('c'); } };
 }
 
@@ -4610,19 +4733,29 @@ async function markSeen(D,e){
 }
 const whenTs=ts=>{ const d=new Date(ts); if(isNaN(d)) return ''; const t=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}), day=isoOf(d);
   return day===TODAY?`Today, ${t}`:day===addDays(TODAY,-1)?`Yesterday, ${t}`:`${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',...(day.slice(0,4)!==TODAY.slice(0,4)?{year:'numeric'}:{})})}, ${t}`; };
+/* rates of a client, per kind (and item for hardware / material), each valid from a date; a charge uses the rate of its day */
+let RT={kind:'hours',item:''};
 function ratesBlock(c){
-  const l=(S.hours.rates?.[c.id]||[]).slice().sort((a,b)=>b.from.localeCompare(a.from)), cur=l.find(x=>x.from<=TODAY);
-  const row=(x,i)=>{ const newer=l[i-1], tag=x.from>TODAY?'upcoming':x===cur?'current':`until ${dLong(addDays(newer.from,-1))}`;
-    return `<div class="rrow ${x===cur?'cur':x.from>TODAY?'fut':'old'}"><span class="rv"><b>${fmtN(x.coefficient)}</b> ${esc(U().icon)} / h</span>
-      <span class="rf">from ${dLong(x.from)} <span class="rtag">${tag}</span></span>
-      <button type="button" class="btn icon sm ghost" data-rdel="${esc(x.from)}" aria-label="Delete this rate" data-tip="Delete">${ic('x',2)}</button></div>`; };
-  return `<section class="sec" id="s-crates"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Rates <span class="count">${esc(U().icon)} per hour</span></h3></div>
-    <div class="ccard rlist">${l.length?l.map(row).join(''):`<p class="hint" style="margin:6px 0">No rate yet: hours count as 1 ${esc(U().icon)} each.</p>`}
-      <button type="button" class="addline" id="rt-open">${ic('plus',2)}<span>Add rate</span></button>
-      <div class="radd" id="rt-form" hidden>${dateBtn('rt-date',fmtDay,'Valid from')}
-        <span class="rin"><input class="in" id="rt-val" inputmode="decimal" placeholder="${cur?fmtN(cur.coefficient):'75'}" aria-label="${esc(U().icon)} per hour"><i>${esc(U().icon)} / h</i></span>
-        <button class="btn primary" id="rt-add" type="button">Add</button><button class="btn icon ghost" id="rt-cancel" type="button" aria-label="Cancel">${ic('x',2)}</button></div></div></div>
-    <p class="hint" style="margin:6px 2px 0">Each hour uses the rate valid on the day of the work. A rate on a date that already has one replaces it. Closed periods keep their value.</p></section>`;
+  const all=S.hours.rates?.[c.id]||[];
+  const grp=KINDS.filter(k=>k.id!=='expense').map(k=>{ const mine=all.filter(x=>(x.kind||'hours')===k.id); if(!mine.length) return '';
+    const items=[...new Set(mine.map(x=>x.item||''))].sort();
+    return `<div class="rgrp"><div class="kgh">${kBadge(k)}<b>${k.name}</b><span>${esc(U().icon)} / ${k.per}</span></div>${items.map(it=>{
+      const l=mine.filter(x=>(x.item||'')===it).sort((a,b)=>b.from.localeCompare(a.from)), cur=l.find(x=>x.from<=TODAY);
+      return l.map((x,i)=>{ const newer=l[i-1], tag=x.from>TODAY?'upcoming':x===cur?'current':`until ${dLong(addDays(newer.from,-1))}`;
+        return `<div class="rrow ${x===cur?'cur':x.from>TODAY?'fut':'old'}"><span class="rv"><b>${fmtN(x.coefficient)}</b> ${esc(U().icon)} / ${k.per}</span>
+          <span class="rf">${it?`<b class="ri">${esc(it)}</b>`:''}from ${dLong(x.from)} <span class="rtag">${tag}</span></span>
+          <button type="button" class="btn icon sm ghost" data-rdel="${esc(JSON.stringify([k.id,it,x.from]))}" aria-label="Delete this rate" data-tip="Delete">${ic('x',2)}</button></div>`; }).join(''); }).join('')}</div>`; }).join('');
+  const K=KIND(RT.kind), its=K.items?K.items():[];
+  return `<section class="sec" id="s-crates"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Rates <span class="count">${esc(U().icon)} per kind</span></h3></div>
+    <div class="ccard rlist">${grp||`<p class="hint" style="margin:6px 0">No rate yet: hours count as 1 ${esc(U().icon)} each.</p>`}
+      <button type="button" class="addline" id="rt-open">${ic('plus',2)}<span>Add a rate</span></button>
+      <div class="radd" id="rt-form" hidden>
+        <select class="in" id="rt-kind" aria-label="Kind">${KINDS.filter(k=>k.id!=='expense').map(k=>`<option value="${k.id}" ${k.id===K.id?'selected':''}>${k.name}</option>`).join('')}</select>
+        ${K.items?(K.pick?`<select class="in" id="rt-item" aria-label="${K.name}">${its.map(i=>`<option ${i===RT.item?'selected':''}>${esc(i)}</option>`).join('')}</select>`:`<input class="in" id="rt-item" list="rt-items" value="${esc(RT.item)}" placeholder="Item" aria-label="Item"><datalist id="rt-items">${its.map(i=>`<option value="${esc(i)}">`).join('')}</datalist>`):'<span></span>'}
+        ${dateBtn('rt-date',fmtDay,'Valid from')}
+        <span class="rin"><input class="in" id="rt-val" inputmode="decimal" placeholder="${K.id==='hours'?'75':'Rate'}" aria-label="${esc(U().icon)} per ${K.per}"><i>${esc(U().icon)} / ${K.per}</i></span>
+        <button class="btn primary" id="rt-add" type="button">Add</button><button class="btn icon ghost" id="rt-cancel" type="button" aria-label="Cancel">${ic('x',2)}</button></div></div>
+    <p class="hint" style="margin:6px 2px 0">Each charge uses the rate valid on its day. A rate on a date that already has one replaces it. Expenses have no rate: they are typed in ${esc(U().label)}.</p></section>`;
 }
 function bindRates(D,c){
   const syncCoef=()=>{ const v=rateAt(S.hours.rates,c.id,TODAY); if(v===undefined) delete S.hours.coefficients[c.id]; else S.hours.coefficients[c.id]=v; };
@@ -4631,13 +4764,17 @@ function bindRates(D,c){
   bindDateBtn($('#rt-date'),fmtDay);
   const open=v=>{ $('#rt-form').hidden=!v; $('#rt-open').hidden=v; if(v) $('#rt-val').focus(); };
   $('#rt-open').onclick=()=>open(true); $('#rt-cancel').onclick=()=>open(false);
-  const go=()=>{ const v=num($('#rt-val').value), d=$('#rt-date').dataset.date;
-    if(!isFinite(v)||v<=0){ toast('Enter the rate',`${U().icon} per hour, e.g. 75`,'warn','warn'); $('#rt-val').focus(); return; }
-    S.hours.rates=S.hours.rates||{}; const l=(S.hours.rates[c.id]||[]).filter(x=>x.from!==d); l.push({from:d,coefficient:v}); l.sort((a,b)=>a.from.localeCompare(b.from));
-    S.hours.rates[c.id]=l; syncCoef(); touch(); redraw(); toast('Rate added',`${fmtN(v)} ${U().icon} / h from ${fmtDay(d)}`,'check'); };
+  $('#rt-kind').onchange=e=>{ RT={kind:e.target.value,item:''}; const d=$('#rt-date').dataset.date; $('#s-crates').outerHTML=ratesBlock(c); bindRates(D,c); open(true); $('#rt-date').dataset.date=d; $('#rt-date').querySelector('.tv').textContent=fmtDay(d); };
+  $('#rt-item')?.addEventListener('change',e=>{ RT.item=e.target.value; });
+  const go=()=>{ const v=num($('#rt-val').value), d=$('#rt-date').dataset.date, K=KIND(RT.kind), it=K.items?String($('#rt-item').value||'').trim():'';
+    if(!isFinite(v)||v<0||$('#rt-val').value.trim()===''){ toast('Enter the rate',`${U().icon} per ${K.per}`,'warn','warn'); $('#rt-val').focus(); return; }
+    if(K.items&&!it){ $('#rt-item').focus(); return; }
+    S.hours.rates=S.hours.rates||{}; const same=x=>(x.kind||'hours')===K.id&&(x.item||'')===it&&x.from===d;
+    const l=(S.hours.rates[c.id]||[]).filter(x=>!same(x)); l.push({from:d,coefficient:v,...(K.id!=='hours'?{kind:K.id}:{}),...(it?{item:it}:{})}); l.sort((a,b)=>a.from.localeCompare(b.from));
+    S.hours.rates[c.id]=l; syncCoef(); touch(); redraw(); toast('Rate added',`${it||K.name} · ${fmtN(v)} ${U().icon} / ${K.per} from ${fmtDay(d)}`,'check'); };
   add.onclick=go; $('#rt-val').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } else if(e.key==='Escape') open(false); });
-  on(D,'[data-rdel]',b=>{ const l=S.hours.rates?.[c.id]||[], x=l.find(r=>r.from===b.dataset.rdel); if(!x) return;
-    if(!confirm(`Delete the rate ${fmtN(x.coefficient)} ${U().icon} / h from ${fmtDay(x.from)}?\n\nHours of that period will use the rate before it (or 1 if there is none).`)) return;
+  on(D,'[data-rdel]',b=>{ const [k,it,fr]=JSON.parse(b.dataset.rdel), K=KIND(k), l=S.hours.rates?.[c.id]||[], x=l.find(r=>(r.kind||'hours')===k&&(r.item||'')===it&&r.from===fr); if(!x) return;
+    if(!confirm(`Delete the rate ${it?it+' ':''}${fmtN(x.coefficient)} ${U().icon} / ${K.per} from ${fmtDay(x.from)}?\n\nCharges of that period will use the rate before it${k==='hours'?' (or 1 if there is none)':''}.`)) return;
     S.hours.rates[c.id]=l.filter(r=>r!==x); if(!S.hours.rates[c.id].length) delete S.hours.rates[c.id]; syncCoef(); touch(); redraw(); });
 }
 
@@ -4676,64 +4813,67 @@ async function loadPortalContacts(c){
    ===================================================================== */
 const hf={client:'',state:'open',month:''};
 /* Hours (Oct 2026): totals, open by client, filters as chips + month ‹ ›, log card, entries as rows grouped by month */
-const hValOf=h=>num(h.hours)*hCoef(h);
-const hRow=(h,{showClient=true,showEvent=true}={})=>{ const c=clientOf(h.clientId), ev=S.events.find(x=>x.id===h.eventId), d=h.date?parse(h.date):null, cl=h.closure&&S.hours.closures.find(x=>x.id===h.closure);
-    return `<div class="hr2 ${h.closure?'closed':''}">
-      <span class="rd">${h.closure||!d?`<b>${d?d.getDate():'–'}</b><small>${d?DOW[d.getDay()]:''}</small>`:`<button type="button" class="hr2-d" data-hdate="${ref(h)}" aria-label="Date ${esc(h.date)}"><b>${d.getDate()}</b><small>${DOW[d.getDay()]}</small></button>`}</span>
-      <span class="hr2-m">${showClient||showEvent?`<small>${[showClient?esc(c?.name||'—'):'',showEvent?(ev?`<a href="#/e/${encodeURIComponent(ev.id)}" data-go="e:${esc(ev.id)}">${esc(ev.name||'untitled')}</a>`:'general'):''].filter(Boolean).join(' · ')}</small>`:''}
-        ${h.closure?`<span class="hr2-n">${esc(h.note)||'—'}</span>`:cell(h,'note',{ph:'What you did',label:'Activity'})}${isSB()?`<button type="button" class="hidenote ${h.noteHidden?'on':''}" data-hideh="${esc(h.id)}" ${h.closure?'disabled':''}>${h.noteHidden?'Note hidden from the client · shows “Timing work”':'Hide note from the client'}</button>`:''}</span>
-      <span class="hr2-h">${h.closure?`<b>${esc(fmtN(num(h.hours)))}</b>`:cell(h,'hours',{label:'Hours',t:'num',r:'change',style:'text-align:right'})}<small>h</small></span>
-      <span class="hr2-v">${val(hValOf(h))}</span>
-      <span class="hr2-s">${h.closure?`<span class="tag" title="${esc(cl?.ref||'')}">closed</span>`:'<span class="tag open">open</span>'}</span>
-      <span class="hr2-x">${h.closure?'':`<button class="btn icon sm ghost del" data-delh="${esc(h.id)}" type="button" aria-label="Delete entry">${ic('x')}</button>`}</span></div>`; };
+/* one charge as a row: date · what (kind, item, note) · quantity · value (× rate) · open / part / closed · delete */
+const hRow=(h,{showClient=true,showEvent=true,showKind=false}={})=>{ const K=KIND(kindOf(h)), c=clientOf(h.clientId), ev=S.events.find(x=>x.id===h.eventId), d=h.date?parse(h.date):null;
+    const v=hValOf(h), cv=covOf(h), shut=!isOpen(h), part=!shut&&cv>1e-9, r=hRate(h);
+    const meta=[showClient?esc(c?.name||'—'):'',showEvent?(ev?`<a href="#/e/${encodeURIComponent(ev.id)}" data-go="e:${esc(ev.id)}">${esc(ev.name||'untitled')}</a>`:'general'):''].filter(Boolean);
+    const what=K.items?`<span class="hr2-n hr2-it">${esc(h.item||'—')}${K.days?` · ${shut?`<b>${fmtN(num(h.days||1))}</b>`:cell(h,'days',{label:'Days',t:'num',r:'change',cls:'dcell'})} ${num(h.days||1)===1?'day':'days'}`:''}</span>`
+      :shut?`<span class="hr2-n">${esc(h.note)||'—'}</span>`:cell(h,'note',{ph:K.ph,label:'Note'});
+    return `<div class="hr2 ${shut?'closed':''}">
+      <span class="rd">${shut||!d?`<b>${d?d.getDate():'–'}</b><small>${d?DOW[d.getDay()]:''}</small>`:`<button type="button" class="hr2-d" data-hdate="${ref(h)}" aria-label="Date ${esc(h.date)}"><b>${d.getDate()}</b><small>${DOW[d.getDay()]}</small></button>`}</span>
+      <span class="hr2-m">${showKind||meta.length?`<small>${showKind?`${kBadge(K)}${K.name}${meta.length?' · ':''}`:''}${meta.join(' · ')}</small>`:''}
+        ${what}${isSB()&&!K.items?`<button type="button" class="hidenote ${h.noteHidden?'on':''}" data-hideh="${esc(h.id)}" ${shut?'disabled':''}>${h.noteHidden?'Note hidden from the client · shows “Timing work”':'Hide note from the client'}</button>`:''}</span>
+      <span class="hr2-h">${shut?`<b>${esc(fmtN(qtyOf(h)))}</b>`:cell(h,K.id==='hours'?'hours':'qty',{label:K.q,t:'num',r:'change',style:'text-align:right'})}<small>${K.unit||esc(U().icon)}</small></span>
+      <span class="hr2-v">${val(v)}${r!=null?`<small>× ${fmtN(r)}${h.rate!=null&&h.rate!==''?' own':''}</small>`:''}</span>
+      <span class="hr2-s">${shut?'<span class="tag">closed</span>':part?`<span class="tag part" title="${esc(fmtN(cv))} of ${esc(fmtN(v))} covered">part</span>`:'<span class="tag open">open</span>'}</span>
+      <span class="hr2-x">${shut||part?'':`<button class="btn icon sm ghost del" data-delh="${esc(h.id)}" type="button" aria-label="Delete">${ic('x')}</button>`}</span></div>`; };
+/* the charges of a list grouped by kind: header (badge, name, sum), rows; a bar by kind when there are several */
+function kindBar(list,f=hValOf){ const parts=KINDS.map(k=>[k,list.filter(h=>kindOf(h)===k.id).reduce((s,h)=>s+f(h),0)]).filter(([,v])=>v>0), tot=parts.reduce((s,[,v])=>s+v,0);
+  return parts.length>1?`<div class="kbar">${parts.map(([k,v])=>`<i style="width:${v/tot*100}%;background:${k.k}"></i>`).join('')}</div><div class="klegend">${parts.map(([k,v])=>`<span><i style="background:${k.k}"></i>${k.name} <b>${fmtN(v)}</b></span>`).join('')}</div>`:''; }
+function byKind(list,o={}){ return KINDS.map(k=>{ const rows=list.filter(h=>kindOf(h)===k.id); if(!rows.length) return '';
+  return `<div class="kgrp"><div class="kgh">${kBadge(k)}<b>${k.name}</b><span>${k.id==='hours'?fmtN(sumH(rows))+' h · ':''}${val(sumV(rows))}</span></div>${rows.map(h=>hRow(h,o)).join('')}</div>`; }).join(''); }
 function renderHours(D){
   const all=S.hours.entries, ym=TODAY.slice(0,7), yr=TODAY.slice(0,4);
-  const rows=all.filter(h=>(!hf.client||h.clientId===hf.client)&&(hf.state==='all'||(hf.state==='open')===isOpen(h))&&(!hf.month||(h.date||'').startsWith(hf.month))).sort((a,b)=>b.date.localeCompare(a.date));
-  const open=all.filter(isOpen), openH=sumH(open), openV=open.reduce((s,h)=>s+hValOf(h),0);
-  const monthH=sumH(all.filter(h=>(h.date||'').startsWith(ym))), closedY=sumH(all.filter(h=>h.closure&&(h.date||'').startsWith(yr)));
+  const rows=all.filter(h=>(!hf.client||h.clientId===hf.client)&&(hf.state==='all'||(hf.state==='open')===isOpen(h))&&(!hf.month||(h.date||'').startsWith(hf.month))).sort((a,b)=>b.date.localeCompare(a.date)||String(b.id).localeCompare(String(a.id)));
+  const open=all.filter(isOpen), openV=open.reduce((s,h)=>s+openOf(h),0), openH=sumH(open);
+  const monthV=sumV(all.filter(h=>(h.date||'').startsWith(ym))), clY=S.hours.closures.filter(x=>(x.date||'').startsWith(yr));
   const addC=hf.client||S.clients[0]?.id||'';
   const [y,m]=(hf.month||ym).split('-').map(Number);
-  // per client: open hours
-  const byC=S.clients.map(c=>{ const o=open.filter(h=>h.clientId===c.id); return {c,h:sumH(o),v:o.reduce((s,h)=>s+hValOf(h),0),n:o.length,last:o.map(h=>h.date).sort().pop()}; }).filter(x=>x.n).sort((a,b)=>b.h-a.h);
-  // entries grouped by month
+  const byC=S.clients.map(c=>{ const o=open.filter(h=>h.clientId===c.id); return {c,h:sumH(o),v:o.reduce((s,h)=>s+openOf(h),0),n:o.length,last:o.map(h=>h.date).sort().pop()}; }).filter(x=>x.n).sort((a,b)=>b.v-a.v);
   const groups=[]; for(const h of rows){ const k=(h.date||'').slice(0,7); let g=groups[groups.length-1]; if(!g||g.k!==k){ g={k,items:[]}; groups.push(g); } g.items.push(h); }
-  const row=h=>hRow(h);
   D.innerHTML=`<div class="home hrs2">
-    <div class="hm-head"><div><div class="cc-eye">${hf.state==='all'?'All hours':hf.state==='open'?'Open hours':'Closed hours'} · ${hf.month?esc(MONL[m-1]+' '+y):'all months'}${hf.client?` · ${esc(clientName(hf.client))}`:''}</div><h1>Hours</h1></div></div>
+    <div class="hm-head"><div><div class="cc-eye">${hf.state==='all'?'All':hf.state==='open'?'Open':'Closed'} · ${hf.month?esc(MONL[m-1]+' '+y):'all months'}${hf.client?` · ${esc(clientName(hf.client))}`:''}</div><h1>${esc(UC())}</h1></div></div>
     <div class="ov-stats">
-      <div class="ov-s warn"><div class="cc-eye">Open hours</div><b>${fmtN(openH)}<small> h</small></b><span>not closed yet · ${plural(byC.length,'client','clients')}</span></div>
-      <div class="ov-s"><div class="cc-eye">Open value</div><b>${fmtN(openV)}<small> ${esc(U().icon)}</small></b><span>hours × each client's coefficient</span></div>
-      <div class="ov-s"><div class="cc-eye">This month</div><b>${fmtN(monthH)}<small> h</small></b><span>logged in ${esc(MONL[+ym.slice(5)-1])}</span></div>
-      <div class="ov-s"><div class="cc-eye">Closed in ${yr}</div><b>${fmtN(closedY)}<small> h</small></b><span>${plural(S.hours.closures.filter(x=>(x.date||'').startsWith(yr)).length,'closure','closures')}</span></div>
+      <div class="ov-s warn"><div class="cc-eye">Open</div><b>${fmtN(openV)}<small> ${esc(U().icon)}</small></b><span>not closed yet · ${plural(byC.length,'client','clients')}</span></div>
+      <div class="ov-s"><div class="cc-eye">Open hours</div><b>${fmtN(openH)}<small> h</small></b><span>of the open charges</span></div>
+      <div class="ov-s"><div class="cc-eye">This month</div><b>${fmtN(monthV)}<small> ${esc(U().icon)}</small></b><span>charged in ${esc(MONL[+ym.slice(5)-1])}</span></div>
+      <div class="ov-s"><div class="cc-eye">Closed in ${yr}</div><b>${fmtN(clY.reduce((s,x)=>s+num(x.amount),0))}<small> ${esc(U().icon)}</small></b><span>${plural(clY.length,'closure','closures')}</span></div>
     </div>
     ${byC.length?`<div class="cc-h">Open by client <span>${byC.length}</span></div><div class="hr2-cl">${byC.map(x=>`<div class="ccard hr2-c" data-id="${esc(x.c.id)}" role="button" tabindex="0">
-      <div class="cc-eye">${plural(x.n,'entry','entries')} · last ${esc(fmtShort(x.last).split(' ').slice(1).join(' '))}</div><div class="cc-name">${esc(x.c.name)}</div>
-      <div class="hr2-cv"><b>${fmtN(x.h)} h</b><span>${val(x.v)} · × ${fmtN(coefOf(x.c.id))}</span></div>
-      <button type="button" class="tbtn" data-close="${esc(x.c.id)}">Close period ${ic('chev',2.2)}</button></div>`).join('')}</div>`:''}
+      <div class="cc-eye">${plural(x.n,'charge','charges')} · last ${esc(fmtShort(x.last).split(' ').slice(1).join(' '))}</div><div class="cc-name">${esc(x.c.name)}</div>
+      <div class="hr2-cv"><b>${val(x.v)}</b><span>${x.h?fmtN(x.h)+' h · ':''}× ${fmtN(coefOf(x.c.id))} / h</span></div>
+      <button type="button" class="tbtn" data-close="${esc(x.c.id)}">Close ${ic('chev',2.2)}</button></div>`).join('')}</div>`:''}
     <div class="hr2-tools">
       <select class="in sm hchip" id="hf-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${hf.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <span class="agseg" role="group" aria-label="Status">${[['open','Open'],['closed','Closed'],['all','All']].map(([v,l])=>`<button type="button" data-hstate="${v}" aria-pressed="${hf.state===v}">${l}</button>`).join('')}</span>
       <span class="hr2-mon"><button class="btn icon sm ghost" type="button" data-hmon="-1" aria-label="Previous month">${ic('chevl',2.2)}</button><button type="button" class="hr2-ml ${hf.month?'on':''}" data-hmon="0">${hf.month?esc(MONL[m-1]+' '+y):'All months'}</button><button class="btn icon sm ghost" type="button" data-hmon="1" aria-label="Next month">${ic('chev',2.2)}</button>${hf.month?`<button type="button" class="tbtn quiet" data-hmon="x">All</button>`:''}</span>
-      <span class="spacer"></span><span class="hint"><b style="color:var(--ink)">${fmtN(sumH(rows))} h</b> · ${val(rows.reduce((s,h)=>s+hValOf(h),0))} shown</span></div>
-    <div class="ccard hr2-log"><div class="cc-eye">Log hours</div>
-      <div class="hoursadd">
+      <span class="spacer"></span><span class="hint"><b style="color:var(--ink)">${val(sumV(rows))}</b> shown</span></div>
+    <div class="ccard hr2-log"><div class="cc-eye">Add a charge</div>
+      <div class="hoursadd2">
         <select class="in" id="a-client" aria-label="Client">${S.clients.map(c=>`<option value="${esc(c.id)}" ${addC===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
-        <select class="in" id="a-event" aria-label="Event"></select>
-        ${dateBtn('a-date')}
-        <input class="in" id="a-hours" inputmode="decimal" placeholder="Hours" aria-label="Hours">
-        <input class="in grow" id="a-note" placeholder="What you did" aria-label="Activity">
-        <button class="btn primary" id="a-add" type="button" ${S.clients.length?'':'disabled'}>Add</button>
-      </div></div>
-    ${groups.length?groups.map(g=>{ const [gy,gm]=g.k.split('-').map(Number); return `<div class="ccard hr2-g"><div class="hr2-gh"><span class="cc-eye">${esc(MONL[gm-1]+' '+gy)}</span><span class="hint">${fmtN(sumH(g.items))} h · ${val(g.items.reduce((s,h)=>s+hValOf(h),0))}</span></div>${g.items.map(row).join('')}</div>`; }).join(''):`<div class="ccard hr2-g"><div class="ov-empty">${ic('hours',2)} No hours with these filters.</div></div>`}
+        <select class="in" id="a-event" aria-label="Event"></select></div>
+      ${chargeForm('a')}</div>
+    ${groups.length?groups.map(g=>{ const [gy,gm]=g.k.split('-').map(Number); return `<div class="ccard hr2-g"><div class="hr2-gh"><span class="cc-eye">${esc(MONL[gm-1]+' '+gy)}</span><span class="hint">${sumH(g.items)?fmtN(sumH(g.items))+' h · ':''}${val(sumV(g.items))}</span></div>${g.items.map(h=>hRow(h,{showKind:true})).join('')}</div>`; }).join(''):`<div class="ccard hr2-g"><div class="ov-empty">${ic('hours',2)} Nothing with these filters.</div></div>`}
   </div>`;
   const fillEv=()=>{ const cid=$('#a-client').value; $('#a-event').innerHTML=`<option value="">— general (no event) —</option>`+S.events.filter(e=>e.clientId===cid).sort((a,b)=>(b.dateStart||'').localeCompare(a.dateStart||'')).map(e=>`<option value="${esc(e.id)}">${esc(e.name||'untitled')}</option>`).join(''); };
-  fillEv(); $('#a-client').onchange=fillEv;
+  fillEv(); $('#a-client').onchange=()=>{ fillEv(); $('#a-cf').outerHTML=chargeForm('a'); bindChargeForm('a',tgt); };
+  const tgt=()=>({clientId:$('#a-client').value,eventId:$('#a-event').value});
   $('#hf-client').onchange=e=>{ hf.client=e.target.value; renderDetail(); };
   on(D,'[data-hstate]',b=>{ hf.state=b.dataset.hstate; renderDetail(); });
   on(D,'[data-hmon]',b=>{ const k=b.dataset.hmon; if(k==='x'){ hf.month=''; } else if(k==='0'){ hf.month=hf.month?'':ym; } else { const d=new Date(y,m-1+(+k),1,12); hf.month=isoOf(d).slice(0,7); } renderDetail(); });
   D.querySelectorAll('.hr2-c').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('[data-close]')) return; hf.client=hf.client===el.dataset.id?'':el.dataset.id; renderDetail(); }));
   on(D,'[data-close]',b=>go('c',b.dataset.close));
-  bindAddHours('a',()=>({clientId:$('#a-client').value,eventId:$('#a-event').value}));
+  bindChargeForm('a',tgt);
   bindHoursTable(D);
 }
 
@@ -5061,7 +5201,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='212'; let APPV=HV, UPD=false;
+const HV='213'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
@@ -5430,7 +5570,7 @@ function renderCmd(){
       {t:'Copy EventID',icon:'copy',sub:ce.rr14EventId||'Set the EventID',run:()=>ce.rr14EventId?navigator.clipboard?.writeText(ce.rr14EventId).then(()=>toast('EventID copied',ce.rr14EventId,'copy')):toast('Set the EventID','','warn','warn')},
       {t:'Open client summary',icon:'doc',sub:ce.name,run:()=>openSummary(ce)},
       {t:'Copy AI prompt to update this event',icon:'sparkle',sub:ce.name,run:()=>openPrompt(ce)}]; })():[]),
-    ...(priv()?[{t:'Go to Hours',icon:'hours',run:()=>go('h')}]:[]),
+    ...(priv()?[{t:'Go to '+UC(),icon:'hours',run:()=>go('h')}]:[]),
     {t:'Keyboard shortcuts',icon:'keyboard',k:'?',run:()=>openKeys()},
     {t:'Show past events',icon:'clock',run:()=>{ flt.past=true; go('e',route.view==='e'?route.id:null); }},
     {t:'Settings',icon:'gear',run:()=>openSettings()},
@@ -6105,7 +6245,7 @@ async function loadHours(){
     delete c.coefficient; moved++; }
   if(moved){ coefMigrated=true; touch('none'); }
   let fixed=0;
-  for(const h of S.hours.entries){ if(h.closure||!h.eventId) continue; const ev=S.events.find(x=>x.id===h.eventId); if(ev?.clientId&&ev.clientId!==h.clientId){ h.clientId=ev.clientId; fixed++; } }
+  for(const h of S.hours.entries){ if(!h.eventId||!isOpen(h)||covOf(h)>0) continue; const ev=S.events.find(x=>x.id===h.eventId); if(ev?.clientId&&ev.clientId!==h.clientId){ h.clientId=ev.clientId; fixed++; } }
   if(fixed) touch('none');
 }
 /* Lock: save pending hours changes first, then drop hours from memory (kept until they are saved, so nothing is lost) */
@@ -6280,7 +6420,7 @@ $('#lk-pinonly').onclick=()=>turnOnLock(false);
 function newItem(){
   if(!S) return;
   if(route.view==='c'){ const c={id:uid('cl'),name:'',contact:'',email:'',phone:'',rrCustomerId:'',notes:''}; S.clients.push(c); touch(); go('c',c.id); focusName(); return; }
-  if(route.view==='h'){ $('#a-hours')?.focus(); return; }
+  if(route.view==='h'){ $('#a-qty')?.focus(); return; }
   if(route.view==='a'){ openEntry(null,agSel||TODAY); return; }
   const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],rankings:[],teamScores:[],onReg:[],kiosk:[],lists:[],myrrTabs:[],participantViews:[],presenter:[],questions:[],checklist:{},checklistExtra:[],notes:''};
   S.events.push(e); touch(); go('e',e.id); focusName();

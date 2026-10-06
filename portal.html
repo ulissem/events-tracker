@@ -274,6 +274,19 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 .compose .lbl{font-size:12px;font-weight:600;color:var(--ink-2)}
 .compose .qbar{display:flex}
 .hidden-note{color:var(--ink-3)!important;font-style:italic}
+.kb{width:22px;height:22px;border-radius:7px;display:inline-grid;place-items:center;flex:none;color:#fff;background:var(--k)}
+.kb svg{width:13px;height:13px}
+.kg + .kg{border-top:.5px solid var(--line);margin-top:4px}
+.kh{display:flex;align-items:center;gap:9px;padding:9px 0 3px;font-size:14px}
+.kh b{font-weight:700} .kh > span:last-child{margin-left:auto;font-family:var(--round);font-weight:700}
+.kh.ev{padding:8px 0} .kh.ev > span:nth-child(2){display:flex;flex-direction:column;line-height:1.2} .kh.ev small{font-size:12px;color:var(--ink-2)}
+.kg .hr{padding-left:31px}
+.kbar{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:14px 0 8px;background:var(--sunken)}
+.kbar i{display:block;height:100%} .kbar i + i{box-shadow:inset 2px 0 0 var(--panel)}
+.klegend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink-2)}
+.klegend span{display:inline-flex;align-items:center;gap:5px} .klegend i{width:7px;height:7px;border-radius:50%} .klegend b{color:var(--ink);font-weight:600;font-family:var(--round)}
+.hr .tag{display:inline-flex;height:18px;padding:0 7px;border-radius:999px;font-size:10.5px;font-weight:600;margin-left:6px;vertical-align:1px;background:var(--warn-soft);color:var(--warn)}
+@media (max-width:640px){ .kg .hr{padding-left:0} }
 .coef{font-size:12px;font-weight:600;color:var(--ink-3);white-space:nowrap}
 .coef b{color:var(--ink-2);font-family:var(--round)}
 /* files */
@@ -747,7 +760,7 @@ function startLive(){ if(live||!ME?.orgId||!ME?.clientId) return;
 async function signOut(){ live?.stop(); live=null; try{ if(sess) await fetch(`${SB.url}/auth/v1/logout`,{method:'POST',headers:{apikey:SB.key,Authorization:`Bearer ${sess.access}`}}); }catch{} sess=null; saveSess(); ME=null; location.hash=''; render(); }
 
 /* ---------- data ---------- */
-let ME=null, EVENTS=[], ICE={open:[],closed:[],coefficient:1}, DET={}, state='loading', loadErr='';
+let ME=null, EVENTS=[], ICE={charges:[],closures:[]}, DET={}, state='loading', loadErr='';
 const OP=()=>({...OP_DEFAULT,...(ME?.operator||{})});
 /* appearance: Auto (the device) → Light → Dark, remembered on this device */
 const THEME_KEY='racehub-portal-theme', darkMQ=matchMedia('(prefers-color-scheme:dark)');
@@ -759,6 +772,7 @@ function cycleTheme(){ themePref=themePref==='auto'?'light':themePref==='light'?
   applyTheme(); rerender(); toast(`Appearance: ${themePref==='auto'?'Auto (like this device)':themePref==='light'?'Light':'Dark'}`); }
 applyTheme(); darkMQ.addEventListener('change',()=>{ if(themePref==='auto'&&state==='ok') rerender(); });
 const U=()=>ME?.unit?.icon||'🍦';
+const UC=()=>{ const l=ME?.unit?.label||'ice creams'; return l[0].toUpperCase()+l.slice(1); }; // the unit is one setting (owner config.unit)
 const evOf=r=>({id:r.id,name:r.name||'Untitled event',start:r.dateStart||'',end:r.dateEnd||'',loc:r.location||'',type:r.type||'',status:r.status||'',
   geo:r.geo&&isFinite(+r.geo.lat)?[+r.geo.lat,+r.geo.lon]:null,progress:r.progress??0,step:r.step,rr:r.rr14EventId||'',open:r.openQuestions||0,races:r.races||0});
 const ev=id=>EVENTS.find(e=>e.id===id);
@@ -772,8 +786,8 @@ const stepOf=e=>e.step!=null?e.step:e.status==='closed'?5:e.status==='ready'?4:e
 async function loadAll(){
   try{
     ME=await rpc('portal_me'); if(!seenRead){ SEEN=ME?.prefs?.seen||null; seenRead=true; }
-    const [evs,ice]=await Promise.all([rpc('portal_events'),rpc('portal_icecreams')]);
-    EVENTS=(evs||[]).map(evOf); ICE=ice||ICE;
+    const [evs,ice]=await Promise.all([rpc('portal_events'),rpc('portal_charges')]);
+    EVENTS=(evs||[]).map(evOf); ICE=icePrep(ice||ICE);
     await Promise.all(EVENTS.filter(e=>e.open||upcoming().includes(e)||DET[e.id]).map(e=>loadEvent(e.id))); if(document.visibilityState==='visible') rpc('mark_seen').catch(()=>{}); // open questions are answered on Home; the next event shows its start time; details already here are refreshed too (a question closed elsewhere must not linger)
     startLive();
     if(state==='ok'){ rerender(); return; } // a refresh: no entrance animations, map tiles kept
@@ -827,9 +841,9 @@ function chrome(route){
   const n=totalOpen(), cur=r=>route===r?'aria-current="page"':'', map=EVENTS.some(e=>e.geo);
   $('#top').innerHTML=`<div class="top-in">
     <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>Race Hub</b><small>${ME?.demo?'Demo':'Client area'}</small></span></a><button type="button" class="pver ${PV_NEW?'new':''}" data-act="update" title="${PV_NEW?'A newer version is out · tap to update':'Reload the client area'}">v${PV}${PV_NEW?' · Update':''}</button>
-    <nav class="island" aria-label="Sections"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a>${map?`<a href="#map" ${cur('map')}>Map</a>`:''}${noIce()?'':`<a href="#ic" ${cur('ic')}>Ice creams</a>`}</nav>
+    <nav class="island" aria-label="Sections"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a>${map?`<a href="#map" ${cur('map')}>Map</a>`:''}${noIce()?'':`<a href="#ic" ${cur('ic')}>${esc(UC())}</a>`}</nav>
     <button class="pav" data-act="account" aria-label="Account and appearance" aria-haspopup="menu">${esc(initials(ME?.client))}</button></div>`;
-  $('#tbar').innerHTML=`<a href="#home" ${cur('home')}>${TB.home}Home</a><a href="#q" ${cur('q')}>${TB.q}Questions${n?`<span class="badge">${n}</span>`:''}</a>${map?`<a href="#map" ${cur('map')}>${TB.map}Map</a>`:''}${noIce()?'':`<a href="#ic" ${cur('ic')}>${TB.ic}Ice creams</a>`}`;
+  $('#tbar').innerHTML=`<a href="#home" ${cur('home')}>${TB.home}Home</a><a href="#q" ${cur('q')}>${TB.q}Questions${n?`<span class="badge">${n}</span>`:''}</a>${map?`<a href="#map" ${cur('map')}>${TB.map}Map</a>`:''}${noIce()?'':`<a href="#ic" ${cur('ic')}>${TB.ic}${esc(UC())}</a>`}`;
 }
 
 /* ---------- questions ---------- */
@@ -867,8 +881,30 @@ const greet=()=>{ const h=new Date().getHours(); return h<12?'Good morning':h<18
 const upcoming=()=>EVENTS.filter(e=>days(e)==null||days(e)>=0||e.end&&e.end>=isoToday()).sort((a,b)=>(a.start||'9').localeCompare(b.start||'9'));
 const pastEvents=()=>EVENTS.filter(e=>!upcoming().includes(e)).sort((a,b)=>b.start.localeCompare(a.start));
 const noIce=()=>!!ME?.demo; // the demo client has no ice creams (tab, Home card, event card)
-const iceTotal=()=>ICE.open.reduce((s,h)=>s+(+h.icecreams||0),0), iceHours=()=>ICE.open.reduce((s,h)=>s+(+h.hours||0),0);
-const coefChip=()=>`<span class="coef">1 h = <b>${ic(ICE.coefficient)}</b> ${U()}</span>`;
+/* ice creams v2 (Oct 2026): charges of several kinds; closures are amounts that cover the oldest charges first (date, then id) */
+const KINDS={hours:{n:'Hours',u:'h',k:'#0a7aff'},hardware:{n:'Hardware',u:'pc',k:'#7a5af5'},travel:{n:'Travel',u:'km',k:'#30b0c7'},material:{n:'Material',u:'pc',k:'#ff9500'},expense:{n:'Expenses',u:'',k:'#ff2d92'}};
+const KSV={
+  hours:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  hardware:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>',
+  travel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3"/></svg>',
+  material:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.2"/></svg>',
+  expense:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>'};
+const KO=['hours','hardware','travel','material','expense'], KN=id=>KINDS[id]||{n:id,u:'',k:'#8e8e93'};
+const kb=id=>`<span class="kb" style="--k:${KN(id).k}" aria-hidden="true">${KSV[id]||''}</span>`;
+function icePrep(x){ const ch=(x.charges||[]).map(c=>({...c,value:+c.value||0})), cl=(x.closures||[]).map(c=>({...c,amount:+c.amount||0,covers:[]}));
+  let left=cl.reduce((s,c)=>s+c.amount,0);
+  for(const c of ch){ c.cov=Math.min(c.value,Math.max(0,left)); left-=c.cov; c.open=Math.round((c.value-c.cov)*100)/100; }
+  // what each closure covered, closures in date order, charges oldest first
+  let i=0, rest=ch[0]?.value||0;
+  for(const k of cl){ let a=k.amount; while(a>1e-9&&i<ch.length){ const t=Math.min(a,rest), c=ch[i]; const g=k.covers.find(z=>z.eventId===c.eventId)||(k.covers.push({eventId:c.eventId,event:c.event,t:0}),k.covers.at(-1)); g.t+=t; a-=t; rest-=t; if(rest<=1e-9){ i++; rest=ch[i]?.value||0; } } }
+  return {charges:ch,closures:cl}; }
+const openC=()=>ICE.charges.filter(c=>c.open>1e-9);
+const iceTotal=()=>openC().reduce((s,c)=>s+c.open,0), iceHours=()=>openC().filter(c=>c.kind==='hours').reduce((s,c)=>s+(+c.qty||0),0);
+const cLabel=c=>c.kind==='hardware'?`${c.item||'Hardware'} × ${ic(c.qty)} · ${plural(+c.days||1,'day','days')}`:c.kind==='material'?`${c.item||'Material'} × ${ic(c.qty)}`
+  :c.kind==='hours'?`${ic(c.qty)} h${c.note?' · '+c.note:''}`:c.kind==='travel'?`${ic(c.qty)} km${c.note?' · '+c.note:''}`:(c.note||'Expense');
+const cCalc=c=>c.kind==='expense'?'at cost':c.kind==='hardware'?`${ic(c.qty)} × ${ic(+c.days||1)} d × ${ic(c.rate)} ${U()}`:`${ic(c.qty)} × ${ic(c.rate)} ${U()}`;
+function kindBar(list,f){ const parts=KO.map(k=>[k,list.filter(c=>c.kind===k).reduce((s,c)=>s+f(c),0)]).filter(([,v])=>v>0), tot=parts.reduce((s,[,v])=>s+v,0);
+  return parts.length?`<div class="kbar">${parts.map(([k,v])=>`<i style="width:${v/tot*100}%;background:${KN(k).k}"></i>`).join('')}</div><div class="klegend">${parts.map(([k,v])=>`<span><i style="background:${KN(k).k}"></i>${KN(k).n} <b>${ic(v)}</b></span>`).join('')}</div>`:''; }
 function vHome(){
   const nr=EVENTS.reduce((n,e)=>n+qsOf(e).filter(isNewReply).length,0);
   const up=upcoming(), today=up.find(e=>days(e)===0||(e.start<=isoToday()&&e.end>=isoToday())), next=today||up[0], rest=up.filter(e=>e!==next), past=pastEvents(), qn=totalOpen();
@@ -884,7 +920,7 @@ function vHome(){
   ${waitBlock(up)}
   ${seasonCard()}
   ${rest.length?`<div class="h2">Also coming up <span>${rest.length}</span></div><div class="evgrid">${rest.map(e=>evCard(e)).join('')}</div>`:''}
-  <div class="h2">Ice creams &amp; contact</div>
+  <div class="h2">${noIce()?'Your contact':esc(UC())+' &amp; contact'}</div>
   ${duo()}
   ${past.length?`<div class="h2">Past events <span>${past.length}</span></div><div class="evgrid past">${past.map(e=>evCard(e,true)).join('')}</div>`:''}</div>`;
 }
@@ -926,18 +962,18 @@ function waitBlock(up){
     ${openQs(e).map(q=>qItem(e,q)).join('')}</div>`).join('')}</div>`;
 }
 function duo(){
-  const o=OP(), ini=o.name.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase(), last=ICE.closed.map(c=>c.until).filter(Boolean).sort().pop();
+  const o=OP(), ini=o.name.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase(), last=ICE.closures.map(c=>c.date).filter(Boolean).sort().pop();
   return `<div class="duo ${noIce()?'one':''}">
-    ${noIce()?'':`<div class="card glow" style="--tint:#ff2d92" data-go="#ic"><div class="cardh"><div class="eye">Ice creams · open</div><a class="cardlink" href="#ic">Details ›</a></div>
-      ${ICE.open.length?`<div class="icrow"><div class="ic-big"><b>${ic(iceTotal())}</b><span>${U()}</span></div></div><div class="ic-sub">${ic(iceHours())} hours${sinceTxt()} · 1 h = ${ic(ICE.coefficient)} ${U()}</div>`
-        :`<div class="ic-empty">Nothing open</div><div class="ic-sub">${last?`Last period closed on ${fmtD(last,{day:'numeric',month:'short'})} · `:''}1 h = ${ic(ICE.coefficient)} ${U()}</div>`}
+    ${noIce()?'':`<div class="card glow" style="--tint:#ff2d92" data-go="#ic"><div class="cardh"><div class="eye">${esc(UC())} · open</div><a class="cardlink" href="#ic">Details ›</a></div>
+      ${openC().length?`<div class="icrow"><div class="ic-big"><b>${ic(iceTotal())}</b><span>${U()}</span></div></div><div class="ic-sub">${plural(openC().length,'entry','entries')}${sinceTxt()}</div>${kindBar(openC(),c=>c.open)}`
+        :`<div class="ic-empty">Nothing open</div><div class="ic-sub">${last?`Last closed on ${fmtD(last,{day:'numeric',month:'short'})}`:'Everything is closed'}</div>`}
       <div class="push"></div></div>`}
     <div class="card"><div class="eye mute">Your contact</div>
       <div class="contact-c"><div class="av">${esc(ini)}</div><div><b>${esc(o.name)}</b><small>${esc(o.role)}</small></div></div>
       <div class="push"></div><div class="wa-note">${I.wa} Questions? WhatsApp me</div></div>
   </div>`;
 }
-const sinceTxt=()=>{ const u=ICE.closed.map(c=>c.until).filter(Boolean).sort().pop(); return u?` · since ${fmtD(u,{day:'numeric',month:'short'})}`:''; };
+const sinceTxt=()=>{ const u=ICE.closures.map(c=>c.date).filter(Boolean).sort().pop(); return u?` · since ${fmtD(u,{day:'numeric',month:'short'})}`:''; };
 function timerCard(){ const o=OP(); return `<div class="card"><div class="eye mute">Your contact</div><div style="font-size:16px;font-weight:700;margin-top:6px">${esc(o.name)}</div><div class="ic-sub">${esc(o.role)}</div>
   <div class="wa-note">${I.wa} Questions? WhatsApp me</div></div>`; }
 function evCard(e,past=false){
@@ -948,8 +984,10 @@ function evCard(e,past=false){
     <div class="steps">${STEPS.map((_,i)=>`<i class="${i<s?'d':i===s?'c':''}"></i>`).join('')}</div>
     <div class="stepl"><span>${past?'Finished':`Now: <b>${STEPS[s][0]}</b>`}</span><span>${past?'6/6':`${s+1}/6`}</span></div></div>`;
 }
-function hRow(h){ const d=D(h.date);
-  return `<div class="hr"><div class="d"><b>${d.getDate()}</b>${MON[d.getMonth()]}</div><div class="t"><b>${esc(h.event||'General')}</b><small class="${h.hidden?'hidden-note':''}">${esc(h.note||'—')}</small></div><div class="v">${ic(h.icecreams)} ${U()}<small>${ic(h.hours)} h</small></div></div>`; }
+function hRow(c,{event=false}={}){ const d=D(c.date), part=c.cov>1e-9&&c.open>1e-9;
+  return `<div class="hr"><div class="d"><b>${d.getDate()}</b>${MON[d.getMonth()]}</div><div class="t"><b class="${c.hidden?'hidden-note':''}">${esc(cLabel(c))}${part?`<span class="tag warn">${ic(c.cov)} of ${ic(c.value)} covered</span>`:''}</b><small>${event?esc(c.event||'General')+' · ':''}${esc(cCalc(c))}</small></div><div class="v">${ic(part?c.open:c.value)} ${U()}${part?'<small>still open</small>':''}</div></div>`; }
+function kindGroups(list,f=c=>c.open,o){ return KO.map(k=>{ const rows=list.filter(c=>c.kind===k); if(!rows.length) return '';
+  return `<div class="kg"><div class="kh">${kb(k)}<b>${KN(k).n}</b><span>${ic(rows.reduce((s,c)=>s+f(c),0))} ${U()}</span></div>${rows.map(c=>hRow(c,o)).join('')}</div>`; }).join(''); }
 function tilesFor(e){
   if(!e.geo) return '';
   const z=10,[lat,lon]=e.geo,[px,py]=prj(lat,lon,z),x=px/256,y=py/256, dark=isDark(), tx=Math.floor(x), ty=Math.floor(y), fx=x-tx, fy=y-ty; let h='';
@@ -959,7 +997,7 @@ function tilesFor(e){
 function vEvent(id){
   const e=ev(id), d=DET[id]; if(!e) return `<div class="rise"><a class="back" href="#home">${I.chev} Home</a><div class="card"><div class="lede" style="margin:0">This event is not available.</div></div></div>`;
   if(!d){ loadEvent(id).then(rerender).catch(()=>{}); return `<div class="rise"><a class="back" href="#home">${I.chev} Home</a><div class="card"><div class="lede" style="margin:0">Loading…</div></div></div>`; }
-  const n=days(e), oq=openN(e), s=stepOf(e), eh=ICE.open.filter(h=>h.eventId===e.id), first=OP().name.split(' ')[0];
+  const n=days(e), oq=openN(e), s=stepOf(e), eh=ICE.charges.filter(h=>h.eventId===e.id), first=OP().name.split(' ')[0];
   const note=stepNote(e);
   return `<div class="rise" style="${tstyle(e)}">
   <a class="back" href="#home">${I.chev} Home</a>
@@ -977,7 +1015,10 @@ function vEvent(id){
     </div>
     <div class="col">
       ${tpCard(d)}
-      ${noIce()?'':`<div class="card glow" style="--tint:#ff2d92"><div class="eye">Ice creams · this event</div>${eh.length?eh.map(hRow).join(''):'<div class="ic-sub" style="margin-top:8px">Nothing open for this event.</div>'}${eh.length?`<div class="mh" style="border-top:.5px solid var(--line);padding-top:10px;margin-top:2px">Open ${coefChip()}<span>${ic(eh.reduce((t,h)=>t+(+h.icecreams||0),0))} ${U()}</span></div>`:''}</div>`}
+      ${noIce()||!eh.length?'':`<div class="card glow" style="--tint:#ff2d92"><div class="eye">${esc(UC())} · this event</div>
+        ${KO.map(k=>{ const r=eh.filter(c=>c.kind===k); if(!r.length) return ''; const q=k==='hours'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' h':k==='travel'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' km':k==='hardware'?plural(r.reduce((s,c)=>s+(+c.qty||0)*(+c.days||1),0),'piece-day','piece-days'):k==='material'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' pcs':plural(r.length,'expense','expenses');
+          return `<div class="kh ev">${kb(k)}<span><b>${KN(k).n}</b><small>${q}</small></span><span>${ic(r.reduce((s,c)=>s+c.value,0))} ${U()}</span></div>`; }).join('')}
+        <div class="mh" style="border-top:.5px solid var(--line);padding-top:10px;margin-top:4px">Total${eh.some(c=>c.open>1e-9)?` <small class="coef">${ic(eh.reduce((s,c)=>s+c.open,0))} ${U()} open</small>`:' <small class="coef">closed</small>'}<span>${ic(eh.reduce((s,c)=>s+c.value,0))} ${U()}</span></div></div>`}
       ${timerCard()}
     </div></div></div>`;
 }
@@ -1019,13 +1060,13 @@ function vQuestions(){
     ${archOpen?`<div class="qlist arch">${arch.map(([e,l])=>`<div class="card qcard" style="${tstyle(e)}">${head(e,0)}${l.sort((a,b)=>a.n-b.n).map(q=>qItem(e,q)).join('')}</div>`).join('')}</div>`:''}`:''}</div>`;
 }
 function vIce(){
-  const by={}; ICE.open.forEach(h=>{ const m=(h.date||'').slice(0,7); (by[m]=by[m]||[]).push(h); });
-  return `<div class="rise"><div class="eyebrow">${sinceTxt().replace(' · ','')||'Open'}</div><h1>Ice creams</h1>
-  <p class="lede">${esc(OP().name.split(' ')[0])}'s work on your events, in ${U()}.</p>
-  <div class="card glow ichero" style="--tint:#ff2d92"><div><div class="eye">To close</div><div class="ic-big"><b>${ic(iceTotal())}</b><span>${U()}</span></div><div class="ic-sub">${ic(iceHours())} hours · ${plural(ICE.open.length,'entry','entries')} · ${plural(new Set(ICE.open.map(h=>h.eventId)).size,'event','events')}</div><div style="margin-top:10px"><span class="chip" style="height:28px;font-size:13px">1 h = ${ic(ICE.coefficient)} ${U()}</span></div></div></div>
-  <div class="g2" style="margin-top:14px"><div class="col"><div class="h2" style="margin-top:12px">Detail</div>
-    ${Object.keys(by).sort().reverse().map(m=>`<div class="card"><div class="mh">${D(m+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}<span>${ic(by[m].reduce((t,h)=>t+(+h.icecreams||0),0))} ${U()}</span></div>${by[m].map(hRow).join('')}</div>`).join('')||'<div class="card"><div class="ic-sub">Nothing open.</div></div>'}</div>
-    <div class="col"><div class="h2" style="margin-top:12px">Closed</div><div class="card">${ICE.closed.map(c=>`<div class="closed"><span><b>${c.from?fmtD(c.from,{day:'numeric',month:'short'})+' – ':''}${fmtD(c.until,{day:'numeric',month:'short',year:'numeric'})}</b><small>${[c.ref,c.hours!=null&&`${ic(c.hours)} h`].filter(Boolean).map(esc).join(' · ')}</small></span><span class="v">${ic(c.value)} ${U()}</span></div>`).join('')||'<div class="ic-sub">No closed periods yet.</div>'}</div></div></div></div>`;
+  const op=openC(), evs=[...new Set(op.map(c=>c.eventId||''))];
+  return `<div class="rise"><div class="eyebrow">${sinceTxt().replace(' · ','')||'Open'}</div><h1>${esc(UC())}</h1>
+  <p class="lede">${esc(OP().name.split(' ')[0])}'s work on your events, in ${U()}, by kind. What is covered moves to Closed.</p>
+  <div class="card glow ichero" style="--tint:#ff2d92"><div><div class="eye">To close</div><div class="ic-big"><b>${ic(iceTotal())}</b><span>${U()}</span></div><div class="ic-sub">${plural(op.length,'entry','entries')} · ${plural(evs.length,'event','events')}</div>${kindBar(op,c=>c.open)}</div></div>
+  <div class="g2" style="margin-top:14px"><div class="col"><div class="h2" style="margin-top:12px">Open</div>
+    ${evs.map(id=>{ const l=op.filter(c=>(c.eventId||'')===id); return `<div class="card"><div class="mh">${esc(l[0].event||'General')}<span>${ic(l.reduce((s,c)=>s+c.open,0))} ${U()}</span></div>${kindGroups(l)}</div>`; }).join('')||'<div class="card"><div class="ic-sub">Nothing open.</div></div>'}</div>
+    <div class="col"><div class="h2" style="margin-top:12px">Closed</div><div class="card">${ICE.closures.slice().reverse().map(k=>`<div class="closed"><span><b>${fmtD(k.date,{day:'numeric',month:'short',year:'numeric'})}</b><small>${k.covers.map(g=>{ const tot=ICE.charges.filter(c=>(c.eventId||'')===(g.eventId||'')).reduce((s,c)=>s+c.value,0); return esc(g.event||'General')+(g.t<tot-1e-9?` · ${ic(g.t)} of ${ic(tot)}`:''); }).join('<br>')||esc(k.note||'')}</small></span><span class="v">${ic(k.amount)} ${U()}</span></div>`).join('')||'<div class="ic-sub">Nothing closed yet.</div>'}</div></div></div></div>`;
 }
 let linkSent='';
 function vLogin(){
@@ -1049,7 +1090,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='212'; let PV_NEW=false, APPV=PV;
+const PV='213'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
