@@ -97,6 +97,8 @@ select.in,select.cell{appearance:none;-webkit-appearance:none;line-height:normal
 /* affix group: icon / input / button inside one field */
 .in.group{display:flex;align-items:center;gap:6px;padding:0 3px 0 10px}
 .in.group > svg{width:15px;height:15px;color:var(--ink-3);flex:none}
+/* safe-word / PIN: a text field drawn as dots, not type=password, so password managers do not offer to save or update a login */
+.secret{-webkit-text-security:disc;text-security:disc}
 .bare{flex:1;min-width:0;height:100%;border:0;background:none;outline:0;padding:0}
 /* button that looks like a field */
 .in.trig{display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer}
@@ -2098,6 +2100,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .nur b{font-size:12.5px} .nur small{font-size:10.5px}
   .fd .dn{font-size:16px} .fi{font-size:10px}
   .sec > .grid > .fld .in{font-size:14px;height:28px}
+  .task textarea.tx{font-size:14px;line-height:19px;min-height:34px;padding:7px 7px} .task,.tasks.wurl .task{min-height:38px} .task.add .cell{height:34px} /* list items: same size as the General fields */
   .lab,.fld .lab{font-size:11.5px}
   #detail .hero .nameinput{font-size:24px}
   .hdate .num{font-size:17px} .hin{font-size:14px} .hplace{font-size:13.5px}
@@ -2725,8 +2728,8 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 <dialog id="unlock" aria-label="Private data">
   <form class="dlg" id="unlockform" autocomplete="off">
     <div class="ulhead"><span class="ulicon" aria-hidden="true" id="ul-icon">🍦</span><div><h2 id="ul-title">Private data</h2><p style="margin:0" id="ul-text"></p></div></div>
-    <div class="fld" style="margin-top:14px"><label class="lab" for="ul-in" id="ul-lab">Safe-word</label><div class="in group" id="ul-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input class="bare" id="ul-in" type="password" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" spellcheck="false" placeholder="Your safe-word"></div>
-      <div id="ul-two" class="ulmode2" hidden><label class="lab" for="ul-in2">Repeat it</label><div class="in group" id="ul-box2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input class="bare" id="ul-in2" type="password" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" spellcheck="false" placeholder="Same safe-word again"></div></div>
+    <div class="fld" style="margin-top:14px"><label class="lab" for="ul-in" id="ul-lab">Safe-word</label><div class="in group" id="ul-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input class="bare secret" id="ul-in" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" spellcheck="false" placeholder="Your safe-word"></div>
+      <div id="ul-two" class="ulmode2" hidden><label class="lab" for="ul-in2">Repeat it</label><div class="in group" id="ul-box2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input class="bare secret" id="ul-in2" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" spellcheck="false" placeholder="Same safe-word again"></div></div>
       <div class="ulmsg" id="ul-msg" role="alert"></div></div>
     <div class="hint" id="ul-hint">Locks again after 10 minutes without activity, when you leave the tab, or with the 🍦 button.</div>
     <div class="acts"><button class="btn" type="button" id="ul-cancel">Cancel</button><button class="btn primary" type="submit" id="ul-go">Unlock</button></div>
@@ -2742,7 +2745,7 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
   <div class="alogo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
   <h2>Race Hub</h2><p id="al-msg">Locked</p>
   <button class="btn primary al-big" type="button" id="al-bio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1M15 9v1M12 9v4h-1M9 16a4 4 0 0 0 6 0"/></svg><span>Unlock</span></button>
-  <form id="al-pinf" autocomplete="off" hidden><input class="in" id="al-pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="PIN" aria-label="PIN"><button class="btn primary" type="submit" id="al-pgo">Unlock</button></form>
+  <form id="al-pinf" autocomplete="off" hidden><input class="in secret" id="al-pin" type="text" autocapitalize="off" autocorrect="off" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="PIN" aria-label="PIN"><button class="btn primary" type="submit" id="al-pgo">Unlock</button></form>
   <button class="btn ghost sm" type="button" id="al-usepin">Use PIN</button>
   <button class="btn ghost sm al-reset" type="button" id="al-reset">Reset this device…</button>
 </div></div>
@@ -2750,8 +2753,8 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 <dialog id="lockdlg" aria-label="App lock">
   <form class="dlg" id="lockform" autocomplete="off">
     <h2 id="lk-title" style="margin:0 0 6px;font-size:17px">App lock</h2><p id="lk-text" style="margin:0 0 14px;color:var(--ink-2)"></p>
-    <div class="en2"><div class="fld"><label class="lab" for="lk-p1">Backup PIN</label><input class="in" id="lk-p1" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="4–8 digits"></div>
-      <div class="fld"><label class="lab" for="lk-p2">Repeat PIN</label><input class="in" id="lk-p2" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="Same PIN"></div></div>
+    <div class="en2"><div class="fld"><label class="lab" for="lk-p1">Backup PIN</label><input class="in secret" id="lk-p1" type="text" autocapitalize="off" autocorrect="off" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="4–8 digits"></div>
+      <div class="fld"><label class="lab" for="lk-p2">Repeat PIN</label><input class="in secret" id="lk-p2" type="text" autocapitalize="off" autocorrect="off" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-bwignore="true" data-1p-ignore data-lpignore="true" placeholder="Same PIN"></div></div>
     <div class="ulmsg" id="lk-msg" role="alert"></div>
     <div class="acts" style="display:flex;gap:8px;align-items:center;margin-top:10px"><button class="btn ghost sm" type="button" id="lk-pinonly">PIN only</button><span class="spacer"></span><button class="btn" type="button" id="lk-cancel">Cancel</button><button class="btn primary" type="submit" id="lk-go">Turn on</button></div>
   </form>
@@ -5560,7 +5563,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='238'; let APPV=HV, UPD=false;
+const HV='239'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
