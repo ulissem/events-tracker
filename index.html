@@ -3811,7 +3811,8 @@ function sortable(root){
     item.classList.add('dragging'); document.body.classList.add('sorting');
     for(const x of geo) for(const el of x.u){ el.style.transition=x.u[0]===item?'none':'transform .2s cubic-bezier(.2,.7,.2,1)'; el.style.willChange='transform'; }
     const layout=()=>{
-      const dy=Math.max(minDy,Math.min(maxDy,y-y0+sTop()-s0)), c=geo[from].mid+dy;
+      // the row stops at the ends of the list, the slot keeps counting half a row further: first / last place are reachable
+      const raw=y-y0+sTop()-s0, dy=Math.max(minDy,Math.min(maxDy,raw)), c=geo[from].mid+Math.max(minDy-step/2,Math.min(maxDy+step/2,raw));
       let t=from; while(t>0&&c<geo[t-1].mid) t--; while(t<last&&c>geo[t+1].mid) t++; to=t;
       geo.forEach((x,i)=>{ const off=i===from?dy:from<to&&i>from&&i<=to?-step:to<from&&i>=to&&i<from?step:0; for(const el of x.u) el.style.transform=off?`translateY(${off}px)`:''; });
     };
@@ -5433,7 +5434,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='232'; let APPV=HV, UPD=false;
+const HV='233'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
