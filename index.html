@@ -2468,7 +2468,6 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
   .hr2-s .tag{font-size:10px}
   .hr2-log .hoursadd{grid-template-columns:1fr 1fr}
   .cf-f{grid-template-columns:1fr 1fr} .cf-f .grow{grid-column:1/-1} .cf-f .in{height:40px}
-  .radd{grid-template-columns:1fr 1fr} .radd .btn.primary{grid-column:1/2}
   .hr2-log .hoursadd .grow,.hr2-log .hoursadd .btn{grid-column:1/-1}
   .hr2-tools .spacer{display:none}
 }
@@ -2509,8 +2508,17 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .hoursadd2{display:grid;grid-template-columns:1fr 1.4fr;gap:6px;margin:8px 0 2px} .hoursadd2 .in{height:34px}
 .rgrp + .rgrp{margin-top:6px}
 .rgrp .kgh{padding-left:0}
-.rrow .ri{color:var(--ink);font-weight:600;margin-right:4px}
-.radd{grid-template-columns:130px minmax(0,1fr) minmax(120px,auto) minmax(0,1fr) auto auto}
+.rrow2{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(110px,auto) 28px;gap:12px;align-items:center;padding:9px 0 9px 28px;border-top:.5px solid var(--line)}
+.rrow2 .rrn{display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-width:0} .rrow2 .rrn b{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .rrow2 .rrn small{font-size:12px;color:var(--ink-3)}
+.rrow2 .rrv{font-size:12.5px;color:var(--ink-2);white-space:nowrap;text-align:right} .rrow2 .rrv b{font-family:var(--round);font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.rrow2 .rtag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--sunken);color:var(--ink-3);white-space:nowrap}
+.rrow2.cur .rtag{background:var(--ok-soft,rgba(52,199,89,.14));color:var(--ok,#34c759)} .rrow2.fut .rtag{background:var(--accent-soft);color:var(--accent)}
+.rrow2.old{opacity:.6}
+.rgrp + .rgrp{margin-top:8px}
+.rnone{font-size:12px;color:var(--ink-3);margin:10px 0 0}
+.radd2{padding:12px 0 4px} .radd2[hidden]{display:none}
+.radd2-f{display:flex;flex-wrap:wrap;gap:8px} .radd2-f > *{flex:1 1 150px} .radd2-f .in{height:36px} .radd2-f .radd2-b{flex:0 0 auto;display:flex;gap:6px}
+@media (max-width:860px){ .rrow2{grid-template-columns:minmax(0,1fr) auto 36px;grid-template-areas:"n v x" "t v x";gap:4px 10px;padding-left:0} .rrow2 > .rrn{grid-area:n} .rrow2 > .rtag{grid-area:t;justify-self:start} .rrow2 > .rrv{grid-area:v} .rrow2 > .btn{grid-area:x} }
 .hr2-add{display:grid;grid-template-columns:130px 76px minmax(0,1fr) auto;gap:6px;padding:10px 8px 2px;border-top:1px solid var(--line)}
 .hr2-add .in{height:32px}
 
@@ -4657,7 +4665,7 @@ function renderClient(D){
       ${T(c,'notes','Notes',{ph:'Anything about this client…'})}
     </div>
     <p class="hint chelp">RR customer ID is used for the “Open in RR14” links of this client's events.</p>
-  </section>${showH?ratesBlock(c):''}${isSB()?`<section class="sec" id="s-cportal"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Client portal</h3></div><div id="cportal"><p class="hint">Loading…</p></div></section>`:''}</div>
+  </section>${isSB()?`<section class="sec" id="s-cportal"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Client portal</h3></div><div id="cportal"><p class="hint">Loading…</p></div></section>`:''}</div>
   <div class="cg-r"><section class="sec" id="s-cevents"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Events <span class="count">${ev.length}</span></h3></div>
     ${ev.length?`<div class="cevs">
       ${up.length?`<div class="cgh">Upcoming · ${up.length}</div>${up.map(evRow).join('')}`:'<div class="cgh">Nothing coming up</div>'}
@@ -4673,7 +4681,7 @@ function renderClient(D){
       <div class="cpriv"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Closures <span class="count">${closures.length}</span></h3></div>
         ${closures.length?`<div class="hs"><div class="tbox hsc"><table class="t cltab"><thead><tr><th class="stk stk1">Date</th><th>Note</th><th class="num">${esc(U().icon)}</th><th></th></tr></thead><tbody>
           ${closures.map(x=>`<tr><td class="txt stk stk1">${esc(fmtDay(x.date))}</td><td class="txt">${esc(x.note)}</td><td class="num">${val(num(x.amount))}</td><td class="x"><button class="btn sm ghost" data-reopen="${esc(x.id)}" type="button" title="Delete this closure: what it covered is open again">Undo</button></td></tr>`).join('')}</tbody></table></div></div>`:emptyBox('hours','No closures yet.')}</div>`:''}
-    </section></div></div>
+    </section>${showH?ratesBlock(c):''}</div></div>
   <div class="foot"><span class="mono">id: ${esc(c.id)}</span><button class="btn sm ghost del dangerous" id="delcl" type="button">Delete client</button></div></div>`;
   if(showH){
     bindHoursTable(D);
@@ -4742,20 +4750,23 @@ function ratesBlock(c){
     return `<div class="rgrp"><div class="kgh">${kBadge(k)}<b>${k.name}</b><span>${esc(U().icon)} / ${k.per}</span></div>${items.map(it=>{
       const l=mine.filter(x=>(x.item||'')===it).sort((a,b)=>b.from.localeCompare(a.from)), cur=l.find(x=>x.from<=TODAY);
       return l.map((x,i)=>{ const newer=l[i-1], tag=x.from>TODAY?'upcoming':x===cur?'current':`until ${dLong(addDays(newer.from,-1))}`;
-        return `<div class="rrow ${x===cur?'cur':x.from>TODAY?'fut':'old'}"><span class="rv"><b>${fmtN(x.coefficient)}</b> ${esc(U().icon)} / ${k.per}</span>
-          <span class="rf">${it?`<b class="ri">${esc(it)}</b>`:''}from ${dLong(x.from)} <span class="rtag">${tag}</span></span>
+        return `<div class="rrow2 ${x===cur?'cur':x.from>TODAY?'fut':'old'}"><span class="rrn"><b>${it?esc(it):'From '+dLong(x.from)}</b>${it?`<small>from ${dLong(x.from)}</small>`:''}</span>
+          <span class="rtag">${tag}</span><span class="rrv"><b>${fmtN(x.coefficient)}</b> ${esc(U().icon)} / ${k.per}</span>
           <button type="button" class="btn icon sm ghost" data-rdel="${esc(JSON.stringify([k.id,it,x.from]))}" aria-label="Delete this rate" data-tip="Delete">${ic('x',2)}</button></div>`; }).join(''); }).join('')}</div>`; }).join('');
+  const none=KINDS.filter(k=>k.id!=='expense'&&!all.some(x=>(x.kind||'hours')===k.id));
   const K=KIND(RT.kind), its=K.items?K.items():[];
-  return `<section class="sec" id="s-crates"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Rates <span class="count">${esc(U().icon)} per kind</span></h3></div>
-    <div class="ccard rlist">${grp||`<p class="hint" style="margin:6px 0">No rate yet: hours count as 1 ${esc(U().icon)} each.</p>`}
+  return `<section class="sec" id="s-crates"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}Rates <span class="count">${all.length}</span></h3></div>
+    <div class="ccard rlist">${grp||`<p class="hint" style="margin:8px 0">No rate yet: hours count as 1 ${esc(U().icon)} each.</p>`}
+      ${none.length&&grp?`<p class="rnone">No rate yet for ${none.map(k=>k.name).join(', ')} · asked the first time you add one</p>`:''}
       <button type="button" class="addline" id="rt-open">${ic('plus',2)}<span>Add a rate</span></button>
-      <div class="radd" id="rt-form" hidden>
-        <select class="in" id="rt-kind" aria-label="Kind">${KINDS.filter(k=>k.id!=='expense').map(k=>`<option value="${k.id}" ${k.id===K.id?'selected':''}>${k.name}</option>`).join('')}</select>
-        ${K.items?(K.pick?`<select class="in" id="rt-item" aria-label="${K.name}">${its.map(i=>`<option ${i===RT.item?'selected':''}>${esc(i)}</option>`).join('')}</select>`:`<input class="in" id="rt-item" list="rt-items" value="${esc(RT.item)}" placeholder="Item" aria-label="Item"><datalist id="rt-items">${its.map(i=>`<option value="${esc(i)}">`).join('')}</datalist>`):'<span></span>'}
-        ${dateBtn('rt-date',fmtDay,'Valid from')}
-        <span class="rin"><input class="in" id="rt-val" inputmode="decimal" placeholder="${K.id==='hours'?'75':'Rate'}" aria-label="${esc(U().icon)} per ${K.per}"><i>${esc(U().icon)} / ${K.per}</i></span>
-        <button class="btn primary" id="rt-add" type="button">Add</button><button class="btn icon ghost" id="rt-cancel" type="button" aria-label="Cancel">${ic('x',2)}</button></div></div>
-    <p class="hint" style="margin:6px 2px 0">Each charge uses the rate valid on its day. A rate on a date that already has one replaces it. Expenses have no rate: they are typed in ${esc(U().label)}.</p></section>`;
+      <div class="radd2" id="rt-form" hidden>
+        <div class="cf-k" role="group" aria-label="Kind">${KINDS.filter(k=>k.id!=='expense').map(x=>`<button type="button" class="cf-chip" style="--k:${x.k}" data-rtk="${x.id}" aria-pressed="${x.id===K.id}">${kBadge(x)}${x.name}</button>`).join('')}</div>
+        <div class="radd2-f">
+          ${K.items?(K.pick?`<select class="in" id="rt-item" aria-label="${K.name}">${its.map(i=>`<option ${i===RT.item?'selected':''}>${esc(i)}</option>`).join('')}</select>`:`<input class="in" id="rt-item" list="rt-items" value="${esc(RT.item)}" placeholder="Item" aria-label="Item"><datalist id="rt-items">${its.map(i=>`<option value="${esc(i)}">`).join('')}</datalist>`):''}
+          ${dateBtn('rt-date',fmtDay,'Valid from')}
+          <span class="rin"><input class="in" id="rt-val" inputmode="decimal" placeholder="${K.id==='hours'?'75':'Rate'}" aria-label="${esc(U().icon)} per ${K.per}"><i>${esc(U().icon)} / ${K.per}</i></span>
+          <span class="radd2-b"><button class="btn primary" id="rt-add" type="button">Add</button><button class="btn icon ghost" id="rt-cancel" type="button" aria-label="Cancel">${ic('x',2)}</button></span></div></div></div>
+    <p class="hint" style="margin:6px 2px 0">Each charge uses the rate valid on its day; a new rate never changes earlier charges. Expenses have no rate: they are typed in ${esc(U().label)}.</p></section>`;
 }
 function bindRates(D,c){
   const syncCoef=()=>{ const v=rateAt(S.hours.rates,c.id,TODAY); if(v===undefined) delete S.hours.coefficients[c.id]; else S.hours.coefficients[c.id]=v; };
@@ -4764,7 +4775,7 @@ function bindRates(D,c){
   bindDateBtn($('#rt-date'),fmtDay);
   const open=v=>{ $('#rt-form').hidden=!v; $('#rt-open').hidden=v; if(v) $('#rt-val').focus(); };
   $('#rt-open').onclick=()=>open(true); $('#rt-cancel').onclick=()=>open(false);
-  $('#rt-kind').onchange=e=>{ RT={kind:e.target.value,item:''}; const d=$('#rt-date').dataset.date; $('#s-crates').outerHTML=ratesBlock(c); bindRates(D,c); open(true); $('#rt-date').dataset.date=d; $('#rt-date').querySelector('.tv').textContent=fmtDay(d); };
+  D.querySelectorAll('[data-rtk]').forEach(b=>b.onclick=()=>{ if(RT.kind===b.dataset.rtk) return; RT={kind:b.dataset.rtk,item:''}; const d=$('#rt-date').dataset.date; $('#s-crates').outerHTML=ratesBlock(c); bindRates(D,c); open(true); $('#rt-date').dataset.date=d; $('#rt-date').querySelector('.tv').textContent=fmtDay(d); });
   $('#rt-item')?.addEventListener('change',e=>{ RT.item=e.target.value; });
   const go=()=>{ const v=num($('#rt-val').value), d=$('#rt-date').dataset.date, K=KIND(RT.kind), it=K.items?String($('#rt-item').value||'').trim():'';
     if(!isFinite(v)||v<0||$('#rt-val').value.trim()===''){ toast('Enter the rate',`${U().icon} per ${K.per}`,'warn','warn'); $('#rt-val').focus(); return; }
@@ -5201,7 +5212,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='214'; let APPV=HV, UPD=false;
+const HV='215'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
