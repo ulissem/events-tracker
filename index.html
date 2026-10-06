@@ -1433,6 +1433,7 @@ kbd{border-color:var(--line-2);border-bottom-width:1px;background:transparent;bo
 @media (min-width:861px) and (min-height:501px), (min-width:861px) and (pointer:fine){
 .top{background:var(--bg);border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none}
 .top::after{content:'';position:absolute;left:0;right:0;top:100%;height:14px;background:linear-gradient(var(--bg),transparent);pointer-events:none}
+.top .island{z-index:1} /* above that fade: it cut the island's shadow into a hard line */
 .top .brand{cursor:pointer} .top .brand:hover .ver{color:var(--accent)}
   .top .brand .ver.new{color:#fff;background:var(--accent);padding:1px 7px;border-radius:999px;margin-left:-2px}
   .updpill{display:none!important}
@@ -5282,7 +5283,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='219'; let APPV=HV, UPD=false;
+const HV='220'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });

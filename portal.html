@@ -635,7 +635,7 @@ main{min-height:100vh;box-sizing:border-box} /* every page at least one screen t
 @media (min-width:641px){
   .top{background:var(--bg);border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none}
   .top::after{content:'';position:absolute;left:0;right:0;top:100%;height:14px;background:linear-gradient(var(--bg),transparent);pointer-events:none}
-  .top-in{position:relative;max-width:none}
+  .top-in{position:relative;z-index:1;max-width:none} /* above the fade under the bar: it cut the island's shadow into a hard line */
   .island{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:2px;padding:4px;border-radius:999px;background:var(--panel);box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -12px rgba(0,0,0,.28)}
   .island a{height:30px;padding:0 15px;border-radius:999px;display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:500;color:var(--ink-2)}
   .island a:hover{color:var(--ink)}
@@ -1109,7 +1109,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='219'; let PV_NEW=false, APPV=PV;
+const PV='220'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
