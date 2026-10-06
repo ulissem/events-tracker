@@ -3725,6 +3725,12 @@ function T(o,k,label,{ph='',cls='',hideLabel=false}={}){ const id='f'+(++fid); r
 function Sel(o,k,label,opts,{cls='',r=''}={}){ const id='f'+(++fid); return `<div class="fld ${cls}"><label class="lab" for="${id}">${label}</label><select class="in" id="${id}" data-o="${ref(o)}" data-k="${esc(k)}" ${r?`data-r="${r}"`:''}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${String(o[k]??'')===String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select></div>`; }
 const cell=(o,k,{ph='',type='text',label='',cls='',t='',r='',style=''}={})=>`<input class="cell ${cls}" type="${type}" data-o="${ref(o)}" data-k="${esc(k)}" ${t?`data-t="${t}" inputmode="decimal"`:''} ${r?`data-r="${r}"`:''} ${style?`style="${style}"`:''} value="${esc(o[k])}" placeholder="${esc(ph)}" aria-label="${esc(label||ph)}">`;
 
+/* a field left by pressing another control (blur → change) redraws only once the press is over: a redraw in the middle of the
+   press replaced the control under the pointer and the click was lost (the first click on a checklist box did nothing) */
+let ptrDown=false, ptrQ=[];
+addEventListener('pointerdown',()=>{ ptrDown=true; },true);
+for(const t of ['pointerup','pointercancel']) addEventListener(t,()=>{ ptrDown=false; const q=ptrQ; ptrQ=[]; if(q.length) setTimeout(()=>q.forEach(f=>f()),0); },true); // after the click (same task as pointerup)
+const afterPress=f=>{ if(ptrDown) ptrQ.push(f); else setTimeout(f,0); };
 function bind(root){
   root.querySelectorAll('[data-o]').forEach(el=>{
     const evn=(el.type==='checkbox'||el.tagName==='SELECT')?'change':'input';
@@ -3735,14 +3741,14 @@ function bind(root){
       o[k]=v; touch(k==='location'&&o===S?.events.find(x=>x.id===route.id)?'hold':undefined); // the location waits for its coordinates
       if(el.dataset.r==='detail') renderDetail();
     });
-    if(el.dataset.r==='change') el.addEventListener('change',()=>setTimeout(renderDetail,0)); // after Tab has moved the focus, so renderDetail can keep it there
+    if(el.dataset.r==='change') el.addEventListener('change',()=>afterPress(renderDetail)); // after Tab has moved the focus (renderDetail keeps it there), or after the click that left the field
   });
   root.querySelectorAll('[data-addto]').forEach(el=>{
     const add=refocus=>{ const v=el.value.trim(); if(!v) return; el.value='';
       OBJ[+el.dataset.addto].push(mkTask(v)); touch(); renderDetail();
       if(refocus) root.querySelector(`[data-lk="${CSS.escape(el.dataset.lk)}"]`)?.focus(); };
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); add(true); } });
-    el.addEventListener('change',()=>add(false));
+    el.addEventListener('change',()=>afterPress(()=>add(false)));
   });
   on(root,'[data-tnote]',b=>{ const it=OBJ[+b.dataset.tnote]; openNote(b,it,'note',`Note · ${it.text||'item'}`); });
   on(root,'[data-addsub]',b=>{ const ch=OBJ[+b.dataset.addsub]; ch.push(mkTask()); const lk=`${b.dataset.lk}.${ch.length}`; touch(); renderDetail();
@@ -5370,7 +5376,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='226'; let APPV=HV, UPD=false;
+const HV='227'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
