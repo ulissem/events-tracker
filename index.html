@@ -1894,6 +1894,9 @@ body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
 main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + strip z-indexes (600+) stay inside: bottom sheets and their scrim go above */
 .mapel{z-index:0}
 .leaflet-container.leaflet-container{background:var(--bg)}
+/* tile seams on desktop at a fractional scale (browser zoom, scaled display): edges fall on half pixels and the background shows through;
+   each tile half a pixel larger overlaps the next one (normal blending, not leaflet's plus-lighter, or the overlap would be brighter) */
+.leaflet-container img.leaflet-tile{mix-blend-mode:normal;width:256.5px!important;height:256.5px!important}
 .leaflet-top.leaflet-right{top:58px}
 .leaflet-bottom.leaflet-left{bottom:198px}
 .leaflet-bar{border:0!important;box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -14px rgba(0,0,0,.5)!important;border-radius:10px!important;background:color-mix(in srgb,var(--panel) 78%,transparent)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
