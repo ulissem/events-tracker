@@ -276,12 +276,12 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 .compose{border-top:.5px solid var(--line);padding:12px 0 2px;display:flex;flex-direction:column;gap:8px}
 .compose .lbl{font-size:12px;font-weight:600;color:var(--ink-2)}
 .compose .qbar{display:flex}
-.hidden-note{color:var(--ink-3)!important;font-style:italic}.frow{display:grid;grid-template-columns:40px minmax(0,1fr) 28px;gap:10px;align-items:center;padding:9px 0;border-bottom:.5px solid var(--line)}
+.hidden-note{color:var(--ink-3)!important;font-style:italic}.frow{display:grid;grid-template-columns:40px minmax(0,1fr) 30px 28px;gap:10px;align-items:center;padding:9px 0;border-bottom:.5px solid var(--line)}
 .fic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:#fff;background:var(--ft)}
 .fn{border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0;display:flex;flex-direction:column}
 .fn b{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .fn:hover b{color:var(--accent)}
 .fn small{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fx{border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;width:28px;height:28px;border-radius:50%} .fx:hover{background:var(--sunken);color:var(--ink)}
+.fx{border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;width:28px;height:28px;border-radius:50%;display:grid;place-items:center} .fx:hover{background:var(--sunken);color:var(--ink)}
 .fprog{font-size:12.5px;color:var(--accent);padding:8px 0 0}
 .addline span{display:flex;flex-direction:column;gap:1px} .addline span small{font-size:12px;color:var(--ink-3);font-weight:400}
 .kb{width:22px;height:22px;border-radius:7px;display:inline-grid;place-items:center;flex:none;color:#fff;background:var(--k)}
@@ -1066,6 +1066,7 @@ function filesCard(e,d){
   return `<div class="card" id="files"><div class="eye ${fs.length?'':'mute'}">Files${fs.length?` · ${fs.length}`:''}</div>
     ${fs.map(f=>`<div class="frow"><span class="fic" style="--ft:${fTint(f.name)}">${esc(fExt(f.name))}</span>
       <button type="button" class="fn" data-fopen="${esc(f.id)}"><b>${esc(f.name)}</b><small>${esc(fSize(+f.size||0))} · ${who(f)} · ${esc(when(f.createdAt))}</small></button>
+      <button type="button" class="fx" data-fdl="${esc(f.id)}" aria-label="Download ${esc(f.name)}" title="Download"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/></svg></button>
       ${f.mine&&!PREVIEW?`<button type="button" class="fx" data-fdel="${esc(f.id)}" aria-label="Delete ${esc(f.name)}">×</button>`:'<span></span>'}</div>`).join('')}
     ${fBusy?`<div class="fprog">${esc(fBusy)}</div>`:''}
     <button type="button" class="addline" data-act="fadd" data-ev="${esc(e.id)}"><i>+</i><span>${fs.length?'Add files':`Share a file with ${esc(OP().name.split(' ')[0])}`}<small>GPX, rules, start lists, logos · max 10 MB</small></span></button>
@@ -1083,9 +1084,11 @@ async function uploadFiles(eid,files){
   }
   fBusy=''; await loadEvent(eid); rerender(); if(ok) toast(ok===1?`File shared with ${OP().name.split(' ')[0]}`:`${ok} files shared`);
 }
-async function openFile(f){ if(!f) return; const w=window.open('about:blank','_blank');
+async function openFile(f,dl=false){ if(!f) return; const w=dl?null:window.open('about:blank','_blank'); // open in a tab, or download (download=<name>)
   try{ const r=await sto(`object/sign/event-files/${encPath(f.path)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:300})}), j=await r.json();
-    const u=`${SB.url}/storage/v1${j.signedURL||j.signedUrl}`; if(w) w.location.href=u; else location.href=u; }
+    let u=`${SB.url}/storage/v1${j.signedURL||j.signedUrl}`;
+    if(dl){ u+=(u.includes('?')?'&':'?')+'download='+encodeURIComponent(f.name); const a=document.createElement('a'); a.href=u; a.download=f.name; document.body.appendChild(a); a.click(); a.remove(); return; }
+    if(w) w.location.href=u; else location.href=u; }
   catch(err){ w?.close(); toast(err.message||'Could not open the file'); } }
 function tpCard(d){
   const tps=d.timingPoints||[]; if(!tps.length) return `<div class="card"><div class="eye">Timing points</div><div class="ic-sub" style="margin-top:8px">Not defined yet — added during the timing setup.</div></div>`;
@@ -1155,7 +1158,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='222'; let PV_NEW=false, APPV=PV;
+const PV='223'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
@@ -1198,7 +1201,7 @@ document.addEventListener('click',async e=>{
   if(act==='signout'){ closeSheet(); return signOut(); }
   if(act==='pvclose') return closePreview();
   if(act==='fadd'){ if(PREVIEW){ toast('Preview: read only — nothing is sent'); return; } $('#fpick')?.click(); return; }
-  if(b.dataset.fopen){ const f=Object.values(DET).flatMap(d=>d.files||[]).find(x=>x.id===b.dataset.fopen); return openFile(f); }
+  if(b.dataset.fopen||b.dataset.fdl){ const id=b.dataset.fopen||b.dataset.fdl, f=Object.values(DET).flatMap(d=>d.files||[]).find(x=>x.id===id); return openFile(f,!!b.dataset.fdl); }
   if(b.dataset.fdel){ const eid=Object.keys(DET).find(k=>(DET[k].files||[]).some(x=>x.id===b.dataset.fdel)), f=DET[eid]?.files.find(x=>x.id===b.dataset.fdel); if(!f||!confirm(`Delete «${f.name}»?`)) return;
     b.disabled=true; try{ await sto('object/event-files',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[f.path]})}); await rpc('delete_my_file',{p_id:f.id}); await loadEvent(eid); rerender(); toast('File deleted'); }
     catch(err){ b.disabled=false; toast(err.message||'Not deleted — try again'); } return; }

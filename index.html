@@ -2518,7 +2518,7 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .rgrp + .rgrp{margin-top:8px}
 .rnone{font-size:12px;color:var(--ink-3);margin:10px 0 0}
 .flist{padding:6px 10px 6px} .flist.over{box-shadow:0 0 0 2px var(--accent),var(--shadow-sm)}
-.frow{display:grid;grid-template-columns:38px minmax(0,1fr) 30px;gap:10px;align-items:center;padding:8px 4px;border-bottom:.5px solid var(--line)}
+.frow{display:grid;grid-template-columns:38px minmax(0,1fr) 30px 30px;gap:10px;align-items:center;padding:8px 4px;border-bottom:.5px solid var(--line)}
 .fic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:#fff;background:var(--ft)}
 .fn{border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0;display:flex;flex-direction:column}
 .fn b{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .fn:hover b{color:var(--accent)}
@@ -3670,6 +3670,7 @@ const P={
   plane:'<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
   away:'<path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v7a2 2 0 0 0 4 0"/>',
   sparkle:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+  download:'<path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>',
   upload:'<path d="M12 15V4M7 9l5-5 5 5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>',
   eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   refresh:'<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/>',
@@ -4653,13 +4654,14 @@ async function loadEventFiles(e){
   const eye=$('#s-files .sc-id .cc-eye'); if(eye) eye.textContent=n?plural(n,'file','files'):'no files yet';
   box.innerHTML=`<div class="ccard flist" id="fdrop">${EF.list.map(f=>`<div class="frow"><span class="fic" style="--ft:${fTint(f.name)}">${esc(fExt(f.name))}</span>
       <button type="button" class="fn" data-fopen="${esc(f.id)}"><b>${esc(f.name)}</b><small>${esc(fSize(+f.size||0))} · ${f.uploader_role==='owner'?(f.uploaded_by===me?'You':'Owner'):esc(cn)} · ${esc(whenTs(f.created_at))}</small></button>
-      <button type="button" class="btn icon sm ghost del" data-fdel="${esc(f.id)}" aria-label="Delete ${esc(f.name)}">${ic('x')}</button></div>`).join('')}
+      <button type="button" class="btn icon sm ghost" data-fdl="${esc(f.id)}" aria-label="Download ${esc(f.name)}" data-tip="Download">${ic('download',2)}</button><button type="button" class="btn icon sm ghost del" data-fdel="${esc(f.id)}" aria-label="Delete ${esc(f.name)}">${ic('x')}</button></div>`).join('')}
     <button type="button" class="addline" id="fadd">${ic('plus',2)}<span>${EF.list.length?'Add files':'Add files'}<small>${EF.list.length?'or drop them here':`GPX, rules, start lists, logos… ${esc(cn)} sees them in the portal · or drop them here`}</small></span></button>
     <input type="file" id="fpick" multiple hidden><div class="fprog" id="fprog" hidden></div></div>`;
   const pick=$('#fpick'); $('#fadd').onclick=()=>pick.click(); pick.onchange=()=>{ if(pick.files.length) uploadFiles(e,[...pick.files]); };
   const drop=$('#fdrop'); drop.addEventListener('dragover',ev=>{ ev.preventDefault(); drop.classList.add('over'); }); drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
   drop.addEventListener('drop',ev=>{ ev.preventDefault(); drop.classList.remove('over'); if(ev.dataTransfer?.files?.length) uploadFiles(e,[...ev.dataTransfer.files]); });
   on(box,'[data-fopen]',b=>openFile(EF.list.find(f=>f.id===b.dataset.fopen)));
+  on(box,'[data-fdl]',b=>openFile(EF.list.find(f=>f.id===b.dataset.fdl),true));
   on(box,'[data-fdel]',async b=>{ const f=EF.list.find(x=>x.id===b.dataset.fdel); if(!f||!confirm(`Delete «${f.name}»?${f.uploader_role==='client'?`\n\nIt was uploaded by ${cn}: it disappears from the portal too.`:''}`)) return;
     b.disabled=true; try{ await sbStorage('object/event-files',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:[f.path]})});
       await SupabaseStore.rest(`files?id=eq.${f.id}`,{method:'DELETE'}); toast('File deleted',f.name,'x'); }
@@ -4678,10 +4680,12 @@ async function uploadFiles(e,files){
   if(ok) toast(ok===1?'File added':`${ok} files added`,`${clientName(e.clientId)||'The client'} sees ${ok===1?'it':'them'} in the portal`,'check');
   loadEventFiles(e);
 }
-/* a signed link valid 5 minutes, opened in a new tab (PDFs and pictures show in the browser, the rest downloads) */
-async function openFile(f){ if(!f) return; const w=window.open('about:blank','_blank');
+/* a signed link valid 5 minutes: opened in a new tab (PDFs and pictures show in the browser), or downloaded (download=<name>) */
+async function openFile(f,dl=false){ if(!f) return; const w=dl?null:window.open('about:blank','_blank');
   try{ const r=await sbStorage(`object/sign/event-files/${encPath(f.path)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:300})}), j=await r.json();
-    const u=`${SupabaseStore.base()}/storage/v1${j.signedURL||j.signedUrl}`; if(w) w.location.href=u; else location.href=u; }
+    let u=`${SupabaseStore.base()}/storage/v1${j.signedURL||j.signedUrl}`;
+    if(dl){ u+=(u.includes('?')?'&':'?')+'download='+encodeURIComponent(f.name); const a=document.createElement('a'); a.href=u; a.download=f.name; document.body.appendChild(a); a.click(); a.remove(); return; }
+    if(w) w.location.href=u; else location.href=u; }
   catch(err){ w?.close(); toast('Could not open the file',isNetErr(err)?'offline':err.message,'warn','warn'); } }
 async function dropEventFiles(id){ try{ const o=await SupabaseStore.orgId(), l=await SupabaseStore.rest(`files?select=path&org_id=eq.${o}&event_id=eq.${encodeURIComponent(id)}`)||[];
   if(l.length) await sbStorage('object/event-files',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefixes:l.map(x=>x.path)})}); }catch{} }
@@ -5351,7 +5355,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='222'; let APPV=HV, UPD=false;
+const HV='223'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
