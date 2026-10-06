@@ -4151,6 +4151,7 @@ function renderEvent(D){
     bindAddHours('h',()=>({clientId:e.clientId,eventId:e.id}));
     bindHoursTable(D);
   }
+  on(D,'[data-jump]',(a,ev)=>{ if(ev.button===0) ev.preventDefault(); },'mousedown'); // desktop: a click must not focus the chip — focusing it (in the sticky bar) stops Chrome's smooth scroll, so the first jump went nowhere
   on(D,'[data-jump]',(a,ev)=>{ ev.preventDefault(); const t=document.querySelector(a.getAttribute('href')); if(!t) return; let delay=0; if(t.closest('.evside')&&!sideOpen&&wide.matches){ toggleSide(); delay=280; } spyPick(a.getAttribute('href')); setTimeout(()=>t.id==='s-top'?window.scrollTo({top:0,behavior:'smooth'}):t.scrollIntoView({behavior:'smooth',block:'start'}),delay); }); // Overview = back to the very top
   $('#delev').onclick=()=>{
     if(!priv()&&hoursInRepo){ toast('Unlock private data first','hours may refer to this event','lock'); return; }
