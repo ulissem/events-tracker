@@ -501,11 +501,14 @@ a.btn{text-decoration:none}
   .course .pt span em{order:-1;min-width:44px}
   .ichero{grid-template-columns:1fr;padding:20px}
   .ichero .ic-big b{font-size:52px}
-  .tbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;padding:6px 10px calc(6px + var(--sab));background:var(--glass);backdrop-filter:saturate(1.6) blur(18px);-webkit-backdrop-filter:saturate(1.6) blur(18px);border-top:.5px solid var(--line)}
-  .tbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;font-size:10.5px;font-weight:600;color:var(--ink-3);position:relative}
-  .tbar a[aria-current="page"]{color:var(--accent)}
-  .tbar a .badge{position:absolute;top:0;left:calc(50% + 6px);height:16px;min-width:16px;font-size:10px}
-  .tbar svg{width:26px;height:26px}
+  /* bottom tab bar = a floating glass island (Oct 2026, like the iOS apps): the page runs under it */
+  .tbar{display:flex;position:fixed;left:12px;right:12px;bottom:max(12px,calc(var(--sab) - 8px));z-index:50;padding:5px;border-radius:999px;
+    background:color-mix(in srgb,var(--panel) 70%,transparent);backdrop-filter:saturate(1.8) blur(22px);-webkit-backdrop-filter:saturate(1.8) blur(22px);
+    box-shadow:0 0 0 .5px var(--line-2),0 12px 32px -12px rgba(0,0,0,.45)}
+  .tbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 5px;border-radius:999px;font-size:10.5px;font-weight:600;color:var(--ink-2);position:relative;transition:background-color .15s}
+  .tbar a[aria-current="page"]{color:var(--accent);background:var(--sunken)}
+  .tbar a .badge{position:absolute;top:2px;left:calc(50% + 6px);height:16px;min-width:16px;font-size:10px}
+  .tbar svg{width:24px;height:24px}
 }
 
 /* ---------- your season: map (Oct 2026, mockup/portal-map.html) ---------- */
@@ -592,7 +595,8 @@ main{min-height:100vh;box-sizing:border-box} /* every page at least one screen t
   .pm-sel .ch{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
   .pm-sel .go{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13.5px} .pm-sel .go a{font-weight:600} .pm-sel .go span{color:var(--ink-3);font-size:12.5px}
 }
-@media (max-width:640px){ .pmap{bottom:calc(64px + var(--sab))} .pmap .leaflet-top.leaflet-right{top:52px;right:4px} }
+@media (max-width:640px){ .pmap{bottom:0} .pmap .leaflet-top.leaflet-right{top:52px;right:4px}
+  .pm-strip{bottom:calc(max(12px,calc(var(--sab) - 8px)) + 66px)} .pm-card{bottom:calc(max(12px,calc(var(--sab) - 8px)) + 158px)} } /* the map runs under the floating tab bar; card and strip sit above it */
 
 /* ---------- top bar = island, account panel (Oct 2026, as in the hub) ---------- */
 .pav{margin-left:auto;width:32px;height:32px;border-radius:50%;border:0;padding:0;flex:none;background:linear-gradient(140deg,#ff9f0a,#ff375f);color:#fff;font:700 12px var(--round);letter-spacing:.02em;display:grid;place-items:center;cursor:pointer}
@@ -1031,7 +1035,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='205'; let PV_NEW=false, APPV=PV;
+const PV='206'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
@@ -1160,7 +1164,7 @@ function pmTiles(){
     :L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${d?'World_Dark_Gray_Base':'World_Light_Gray_Base'}/MapServer/tile/{z}/{y}/{x}`,{maxZoom:16,attribution:'Tiles © Esri'});
   PM.layer.addTo(PM.map);
 }
-const pmPad=()=>phoneMQ.matches?{paddingTopLeft:[30,70],paddingBottomRight:[30,290]}:{paddingTopLeft:[380,50],paddingBottomRight:[60,50]};
+const pmPad=()=>phoneMQ.matches?{paddingTopLeft:[30,70],paddingBottomRight:[30,360]}:{paddingTopLeft:[380,50],paddingBottomRight:[60,50]};
 function pmFit(){ const ev=pmEvents(); if(!ev.length){ PM.map.setView([42.1,9.1],7); return; }
   PM.map.fitBounds(L.latLngBounds(ev.map(e=>e.geo)),{...pmPad(),maxZoom:11}); }
 function pmPins(){
@@ -1179,7 +1183,7 @@ function pmPins(){
 function pmSelect(id,fly=true){
   PMS.sel=id; pmPins(); pmUI();
   const e=pmEvents().find(x=>x.id===id); if(!e||!PM) return;
-  if(fly){ const z=Math.max(PM.map.getZoom(),9), pt=PM.map.project(e.geo,z).add(phoneMQ.matches?[0,105]:[-175,0]);
+  if(fly){ const z=Math.max(PM.map.getZoom(),9), pt=PM.map.project(e.geo,z).add(phoneMQ.matches?[0,140]:[-175,0]);
     PM.map.flyTo(PM.map.unproject(pt,z),z,{duration:.6}); }
 }
 function pmUI(){
