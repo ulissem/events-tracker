@@ -645,6 +645,16 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .menu button .mk svg{width:14px;height:14px}
 .menu button > svg{width:16px;height:16px;color:var(--ink-2)}
 .menu .mlab{font-size:11px;color:var(--ink-3);padding:6px 9px 4px;font-weight:500}
+/* New event (blank / my templates / copy an event) and the race menu */
+#menu.newm{width:340px;max-width:calc(100vw - 16px)}
+.menu button.nwi{height:auto;min-height:40px;padding:6px 9px;align-items:center}
+.menu .nwt{display:flex;flex-direction:column;min-width:0;flex:1} .menu .nwt b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu .nwt small{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu .nwr{display:flex;align-items:center;gap:2px} .menu .nwr .nwi{flex:1;min-width:0} .menu .nwr .nwx{flex:none;width:34px;padding:0;justify-content:center;color:var(--ink-3)}
+.menu .nwhint{font-size:12px;color:var(--ink-3);padding:2px 9px 6px;margin:0}
+.menu .nwq{width:calc(100% - 8px);margin:2px 4px 6px}
+.menu .nwlist{max-height:min(300px,40vh);overflow-y:auto}
+#menu.racem .nwt small{white-space:normal}
 /* More menu, iOS-settings style */
 #menu.more{width:320px;padding:10px;background:var(--bg)}
 #menu.more .msave{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--panel)}
@@ -890,6 +900,7 @@ dialog::backdrop{background:var(--scrim)}
   #closebtn,.sumtxt,.listfoot .kh{display:none}
   .linkchip{height:42px}
   .menu button{height:48px;font-size:15px;padding:0 12px;gap:12px}
+  .menu .nwq{font-size:16px} .menu button.nwi{min-height:52px}
   .menu button > svg{width:19px;height:19px}
   .addrow .in.trig{font-size:15px}
   .palette .pi{height:46px}
@@ -4273,6 +4284,7 @@ function renderEvent(D){
     ${backBtn}
     <div class="hacts">
       <button class="btn icon ghost" id="aibtn" type="button" data-tip="Copy AI prompt to update this event" aria-label="Copy AI prompt to update this event">${ic('sparkle',1.8)}</button>
+      <button class="btn icon ghost" id="evcopy" type="button" data-tip="Duplicate · Save as template" aria-label="Duplicate the event or save it as a template">${ic('copy',1.8)}</button>
       <button class="btn" id="sumbtn" type="button" data-tip="Client summary (PNG / PDF)">${ic('doc',1.8)}<span class="sumtxt">Summary</span></button>
       <button class="btn icon ghost sidebtn ${sideOpen?'on':''}" id="sidebtn" type="button" aria-pressed="${sideOpen}" data-tip="${sideOpen?'Collapse':'Show'} side panel" data-kbd="]" aria-label="Side panel">${ic('side',1.9)}</button>${closeBtn('event')}
     </div>
@@ -4387,6 +4399,7 @@ function renderEvent(D){
   $('#sidebtn').onclick=toggleSide;
   on(D,'[data-rail]',b=>{ if(!sideOpen) toggleSide(); const t=b.dataset.rail&&document.getElementById(b.dataset.rail); if(t) setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'start'}),280); });
   $('#sumbtn').onclick=()=>openSummary(e);
+  $('#evcopy').onclick=ev=>openEvCopy(ev.currentTarget,e);
   $('#aibtn').onclick=()=>openPrompt(e);
   $('#cpid').onclick=()=>{ if(!e.rr14EventId) return; navigator.clipboard?.writeText(e.rr14EventId).then(()=>toast('EventID copied',e.rr14EventId,'copy'),()=>toast('Could not copy','','warn','warn')); };
   on(D,'[data-tech]',b=>{ e.technology=e.technology===b.dataset.tech?'':b.dataset.tech; touch(); renderDetail(); });
@@ -4419,6 +4432,7 @@ function renderEvent(D){
   $('#ctall')?.addEventListener('click',()=>{ const all=e.contests.every(c=>openRaces.has(c.id)); for(const c of e.contests) all?openRaces.delete(c.id):openRaces.add(c.id); saveOpen(); renderDetail(); });
   on(D,'[data-toggle]',(b,ev)=>{ if(ev.target.closest('.ract')) return; const id=b.dataset.toggle; openRaces.has(id)?openRaces.delete(id):openRaces.add(id); saveOpen(); renderDetail(); });
   on(D,'[data-delct]',b=>{ const c=e.contests[+b.dataset.delct]; if(confirm(`Delete the race «${c.name||'untitled'}»?`)){ e.contests.splice(+b.dataset.delct,1); touch(); renderDetail(); } });
+  on(D,'[data-rmenu]',b=>openRaceMenu(b,e,+b.dataset.rmenu));
   on(D,'[data-upct]',b=>{ const i=+b.dataset.upct; if(i>0){ [e.contests[i-1],e.contests[i]]=[e.contests[i],e.contests[i-1]]; touch(); renderDetail(); } });
   on(D,'[data-addsp]',b=>{ const c=e.contests[+b.dataset.addsp]; c.splits.splice(c.splits.length-1,0,{id:uid('s'),role:'split',label:'',tp:'',km:''}); touch(); renderDetail(); });
   on(D,'[data-rmode]',b=>{ const [i,m]=b.dataset.rmode.split(':'), c=e.contests[+i]; if(m==='special') c.results='special'; else delete c.results; touch(); renderDetail(); });
@@ -4505,7 +4519,7 @@ function raceCard(e,c,ci,tpOpts){
     <div class="rh" data-toggle="${esc(c.id)}">
       <button class="chev" type="button" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} ${esc(c.name||'race')}">${ic('chev',2.4)}</button>
       <span class="rt"><b>${esc(c.name)||'<i>untitled race</i>'}</b><span class="rmeta">${meta.map(([i,t])=>`<span>${ic(i,1.8)}${esc(t)}${i==='clock'?ytHint(e,rd||e.dateStart,t):''}</span>`).join('')}${c.notes?`<span class="rnote" title="${esc(c.notes)}">${esc(c.notes)}</span>`:''}</span></span>
-      <span class="ract">${ci?`<button class="btn icon sm ghost" data-upct="${ci}" type="button" aria-label="Move up" title="Move up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>`:''}<button class="btn icon sm ghost del" data-delct="${ci}" type="button" aria-label="Delete race">${ic('x')}</button></span>
+      <span class="ract">${ci?`<button class="btn icon sm ghost" data-upct="${ci}" type="button" aria-label="Move up" title="Move up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>`:''}<button class="btn icon sm ghost" data-rmenu="${ci}" type="button" aria-label="Duplicate race, copy splits" title="Duplicate · copy splits">${ic('more',2)}</button><button class="btn icon sm ghost del" data-delct="${ci}" type="button" aria-label="Delete race">${ic('x')}</button></span>
     </div>
     ${open?`<div class="rbody">
       <div class="grid">
@@ -5341,7 +5355,7 @@ function place(pop,anchor,align='left'){
 }
 let popAnchor=null;
 function closePops(){
-  $('#scrim').hidden=true; $('#menu').classList.remove('more','acctm','ph');
+  $('#scrim').hidden=true; $('#menu').classList.remove('more','acctm','ph','newm','racem');
   if(!$('#notepop').hidden){ $('#notepop').hidden=true; if(noteT){ noteT=null; renderDetail(); } }
   for(const id of ['dp','menu','pinpop','geopop','geoinfo']){ const p=document.getElementById(id); if(!p.hidden){ p.hidden=true; if(id==='dp'&&DP.onClose&&DP.changed){ const f=DP.onClose; DP.onClose=null; f(); } if(id==='pinpop'&&pinT){ pinT=null; renderDetail(); } } }
   popAnchor?.classList.remove('on'); popAnchor=null;
@@ -5396,7 +5410,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='230'; let APPV=HV, UPD=false;
+const HV='231'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
@@ -6617,8 +6631,93 @@ function newItem(){
   if(route.view==='c'){ const c={id:uid('cl'),name:'',contact:'',email:'',phone:'',rrCustomerId:'',notes:''}; S.clients.push(c); touch(); go('c',c.id); focusName(); return; }
   if(route.view==='h'){ $('#a-qty')?.focus(); return; }
   if(route.view==='a'){ openEntry(null,agSel||TODAY); return; }
-  const e={id:uid('ev'),clientId:flt.client||(S.clients.length===1?S.clients[0].id:''),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],rankings:[],teamScores:[],onReg:[],kiosk:[],lists:[],myrrTabs:[],participantViews:[],presenter:[],questions:[],checklist:{},checklistExtra:[],notes:''};
+  openNewEvent($('#newbtn'));
+}
+const defClient=()=>flt.client||(S.clients.length===1?S.clients[0].id:'');
+const blankEvent=()=>({id:uid('ev'),clientId:defClient(),name:'',dateStart:'',dateEnd:'',location:'',type:'',status:S.config.statuses[0]?.name||'',website:'',rr14EventId:'',technology:'',links:[],timingPoints:[],contests:[],rankings:[],teamScores:[],onReg:[],kiosk:[],lists:[],myrrTabs:[],participantViews:[],presenter:[],questions:[],checklist:{},checklistExtra:[],notes:''});
+/* Templates and copies (Oct 2026): a new event can start from one of my templates (config.templates) or as a copy of
+   another event. Both keep the structure — timing points, races + splits, scoring / registration / outputs, links,
+   checklist extras, my questions as drafts — with new ids and nothing ticked; never dates, EventID, status, notes,
+   charges or files. A copy keeps client and place, a template neither. */
+function eventStructure(src,keepPlace){
+  const x=JSON.parse(JSON.stringify(src));
+  for(const k of ['id','dateStart','dateEnd','rr14EventId','notes','checklist','portalVisible','status','myrrUrl']) delete x[k];
+  if(!keepPlace) for(const k of ['name','clientId','location','geo','tz','website']) delete x[k];
+  const unTick=o=>{ if(Array.isArray(o)) o.forEach(unTick); else if(o&&typeof o==='object'){ if(typeof o.done==='boolean') o.done=false; Object.values(o).forEach(unTick); } };
+  unTick(x);
+  const tpId=new Map();
+  x.timingPoints=(x.timingPoints||[]).map(t=>{ const n={...t,id:uid('tp')}; tpId.set(t.id,n.id); return n; });
+  x.contests=(x.contests||[]).map(c=>({...c,id:uid('c'),date:'',splits:(c.splits||[]).map(s=>({...s,id:uid('s'),tp:tpId.get(s.tp)||''}))}));
+  // my questions only (not the client's), unanswered, renumbered
+  x.questions=(x.questions||[]).filter(q=>q.author!=='client'&&String(q.text||'').trim()).map((q,i)=>({id:'',n:i+1,text:q.text,answer:'',resolved:false}));
+  return x;
+}
+function createFrom(struct,{copy=false,label=''}={}){
+  const e={...blankEvent(),...eventStructure(struct,copy)};
+  if(!copy) e.clientId=defClient();
+  for(const q of e.questions) q.id=qid();
+  // drafts: the client gets no email and does not see them until the event is made visible (portal_visible at insert time)
+  const hid=isSB()&&e.questions.length>0; if(hid) e.portalVisible=false;
   S.events.push(e); touch(); go('e',e.id); focusName();
+  toast(copy?`Copied from «${label||'untitled'}»`:`New event from «${label}»`,[plural(e.contests.length,'race','races'),plural(e.timingPoints.length,'timing point','timing points'),e.questions.length&&plural(e.questions.length,'draft question','draft questions')].filter(Boolean).join(' · ')+(hid?' · hidden from the client until you switch it on (General)':''),'copy');
+}
+const structMeta=x=>[plural((x.contests||[]).length,'race','races'),plural((x.timingPoints||[]).length,'TP','TPs')].join(' · ');
+function openNewEvent(anchor){
+  if(!$('#menu').hidden&&popAnchor===anchor&&anchor) return closePops(); closePops();
+  const m=$('#menu'), T=()=>S.config.templates||[];
+  const evs=[...S.events].sort((a,b)=>(b.dateStart||'9').localeCompare(a.dateStart||'9'));
+  const evRows=q=>{ const n=normTxt(q||''), hit=evs.filter(e=>!n||normTxt([e.name,clientOf(e.clientId)?.name,e.location,e.type].join(' ')).includes(n));
+    return hit.length?hit.map(e=>`<button type="button" class="nwi" data-nwev="${esc(e.id)}">${ic('copy',1.8)}<span class="nwt"><b>${esc(e.name||'untitled')}</b><small>${esc([clientOf(e.clientId)?.name,e.dateStart&&fmtDay(e.dateStart),structMeta(e)].filter(Boolean).join(' · '))}</small></span></button>`).join(''):'<p class="nwhint">No event matches.</p>'; };
+  const tRows=()=>T().length?T().map(t=>`<div class="nwr"><button type="button" class="nwi" data-nwtpl="${esc(t.id)}">${ic('layers',1.8)}<span class="nwt"><b>${esc(t.name)}</b><small>${esc(structMeta(t.event))}</small></span></button><button type="button" class="btn icon sm ghost nwx" data-nwdel="${esc(t.id)}" aria-label="Delete template ${esc(t.name)}" title="Delete template">${ic('x',2)}</button></div>`).join('')
+    :'<p class="nwhint">None yet — on an event: Copy button → Save as template.</p>';
+  m.classList.add('newm');
+  m.innerHTML=`<button type="button" class="nwi" data-nwblank>${ic('plus',2)}<span class="nwt"><b>Blank event</b></span></button>
+    <div class="mlab">My templates</div><div class="nwtpls">${tRows()}</div>
+    <div class="mlab">Copy an event</div>
+    <input class="in nwq" type="search" placeholder="Search name, client, place…" aria-label="Search events to copy" autocomplete="off">
+    <div class="nwlist">${evRows('')}</div>`;
+  m.querySelector('[data-nwblank]').onclick=()=>{ closePops(); const e=blankEvent(); S.events.push(e); touch(); go('e',e.id); focusName(); };
+  m.querySelector('.nwtpls').onclick=ev=>{ const b=ev.target.closest('[data-nwtpl],[data-nwdel]'); if(!b) return;
+    if(b.dataset.nwdel){ const t=T().find(x=>x.id===b.dataset.nwdel); if(t&&confirm(`Delete the template «${t.name}»? Events made from it stay as they are.`)){ S.config.templates=T().filter(x=>x!==t); touch('none'); m.querySelector('.nwtpls').innerHTML=tRows(); } return; }
+    const t=T().find(x=>x.id===b.dataset.nwtpl); closePops(); if(t) createFrom(t.event,{label:t.name}); };
+  m.querySelector('.nwlist').onclick=ev=>{ const b=ev.target.closest('[data-nwev]'); if(!b) return; const src=S.events.find(x=>x.id===b.dataset.nwev); closePops(); if(src) createFrom(src,{copy:true,label:src.name}); };
+  const q=m.querySelector('.nwq'); q.oninput=()=>{ m.querySelector('.nwlist').innerHTML=evRows(q.value); };
+  q.onkeydown=ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); m.querySelector('.nwlist [data-nwev]')?.click(); } else if(ev.key==='Escape') closePops(); };
+  popAnchor=anchor;
+  if(anchor&&anchor.offsetParent) place(m,anchor,'right'); else{ place(m,document.body); if(!narrow.matches){ m.style.left=Math.max(8,(innerWidth-m.offsetWidth)/2)+'px'; m.style.top='80px'; } }
+  if(!narrow.matches) q.focus(); // at once: keys typed right after the click must land here
+}
+function saveTemplate(e){
+  const T=S.config.templates=S.config.templates||[];
+  const name=(prompt('Template name — e.g. “Trail, 2 races, Decoder start/finish”',e.type?`${e.type}${e.contests.length?' · '+plural(e.contests.length,'race','races'):''}`:e.name||'')||'').trim(); if(!name) return;
+  const ex=T.find(t=>t.name.toLowerCase()===name.toLowerCase());
+  if(ex&&!confirm(`Replace the template «${ex.name}»?`)) return;
+  const t={id:ex?.id||uid('tpl'),name,saved:TODAY,from:e.name||'',event:eventStructure(e,false)};
+  if(ex) T[T.indexOf(ex)]=t; else T.push(t);
+  touch('none'); toast(`Template «${name}» saved`,`${structMeta(t.event)} · use it from + Event`,'layers');
+}
+function openEvCopy(btn,e){
+  if(!$('#menu').hidden&&popAnchor===btn) return closePops(); closePops();
+  const m=$('#menu');
+  m.innerHTML=`<button type="button" data-ec="dup">${ic('copy',1.8)}Duplicate event</button><button type="button" data-ec="tpl">${ic('layers',1.8)}Save as template…</button>`;
+  on(m,'[data-ec]',b=>{ closePops(); if(b.dataset.ec==='dup') createFrom(e,{copy:true,label:e.name}); else saveTemplate(e); });
+  popAnchor=btn; btn.classList.add('on'); place(m,btn,'right');
+}
+/* per race: duplicate it, or take the splits of another race of the same event (same timing points) */
+function openRaceMenu(btn,e,ci){
+  if(!$('#menu').hidden&&popAnchor===btn) return closePops(); closePops();
+  const c=e.contests[ci], others=e.contests.filter(x=>x!==c), m=$('#menu');
+  m.innerHTML=`<button type="button" data-rm="dup">${ic('copy',1.8)}Duplicate race</button>
+    <div class="mlab">Copy splits from</div>${others.length?others.map(o=>`<button type="button" class="nwi" data-rmsrc="${esc(o.id)}">${ic('pin',1.8)}<span class="nwt"><b>${esc(o.name||'untitled race')}</b><small>${esc(o.splits.map(s=>e.timingPoints.find(t=>t.id===s.tp)?.name||splitName(o,s)).join(' → '))}</small></span></button>`).join(''):'<p class="nwhint">No other race in this event.</p>'}`;
+  m.classList.add('newm','racem');
+  on(m,'[data-rm]',()=>{ closePops(); const d={...JSON.parse(JSON.stringify(c)),id:uid('c'),name:c.name?c.name+' (copy)':''}; d.splits=d.splits.map(s=>({...s,id:uid('s')}));
+    e.contests.splice(ci+1,0,d); openRaces.add(d.id); saveOpen(); touch(); renderDetail(); const i=$('#detail').querySelector(`[data-racename="${CSS.escape(d.id)}"]`); if(i){ i.focus(); i.select(); } });
+  on(m,'[data-rmsrc]',b=>{ const o=e.contests.find(x=>x.id===b.dataset.rmsrc); closePops(); if(!o) return;
+    const used=c.splits.length>1||c.splits.some(s=>s.tp||String(s.km??'').trim()!=='');
+    if(used&&!confirm(`Replace the ${plural(c.splits.length,'split','splits')} of «${c.name||'untitled race'}» with the ones of «${o.name||'untitled race'}»?`)) return;
+    c.startSplit=!!o.startSplit; c.splits=o.splits.map(s=>({...s,id:uid('s')})); fixSplits(c);
+    openRaces.add(c.id); saveOpen(); touch(); renderDetail(); toast('Splits copied',`${plural(c.splits.length,'split','splits')} from «${o.name||'untitled race'}»`,'pin'); });
+  popAnchor=btn; btn.classList.add('on'); place(m,btn,'right');
 }
 async function logout(){
   if(DEMO){ toast('Demo mode: nothing to log out from','','logout'); return; }
