@@ -307,7 +307,8 @@ main.full #detail{max-width:1180px}
 /* =====================================================================
    LEFT LIST
    ===================================================================== */
-.lhead{padding:12px 14px 10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;border-bottom:1px solid var(--line)}
+.lhead{padding:12px 14px 10px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.lhead .lpast{gap:6px;font-size:12.5px;white-space:nowrap} .lhead .lpast .count{margin-left:-2px}
 .lhead .group{grid-column:1/-1}
 .lhead .lrow{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-top:2px}
 .lscroll{flex:1;overflow-y:auto;overscroll-behavior:contain;min-height:0}
@@ -813,7 +814,8 @@ dialog::backdrop{background:var(--scrim)}
   :root{--tb:calc(58px + var(--sab));--jh:51px}
   body{padding-bottom:var(--tb)}
   .top{gap:4px}
-  .tabs,.vsep,.isep,.acct,.savepill,.brand .ver{display:none!important}
+  .tabs,.vsep,.isep,.brand .ver{display:none!important}
+  .top .acct{margin-left:2px} /* phone: the avatar (save dot) replaces the old '···' */
   .top .island{display:contents}
   #listbtn{width:40px;height:40px;margin-left:-6px}
   #listbtn.on{background:transparent;border-color:transparent;box-shadow:none;color:var(--ink-2)}
@@ -3477,6 +3479,7 @@ const P={
   copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
   ext:'<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
   pin:'<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  map:'<path d="M9 4.5 3.5 6.5v13l5.5-2 6 2 5.5-2v-13l-5.5 2z"/><path d="M9 4.5v13M15 6.5v13"/>',
   pinfill:'<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" fill="currentColor"/><circle cx="12" cy="9.5" r="2.5" fill="var(--panel)" stroke="none"/>',
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   side:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>',
@@ -3675,31 +3678,30 @@ function setTheme(p,quiet=false){ themePref=p; try{ themePref==='auto'?localStor
 function toggleTheme(){ setTheme(nextTheme()); }
 function renderTop(){
   const vt={e:'Events',c:'Clients',a:'Agenda',h:'Hours',m:'Map'}[route.view];
-  const tabOn=v=>route.view===v||(v==='e'&&route.view==='m');
+  const tabOn=v=>route.view===v;
   const nv=route.view==='c'?'client':route.view==='h'?'hours':route.view==='a'?'agenda entry':'event';
   $('#top').innerHTML=`
     ${route.id&&(route.view==='e'||route.view==='c')?`<button id="topback" class="btn icon ghost topback" type="button" aria-label="Back to the list">${ic('back',2)}</button>`:''}
     ${route.view!=='h'&&route.view!=='a'&&route.view!=='m'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
     <div class="brand" id="brand" data-tip="Reload app · gets the newest version (saves first)"><span class="logo">${ic('flag',2.4)}</span><b>Race Hub</b><span class="ver" id="brandver">${APPV?'v'+esc(APPV):''}</span></div><span class="ptitle">${vt}</span>
     <div class="island">
-      <nav class="tabs" aria-label="Sections">${[['e','Events'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav><span class="isep"></span>
+      <nav class="tabs" aria-label="Sections">${[['e','Events'],['m','Map'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav><span class="isep"></span>
       <button class="cmdtrig" id="cmdtrig" type="button" aria-label="Jump to" data-tip="Jump to an event, client or action" data-kbd="${MOD} K">${ic('search')}<span>Jump to</span><kbd>${MOD==='⌘'?'⌘K':'Ctrl K'}</kbd></button>
     </div>
     <span class="spacer"></span>
     <button id="savepill" class="savepill" type="button" hidden>${ic('save',2)}<span>Save</span></button>
     <button id="newbtn" class="btn primary newbtn ${route.view==='a'?'onag':''}" type="button" data-tip="${route.view==='h'?'Log hours':'New '+nv}" data-kbd="N" aria-label="${route.view==='h'?'Log hours':'New '+nv}">${ic('plus',2.4)}<span>${route.view==='c'?'Client':route.view==='h'?'Hours':route.view==='a'?'Entry':'Event'}</span></button>
     <button id="acctbtn" class="acct" type="button" aria-haspopup="menu">UM<i class="adot"></i></button>
-    <button id="morebtn" class="btn icon ghost morebtn" type="button" aria-label="More">${ic('more',2)}</button>`;
-  $('#tabbar').innerHTML=[['e','Events','flag'],['c','Clients','user'],['a','Agenda','cal'],...(priv()?[['h','Hours','hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join('')+`<button type="button" class="tsave" id="tsave">${ic('save',1.8)}<i></i><span>Saved</span></button>`;
+`;
+  $('#tabbar').innerHTML=[['e','Events','flag'],['m','Map','map'],['c','Clients','user'],['a','Agenda','cal'],...(priv()?[['h','Hours','hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join(''); // save state = the dot on the avatar (top bar)
   updSave();
   const tabGo=v=>go(v,narrow.matches?null:v==='e'?(route.view==='e'?route.id:lastEvent):v==='c'?(route.view==='c'?route.id:lastClient):null);
   on($('#top'),'[data-view]',b=>tabGo(b.dataset.view));
   on($('#tabbar'),'[data-view]',b=>tabGo(b.dataset.view));
   const doSave=()=>{ document.activeElement?.blur?.(); save(); };
-  $('#tsave').onclick=doSave; $('#savepill').onclick=doSave;
+  $('#savepill').onclick=doSave;
   $('#listbtn')?.addEventListener('click',toggleList);
   $('#topback')?.addEventListener('click',()=>go(route.view));
-  $('#morebtn').onclick=ev=>openAcct(ev.currentTarget); // phone: the same panel as the desktop avatar, at the top
   $('#cmdtrig').onclick=openCmd;
   $('#newbtn').onclick=newItem;
   $('#acctbtn').onclick=ev=>openAcct(ev.currentTarget);
@@ -3904,7 +3906,7 @@ function renderEventList(L){
       <div class="in group">${ic('search')}<input class="bare" type="search" id="fl-q" placeholder="Search event, place, client" value="${esc(flt.q)}" aria-label="Search"><kbd style="margin-right:4px">/</kbd></div>
       <select class="in sm" id="fl-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="in sm" id="fl-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
-      <div class="lrow"><label class="switch"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Show past events</span> <span class="count">${hidden}</span></label>${viewSeg(route.view==='m'?'m':'e')}</div>
+      <label class="switch lpast" title="Show past events"><input type="checkbox" id="fl-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Past</span> <span class="count">${hidden}</span></label>
     </div>
     <div class="lscroll">
       ${!flt.q&&!flt.status?`<div class="nuwrap"><div class="nuc">${nextUpCard()}</div></div>`+filmStrip():''}
@@ -5196,7 +5198,6 @@ function renderMap(D){
       <select class="in sm" id="fm-client" aria-label="Client"><option value="">All clients</option>${S.clients.map(c=>`<option value="${esc(c.id)}" ${flt.client===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="in sm" id="fm-status" aria-label="Status"><option value="">All statuses</option>${S.config.statuses.map(s=>`<option ${flt.status===s.name?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
       <label class="switch"><input type="checkbox" id="fm-past" ${flt.past?'checked':''}> <span class="swl" data-short="Past">Past events</span></label>
-      ${viewSeg('m')}
     </div>`:''}
     <div class="mapwrap"><div id="map" class="mapel"></div><div class="mapload" id="maploading">Loading the map…</div>
       <button class="nopos" id="nopos" type="button" hidden></button>
