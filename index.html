@@ -4649,7 +4649,8 @@ async function loadEventFiles(e){
   catch(err){ box.innerHTML=`<p class="hint">${esc(isNetErr(err)?'Offline: files need a connection.':err.message)}</p>`; return; }
   if($('#efiles')!==box) return;
   const me=jwtSub(SupabaseStore.access), cn=clientName(e.clientId)||'Client';
-  $('#fcount').textContent=EF.list.length||''; const j=$('#jfn'); if(j) j.textContent=EF.list.length||'';
+  const n=EF.list.length; $('#fcount')&&($('#fcount').textContent=n||''); $('#jfn')&&($('#jfn').textContent=n||''); // the count is gone on wide screens (side cards)
+  const eye=$('#s-files .sc-id .cc-eye'); if(eye) eye.textContent=n?plural(n,'file','files'):'no files yet';
   box.innerHTML=`<div class="ccard flist" id="fdrop">${EF.list.map(f=>`<div class="frow"><span class="fic" style="--ft:${fTint(f.name)}">${esc(fExt(f.name))}</span>
       <button type="button" class="fn" data-fopen="${esc(f.id)}"><b>${esc(f.name)}</b><small>${esc(fSize(+f.size||0))} · ${f.uploader_role==='owner'?(f.uploaded_by===me?'You':'Owner'):esc(cn)} · ${esc(whenTs(f.created_at))}</small></button>
       <button type="button" class="btn icon sm ghost del" data-fdel="${esc(f.id)}" aria-label="Delete ${esc(f.name)}">${ic('x')}</button></div>`).join('')}
@@ -5350,7 +5351,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='221'; let APPV=HV, UPD=false;
+const HV='222'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });

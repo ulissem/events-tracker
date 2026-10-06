@@ -1,5 +1,5 @@
 // App shell only: the page, manifest and icons. Data (api.github.com) is never cached.
-const CACHE = 'events-tracker-v221';
+const CACHE = 'events-tracker-v222';
 const BADGE = 'race-hub-badge'; // app icon badge: client messages since the hub was last opened (the page clears it)
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './img/active.png', './img/passive.png', './img/decoder.png', './img/loop-box.png', './img/mbox.png', './img/trackbox-active.png', './img/trackbox-passive.png',
@@ -32,11 +32,14 @@ self.addEventListener('fetch', e => {
 self.addEventListener('push', e => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : '' }; }
   e.waitUntil((async () => {
-    // one notification per event: a new answer / question of the same event updates it ("Answered Q2, Q3 — latest text")
-    let list = d.kind ? [{ kind: d.kind, n: d.n }] : [];
+    // one notification per event: a new answer / question / file of the same event updates it ("Answered Q2, Q3 · New file — latest text").
+    // Each item counts once (an old notification still on screen already holds the earlier ones), at most 6 questions listed.
+    let list = d.kind ? [{ kind: d.kind, n: d.n, t: d.text }] : [];
     if (d.tag) for (const old of await self.registration.getNotifications({ tag: d.tag })) { list = [...(old.data?.list || []), ...list]; old.close(); }
-    const ans = list.filter(x => x.kind === 'answered').map(x => 'Q' + x.n), ask = list.filter(x => x.kind === 'asked').length, fil = list.filter(x => x.kind === 'file').length;
-    const head = [ans.length ? `Answered ${ans.join(', ')}` : '', ask ? (ask > 1 ? `${ask} new questions` : 'New question') : '', fil ? (fil > 1 ? `${fil} new files` : 'New file') : ''].filter(Boolean).join(' · ');
+    const seen = new Set(); list = list.filter(x => { const k = x.kind + ':' + (x.kind === 'file' ? x.t : x.n); if (seen.has(k)) return false; seen.add(k); return true; }).slice(-30);
+    const qs = k => [...new Set(list.filter(x => x.kind === k).map(x => x.n))].sort((a, b) => a - b), lim = a => a.length > 6 ? `${a.slice(0, 6).map(n => 'Q' + n).join(', ')} +${a.length - 6}` : a.map(n => 'Q' + n).join(', ');
+    const ans = qs('answered'), ask = qs('asked').length, fil = list.filter(x => x.kind === 'file').length;
+    const head = [ans.length ? `Answered ${lim(ans)}` : '', ask ? (ask > 1 ? `${ask} new questions` : 'New question') : '', fil ? (fil > 1 ? `${fil} new files` : 'New file') : ''].filter(Boolean).join(' · ');
     const body = list.length > 1 ? `${head} — ${d.text || ''}` : (d.body || '');
     try { const c = await caches.open(BADGE), r = await c.match('n'), n = (r ? +(await r.text()) || 0 : 0) + 1;
       await c.put('n', new Response(String(n))); await self.navigator.setAppBadge?.(n); } catch {}
