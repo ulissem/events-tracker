@@ -2643,10 +2643,10 @@ const SupabaseStore={
     const {ev,cl,docs,qs}=this.snap, doc=k=>docs.find(d=>d.key===k);
     if(name==='config.json'){ const d=doc('config'); return d?JSON.stringify({version:2,...d.data},null,2):null; }
     if(name==='agenda.json'){ const d=doc('agenda'); return d?JSON.stringify({version:1,...d.data},null,2):null; }
-    if(name==='clients.json') return JSON.stringify({version:2,clients:cl.map(r=>this.clObj(r))},null,2);
+    if(name==='clients.json') return JSON.stringify({version:2,clients:cl.map(r=>this.clObj(r)).sort(clOrder)},null,2);
     const m=/^events-(.+)\.json$/.exec(name); if(!m) return null;
     const list=ev.filter(r=>this.year['e:'+r.id]===m[1]).map(r=>this.evObj(r,qs.filter(q=>q.event_id===r.id)))
-      .sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
+      .sort(evOrder);
     return JSON.stringify({version:2,year:+m[1]||m[1],events:list},null,2);
   },
   async getHours(){
@@ -2655,7 +2655,7 @@ const SupabaseStore={
       this.rest(`client_rates?select=*&${f}&order=valid_from`)]);
     const rates={}; for(const r of ra)(rates[r.client_id]=rates[r.client_id]||[]).push({from:r.valid_from,coefficient:Number(r.coefficient)});
     const coefficients={}; for(const c of Object.keys(rates)) coefficients[c]=rateAt(rates,c,today());
-    const entries=en.map(r=>this.hObj(r)), closures=cl.map(r=>this.kObj(r));
+    const entries=en.map(r=>this.hObj(r)).sort(hOrder), closures=cl.map(r=>this.kObj(r)).sort(idOrder);
     this.h={}; for(const x of entries) this.h['h:'+x.id]=canon(this.hRow(x)); for(const x of closures) this.h['k:'+x.id]=canon(this.kRow(x,entries));
     this.rates=rates;
     const out={version:2,entries,closures}; if(Object.keys(coefficients).length) out.coefficients=coefficients; if(Object.keys(rates).length) out.rates=rates;
@@ -2920,18 +2920,23 @@ async function loadAll(){
 }
 function snapshotItems(){ savedItems={}; for(const e of S.events) savedItems['e:'+e.id]=canon(e); for(const c of S.clients) savedItems['c:'+c.id]=canon(c); } // canon: key order does not count (items merged from Supabase come back in another order)
 const yearOf=e=>(e.dateStart||'').slice(0,4)||String(new Date().getFullYear());
-function hoursText(){ const h=S.hours, o={version:2,entries:h.entries,closures:h.closures}; if(Object.keys(h.coefficients||{}).length) o.coefficients=h.coefficients; if(h.rates) o.rates=h.rates; return JSON.stringify(o,null,2); }
+/* one fixed order for the files (Supabase rebuilds them from rows that come back in any order: same day / same name → by id, or the page looks unsaved) */
+const evOrder=(a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9')||idOrder(a,b);
+const idOrder=(a,b)=>String(a.id).localeCompare(String(b.id));
+const clOrder=(a,b)=>(a.name||'').localeCompare(b.name||'')||idOrder(a,b);
+const hOrder=(a,b)=>String(a.date||'').localeCompare(String(b.date||''))||idOrder(a,b);
+function hoursText(){ const h=S.hours, o={version:2,entries:h.entries.slice().sort(hOrder),closures:h.closures.slice().sort(idOrder)}; if(Object.keys(h.coefficients||{}).length) o.coefficients=h.coefficients; if(h.rates) o.rates=h.rates; return JSON.stringify(o,null,2); }
 /* CRITICAL: hours.json is part of the save set only while it is loaded (unlocked, or locked with changes still to save).
    It comes first so a coefficient move writes hours.json before clients.json drops them. */
 function serialize(){
   const out={};
   if(S.hours) out['hours.json']=hoursText();
   out['config.json']=JSON.stringify(S.config,null,2);
-  out['clients.json']=JSON.stringify({version:2,clients:S.clients},null,2);
+  out['clients.json']=JSON.stringify({version:2,clients:S.clients.slice().sort(clOrder)},null,2);
   const A=S.agenda; if(saved['agenda.json']!=null||A.todos.length||A.entries.length||A.notes) out['agenda.json']=JSON.stringify({version:1,todos:A.todos,entries:A.entries,notes:A.notes},null,2);
   const by={}; for(const e of S.events)(by[yearOf(e)]=by[yearOf(e)]||[]).push(e);
   const files=new Set([...eventFiles,...Object.keys(by).map(y=>`events-${y}.json`)]);
-  for(const f of files){ const y=f.slice(7,-5); const ev=(by[y]||[]).slice().sort((a,b)=>(a.dateStart||'9').localeCompare(b.dateStart||'9'));
+  for(const f of files){ const y=f.slice(7,-5); const ev=(by[y]||[]).slice().sort(evOrder);
     out[f]=JSON.stringify({version:2,year:+y||y,events:ev},null,2); }
   return out;
 }
