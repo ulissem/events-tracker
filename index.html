@@ -935,7 +935,8 @@ dialog#settings:has(#s-prefs:not([hidden])) .dlg{padding:6px 18px 20px}
 .sgbody{padding-bottom:4px}
 .sacc .sgav{width:36px;height:36px;font-size:13px}
 .srl small a{color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:2px} .srl small a svg{width:10px;height:10px}
-.srl b,.srl small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srl b,.srl small{overflow-wrap:break-word} /* nothing is cut in Settings: long text wraps */
+.sbl.sout{display:block;font-size:13px;margin-top:3px;padding:0}
 .sgf{font-size:12.5px;color:var(--ink-3);margin:7px 16px 0;line-height:1.45}
 .sgf .mono{font-size:11.5px}
 .sro{display:flex;align-items:center;gap:12px;min-height:46px;padding:7px 14px;position:relative;color:inherit;text-decoration:none}
@@ -959,7 +960,7 @@ a.sro:hover{background:var(--hover);text-decoration:none}
 .spill{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--ok-soft);color:var(--ok);flex:none}
 .spill.grey{background:var(--sunken);color:var(--ink-2)}
 .sgacc{display:flex;align-items:center;gap:14px;padding:14px}
-.sgacc b{display:block;font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sgacc b{display:block;font-size:16px;font-weight:600;overflow-wrap:anywhere}
 .sgacc small{display:block;color:var(--ink-2);font-size:12.5px}
 .sgacc > div{min-width:0}
 .sgav{width:48px;height:48px;border-radius:50%;background:linear-gradient(140deg,#5b5bf0,var(--accent));color:#fff;font-weight:700;font-size:17px;display:grid;place-items:center;flex:none}
@@ -2520,11 +2521,11 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
       <div class="sghead"><button class="sgback" type="button" id="s-back" aria-label="Back to the account panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg> Back</button><h2>Settings</h2><button class="sgdone" type="button" id="s-done">Done</button></div>
       <div class="sgbody">
         <div class="sgr">
-          <div class="sro sacc"><span class="sgav" aria-hidden="true">UM</span><div class="srl"><b id="s-accmail"></b><small id="s-accdev"></small></div><button class="sbl red" type="button" id="s-signout">Sign out</button></div>
+          <div class="sro sacc"><span class="sgav" aria-hidden="true">UM</span><div class="srl"><b id="s-accmail"></b><small id="s-accdev"></small><button class="sbl red sout" type="button" id="s-signout">Sign out</button></div></div>
         </div>
         <div class="sgr">
           <label class="sro" for="s-rr14user" title="Used by “Open in RR14”: user@@customerId"><span class="sic" style="--c:#0a7aff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4h10l-1.5 4L16 12H6"/></svg></span><span class="srl"><b>RR14 user</b></span><input class="sfi" id="s-rr14user" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. Ulisse"></label>
-          <div class="sro"><span class="sic" style="--c:#34c759"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></span><div class="srl"><b>Map</b><small><span id="s-mapsub"></span> · <a href="https://carto.com/basemaps" target="_blank" rel="noopener noreferrer" title="Requests this month, on your CARTO account">usage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a></small></div><button class="sbl" type="button" id="s-cartoedit" title="CARTO key · without one the map uses Esri grey tiles; restrict it to hub.ulissemariangeli.com on CARTO">Change</button></div>
+          <div class="sro"><span class="sic" style="--c:#34c759"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></span><div class="srl"><b>Map</b><small><span id="s-mapsub"></span> · <a href="https://dashboard.basemaps.carto.com/" target="_blank" rel="noopener noreferrer" title="Requests this month, on your CARTO account">usage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a></small></div><button class="sbl" type="button" id="s-cartoedit" title="CARTO key · without one the map uses Esri grey tiles; restrict it to hub.ulissemariangeli.com on CARTO">Change</button></div>
           <div class="sro noic" id="s-cartorow" hidden><input class="sfi full mono" id="s-carto" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="CARTO key · empty = Esri grey tiles"><button class="sbl" type="button" id="s-cartook">Done</button></div>
         </div>
         <div class="sgr">
@@ -6261,7 +6262,7 @@ function openSettings(msg='',from=null){
 function fitSettings(){ if(narrow.matches||!dlg.open||$('#s-prefs').hidden) return; const d=dlg.querySelector('.dlg'), cs=getComputedStyle(d), h=[...d.children].reduce((a,c)=>a+(c.hidden?0:c.offsetHeight),0)+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom); dlg.style.setProperty('--h1',Math.ceil(h)+'px'); } // the content's own height, not the (animating) box
 function fillSettings(){
   const sb=isSB(), key=S.config.cartoKey||'';
-  $('#s-accmail').textContent=DEMO?'Demo':cfg.owner||'—';
+  $('#s-accmail').innerHTML=DEMO?'Demo':esc(cfg.owner||'—').replace('@','@<wbr>'); // a long address breaks after the @, never inside a word
   $('#s-accdev').textContent=DEMO?'demo files · nothing is saved':`${sb?'Supabase':'GitHub'} · ${lockOn()?'session encrypted on this device':'session kept here, not encrypted'}`;
   $('#s-signout').hidden=DEMO;
   $('#s-rr14user').value=S.config.rr14User||'';
