@@ -458,11 +458,12 @@ table.t tr:hover .rowact,table.t .rowact:focus-visible{opacity:1}
 .tpwrap{overflow-x:auto}
 .gr{white-space:nowrap}
 .gr > *{vertical-align:middle;display:inline-flex}
-.grip{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--ink-3);opacity:0;display:inline-flex;align-items:center;justify-content:center;width:14px;height:24px;border-radius:4px;transition:opacity .12s}
+.grip{position:relative;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--ink-3);opacity:0;display:inline-flex;align-items:center;justify-content:center;width:14px;height:24px;border-radius:4px;transition:opacity .12s}
 .grip svg{width:8px;height:14px}
 tr:hover .grip,.task:hover .grip,.grip:focus{opacity:.8}
 .grip:hover{opacity:1;background:var(--hover)}
-.dragging{background:var(--accent-soft)!important;border-radius:6px;box-shadow:var(--shadow-pop)}
+.grip::before{content:'';position:absolute;inset:-10px -3px -10px -12px} /* a bigger target than the dots */
+.dragging{position:relative;z-index:5;background:color-mix(in srgb,var(--accent) 14%,var(--panel))!important;border-radius:8px;box-shadow:var(--shadow-pop)}
 body.sorting,body.sorting *{cursor:grabbing!important;user-select:none}
 .swatch{width:16px;height:16px;padding:0;border:0;border-radius:4px;flex:none;cursor:pointer;background:none;margin-left:3px;-webkit-appearance:none;appearance:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 .swatch::-webkit-color-swatch-wrapper{padding:0}
@@ -3789,24 +3790,46 @@ function toggleSide(){ sideOpen=!sideOpen; LS.set('events-tracker-side2',sideOpe
   if(g){ g.classList.add('opening'); setTimeout(()=>g.classList.remove('opening'),320); }
   const b=$('#sidebtn'); if(b){ b.classList.toggle('on',sideOpen); b.setAttribute('aria-pressed',sideOpen); b.dataset.tip=(sideOpen?'Collapse':'Show')+' side panel'; } }
 
-/* Drag to reorder with mouse or finger: grab a .grip, the row moves live among its siblings ([data-si] children of a [data-sort] box).
-   Rows without data-si (Start / Finish splits, note lines) stay where they are. */
+/* Drag to reorder with mouse or finger: grab a .grip, the row follows the pointer and the others slide out of its way
+   ([data-si] children of a [data-sort] box). The drop slot is computed on the layout at grab time, so it never flip-flops;
+   the DOM is not touched until the drop. Rows without data-si (Start / Finish splits) stay put; a TP's note row travels with it.
+   Near the top / bottom edge the page (or the scrolling box) scrolls by itself. Esc cancels. */
+const scrollParent=el=>{ for(let p=el.parentElement;p&&p!==document.body;p=p.parentElement){ const o=getComputedStyle(p).overflowY; if((o==='auto'||o==='scroll')&&p.scrollHeight>p.clientHeight+1) return p; } return window; };
 function sortable(root){
   root.querySelectorAll('.grip').forEach(g=>g.addEventListener('pointerdown',ev=>{
+    if(ev.button>0) return;
     const item=g.closest('[data-si]'), box=item?.parentElement; if(!box?.dataset.sort) return;
-    ev.preventDefault(); g.setPointerCapture(ev.pointerId); item.classList.add('dragging'); document.body.classList.add('sorting');
-    const before=[...box.children].filter(x=>x.dataset.si!==undefined).map(x=>x.dataset.si).join();
-    let timer=null;
-    const move=e=>{ const y=e.clientY, sibs=[...box.children].filter(x=>x!==item&&x.dataset.si!==undefined);
-      const next=sibs.find(x=>{ const r=x.getBoundingClientRect(); return y<r.top+r.height/2; });
-      if(next){ if(item.nextElementSibling!==next) box.insertBefore(item,next); } else if(sibs.length&&sibs[sibs.length-1].nextElementSibling!==item) sibs[sibs.length-1].after(item);
-      clearInterval(timer); const edge=y<80?-12:y>innerHeight-60?12:0; if(edge) timer=setInterval(()=>scrollBy(0,edge),16); };
-    const up=()=>{ clearInterval(timer); g.removeEventListener('pointermove',move); g.removeEventListener('pointerup',up); g.removeEventListener('pointercancel',up);
+    ev.preventDefault(); try{ g.setPointerCapture(ev.pointerId); }catch{}
+    const unit=x=>{ const u=[x]; for(let n=x.nextElementSibling;n?.classList.contains('tpnote');n=n.nextElementSibling) u.push(n); return u; };
+    const items=[...box.children].filter(x=>x.dataset.si!==undefined), from=items.indexOf(item), last=items.length-1;
+    const geo=items.map(x=>{ const u=unit(x), a=u[0].getBoundingClientRect(), z=u[u.length-1].getBoundingClientRect(); return {u,top:a.top,bot:z.bottom,mid:(a.top+z.bottom)/2}; });
+    const gap=last?Math.max(0,from<last?geo[from+1].top-geo[from].bot:geo[from].top-geo[from-1].bot):0;
+    const step=geo[from].bot-geo[from].top+gap; // the room the dragged row frees / takes
+    const sc=scrollParent(box), sTop=()=>sc===window?scrollY:sc.scrollTop, s0=sTop(), y0=ev.clientY;
+    const minDy=geo[0].top-geo[from].top, maxDy=geo[last].bot-geo[from].bot;
+    let y=y0, to=from, raf=0;
+    item.classList.add('dragging'); document.body.classList.add('sorting');
+    for(const x of geo) for(const el of x.u){ el.style.transition=x.u[0]===item?'none':'transform .2s cubic-bezier(.2,.7,.2,1)'; el.style.willChange='transform'; }
+    const layout=()=>{
+      const dy=Math.max(minDy,Math.min(maxDy,y-y0+sTop()-s0)), c=geo[from].mid+dy;
+      let t=from; while(t>0&&c<geo[t-1].mid) t--; while(t<last&&c>geo[t+1].mid) t++; to=t;
+      geo.forEach((x,i)=>{ const off=i===from?dy:from<to&&i>from&&i<=to?-step:to<from&&i>=to&&i<from?step:0; for(const el of x.u) el.style.transform=off?`translateY(${off}px)`:''; });
+    };
+    const tick=()=>{ raf=0; const r=sc===window?{top:0,bottom:innerHeight}:sc.getBoundingClientRect();
+      const top=Math.max(r.top,0)+(narrow.matches?90:70), bot=Math.min(r.bottom,innerHeight)-(narrow.matches?110:60);
+      const v=y<top?-Math.min(16,(top-y)/4+2):y>bot?Math.min(16,(y-bot)/4+2):0; if(!v) return;
+      const before=sTop(); if(sc===window) scrollBy(0,v); else sc.scrollTop+=v; if(sTop()===before) return;
+      layout(); raf=requestAnimationFrame(tick); };
+    const move=e=>{ y=e.clientY; layout(); if(!raf) raf=requestAnimationFrame(tick); };
+    const end=keep=>{ cancelAnimationFrame(raf); raf=0;
+      g.removeEventListener('pointermove',move); g.removeEventListener('pointerup',drop); g.removeEventListener('pointercancel',cancel); removeEventListener('keydown',esc,true);
       item.classList.remove('dragging'); document.body.classList.remove('sorting');
-      const order=[...box.children].filter(x=>x.dataset.si!==undefined).map(x=>+x.dataset.si);
-      if(order.join()!==before){ const arr=OBJ[+box.dataset.sort], slots=[...order].sort((a,b)=>a-b), copy=arr.slice(); slots.forEach((pos,k)=>copy[pos]=arr[order[k]]); arr.splice(0,arr.length,...copy); touch(); }
+      for(const x of geo) for(const el of x.u){ el.style.transform=el.style.transition=el.style.willChange=''; }
+      if(keep&&to!==from){ const order=items.map(x=>+x.dataset.si); order.splice(to,0,...order.splice(from,1));
+        const arr=OBJ[+box.dataset.sort], slots=[...order].sort((a,b)=>a-b), copy=arr.slice(); slots.forEach((pos,k)=>copy[pos]=arr[order[k]]); arr.splice(0,arr.length,...copy); touch(); }
       renderDetail(); };
-    g.addEventListener('pointermove',move); g.addEventListener('pointerup',up); g.addEventListener('pointercancel',up);
+    const drop=()=>end(true), cancel=()=>end(false), esc=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); cancel(); } };
+    g.addEventListener('pointermove',move); g.addEventListener('pointerup',drop); g.addEventListener('pointercancel',cancel); addEventListener('keydown',esc,true);
   }));
 }
 
@@ -5410,7 +5433,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='231'; let APPV=HV, UPD=false;
+const HV='232'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
