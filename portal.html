@@ -546,7 +546,7 @@ a.btn{text-decoration:none}
 .spt b{position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);font:700 11px var(--round);color:#fff;background:var(--accent);padding:2px 7px;border-radius:999px;white-space:nowrap;box-shadow:0 3px 10px -4px rgba(0,0,0,.5)}
 body.mapon{overscroll-behavior:none}
 main{min-height:100vh;box-sizing:border-box} /* every page at least one screen tall: in the iPhone Home Screen app a shorter page lifts the fixed tab bar (empty space below it) */ /* no overflow:hidden: in the iPhone Home Screen app it shortened the viewport and lifted the tab bar */
-.pmap{position:fixed;left:0;right:0;top:calc(56px + var(--sat));bottom:0;z-index:30;background:var(--bg)}
+.pmap{position:fixed;left:0;right:0;top:var(--toph,calc(56px + var(--sat)));bottom:0;z-index:30;background:var(--bg)}
 #pmapel{position:absolute;inset:0}
 .pmap .leaflet-container,.pmap.leaflet-container{background:var(--bg);font:inherit}
 .leaflet-container.leaflet-container{background:var(--bg);font:inherit}
@@ -772,6 +772,8 @@ function startLive(){ if(live||PREVIEW||!ME?.orgId||!ME?.clientId) return;
   live=Live({url:SB.url,key:SB.key,token:()=>token(),topic:async()=>`rh:${ME.orgId}:${ME.clientId}`,me:()=>jwtSub(sess?.access),onPing:()=>{ if(state==='ok') loadAll(); }}); }
 async function signOut(){ if(PREVIEW){ closePreview(); return; } live?.stop(); live=null; try{ if(sess) await fetch(`${SB.url}/auth/v1/logout`,{method:'POST',headers:{apikey:SB.key,Authorization:`Bearer ${sess.access}`}}); }catch{} sess=null; saveSess(); ME=null; location.hash=''; render(); }
 
+/* the full-page map starts right under the top bar, whatever its height (island bar, preview bar, safe area) */
+new ResizeObserver(()=>{ document.documentElement.style.setProperty('--toph',$('#top').offsetHeight+'px'); }).observe($('#top'));
 function closePreview(){ try{ sessionStorage.removeItem('hub-portal-preview'); }catch{} window.close(); setTimeout(()=>{ location.href='./'; },150); } // a tab opened by the hub closes; otherwise back to the hub
 const pvBar=()=>PREVIEW?`<div class="pvbar"><span>${I.eye||''}Preview as <b>${esc(ME?.client||PREVIEW.name)}</b> · read only</span><button type="button" data-act="pvclose">Close</button></div>`:'';
 /* ---------- data ---------- */
@@ -1107,7 +1109,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='218'; let PV_NEW=false, APPV=PV;
+const PV='219'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
