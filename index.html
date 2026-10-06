@@ -615,6 +615,11 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .hrsum div{flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
 .hrsum b{display:block;font-size:16px;font-weight:600;letter-spacing:-.01em}
 .hrsum span{font-size:11.5px;color:var(--ink-3)}
+.plrow{display:grid;grid-template-columns:20px minmax(0,1fr) 46px auto 90px 26px;gap:4px;align-items:center;min-height:32px}
+.plrow .plic{color:var(--ink-3);display:flex;justify-content:center} .plrow .plic svg{width:14px;height:14px}
+.plrow .pln{text-align:right} .plrow .pll{font-size:12px;color:var(--ink-3);white-space:nowrap} .plrow .pld{font-size:12px;color:var(--ink-2);text-align:right;white-space:nowrap}
+.plrow .del{opacity:0} .plrow:hover .del,.plrow .del:focus{opacity:1}
+@media (max-width:860px){ .plrow{grid-template-columns:20px minmax(0,1fr) 52px auto 40px;row-gap:0} .plrow .pld{grid-column:2/-2;grid-row:2;text-align:left;padding:0 0 6px 8px} .plrow .del{opacity:1;grid-column:5;grid-row:1} }
 .addrow{display:grid;grid-template-columns:118px 64px minmax(0,1fr) auto;gap:6px;margin-top:8px}
 .addrow .in{height:30px}
 .addrow .in.trig{padding:0 8px;gap:6px;font-size:12.5px}
@@ -3045,6 +3050,14 @@ const countTasks=a=>a.reduce((n,t)=>t.children.length?[n[0]+t.children.length,n[
 /* ticks between a main item and its sub-items: ticking the main one ticks them all, the main one is ticked when all its
    sub-items are (fixParents runs on every change of the open event, after the tick has gone down) */
 const TASK_KEYS=()=>[...EVENT_LISTS.map(([k])=>k),'checklistExtra'];
+/* Planned to-dos (e.todoPlan = [{id,text,before,todo}]): "N days before race day". Once the event has a date each one becomes
+   an Agenda to-do linked to the event (p.todo = its id), its due date following the race day while it is open. A to-do
+   deleted in the Agenda stays deleted. Copies and templates carry the plan, not the to-dos. */
+function syncPlan(e){ if(!e?.todoPlan?.length||!e.dateStart) return;
+  for(const p of e.todoPlan){ if(!String(p.text||'').trim()) continue;
+    const n=num(p.before), due=addDays(e.dateStart,-(isFinite(n)?Math.round(n):0)), t=p.todo&&S.agenda.todos.find(x=>x.id===p.todo);
+    if(!p.todo){ const nt={...mkTask(p.text),id:uid('td'),due,link:'e:'+e.id}; S.agenda.todos.push(nt); p.todo=nt.id; }
+    else if(t&&!t.done){ t.text=p.text; t.due=due; } } }
 function fixParents(e){ if(!e) return; for(const k of TASK_KEYS()) for(const t of e[k]||[]) if(t.children?.length) t.done=t.children.every(c=>c.done); }
 /* Event-level lists: [key, title, placeholder, has URL] */
 const SCORING_LISTS=[['rankings','Rankings','Add a ranking…',false],['teamScores','Team scores','Add a team score…',false]];
@@ -3257,7 +3270,7 @@ function commitMessage(file){
 }
 
 let dirty=false,saving=false,stateMsg=null,errMsg=null,lastSaved=null;
-function touch(what){ if(S&&route.view==='e') fixParents(S.events.find(x=>x.id===route.id)); _cov=null; dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); if(what!=='hold') autoSave(); }
+function touch(what){ if(S&&route.view==='e'){ const e=S.events.find(x=>x.id===route.id); fixParents(e); syncPlan(e); } _cov=null; dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); if(what!=='hold') autoSave(); }
 /* Supabase: every change is saved by itself 1.5 s after the last one (only changed rows are written; GitHub stays manual: one commit per save).
    'hold' = not yet (the location text: it is saved with its coordinates after the pin lookup, or with the next change) */
 var autoT=null, autoPending=false, saveT0=0; // var: updSave may read them before this line runs
@@ -4502,6 +4515,7 @@ function renderEvent(D){
   <ul class="check">${ck.map((x,i)=>`${x.group!==ck[i-1]?.group?`<li class="grp">${esc(x.group)}</li>`:''}${x.sub&&(x.sub!==ck[i-1]?.sub||x.group!==ck[i-1]?.group)?`<li class="sub">${esc(x.sub)}</li>`:''}<li class="${x.auto?'auto':''} ${x.child?'kid':''}"><label>${x.auto?`<span class="autock ${x.done?'on':''}">${x.done?ic('check',3):''}</span>`:x.task?`<input type="checkbox" class="ck" data-o="${ref(x.task)}" data-k="done" data-r="detail" ${x.done?'checked':''}>`:`<input type="checkbox" class="ck" data-ck="${esc(x.key)}" ${x.done?'checked':''}>`}<span class="ckl ${x.done?'done':''}">${esc(x.label)}</span>${x.auto?'<span class="tag auto" title="Ticked automatically from the event data">auto</span>':''}</label></li>`).join('')}</ul>
   ${Tasks(e,'checklistExtra','Extra','Add an item…',`ck-${e.id}`,false)}</div>
   ${linkedTodos(e)}
+  ${planHTML(e)}
   </section>
 
   ${showH?`<section class="sec" id="s-hours"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}${esc(UC())}</h3><span class="sp"></span><span class="hint">${ic('unlock',2).replace('<svg','<svg width="12" height="12" style="display:inline;vertical-align:-1px"')} unlocked · locks after 10 min idle</span></div>
@@ -4528,6 +4542,10 @@ function renderEvent(D){
   $('#f-portal')?.addEventListener('change',ev=>{ if(ev.target.checked) delete e.portalVisible; else e.portalVisible=false; touch('none'); ev.target.nextElementSibling.textContent=ev.target.checked?'Visible to the client':'Hidden from the client'; });
   on(D,'[data-statuspill]',b=>openStatusMenu(b,e));
   on(D,'[data-todo]',b=>{ const t=S.agenda.todos.find(x=>x.id===b.dataset.todo); if(t) openTodo(t); });
+  { const a=$('#pladd'); if(a){ const add=re=>{ const v=a.value.trim(); if(!v) return; (e.todoPlan=e.todoPlan||[]).push({id:uid('pl'),text:v,before:3,todo:''}); touch(); renderDetail(); if(re) $('#pladd')?.focus(); };
+    a.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); add(true); } }); a.addEventListener('change',()=>afterPress(()=>add(false))); } }
+  on(D,'[data-pldel]',b=>{ const p=e.todoPlan[+b.dataset.pldel], t=p?.todo&&S.agenda.todos.find(x=>x.id===p.todo);
+    if(t&&!t.done) S.agenda.todos=S.agenda.todos.filter(x=>x!==t); e.todoPlan.splice(+b.dataset.pldel,1); touch(); renderDetail(); });
   $('#roadadd')?.addEventListener('click',()=>{ const t={...mkTask(''),id:uid('td'),due:'',link:'e:'+e.id}; S.agenda.todos.push(t); touch('none'); openTodo(t); });
   $('#datebtn').onclick=ev=>openDate(ev.currentTarget,{s:e.dateStart,e:e.dateEnd,allowRange:true,excludeId:e.id,onChange:(s,en)=>{ e.dateStart=s; e.dateEnd=en||''; touch(); const r=rangeText(s,en); const b=$('#datebtn'); if(b){ b.querySelector('.tv').textContent=r.main; b.querySelector('.ts').textContent=r.sub; } },onClose:()=>renderDetail()});
   // moving the event to another client moves its open hours too (only possible while they are loaded; otherwise fixed on unlock)
@@ -5400,6 +5418,14 @@ function bindAgenda(D){
   D.querySelector('#td-done')?.addEventListener('click',()=>{ agShowDone=!agShowDone; renderDetail(); });
   D.querySelector('#td-clear')?.addEventListener('click',()=>{ const n=S.agenda.todos.filter(t=>t.done).length; if(!confirm(`Remove ${plural(n,'done to-do','done to-dos')}?`)) return; S.agenda.todos=S.agenda.todos.filter(t=>!t.done); agShowDone=false; touch('none'); renderDetail(); });
 }
+function planHTML(e){ const P=e.todoPlan||[];
+  const when=p=>{ const n=num(p.before); if(!e.dateStart||!String(p.text||'').trim()) return ''; return dueTxt(addDays(e.dateStart,-(isFinite(n)?Math.round(n):0))); };
+  return `<div class="tasks plan"><div class="th">Planned to-dos<span class="hint" style="margin-left:auto">${e.dateStart?'in the Agenda, due before race day':'become Agenda to-dos once the event has a date'}</span></div>
+    ${P.map((p,i)=>`<div class="plrow"><span class="plic">${ic('clock',1.8)}</span><input class="cell" data-o="${ref(p)}" data-k="text" value="${esc(p.text)}" placeholder="To-do" aria-label="Planned to-do ${i+1}">
+      <input class="cell pln" type="text" inputmode="numeric" data-o="${ref(p)}" data-k="before" data-r="change" value="${esc(p.before)}" aria-label="Days before race day"><span class="pll">${num(p.before)===0?'on race day':num(p.before)<0?'days after':'days before'}</span>
+      <span class="pld">${esc(when(p))}</span><button class="btn icon sm ghost del" data-pldel="${i}" type="button" aria-label="Remove ${esc(p.text||'planned to-do')}">${ic('x')}</button></div>`).join('')}
+    <div class="task add"><span></span><span class="plus" aria-hidden="true">${ic('plus',2)}</span><input class="cell" id="pladd" placeholder="Add a planned to-do… (e.g. Upload Participant List)" aria-label="Add a planned to-do"></div></div>`;
+}
 /* to-dos linked to an event, shown in its checklist (tick in either place) */
 function linkedTodos(e){
   const a=S.agenda.todos.filter(t=>t.link==='e:'+e.id); if(!a.length) return '';
@@ -5531,7 +5557,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='236'; let APPV=HV, UPD=false;
+const HV='237'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
@@ -6769,6 +6795,7 @@ function eventStructure(src,keepPlace){
   unTick(x);
   const tpId=new Map();
   x.timingPoints=(x.timingPoints||[]).map(t=>{ const n={...t,id:uid('tp')}; tpId.set(t.id,n.id); return n; });
+  x.todoPlan=(x.todoPlan||[]).map(p=>({...p,id:uid('pl'),todo:''})); // the plan, not the source's to-dos
   x.contests=(x.contests||[]).map(c=>({...c,id:uid('c'),date:'',splits:(c.splits||[]).map(s=>({...s,id:uid('s'),tp:tpId.get(s.tp)||''}))}));
   // my questions only (not the client's), unanswered, renumbered
   x.questions=(x.questions||[]).filter(q=>q.author!=='client'&&String(q.text||'').trim()).map((q,i)=>({id:'',n:i+1,text:q.text,answer:'',resolved:false}));
