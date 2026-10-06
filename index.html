@@ -931,9 +931,14 @@ dialog#settings:has(#s-prefs:not([hidden])) .dlg{padding:6px 18px 20px}
 .sgl{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin:20px 16px 7px}
 .sgbody > .sgl:first-child{margin-top:6px}
 .sgr{background:var(--panel);border-radius:14px;overflow:hidden}
+.sgr + .sgr{margin-top:10px}
+.sgbody{padding-bottom:4px}
+.sacc .sgav{width:36px;height:36px;font-size:13px}
+.srl small a{color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:2px} .srl small a svg{width:10px;height:10px}
+.srl b,.srl small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sgf{font-size:12.5px;color:var(--ink-3);margin:7px 16px 0;line-height:1.45}
 .sgf .mono{font-size:11.5px}
-.sro{display:flex;align-items:center;gap:12px;min-height:48px;padding:8px 14px;position:relative;color:inherit;text-decoration:none}
+.sro{display:flex;align-items:center;gap:12px;min-height:46px;padding:7px 14px;position:relative;color:inherit;text-decoration:none}
 .sro + .sro::before{content:'';position:absolute;left:54px;right:0;top:0;height:.5px;background:var(--line-2)}
 .sro.noic::before{left:14px}
 a.sro:hover{background:var(--hover);text-decoration:none}
@@ -960,20 +965,25 @@ a.sro:hover{background:var(--hover);text-decoration:none}
 .sgav{width:48px;height:48px;border-radius:50%;background:linear-gradient(140deg,#5b5bf0,var(--accent));color:#fff;font-weight:700;font-size:17px;display:grid;place-items:center;flex:none}
 /* desktop: Settings live in the top-right corner, under the avatar; from the avatar panel they grow out of it */
 @media (min-width:861px) and (min-height:501px), (min-width:861px) and (pointer:fine){
-  dialog#settings:has(#s-prefs:not([hidden])){position:fixed;inset:calc(var(--hh) + 6px) 12px auto auto;margin:0;width:400px;max-width:calc(100vw - 24px);
-    height:calc(100vh - var(--hh) - 18px);max-height:none;border:0;border-radius:22px;overflow:hidden;box-shadow:0 0 0 .5px var(--line-2),var(--shadow-pop)}
-  dialog#settings:has(#s-prefs:not([hidden])) .dlg{width:100%;height:100%;overflow-y:auto;scrollbar-width:none}
+  dialog#settings:has(#s-prefs:not([hidden])){position:fixed;inset:calc(var(--hh) + 6px) 12px auto auto;margin:0;width:320px;max-width:calc(100vw - 24px);
+    height:var(--h1,auto);max-height:calc(100vh - var(--hh) - 18px);border:0;border-radius:22px;overflow:hidden;background:var(--panel);box-shadow:0 0 0 .5px var(--line-2),var(--shadow-pop)}
+  dialog#settings:has(#s-prefs:not([hidden])) .dlg{width:100%;height:100%;max-height:inherit;overflow-y:auto;scrollbar-width:none;padding:4px 10px 10px}
   dialog#settings:has(#s-prefs:not([hidden])) .dlg::-webkit-scrollbar{display:none}
-  dialog#settings:has(#s-prefs:not([hidden]))::backdrop{background:color-mix(in srgb,var(--scrim) 40%,transparent)}
-  dialog#settings.fromacct[open]{animation:setgrow .38s cubic-bezier(.2,.8,.2,1)}
-  dialog#settings.fromacct[open] .dlg{animation:setin .3s .1s both}
+  dialog#settings:has(#s-prefs:not([hidden]))::backdrop{background:transparent}
+  dialog#settings .sgr{background:var(--sunken);border-radius:16px}
+  dialog#settings .sro + .sro::before{background:var(--line)}
+  dialog#settings .sghead{height:44px}
+  dialog#settings .srl b{font-size:13.5px} dialog#settings .srl small{font-size:11.5px} dialog#settings .sfi,dialog#settings .sbl{font-size:13.5px}
+  dialog#settings .sic{width:26px;height:26px;border-radius:8px} dialog#settings .sic svg{width:15px;height:15px}
+  dialog#settings.fromacct[open]{animation:setgrow .36s cubic-bezier(.2,.8,.2,1)}
+  dialog#settings.fromacct[open] .dlg{animation:setin .28s .08s both}
   dialog#settings.fromacct .sgdone{visibility:hidden} /* from the avatar panel: Back returns to it; Esc or a click outside closes */
 }
 @media (max-width:860px), (pointer:coarse) and (max-height:500px){
   html dialog#settings:has(#s-prefs:not([hidden])) .dlg{padding:4px 14px calc(20px + var(--sab))}
   .sfi,.sfs{font-size:16px} /* no zoom on focus */
 }
-@keyframes setgrow{from{width:320px;height:var(--h0,450px);background:var(--panel)}}
+@keyframes setgrow{from{height:var(--h0,450px)}}
 @keyframes setin{from{opacity:0;transform:translateX(24px)}}
 .rlist{padding:6px 14px 12px}
 .rrow{display:grid;grid-template-columns:96px minmax(0,1fr) 28px;gap:10px;align-items:center;padding:9px 0;border-bottom:.5px solid var(--line)}
@@ -2509,44 +2519,22 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
     <div class="sset" id="s-prefs" hidden>
       <div class="sghead"><button class="sgback" type="button" id="s-back" aria-label="Back to the account panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg> Back</button><h2>Settings</h2><button class="sgdone" type="button" id="s-done">Done</button></div>
       <div class="sgbody">
-        <div class="sgl">Account</div>
-        <div class="sgr"><div class="sgacc"><span class="sgav" aria-hidden="true">UM</span><div><b id="s-accmail"></b><small id="s-accsub"></small></div></div>
-          <div class="sro noic"><div class="srl"><b>This device</b><small id="s-accdev"></small></div></div>
-          <div class="sro noic center" id="s-signout-row"><button class="sbl red" type="button" id="s-signout">Sign out</button></div></div>
-        <div class="sgf">Signing in happens on the Race Hub sign-in page; the session renews by itself.</div>
-
-        <div class="sgl">General</div>
-        <div class="sgr"><label class="sro" for="s-rr14user"><span class="sic" style="--c:#0a7aff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4h10l-1.5 4L16 12H6"/></svg></span><span class="srl"><b>RR14 user</b></span><input class="sfi" id="s-rr14user" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. Ulisse"></label></div>
-        <div class="sgf">Used by “Open in RR14”: <span class="mono">user@@customerId</span>.</div>
-
-        <div class="sgl">Map</div>
         <div class="sgr">
-          <div class="sro"><span class="sic" style="--c:#34c759"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></span><div class="srl"><b>Map tiles</b><small id="s-mapsub"></small></div><span class="spill" id="s-mapstate"></span></div>
-          <div class="sro"><span class="sic" style="--c:#8e8e93"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2 2"/></svg></span><div class="srl"><b>CARTO key</b></div><span class="srv mono" id="s-cartomask"></span><button class="sbl" type="button" id="s-cartoedit">Change</button></div>
-          <div class="sro noic" id="s-cartorow" hidden><input class="sfi full mono" id="s-carto" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="paste the key · empty = Esri grey tiles"><button class="sbl" type="button" id="s-cartook">Done</button></div>
-          <a class="sro" href="https://carto.com/basemaps" target="_blank" rel="noopener noreferrer"><span class="sic" style="--c:#5856d6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></span><span class="srl"><b>Usage this month</b><small>on your CARTO account</small></span><span class="srv">CARTO <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></span></a>
+          <div class="sro sacc"><span class="sgav" aria-hidden="true">UM</span><div class="srl"><b id="s-accmail"></b><small id="s-accdev"></small></div><button class="sbl red" type="button" id="s-signout">Sign out</button></div>
         </div>
-        <div class="sgf">Without a key the map uses Esri grey tiles. The key travels with every tile request: restrict it to <span class="mono">hub.ulissemariangeli.com</span> on CARTO.</div>
-
-        <div class="sgl">Privacy &amp; security</div>
+        <div class="sgr">
+          <label class="sro" for="s-rr14user" title="Used by “Open in RR14”: user@@customerId"><span class="sic" style="--c:#0a7aff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4h10l-1.5 4L16 12H6"/></svg></span><span class="srl"><b>RR14 user</b></span><input class="sfi" id="s-rr14user" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. Ulisse"></label>
+          <div class="sro"><span class="sic" style="--c:#34c759"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></span><div class="srl"><b>Map</b><small><span id="s-mapsub"></span> · <a href="https://carto.com/basemaps" target="_blank" rel="noopener noreferrer" title="Requests this month, on your CARTO account">usage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a></small></div><button class="sbl" type="button" id="s-cartoedit" title="CARTO key · without one the map uses Esri grey tiles; restrict it to hub.ulissemariangeli.com on CARTO">Change</button></div>
+          <div class="sro noic" id="s-cartorow" hidden><input class="sfi full mono" id="s-carto" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="CARTO key · empty = Esri grey tiles"><button class="sbl" type="button" id="s-cartook">Done</button></div>
+        </div>
         <div class="sgr">
           <div class="sro"><span class="sic" style="--c:#ff9500">🍦</span><div class="srl"><b>Safe-word</b><small id="s-swinfo"></small></div><button class="sbl" type="button" id="s-swset">Change…</button></div>
           <div class="sro"><span class="sic" style="--c:#30b0c7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1.5M15 9v1.5M12 9v4h-1M9.5 16a4 4 0 0 0 5 0"/></svg></span><div class="srl"><b>App lock</b><small id="s-lkinfo"></small></div><button class="sbl" type="button" id="s-lkon">Turn on…</button><button class="sbl red" type="button" id="s-lkoff">Turn off</button></div>
           <div class="sro noic" id="s-lkafter-row"><label class="srl" for="s-lkafter"><b>Lock after</b></label><select class="sfs" id="s-lkafter"><option value="0">leaving the app</option><option value="1">1 min</option><option value="5">5 min</option><option value="15">15 min</option><option value="60">1 hour</option></select></div>
           <div class="sro noic" id="s-lkpin-row"><div class="srl"><b>Backup PIN</b></div><button class="sbl" type="button" id="s-lkpin">Change…</button></div>
         </div>
-        <div class="sgf">Lock / unlock 🍦 from the avatar panel (More on the phone) or with <kbd>L</kbd>. App lock: this device only.</div>
-
-        <div id="s-push-f" hidden>
-          <div class="sgl">Notifications</div>
-          <div class="sgr"><div class="sro"><span class="sic" style="--c:#ff3b30"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/></svg></span><div class="srl"><b>This device</b><small id="s-pushinfo"></small></div><button class="sbl" type="button" id="s-pushon">Turn on</button><button class="sbl red" type="button" id="s-pushoff">Turn off</button></div></div>
-          <div class="sgf">When a client answers or asks. Each device is switched on by itself; on iPhone only from the Home Screen app.</div>
-        </div>
-
-        <div class="sgl">About</div>
-        <div class="sgr">
-          <div class="sro"><span class="sic" style="--c:linear-gradient(140deg,#7a5af5,#0a7aff)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4h10l-1.5 4L16 12H6"/></svg></span><div class="srl"><b>Race Hub</b><small>click “Race Hub” in the top bar to update</small></div><span class="srv" id="s-ver"></span></div>
-          <div class="sro"><span class="sic" style="--c:#3ecf8e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="2.8"/><path d="M5 6v12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8"/></svg></span><div class="srl"><b>Data</b><small id="s-datasub"></small></div><span class="srv" id="s-data"></span></div>
+        <div class="sgr" id="s-push-f" hidden>
+          <div class="sro"><span class="sic" style="--c:#ff3b30"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/></svg></span><div class="srl"><b>Notifications</b><small id="s-pushinfo"></small></div><button class="sbl" type="button" id="s-pushon">Turn on</button><button class="sbl red" type="button" id="s-pushoff">Turn off</button></div>
         </div>
       </div>
       <div class="acts" id="s-democlose" hidden><button class="btn primary" type="button" id="s-dclose">Done</button></div>
@@ -6179,7 +6167,7 @@ setInterval(()=>{ if(lockOn()&&DK&&Date.now()-lastAct>Math.max(lockMs(),60e3)) l
 /* settings: turn on / off, lock after, change PIN */
 function lockInfo(){
   const on=lockOn();
-  $('#s-lkinfo').textContent=DEMO?'Not in demo mode.':!on?`Off · ${BIO} + PIN, encrypts this device's copy`:`On · ${LOCK.credId?BIO+(LOCK.mode==='gate'?' (unlock only)':'')+' + PIN':'PIN only'} · this device's copy is encrypted`;
+  $('#s-lkinfo').textContent=DEMO?'Not in demo mode.':!on?`off · ${BIO} + PIN, this device`:`on · ${LOCK.credId?BIO+(LOCK.mode==='gate'?' (unlock only)':'')+' + PIN':'PIN only'}`;
   $('#s-lkon').hidden=on||DEMO; $('#s-lkoff').hidden=!on; $('#s-lkpin-row').hidden=!on; $('#s-lkafter-row').hidden=!on;
   if(on) $('#s-lkafter').value=String(LOCK.after??5);
 }
@@ -6190,7 +6178,7 @@ $('#s-lkoff').onclick=async()=>{
   if(!confirm('Turn off the app lock on this device?\n\nThe token and the offline copy will be stored without encryption again.')) return;
   const rec=localCache; LOCK=null; DK=null; localCache=null; idbKey('del').catch(()=>{});
   try{ localStorage.removeItem(LOCK_KEY); const c={...cfg}; delete c.tokenEnc; localStorage.setItem(CFG_KEY,JSON.stringify(c)); if(rec) localStorage.setItem(LOCAL_KEY(),JSON.stringify(rec)); }catch{}
-  persistLocal(); lockInfo(); toast('App lock off','you can delete the “Race Hub” passkey (or the older “Events tracker” one) in the Passwords app','lock'); };
+  persistLocal(); lockInfo(); fitSettings(); toast('App lock off','you can delete the “Race Hub” passkey (or the older “Events tracker” one) in the Passwords app','lock'); };
 let lkPinOnly=false;
 function openLockSetup(pinOnly=false){
   lkPinOnly=pinOnly; $('#lk-title').textContent=pinOnly?'Change backup PIN':'App lock';
@@ -6266,26 +6254,24 @@ function openSettings(msg='',from=null){
   if(loggedIn) fillSettings();
   // desktop, from the avatar panel: the panel grows into Settings in its corner (--h0 = the panel's height); "‹ Back" returns to it
   dlg.classList.toggle('fromacct',!!from&&!narrow.matches); if(from) dlg.style.setProperty('--h0',from+'px');
-  if(!dlg.open) dlg.showModal();
+  dlg.style.removeProperty('--h1'); if(!dlg.open) dlg.showModal();
+  fitSettings();
 }
+/* desktop: the panel is exactly as tall as its content (an animation can't end on 'auto'); again when rows appear */
+function fitSettings(){ if(narrow.matches||!dlg.open||$('#s-prefs').hidden) return; const d=dlg.querySelector('.dlg'), cs=getComputedStyle(d), h=[...d.children].reduce((a,c)=>a+(c.hidden?0:c.offsetHeight),0)+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom); dlg.style.setProperty('--h1',Math.ceil(h)+'px'); } // the content's own height, not the (animating) box
 function fillSettings(){
   const sb=isSB(), key=S.config.cartoKey||'';
   $('#s-accmail').textContent=DEMO?'Demo':cfg.owner||'—';
-  $('#s-accsub').textContent=DEMO?'nothing is saved':sb?'Supabase account':`GitHub · ${cfg.owner}/${cfg.repo}`;
-  $('#s-accdev').textContent=DEMO?'Demo mode':lockOn()?'Signed in · session encrypted by the app lock':'Signed in · session kept on this device (not encrypted)';
-  $("#s-signout-row").hidden=DEMO;
+  $('#s-accdev').textContent=DEMO?'demo files · nothing is saved':`${sb?'Supabase':'GitHub'} · ${lockOn()?'session encrypted on this device':'session kept here, not encrypted'}`;
+  $('#s-signout').hidden=DEMO;
   $('#s-rr14user').value=S.config.rr14User||'';
-  $('#s-carto').value=key; $('#s-cartorow').hidden=true; $('#s-cartoedit').textContent=key?'Change':'Add';
-  $('#s-cartomask').textContent=key?'••••'+key.slice(-6):'none';
-  $('#s-mapstate').textContent=key?'CARTO':'Esri'; $('#s-mapstate').classList.toggle('grey',!key);
-  $('#s-mapsub').textContent=key?'CARTO Positron / Dark Matter':'Esri grey canvas · no key';
-  $('#s-swinfo').textContent=!hasSafeword()?'Not set yet — set it the first time you unlock':priv()?'Set · hides hours and values':'Set · unlock 🍦 first to change it';
+  $('#s-carto').value=key; $('#s-cartorow').hidden=true; $('#s-cartoedit').textContent=key?'Change':'Add key';
+  $('#s-mapsub').textContent=key?'CARTO ••••'+key.slice(-6):'Esri grey · no key';
+  $('#s-swinfo').textContent=!hasSafeword()?'not set — set it on first unlock':priv()?'set':'set · unlock 🍦 to change';
   $('#s-swset').disabled=!priv();
-  $('#s-ver').textContent=APPV?'v'+APPV:'';
-  $('#s-data').textContent=DEMO?'Demo':sb?'Supabase':'GitHub'; $('#s-datasub').textContent=DEMO?'demo files, never written':sb?'saved automatically':'saved with Save (⌘S)';
-  lockInfo(); pushInfo();
+  lockInfo(); pushInfo().then(fitSettings); fitSettings();
 }
-$('#s-cartoedit').onclick=()=>{ $('#s-cartorow').hidden=false; const i=$('#s-carto'); i.focus(); i.select(); };
+$('#s-cartoedit').onclick=()=>{ $('#s-cartorow').hidden=false; fitSettings(); const i=$('#s-carto'); i.focus(); i.select(); };
 $('#s-cartook').onclick=()=>fillSettings();
 $('#s-carto').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); fillSettings(); } });
 $('#s-signout').onclick=()=>{ dlg.close(); logout(); };
@@ -6303,9 +6289,9 @@ async function pushSub(){ const r=await navigator.serviceWorker.ready; return r.
 async function pushInfo(){
   const f=$('#s-push-f'); f.hidden=!isSB()||DEMO; if(f.hidden) return;
   const info=$('#s-pushinfo'), on=$('#s-pushon'), off=$('#s-pushoff');
-  if(!pushOK()){ info.textContent=/iPhone|iPad/.test(navigator.userAgent)?'On iPhone: add Race Hub to the Home Screen and open it from there.':'Not available in this browser.'; on.hidden=off.hidden=true; return; }
+  if(!pushOK()){ info.textContent=/iPhone|iPad/.test(navigator.userAgent)?'iPhone: only from the Home Screen app':'not available in this browser'; on.hidden=off.hidden=true; return; }
   const sub=await pushSub().catch(()=>null);
-  info.textContent=sub?'On for this device.':Notification.permission==='denied'?'Blocked: allow notifications for this site in the browser / system settings.':'Off for this device.';
+  info.textContent=sub?'on · this device':Notification.permission==='denied'?'blocked in the browser / system settings':'off · this device';
   on.hidden=!!sub||Notification.permission==='denied'; off.hidden=!sub; }
 $('#s-pushon').onclick=async()=>{ const b=$('#s-pushon'); b.disabled=true;
   try{ if(await Notification.requestPermission()!=='granted') throw new Error('Notifications not allowed');
