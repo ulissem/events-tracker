@@ -2518,6 +2518,13 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .rnone{font-size:12px;color:var(--ink-3);margin:10px 0 0}
 /* client page: one column + section bar (6 Oct 2026, mockup/client-page.html) */
 .cv3 .jump{margin-top:16px}
+.hero.cli .fact.prep{display:none}
+.hero.cli .fact.prep .ring{width:16px;height:16px} .hero.cli .fact.prep .ring .rv{stroke:var(--tint)}
+.sech .tbtn svg{width:13px;height:13px;vertical-align:-2px}
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
+  .hero.cli .hr{display:none} .hero.cli .fact.prep{display:inline-flex}
+  .cacts .btn{padding:0 8px;gap:6px} .cacts .btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
 .cv3 > .sec{scroll-margin-top:calc(var(--hh) + 64px)}
 .cv3 .cdet{grid-template-columns:repeat(2,minmax(0,1fr))}
 .cv3 .cdet > :last-child{grid-column:1/-1}
@@ -3656,6 +3663,7 @@ const P={
   away:'<path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v7a2 2 0 0 0 4 0"/>',
   sparkle:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
   upload:'<path d="M12 15V4M7 9l5-5 5 5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>',
+  eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   refresh:'<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/>',
 };
 const ic=(n,sw=2)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
@@ -4651,6 +4659,14 @@ function clientsOverview(D){
         <div class="ov-ticks">${ticks}</div>${rows.map(track).join('')||'<div class="ov-empty">Nothing in the next 30 days.</div>'}</section>
     </div></div>`;
 }
+/* "View as client" (Oct 2026): the portal of this client in a new tab, read only. A fresh access token goes in the hash (never sent
+   to a server, removed by the portal at once, kept only in that tab's sessionStorage); the portal passes p_as, honoured for owners only. */
+async function viewAsClient(c){
+  if(!isSB()) return; const w=window.open('about:blank','_blank'); // opened now: after the await a popup blocker would stop it
+  try{ if(dirty) await save({quiet:true}); const t=await SupabaseStore.token(true);
+    const u=new URL('portal',location.href.split('#')[0]); u.search=''; u.hash=new URLSearchParams({preview:t,as:c.id,name:c.name||''}).toString();
+    if(w) w.location.href=u.href; else location.href=u.href; }
+  catch(err){ w?.close(); toast('Preview not available',isNetErr(err)?'offline':err.message,'warn','warn'); } }
 /* client page (6 Oct 2026, mockup/client-page.html): one column like the event page, a section bar (chips that jump + scroll-spy),
    Events · Details · Portal · Ice creams (Close on demand, closures folded) · Rates (earlier rates folded) */
 let cliClose=false, cliAllCl=false, rtOld=false;
@@ -4680,15 +4696,17 @@ function renderClient(D){
       <div class="facts">
         <a class="fact" href="#s-cevents" data-jump>${ic('flag',2)}<b>${up.length}</b> upcoming</a>
         ${oq?`<span class="fact warn">${ic('inbox',2)}<b>${oq}</b> open ${oq===1?'question':'questions'}</span>`:`<span class="fact">${ic('inbox',2)}no open questions</span>`}
-        ${showH&&openV?`<a class="fact" href="#s-cice" data-jump>${esc(U().icon)}<b>${fmtN(openV)}</b> open</a>`:`<a class="fact" href="#s-cevents" data-jump>${ic('hours',2)}<b>${past.length}</b> past</a>`}
+        ${showH&&openV?`<a class="fact" href="#s-cice" data-jump>${esc(U().icon)}<b>${fmtN(openV)}</b> open</a>`:past.length?`<a class="fact" href="#s-cevents" data-jump>${ic('hours',2)}<b>${past.length}</b> past</a>`:''}
+        ${up.length?`<span class="fact prep" title="average of ${plural(up.length,'upcoming event','upcoming events')}">${ring(avg,16,2.4)}<b>${Math.round(avg*100)}%</b> prepared</span>`:''}
       </div>
     </div>
     ${up.length?`<div class="hr"><span class="ringbox">${ring(avg,84,7)}<span class="ringv">${Math.round(avg*100)}%<small>prepared</small></span></span><span class="hlab">avg. of ${plural(up.length,'upcoming event','upcoming events')}</span></div>`:''}
     </div>
   </div>
-  <div class="cacts">
+  <div class="cacts" style="grid-template-columns:repeat(${isSB()?3:2},minmax(0,1fr))">
     <a class="btn ${mail?'':'off'}" ${mail?`href="${esc(mail)}"`:'role="button" tabindex="0" data-f="[data-k=email]"'}>${ic('mail',1.9)}<span>${mail?'Email':'No email'}</span></a>
     ${tel&&!narrow.matches?`<button type="button" class="btn" id="cphone">${ic('copy',1.9)}<span>Copy phone</span></button>`:`<a class="btn ${tel?'':'off'}" ${tel?`href="${esc(tel)}"`:'role="button" tabindex="0" data-f="[data-k=phone]"'}>${ic('phone',1.9)}<span>${tel?'Call':'No phone'}</span></a>`}
+    ${isSB()?`<button type="button" class="btn" data-asclient title="Open the client portal as this client, read only">${ic('eye',1.9)}<span>${narrow.matches?'Portal':'View as client'}</span></button>`:''}
   </div>
   <nav class="jump" id="jump" aria-label="Sections">
     <a href="#s-top" data-jump><span class="ji" style="--sc:var(--accent)" aria-hidden="true">${ic('user',2)}</span>Overview</a><a href="#s-cevents" data-jump>${secBadge('races','ji')}Events <em>${ev.length||''}</em></a><a href="#s-cdetails" data-jump>${secBadge('general','ji')}Details</a>${isSB()?`<a href="#s-cportal" data-jump>${secBadge('questions','ji')}Portal</a>`:''}${showH?`<a href="#s-cice" data-jump>${secBadge('hours','ji')}${esc(UC())} <em class="${openV?'w':''}">${openV?fmtN(openV):''}</em></a><a href="#s-crates" data-jump>${secBadge('hours','ji')}Rates <em>${nRates||''}</em></a>`:''}
@@ -4710,7 +4728,7 @@ function renderClient(D){
       ${T(c,'notes','Notes',{ph:'Anything about this client…'})}
     </div></section>
 
-  ${isSB()?`<section class="sec" id="s-cportal"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Client portal</h3></div><div id="cportal"><p class="hint">Loading…</p></div></section>`:''}
+  ${isSB()?`<section class="sec" id="s-cportal"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Client portal</h3><span class="sp"></span><button type="button" class="tbtn" data-asclient>${ic('eye',2)} View as ${esc(c.name||'client')}</button></div><div id="cportal"><p class="hint">Loading…</p></div></section>`:''}
 
   ${showH?`<section class="sec" id="s-cice"><div class="sech" style="--sc:${SECC.hours}"><h3>${secBadge('hours')}${esc(UC())}</h3><span class="sp"></span><span class="hint">${ic('unlock',2).replace('<svg','<svg width="12" height="12" style="display:inline;vertical-align:-1px"')} unlocked</span></div>
     <div class="ccard hr2-g cice">
@@ -4753,6 +4771,7 @@ function renderClient(D){
   on(D,'[data-jump]',(a,e)=>{ e.preventDefault(); const t=document.querySelector(a.getAttribute('href')); if(!t) return; spyPick(a.getAttribute('href')); t.id==='s-top'?window.scrollTo({top:0,behavior:'smooth'}):t.scrollIntoView({behavior:'smooth',block:'start'}); });
   D.querySelector('#closebtn')?.addEventListener('click',()=>go('c')); // back to the overview (Esc too)
   if(isSB()) loadPortalContacts(c);
+  on(D,'[data-asclient]',()=>viewAsClient(c));
   D.querySelector('#cphone')?.addEventListener('click',async()=>{ if(await copyText(c.phone)) toast('Phone copied',c.phone,'copy'); }); // desktop: no calls, copy the number
   D.querySelectorAll('.cacts .off').forEach(b=>b.onclick=()=>D.querySelector(b.dataset.f)?.focus()); // no email / phone yet: go to the field
   $('#delcl').onclick=()=>{
@@ -5263,7 +5282,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='217'; let APPV=HV, UPD=false;
+const HV='218'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });

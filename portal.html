@@ -57,6 +57,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 svg{display:block}
 
 /* ---------- top bar ---------- */
+.pvbar{display:flex;align-items:center;justify-content:center;gap:12px;padding:7px 16px;background:#ff9500;color:#fff;font-size:13px;font-weight:500}
+.pvbar span{display:inline-flex;align-items:center;gap:7px} .pvbar b{font-weight:700}
+.pvbar button{border:0;border-radius:999px;background:rgba(255,255,255,.25);color:#fff;font:inherit;font-weight:600;font-size:12.5px;height:26px;padding:0 12px;cursor:pointer}
 .top{position:sticky;top:0;z-index:40;padding-top:var(--sat);background:var(--glass);backdrop-filter:saturate(1.6) blur(18px);-webkit-backdrop-filter:saturate(1.6) blur(18px);border-bottom:.5px solid var(--line)}
 .top-in{max-width:1120px;margin:0 auto;height:56px;display:flex;align-items:center;gap:12px;padding:0 20px}
 .brand{display:flex;align-items:center;gap:10px;min-width:0;color:var(--ink)}
@@ -696,7 +699,15 @@ const when=ts=>{ if(!ts) return ''; const d=new Date(ts); if(isNaN(d)) return ''
 
 /* ---------- session (Supabase Auth over plain fetch) ---------- */
 let sess=(()=>{ try{ return JSON.parse(localStorage.getItem(SKEY)||'null'); }catch{ return null; } })();
-const saveSess=()=>{ try{ sess?localStorage.setItem(SKEY,JSON.stringify(sess)):localStorage.removeItem(SKEY); }catch{} };
+/* "View as client" (Oct 2026): the hub opens /portal#preview=<owner access token>&as=<client id>&name=… — read only, this tab only.
+   The token stays in sessionStorage (never in the client's saved session); the read functions get p_as (only an owner may use it). */
+let PREVIEW=null;
+{ const h=new URLSearchParams(location.hash.slice(1));
+  if(h.get('preview')){ PREVIEW={token:h.get('preview'),as:h.get('as')||'',name:h.get('name')||''}; try{ sessionStorage.setItem('hub-portal-preview',JSON.stringify(PREVIEW)); }catch{} history.replaceState(null,'',location.pathname+location.search+'#home'); }
+  else{ try{ PREVIEW=JSON.parse(sessionStorage.getItem('hub-portal-preview')||'null'); }catch{} } }
+if(PREVIEW){ let exp=Date.now()+30*60e3; try{ exp=JSON.parse(atob(PREVIEW.token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp*1000; }catch{} sess={access:PREVIEW.token,refresh:null,exp}; }
+const saveSess=()=>{ if(PREVIEW) return; try{ sess?localStorage.setItem(SKEY,JSON.stringify(sess)):localStorage.removeItem(SKEY); }catch{} };
+const PV_READ=['portal_me','portal_events','portal_event','portal_charges'], PV_WRITE=['answer_question','ask_question','mark_seen','save_prefs','register_file','delete_my_file'];
 let refreshing=null, linkError='';
 // back from the email link: #access_token=…&refresh_token=… (or #error=… when the link is old or used)
 { const h=new URLSearchParams(location.hash.slice(1));
@@ -710,13 +721,15 @@ async function authCall(grant,body){
 async function demoSignIn(){ // "Try the demo": no email, the shared demo account
   try{ await authCall('password',DEMO); }catch{ throw new Error('The demo is not available right now — try again later.'); } }
 async function token(force=false){
-  if(!sess) throw Object.assign(new Error('signed-out'),{signedOut:true});
+  if(!sess||PREVIEW&&Date.now()>sess.exp-30e3) throw Object.assign(new Error('signed-out'),{signedOut:true});
   if(!force&&Date.now()<sess.exp-60e3) return sess.access;
   if(!refreshing) refreshing=authCall('refresh_token',{refresh_token:sess.refresh}).finally(()=>{ refreshing=null; });
   await refreshing; return sess.access; }
 async function rpc(fn,args={},retry=true){
+  if(PREVIEW&&PV_WRITE.includes(fn)){ if(fn==='mark_seen'||fn==='save_prefs') return null; throw new Error('Preview: read only — nothing is sent'); }
+  if(PREVIEW&&PV_READ.includes(fn)) args={...args,p_as:PREVIEW.as};
   const r=await fetch(`${SB.url}/rest/v1/rpc/${fn}`,{method:'POST',cache:'no-store',headers:{apikey:SB.key,Authorization:`Bearer ${await token()}`,'Content-Type':'application/json'},body:JSON.stringify(args)});
-  if(r.status===401&&retry){ await token(true); return rpc(fn,args,false); }
+  if(r.status===401&&retry&&!PREVIEW){ await token(true); return rpc(fn,args,false); }
   const j=await r.json().catch(()=>null);
   if(!r.ok) throw Object.assign(new Error(j?.message||`Error ${r.status}`),{code:j?.code});
   return j; }
@@ -755,10 +768,12 @@ function Live({url,key,token,topic,me,onPing}){
 }
 const jwtSub=t=>{ try{ return JSON.parse(atob(String(t).split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub; }catch{ return ''; } };
 let live=null;
-function startLive(){ if(live||!ME?.orgId||!ME?.clientId) return;
+function startLive(){ if(live||PREVIEW||!ME?.orgId||!ME?.clientId) return;
   live=Live({url:SB.url,key:SB.key,token:()=>token(),topic:async()=>`rh:${ME.orgId}:${ME.clientId}`,me:()=>jwtSub(sess?.access),onPing:()=>{ if(state==='ok') loadAll(); }}); }
-async function signOut(){ live?.stop(); live=null; try{ if(sess) await fetch(`${SB.url}/auth/v1/logout`,{method:'POST',headers:{apikey:SB.key,Authorization:`Bearer ${sess.access}`}}); }catch{} sess=null; saveSess(); ME=null; location.hash=''; render(); }
+async function signOut(){ if(PREVIEW){ closePreview(); return; } live?.stop(); live=null; try{ if(sess) await fetch(`${SB.url}/auth/v1/logout`,{method:'POST',headers:{apikey:SB.key,Authorization:`Bearer ${sess.access}`}}); }catch{} sess=null; saveSess(); ME=null; location.hash=''; render(); }
 
+function closePreview(){ try{ sessionStorage.removeItem('hub-portal-preview'); }catch{} window.close(); setTimeout(()=>{ location.href='./'; },150); } // a tab opened by the hub closes; otherwise back to the hub
+const pvBar=()=>PREVIEW?`<div class="pvbar"><span>${I.eye||''}Preview as <b>${esc(ME?.client||PREVIEW.name)}</b> · read only</span><button type="button" data-act="pvclose">Close</button></div>`:'';
 /* ---------- data ---------- */
 let ME=null, EVENTS=[], ICE={charges:[],closures:[]}, DET={}, state='loading', loadErr='';
 const OP=()=>({...OP_DEFAULT,...(ME?.operator||{})});
@@ -808,6 +823,7 @@ const TB={ // bottom tab bar (phone): 1.7 stroke, 26 px; path.f is filled lightl
   map:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="f" d="M9 5 4 7v12l5-2 6 2 5-2V5l-5 2z"/><path d="M9 5v12M15 7v12"/></svg>',
   ic:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="f" d="M7.5 10.5a4.5 4.5 0 1 1 9 0z"/><path d="M7.5 10.5 12 21l4.5-10.5M9.8 15.4l3.6-2.5M10.9 18l2.2-1.5"/></svg>'};
 const I={
+  eye:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
   out:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M9 16l-4-4 4-4M5 12h11"/></svg>',
   map:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
   home:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
@@ -839,7 +855,7 @@ const animateRings=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>docum
 /* top bar as in the hub (Oct 2026): the sections in an island in the centre, the client's avatar on the right → account panel */
 function chrome(route){
   const n=totalOpen(), cur=r=>route===r?'aria-current="page"':'', map=EVENTS.some(e=>e.geo);
-  $('#top').innerHTML=`<div class="top-in">
+  $('#top').innerHTML=`${pvBar()}<div class="top-in">
     <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>Race Hub</b><small>${ME?.demo?'Demo':'Client area'}</small></span></a><button type="button" class="pver ${PV_NEW?'new':''}" data-act="update" title="${PV_NEW?'A newer version is out · tap to update':'Reload the client area'}">v${PV}${PV_NEW?' · Update':''}</button>
     <nav class="island" aria-label="Sections"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a>${map?`<a href="#map" ${cur('map')}>Map</a>`:''}${noIce()?'':`<a href="#ic" ${cur('ic')}>${esc(UC())}</a>`}</nav>
     <button class="pav" data-act="account" aria-label="Account and appearance" aria-haspopup="menu">${esc(initials(ME?.client))}</button></div>`;
@@ -1091,7 +1107,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='217'; let PV_NEW=false, APPV=PV;
+const PV='218'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
@@ -1132,6 +1148,7 @@ document.addEventListener('click',async e=>{
   if(act==='arch'){ archOpen=!archOpen; return rerender(); }
   if(act==='towait') return document.getElementById('wait')?.scrollIntoView({behavior:'smooth',block:'start'});
   if(act==='signout'){ closeSheet(); return signOut(); }
+  if(act==='pvclose') return closePreview();
   if(act==='again'){ linkSent=''; render(); return; }
   if(act==='demo') return startDemo(b);
   if(act==='compose'){ composing[b.dataset.id]=true; rerender(); document.querySelector(`[data-c="${CSS.escape(b.dataset.id)}"]`)?.focus(); return; }
@@ -1283,8 +1300,10 @@ function render(){
   const h=decodeURIComponent(location.hash.slice(1))||'home', bare=!sess||state!=='ok';
   $('#top').style.display=$('#tbar').style.display=bare?'none':'';
   $('#app').classList.toggle('bare',bare);
+  if(PREVIEW&&(!sess||state==='signin')){ $('#app').innerHTML=vState('Preview expired','The preview lasts as long as your Race Hub session. Open it again from the client page.',`<button class="btn primary" style="margin-top:14px" data-act="pvclose">Close</button>`); return; }
   if(!sess||state==='signin'){ $('#app').innerHTML=vLogin(); return; }
   if(state==='loading'){ $('#app').innerHTML=vState('Loading…','Your events are on their way.'); return; }
+  if(state==='owner'&&PREVIEW){ $('#app').innerHTML=vState('Preview not available','This client could not be opened with your account.',`<button class="btn primary" style="margin-top:14px" data-act="pvclose">Close</button>`); return; }
   if(state==='owner'){ $('#app').innerHTML=vState('Client area','You are signed in with an account that is not a client of this area.',`<a class="btn primary" href="./" style="margin-top:14px">Open the app</a><button class="btn" data-act="signout" style="margin-top:8px">Sign out</button>`); return; }
   if(state==='error'){ $('#app').innerHTML=vState('Something went wrong',esc(loadErr),`<button class="btn primary" style="margin-top:14px" onclick="location.reload()">Try again</button>`); return; }
   if(h==='map'){ chrome('map'); vMap(); return; }
