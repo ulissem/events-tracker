@@ -882,14 +882,15 @@ const upcoming=()=>EVENTS.filter(e=>days(e)==null||days(e)>=0||e.end&&e.end>=iso
 const pastEvents=()=>EVENTS.filter(e=>!upcoming().includes(e)).sort((a,b)=>b.start.localeCompare(a.start));
 const noIce=()=>!!ME?.demo; // the demo client has no ice creams (tab, Home card, event card)
 /* ice creams v2 (Oct 2026): charges of several kinds; closures are amounts that cover the oldest charges first (date, then id) */
-const KINDS={hours:{n:'Hours',u:'h',k:'#0a7aff'},hardware:{n:'Hardware',u:'pc',k:'#7a5af5'},travel:{n:'Travel',u:'km',k:'#30b0c7'},material:{n:'Material',u:'pc',k:'#ff9500'},expense:{n:'Expenses',u:'',k:'#ff2d92'}};
+const KINDS={hours:{n:'Hours',u:'h',k:'#0a7aff'},hardware:{n:'Hardware',u:'pc',k:'#7a5af5'},travel:{n:'Travel',u:'km',k:'#30b0c7'},material:{n:'Material',u:'pc',k:'#ff9500'},service:{n:'Services',u:'×',k:'#00a884'},expense:{n:'Expenses',u:'',k:'#ff2d92'}};
 const KSV={
   hours:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
   hardware:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>',
   travel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3"/></svg>',
+  service:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="12" rx="2"/><path d="M9 20h6M12 16v4M8 9l2.5 2.5L16 7"/></svg>',
   material:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.2"/></svg>',
   expense:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>'};
-const KO=['hours','hardware','travel','material','expense'], KN=id=>KINDS[id]||{n:id,u:'',k:'#8e8e93'};
+const KO=['hours','hardware','travel','material','service','expense'], KN=id=>KINDS[id]||{n:id,u:'',k:'#8e8e93'};
 const kb=id=>`<span class="kb" style="--k:${KN(id).k}" aria-hidden="true">${KSV[id]||''}</span>`;
 function icePrep(x){ const ch=(x.charges||[]).map(c=>({...c,value:+c.value||0})), cl=(x.closures||[]).map(c=>({...c,amount:+c.amount||0,covers:[]}));
   let left=cl.reduce((s,c)=>s+c.amount,0);
@@ -900,7 +901,7 @@ function icePrep(x){ const ch=(x.charges||[]).map(c=>({...c,value:+c.value||0}))
   return {charges:ch,closures:cl}; }
 const openC=()=>ICE.charges.filter(c=>c.open>1e-9);
 const iceTotal=()=>openC().reduce((s,c)=>s+c.open,0), iceHours=()=>openC().filter(c=>c.kind==='hours').reduce((s,c)=>s+(+c.qty||0),0);
-const cLabel=c=>c.kind==='hardware'?`${c.item||'Hardware'} × ${ic(c.qty)} · ${plural(+c.days||1,'day','days')}`:c.kind==='material'?`${c.item||'Material'} × ${ic(c.qty)}`
+const cLabel=c=>c.kind==='hardware'?`${c.item||'Hardware'} × ${ic(c.qty)} · ${plural(+c.days||1,'day','days')}`:c.kind==='material'||c.kind==='service'?`${c.item||KN(c.kind).n}${+c.qty!==1||c.kind==='material'?` × ${ic(c.qty)}`:''}`
   :c.kind==='hours'?`${ic(c.qty)} h${c.note?' · '+c.note:''}`:c.kind==='travel'?`${ic(c.qty)} km${c.note?' · '+c.note:''}`:(c.note||'Expense');
 const cCalc=c=>c.kind==='expense'?'at cost':c.kind==='hardware'?`${ic(c.qty)} × ${ic(+c.days||1)} d × ${ic(c.rate)} ${U()}`:`${ic(c.qty)} × ${ic(c.rate)} ${U()}`;
 function kindBar(list,f){ const parts=KO.map(k=>[k,list.filter(c=>c.kind===k).reduce((s,c)=>s+f(c),0)]).filter(([,v])=>v>0), tot=parts.reduce((s,[,v])=>s+v,0);
@@ -1016,7 +1017,7 @@ function vEvent(id){
     <div class="col">
       ${tpCard(d)}
       ${noIce()||!eh.length?'':`<div class="card glow" style="--tint:#ff2d92"><div class="eye">${esc(UC())} · this event</div>
-        ${KO.map(k=>{ const r=eh.filter(c=>c.kind===k); if(!r.length) return ''; const q=k==='hours'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' h':k==='travel'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' km':k==='hardware'?plural(r.reduce((s,c)=>s+(+c.qty||0)*(+c.days||1),0),'piece-day','piece-days'):k==='material'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' pcs':plural(r.length,'expense','expenses');
+        ${KO.map(k=>{ const r=eh.filter(c=>c.kind===k); if(!r.length) return ''; const q=k==='hours'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' h':k==='travel'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' km':k==='hardware'?plural(r.reduce((s,c)=>s+(+c.qty||0)*(+c.days||1),0),'piece-day','piece-days'):k==='material'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' pcs':k==='service'?r.map(c=>c.item).filter(Boolean).join(', '):plural(r.length,'expense','expenses');
           return `<div class="kh kev">${kb(k)}<span><b>${KN(k).n}</b><small>${q}</small></span><span>${ic(r.reduce((s,c)=>s+c.value,0))} ${U()}</span></div>`; }).join('')}
         <div class="mh" style="border-top:.5px solid var(--line);padding-top:10px;margin-top:4px">Total${eh.some(c=>c.open>1e-9)?` <small class="coef">${ic(eh.reduce((s,c)=>s+c.open,0))} ${U()} open</small>`:' <small class="coef">closed</small>'}<span>${ic(eh.reduce((s,c)=>s+c.value,0))} ${U()}</span></div></div>`}
       ${timerCard()}
@@ -1090,7 +1091,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='215'; let PV_NEW=false, APPV=PV;
+const PV='216'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });

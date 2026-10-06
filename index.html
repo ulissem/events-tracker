@@ -3497,14 +3497,22 @@ const KSV={
   hours:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
   hardware:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>',
   travel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3"/></svg>',
+  service:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="12" rx="2"/><path d="M9 20h6M12 16v4M8 9l2.5 2.5L16 7"/></svg>',
   material:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.2"/></svg>',
   expense:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>'};
 const KINDS=[
   {id:'hours',name:'Hours',unit:'h',per:'h',k:'#0a7aff',q:'Hours',ph:'What you did'},
   {id:'hardware',name:'Hardware',unit:'pc',per:'day',k:'#7a5af5',q:'Pieces',items:()=>Object.keys(HW),pick:true,days:true},
   {id:'travel',name:'Travel',unit:'km',per:'km',k:'#30b0c7',q:'Kilometres',ph:'From – to'},
-  {id:'material',name:'Material',unit:'pc',per:'pc',k:'#ff9500',q:'Pieces',items:()=>['BiB tags','Shoe chips','Active transponders']},
+  {id:'material',name:'Material',unit:'pc',per:'pc',k:'#ff9500',q:'Pieces',items:()=>knownItems('material',['Passive Transponders','Active Transponders'])},
+  {id:'service',name:'Services',unit:'×',per:'unit',k:'#00a884',q:'Quantity',items:()=>knownItems('service',['On-Line Registration','Slot Transfer Platform','Certificates','Participant Views','Announcer Tablet'])},
   {id:'expense',name:'Expenses',unit:null,per:null,k:'#ff2d92',q:'Amount',ph:'Tolls, ferry, hotel…'}];
+/* items of a free kind (material, services): the defaults + every name already used in a charge or a rate, of any client */
+const knownItems=(kind,defs)=>{ const seen=new Set(defs.map(x=>x.toLowerCase())), out=[...defs];
+  const add=n=>{ n=String(n||'').trim(); if(n&&!seen.has(n.toLowerCase())){ seen.add(n.toLowerCase()); out.push(n); } };
+  for(const h of S?.hours?.entries||[]) if(h.kind===kind) add(h.item);
+  for(const l of Object.values(S?.hours?.rates||{})) for(const x of l) if(x.kind===kind) add(x.item);
+  return out; };
 const KIND=id=>KINDS.find(k=>k.id===(id||'hours'))||KINDS[0];
 const kindOf=h=>h.kind||'hours';
 const qtyOf=h=>kindOf(h)==='hours'?num(h.hours):num(h.qty);
@@ -4535,7 +4543,7 @@ function bindChargeForm(p,target){
     const ow=$(`#${p}-own`); if(ow) ow.onclick=()=>{ CF.own=!CF.own; if(CF.own&&!CF.rate&&a!=null) CF.rate=String(a); upd(); if(CF.own) $(`#${p}-rv`)?.focus(); };
     calc(); };
   const calc=()=>{ const v=val0(); $(`#${p}-calc`).innerHTML=v?`= <b>${fmtN(v)}</b> ${esc(U().icon)}`:''; $(`#${p}-add`).textContent=v?`Add ${fmtN(v)} ${U().icon}`:'Add'; };
-  box.querySelectorAll('[data-cfk]').forEach(b=>b.onclick=()=>{ if(CF.kind===b.dataset.cfk) return; CF.kind=b.dataset.cfk; CF.item=''; CF.rate=''; CF.own=false; const d=db.dataset.date;
+  box.querySelectorAll('[data-cfk]').forEach(b=>b.onclick=()=>{ if(CF.kind===b.dataset.cfk) return; CF.kind=b.dataset.cfk; CF.item=''; CF.rate=''; CF.own=false; if(CF.kind==='service'&&!CF.qty) CF.qty='1'; const d=db.dataset.date;
     box.outerHTML=chargeForm(p,{event:target().event}); $(`#${p}-date`).dataset.date=d; $(`#${p}-date`).querySelector('.tv').textContent=fmtShort(d); bindChargeForm(p,target); $(`#${p}-qty`).focus(); });
   for(const [f,id] of [['qty','qty'],['days','days'],['note','note'],['item','item']]){ const el=$(`#${p}-${id}`); if(!el) continue;
     el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{ CF[f]=el.value; if(f==='item'){ CF.own=false; upd(); } else calc(); });
@@ -5212,7 +5220,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='215'; let APPV=HV, UPD=false;
+const HV='216'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
