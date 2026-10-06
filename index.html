@@ -984,6 +984,18 @@ a.sro:hover{background:var(--hover);text-decoration:none}
   html dialog#settings:has(#s-prefs:not([hidden])) .dlg{padding:4px 14px calc(20px + var(--sab))}
   .sfi,.sfs{font-size:16px} /* no zoom on focus */
 }
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
+  #menu.acctm.ph{position:fixed;top:calc(var(--hh) + 6px);left:max(10px,var(--sal));right:max(10px,var(--sar));width:auto;max-height:calc(100vh - var(--hh) - 16px - var(--sab));overflow-y:auto;animation:popin .16s ease-out}
+  #menu.acctm .ccl button{height:44px;font-size:15px}
+  dialog#settings.fromacct{position:fixed;inset:calc(var(--hh) + 6px) max(10px,var(--sar)) auto max(10px,var(--sal));margin:0;width:auto;max-width:none;
+    height:var(--h1,auto);max-height:calc(100vh - var(--hh) - 16px - var(--sab));border:0;border-radius:22px;overflow:hidden;background:var(--panel);box-shadow:0 0 0 .5px var(--line-2),var(--shadow-pop)}
+  html dialog#settings.fromacct:has(#s-prefs:not([hidden])) .dlg{width:100%;height:100%;max-height:inherit;overflow-y:auto;padding:4px 10px 10px}
+  dialog#settings.fromacct::backdrop{background:transparent}
+  dialog#settings.fromacct .sgr{background:var(--sunken);border-radius:16px}
+  dialog#settings.fromacct .sro + .sro::before{background:var(--line)}
+  dialog#settings.fromacct[open]{animation:setgrow .36s cubic-bezier(.2,.8,.2,1)}
+  dialog#settings.fromacct[open] .dlg{animation:setin .28s .08s both}
+}
 @keyframes setgrow{from{height:var(--h0,450px)}}
 @keyframes setin{from{opacity:0;transform:translateX(24px)}}
 .rlist{padding:6px 14px 12px}
@@ -3671,7 +3683,7 @@ function renderTop(){
   $('#tsave').onclick=doSave; $('#savepill').onclick=doSave;
   $('#listbtn')?.addEventListener('click',toggleList);
   $('#topback')?.addEventListener('click',()=>go(route.view));
-  $('#morebtn').onclick=ev=>openMore(ev.currentTarget);
+  $('#morebtn').onclick=ev=>openAcct(ev.currentTarget); // phone: the same panel as the desktop avatar, at the top
   $('#cmdtrig').onclick=openCmd;
   $('#newbtn').onclick=newItem;
   $('#acctbtn').onclick=ev=>openAcct(ev.currentTarget);
@@ -4950,7 +4962,7 @@ function place(pop,anchor,align='left'){
 }
 let popAnchor=null;
 function closePops(){
-  $('#scrim').hidden=true; $('#menu').classList.remove('more','acctm');
+  $('#scrim').hidden=true; $('#menu').classList.remove('more','acctm','ph');
   if(!$('#notepop').hidden){ $('#notepop').hidden=true; if(noteT){ noteT=null; renderDetail(); } }
   for(const id of ['dp','menu','pinpop','geopop','geoinfo']){ const p=document.getElementById(id); if(!p.hidden){ p.hidden=true; if(id==='dp'&&DP.onClose&&DP.changed){ const f=DP.onClose; DP.onClose=null; f(); } if(id==='pinpop'&&pinT){ pinT=null; renderDetail(); } } }
   popAnchor?.classList.remove('on'); popAnchor=null;
@@ -5021,12 +5033,14 @@ function openAcct(btn){
       <button type="button" class="cct ice ${priv()?'on':''}" data-am="ice"><span class="cti">${esc(U().icon)}</span><b>Private · ${priv()?'open':'locked'}</b><small>${priv()?'locks after 10 min · L':'tap to unlock · L'}</small></button>
       <div class="cct wide"><span class="cti">${ic(themeIcon(),1.9)}</span><div class="ccseg" role="radiogroup" aria-label="Appearance">${[['auto','Auto'],['light','Light'],['dark','Dark']].map(([t,l])=>`<button type="button" role="radio" aria-checked="${themePref===t}" data-th="${t}">${l}</button>`).join('')}</div></div>
     </div>
-    <div class="ccl">${row('settings','gear','Settings')}${row('keys','keyboard','Keyboard shortcuts','<kbd>?</kbd>')}${row('prompt','sparkle','Copy AI prompt')}${row('import','upload','Import from AI (JSON)')}${row('reload','refresh','Reload app')}</div>
+    <div class="ccl">${row('settings','gear','Settings')}${narrow.matches?'':row('keys','keyboard','Keyboard shortcuts','<kbd>?</kbd>')}${row('prompt','sparkle','Copy AI prompt')}${row('import','upload','Import from AI (JSON)')}${row('reload','refresh','Reload app')}</div>
     <div class="ccl"><button type="button" data-am="logout" class="ccout">${ic('logout',1.9)}<span class="ml">Log out</span></button></div>
     <div class="ccfoot">Race Hub${APPV?' v'+esc(APPV):''} · ${esc(where())}</div>`;
   on(m,'[data-th]',b=>{ setTheme(b.dataset.th,true); m.querySelectorAll('[data-th]').forEach(x=>x.setAttribute('aria-checked',x===b)); m.querySelector('.wide .cti').innerHTML=ic(themeIcon(),1.9); popAnchor=$('#acctbtn'); });
   on(m,'[data-am]',b=>{ const k=b.dataset.am, hgt=m.offsetHeight; closePops(); if(k==='save') save(); else if(k==='refresh') refreshData(); else if(k==='ice') togglePrivacy(); else if(k==='settings') openSettings('',hgt); else if(k==='keys') openKeys(); else if(k==='prompt') openPrompt(); else if(k==='import') openImport(); else if(k==='reload') reloadApp(); else logout(); });
-  popAnchor=btn; place(m,btn,'right');
+  popAnchor=btn;
+  if(narrow.matches){ m.hidden=false; m.classList.remove('bsheet'); m.classList.add('ph'); m.style.left=m.style.top=''; } // phone: drops from the top, not a bottom sheet
+  else{ m.classList.remove('ph'); place(m,btn,'right'); }
 }
 function openStatusMenu(btn,e){
   if(!$('#menu').hidden&&popAnchor===btn){ closePops(); return; } closePops();
@@ -6254,12 +6268,12 @@ function openSettings(msg='',from=null){
   if(!loggedIn&&!DEMO){ showSignin(); return; } hideSignin();
   if(loggedIn) fillSettings();
   // desktop, from the avatar panel: the panel grows into Settings in its corner (--h0 = the panel's height); "‹ Back" returns to it
-  dlg.classList.toggle('fromacct',!!from&&!narrow.matches); if(from) dlg.style.setProperty('--h0',from+'px');
-  dlg.style.removeProperty('--h1'); if(!dlg.open) dlg.showModal();
+  dlg.classList.toggle('fromacct',!!from); if(from) dlg.style.setProperty('--h0',from+'px');
+  dlg.style.removeProperty('--h1'); if(!dlg.open){ dlg.showModal(); if(document.activeElement?.closest?.('.sghead')) document.activeElement.blur(); } // no focus ring on Back / Done when it opens
   fitSettings();
 }
 /* desktop: the panel is exactly as tall as its content (an animation can't end on 'auto'); again when rows appear */
-function fitSettings(){ if(narrow.matches||!dlg.open||$('#s-prefs').hidden) return; const d=dlg.querySelector('.dlg'), cs=getComputedStyle(d), h=[...d.children].reduce((a,c)=>a+(c.hidden?0:c.offsetHeight),0)+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom); dlg.style.setProperty('--h1',Math.ceil(h)+'px'); } // the content's own height, not the (animating) box
+function fitSettings(){ if(narrow.matches&&!dlg.classList.contains('fromacct')||!dlg.open||$('#s-prefs').hidden) return; const d=dlg.querySelector('.dlg'), cs=getComputedStyle(d), h=[...d.children].reduce((a,c)=>a+(c.hidden?0:c.offsetHeight),0)+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom); dlg.style.setProperty('--h1',Math.ceil(h)+'px'); } // the content's own height, not the (animating) box
 function fillSettings(){
   const sb=isSB(), key=S.config.cartoKey||'';
   $('#s-accmail').innerHTML=DEMO?'Demo':esc(cfg.owner||'—').replace('@','@<wbr>'); // a long address breaks after the @, never inside a word
