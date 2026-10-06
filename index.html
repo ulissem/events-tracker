@@ -2508,6 +2508,19 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
   .mstrip{left:max(10px,var(--sal));right:max(10px,var(--sar));bottom:calc(var(--tb) - 2px);border-radius:22px;padding-bottom:8px}
 }
 @media (pointer:coarse) and (max-height:500px){ :root{--tb:calc(50px + var(--tbo))} .tabbar{height:44px;padding:3px} .tabbar .tsave i{top:5px} }
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
+  .ptitle .pv{border:0;background:none;padding:0 0 0 7px;font:600 11px ui-rounded,-apple-system,system-ui,sans-serif;color:var(--ink-3);vertical-align:3px;cursor:pointer}
+  /* events list and map: the same filter bar (same margins and heights; Past in a pill like the selects); no "/" key hint on touch */
+  .lhead{padding:8px 14px 6px;gap:8px}
+  .maphead{top:8px;left:14px;right:14px;gap:8px}
+  .lhead .group,.maphead .msrch{height:38px}
+  .lhead select.in.sm,.maphead select.in.sm{height:34px}
+  .lhead .switch,.maphead .switch{height:34px;padding:0 10px 0 6px;border-radius:10px;gap:6px;flex:none}
+  .lhead .switch{background:var(--sunken)}
+  .maphead .msrch,.maphead .in.sm,.maphead .switch{box-shadow:0 8px 24px -14px rgba(0,0,0,.5)}
+  .lhead .group kbd{display:none}
+  .maphead select.in.sm{background-image:var(--chev);background-repeat:no-repeat;background-position:right 10px center} /* the glass background had dropped the ▾ */
+}
 </style>
 </head>
 <body>
@@ -3694,7 +3707,7 @@ function renderTop(){
   $('#top').innerHTML=`
     ${route.id&&(route.view==='e'||route.view==='c')?`<button id="topback" class="btn icon ghost topback" type="button" aria-label="Back to the list">${ic('back',2)}</button>`:''}
     ${route.view!=='h'&&route.view!=='a'&&route.view!=='m'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
-    <div class="brand" id="brand" data-tip="Reload app · gets the newest version (saves first)"><span class="logo">${ic('flag',2.4)}</span><b>Race Hub</b><span class="ver ${UPD?'new':''}" id="brandver">v${esc(HV)}${UPD?' · Update':''}</span></div><span class="ptitle">${vt}</span>
+    <div class="brand" id="brand" data-tip="Reload app · gets the newest version (saves first)"><span class="logo">${ic('flag',2.4)}</span><b>Race Hub</b><span class="ver ${UPD?'new':''}" id="brandver">v${esc(HV)}${UPD?' · Update':''}</span></div><span class="ptitle">${vt}<button type="button" class="pv" id="pver" aria-label="Version ${esc(HV)} · reload with the newest">v${esc(HV)}</button></span>
     <div class="island">
       <nav class="tabs" aria-label="Sections">${[['e','Events'],['m','Map'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav><span class="isep"></span>
       <button class="cmdtrig" id="cmdtrig" type="button" aria-label="Jump to" data-tip="Jump to an event, client or action" data-kbd="${MOD} K">${ic('search')}<span>Jump to</span><kbd>${MOD==='⌘'?'⌘K':'Ctrl K'}</kbd></button>
@@ -3717,7 +3730,7 @@ function renderTop(){
   $('#cmdtrig').onclick=openCmd;
   $('#newbtn').onclick=newItem;
   $('#acctbtn').onclick=ev=>openAcct(ev.currentTarget);
-  $('#updpill').onclick=()=>forceUpdate();
+  $('#updpill').onclick=()=>forceUpdate(); $('#pver').onclick=()=>forceUpdate();
   $('#brand').onclick=()=>{ if(!narrow.matches) forceUpdate(); }; // desktop: Race Hub vNNN = reload with the newest version
 }
 sysDark.addEventListener('change',()=>{ renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); });
@@ -5048,7 +5061,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='209'; let APPV=HV, UPD=false;
+const HV='210'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
