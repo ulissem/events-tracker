@@ -1339,7 +1339,7 @@ kbd{border-color:var(--line-2);border-bottom-width:1px;background:transparent;bo
 .vsep{display:none}
 /* top bar, Oct 2026 (mockup/topbar2.html, variant C · Island): no bar — the page colour, a floating island in the centre
    (sections + Jump to), on the right + New and the avatar; the dot on the avatar is the save state */
-@media (min-width:861px){
+@media (min-width:861px) and (min-height:501px), (min-width:861px) and (pointer:fine){
 .top{background:var(--bg);border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none}
 .top::after{content:'';position:absolute;left:0;right:0;top:100%;height:14px;background:linear-gradient(var(--bg),transparent);pointer-events:none}
 .brand .ver{font-size:10.5px;font-weight:600;color:var(--ink-3);align-self:flex-start;margin:1px 0 0 -5px;font-variant-numeric:tabular-nums;letter-spacing:0}
@@ -1386,7 +1386,7 @@ body.cmdon .island{opacity:0}
 #menu.acctm .ccout,#menu.acctm .ccout > svg{color:var(--danger)}
 #menu.acctm .ccfoot{padding:8px 10px 2px;font-size:11.5px;color:var(--ink-3)}
 /* ⌘K: the palette opens where the island is and grows out of it */
-@media (min-width:861px){
+@media (min-width:861px) and (min-height:501px), (min-width:861px) and (pointer:fine){
   #cmdk{padding-top:calc(var(--sat) + 4px);background:color-mix(in srgb,var(--scrim) 55%,transparent)}
   #cmdk .palette{width:620px;border-radius:22px;border:0;box-shadow:0 0 0 .5px var(--line-2),var(--shadow-pop);animation:islgrow .24s cubic-bezier(.2,.8,.2,1)}
   #cmdk .palette .pin2{height:44px;padding:0 10px 0 16px;border-bottom-color:var(--line)}
