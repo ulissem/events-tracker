@@ -508,6 +508,8 @@ a.btn{text-decoration:none}
 }
 
 /* ---------- your season: map (Oct 2026, mockup/portal-map.html) ---------- */
+.season{margin-top:14px}
+.status.map{background:var(--sunken);color:var(--ink)} .status.map svg{width:16px;height:16px;color:var(--accent)}
 .season .ct{font-size:20px;font-weight:700;letter-spacing:-.015em;margin:2px 0 0}
 .sprev{position:relative;height:160px;border-radius:16px;overflow:hidden;margin:12px 0 10px;background:var(--sunken)}
 .sprev img{position:absolute;width:256px;height:256px}
@@ -731,6 +733,7 @@ async function loadEvent(id){ const d=await rpc('portal_event',{p_id:id}); if(d)
 
 /* ---------- icons ---------- */
 const I={
+  map:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
   home:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
   q:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.5v.2M12 16.5v.01"/></svg>',
   ic:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10a5 5 0 0 1 10 0"/><path d="M6 10h12l-6 12z"/></svg>',
@@ -813,7 +816,8 @@ function vHome(){
   <p class="lede" style="margin-bottom:10px">${up.length?`${plural(up.length,'event','events')} coming up with ${esc(OP().name.split(' ')[0])}.`:`No events coming up yet — ${esc(OP().name.split(' ')[0])} adds them here.`}</p>
   <div class="statusrow">${nr?`<button class="status blue" data-go="#q"><i>${nr}</i>${nr===1?'New reply':'New replies'} from ${esc(OP().name.split(' ')[0])}<span class="arr">→</span></button>`:''}
   ${qn?`<button class="status warn" data-act="towait"><i>${qn}</i>${plural(qn,'question','questions')} waiting for your answer<span class="arr">↓</span></button>`
-      :`<button class="status ok" data-go="#q"><i>${I.check}</i>All answered — nothing waiting for you</button>`}</div>
+      :`<button class="status ok" data-go="#q"><i>${I.check}</i>All answered — nothing waiting for you</button>`}
+  ${geoUp().length||geoPast().length?`<button class="status map" data-go="#map">${I.map} Map</button>`:''}</div>
   ${today?raceDay(today):next?nextCard(next):''}
   ${waitBlock(up)}
   ${seasonCard()}
@@ -1039,7 +1043,7 @@ const prj=(lat,lon,z)=>{ const n=256*2**z; return [(lon+180)/360*n,(1-Math.log(M
 const cdS=e=>{ const n=days(e); return n==null?'':n===0?'Today':n===1?'Tomorrow':n<0?'done':n<14?`in ${n} d`:n<63?`in ${Math.round(n/7)} wk`:`in ${Math.round(n/30)} mo`; };
 const geoUp=()=>upcoming().filter(e=>e.geo), geoPast=()=>pastEvents().filter(e=>e.geo);
 function seasonCard(){
-  const up=geoUp(); if(!up.length) return '';
+  const up=geoUp(); if(up.length<2) return ''; // one event: the Next race card already shows its map (the Map button stays at the top)
   const lats=up.map(e=>e.geo[0]), lons=up.map(e=>e.geo[1]), W=300, H=110; let z=11;
   for(;z>3;z--){ const a=prj(Math.max(...lats),Math.min(...lons),z), b=prj(Math.min(...lats),Math.max(...lons),z); if(b[0]-a[0]<=W&&b[1]-a[1]<=H) break; }
   const [cx,cy]=prj((Math.max(...lats)+Math.min(...lats))/2,(Math.max(...lons)+Math.min(...lons))/2,z), dark=isDark(); let h='';
