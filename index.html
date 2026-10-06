@@ -3417,6 +3417,9 @@ async function syncFromRemote(){
   await Promise.all(want.map(async n=>{ txt[n]=await Store.get(n); }));
   for(const n of Object.keys(GitHubStore.sha)) if(!names.includes(n)) delete GitHubStore.sha[n];
   const before=JSON.stringify(serialize()), B=modelOf(saved), Rm=modelOf(txt);
+  // the objects on screen right now: kept when the remote has nothing new. The merge builds new objects, and a page still
+  // bound to the old ones would write a tick or a typed letter into a copy nobody saves (first click after a reload "did nothing")
+  const keep={config:S.config,clients:S.clients,events:S.events,todos:S.agenda.todos,entries:S.agenda.entries,notes:S.agenda.notes,hours:S.hours};
   const cfgM=merge3([{id:'c',...(B.config||{})}],[{id:'c',...S.config}],[{id:'c',...(Rm.config||{})}],asker('Settings',()=>'config'))[0]||{};
   delete cfgM.id; S.config=Object.assign(structuredClone(DEFAULT_CONFIG),cfgM);
   S.clients=merge3(B.clients,S.clients,Rm.clients,asker('Client',x=>x.name));
@@ -3432,6 +3435,7 @@ async function syncFromRemote(){
   if(S.hours&&saved['hours.json']==null) saved['hours.json']=hoursText();
   normalize(); snapshotFrom(Rm);
   const out=serialize(); for(const [n,t] of Object.entries(out)) if(saved[n]!=null&&same(saved[n],t)) saved[n]=t;
+  if(JSON.stringify(out)===before) Object.assign(S,{config:keep.config,clients:keep.clients,events:keep.events,hours:keep.hours}),Object.assign(S.agenda,{todos:keep.todos,entries:keep.entries,notes:keep.notes});
   dirty=Object.entries(out).some(([n,t])=>saved[n]!==t); needRemote=false; cleanSnap=dirty?null:out;
   persistLocal(); if(encKey&&S.hours) sealHours(); updSave();
   return JSON.stringify(out)!==before;
@@ -4542,7 +4546,7 @@ function renderEvent(D){
   D.querySelector('.fld.geo .lab').addEventListener('click',ev=>{ const h=ev.target.closest('#geohint'); if(h&&geoState(e)==='linked'){ ev.preventDefault(); openGeoInfo($('#geobtn'),e); } });
   $('#f-loc').addEventListener('input',()=>setTimeout(()=>geoLineUpdate(e),0)); // after bind() has stored the new text
   $('#f-loc').addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); geoSearch($('#geobtn'),e); } });
-  D.querySelector('.fld.geo').addEventListener('click',ev=>{ const b=ev.target.closest('[data-geokeep],[data-geofind]'); if(!b) return; if(b.hasAttribute('data-geokeep')){ e.geo.text=(e.location||'').trim(); touch('none'); renderDetail(); } else geoSearch($('#geobtn'),e); });
+  D.querySelector('.fld.geo').addEventListener('click',ev=>{ const b=ev.target.closest('[data-geokeep],[data-geofind],[data-georm]'); if(!b) return; if(b.hasAttribute('data-georm')){ delete e.geo; touch(); renderDetail(); } else if(b.hasAttribute('data-geokeep')){ e.geo.text=(e.location||'').trim(); touch('none'); renderDetail(); } else geoSearch($('#geobtn'),e); });
   on(D,'[data-note]',b=>openNote(b,OBJ[+b.dataset.note]));
   $('#addct').onclick=()=>{ const c={id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'mass',timeBasis:'',eligibility:'',startSplit:false,splits:[{id:uid('s'),role:'finish',label:'',tp:'',km:''}],relay:'',notes:''};
     e.contests.push(c); openRaces.add(c.id); saveOpen(); touch(); renderDetail(); D.querySelector(`[data-racename="${CSS.escape(c.id)}"]`)?.focus(); };
@@ -5527,7 +5531,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='235'; let APPV=HV, UPD=false;
+const HV='236'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
@@ -5594,6 +5598,7 @@ function geoText(r){
 function geoLineHTML(e){
   const gs=geoState(e), g=e.geo;
   if(gs==='linked') return `<div class="geoline" id="geoline" hidden></div>`;
+  if(gs==='stale'&&!(e.location||'').trim()) return `<div class="geoline warn" id="geoline">${ic('warn',2.2)}<span class="gl">No location, but the map still points to ${esc(g.text||g.label)}</span><i class="dot"></i><button type="button" class="lnk" data-georm>Remove</button></div>`; // location cleared: the pin goes too
   if(gs==='stale') return `<div class="geoline warn" id="geoline">${ic('warn',2.2)}<span class="gl">Position still points to ${esc(g.text||g.label)}</span><i class="dot"></i><button type="button" class="lnk" data-geokeep>Keep</button><i class="dot"></i><button type="button" class="lnk" data-geofind>Find again</button></div>`;
   return `<div class="geoline" id="geoline" hidden></div>`;
 }
