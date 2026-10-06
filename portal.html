@@ -591,6 +591,41 @@ body.mapon{overflow:hidden}
   .pm-sel .go{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13.5px} .pm-sel .go a{font-weight:600} .pm-sel .go span{color:var(--ink-3);font-size:12.5px}
 }
 @media (max-width:640px){ .pmap{bottom:calc(64px + var(--sab))} .pmap .leaflet-top.leaflet-right{top:52px;right:4px} }
+
+/* ---------- top bar = island, account panel (Oct 2026, as in the hub) ---------- */
+.pav{margin-left:auto;width:32px;height:32px;border-radius:50%;border:0;padding:0;flex:none;background:linear-gradient(140deg,#ff9f0a,#ff375f);color:#fff;font:700 12px var(--round);letter-spacing:.02em;display:grid;place-items:center;cursor:pointer}
+.pav:hover{box-shadow:0 0 0 3px color-mix(in srgb,#ff9f0a 25%,transparent)}
+.pav.big{width:42px;height:42px;font-size:15px;margin:0;cursor:default} .pav.big:hover{box-shadow:none}
+.pav.um{width:34px;height:34px;margin:0;background:linear-gradient(140deg,#5b5bf0,var(--accent));cursor:default} .pav.um:hover{box-shadow:none}
+.island{display:none}
+@media (min-width:641px){
+  .top{background:var(--bg);border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none}
+  .top::after{content:'';position:absolute;left:0;right:0;top:100%;height:14px;background:linear-gradient(var(--bg),transparent);pointer-events:none}
+  .top-in{position:relative;max-width:none}
+  .island{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:2px;padding:4px;border-radius:999px;background:var(--panel);box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -12px rgba(0,0,0,.28)}
+  .island a{height:30px;padding:0 15px;border-radius:999px;display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:500;color:var(--ink-2)}
+  .island a:hover{color:var(--ink)}
+  .island a[aria-current="page"]{background:var(--ink);color:var(--panel)}
+  .island a[aria-current="page"] .badge{box-shadow:0 0 0 2px var(--ink)}
+}
+.accp{position:fixed;top:calc(var(--sat) + 62px);right:12px;width:320px;z-index:90;padding:10px;border-radius:22px;background:var(--panel);box-shadow:0 0 0 .5px var(--line-2),var(--shadow-pop);animation:accin .16s ease-out}
+.accp[hidden]{display:none}
+@keyframes accin{from{opacity:0;transform:translateY(-6px) scale(.98)}}
+@media (max-width:640px){ .accp{top:calc(var(--sat) + 56px);left:10px;right:10px;width:auto} }
+.ach{display:flex;align-items:center;gap:12px;padding:6px 6px 12px}
+.ach b{display:block;font-size:15px} .ach small{display:block;font-size:12px;color:var(--ink-3);overflow-wrap:break-word}
+.acc-t{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 10px;border-radius:16px;background:var(--sunken)}
+.acc-i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--panel);color:var(--ink-2);flex:none}
+.acc-seg{flex:1;display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--sunken)}
+.acc-seg button{flex:1;height:30px;border:0;border-radius:7px;background:none;font-size:13px;color:var(--ink-2)}
+.acc-seg button[aria-checked="true"]{background:var(--panel);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.acc-c{display:flex;align-items:center;gap:12px;margin-top:8px;padding:10px;border-radius:16px;background:var(--sunken)}
+.acc-c b{display:block;font-size:13.5px} .acc-c small{display:block;font-size:12px;color:var(--ink-3)}
+.acc-l{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+.acc-out{width:100%;height:40px;display:flex;align-items:center;gap:10px;padding:0 10px;border:0;border-radius:10px;background:none;color:#ff3b30;font-size:14px;text-align:left}
+.acc-out:hover{background:var(--hover)} .acc-out svg{width:17px;height:17px}
+.acc-f{padding:8px 10px 2px;font-size:11.5px;color:var(--ink-3)}
+html{scrollbar-width:none} html::-webkit-scrollbar{display:none}
 </style>
 </head>
 <body>
@@ -733,6 +768,7 @@ async function loadEvent(id){ const d=await rpc('portal_event',{p_id:id}); if(d)
 
 /* ---------- icons ---------- */
 const I={
+  out:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M9 16l-4-4 4-4M5 12h11"/></svg>',
   map:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
   home:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
   q:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.5v.2M12 16.5v.01"/></svg>',
@@ -760,15 +796,14 @@ const logo='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="
 const animateRings=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.rv[data-off]').forEach(c=>c.style.strokeDashoffset=c.dataset.off)));
 
 /* ---------- chrome ---------- */
+/* top bar as in the hub (Oct 2026): the sections in an island in the centre, the client's avatar on the right → account panel */
 function chrome(route){
-  const n=totalOpen(), cur=r=>route===r?'aria-current="page"':'';
+  const n=totalOpen(), cur=r=>route===r?'aria-current="page"':'', map=EVENTS.some(e=>e.geo);
   $('#top').innerHTML=`<div class="top-in">
     <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>Race Hub</b><small>Client area</small></span></a>
-    <nav class="tabs"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a><a href="#ic" ${cur('ic')}>Ice creams</a></nav>
-    <button class="tbtn" data-act="theme" aria-label="Appearance" title="Appearance: ${themePref==='auto'?'Auto':themePref==='light'?'Light':'Dark'}">${themePref==='auto'?I.auto:themePref==='light'?I.sun:I.moon}</button>
-    <button class="ibtn" data-act="account" aria-label="Account">${I.user}</button>
-    <div class="who"><span>${esc(ME?.client||'')}<small>${esc(ME?.email||'')}</small></span></div></div>`;
-  $('#tbar').innerHTML=`<a href="#home" ${cur('home')}>${I.home.replace(/17/g,24)}Home</a><a href="#q" ${cur('q')}>${I.q.replace(/17/g,24)}Questions${n?`<span class="badge">${n}</span>`:''}</a><a href="#ic" ${cur('ic')}>${I.ic.replace(/17/g,24)}Ice creams</a>`;
+    <nav class="island" aria-label="Sections"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a><a href="#ic" ${cur('ic')}>Ice creams</a>${map?`<a href="#map" ${cur('map')}>Map</a>`:''}</nav>
+    <button class="pav" data-act="account" aria-label="Account and appearance" aria-haspopup="menu">${esc(initials(ME?.client))}</button></div>`;
+  $('#tbar').innerHTML=`<a href="#home" ${cur('home')}>${I.home.replace(/17/g,24)}Home</a><a href="#q" ${cur('q')}>${I.q.replace(/17/g,24)}Questions${n?`<span class="badge">${n}</span>`:''}</a><a href="#ic" ${cur('ic')}>${I.ic.replace(/17/g,24)}Ice creams</a>${map?`<a href="#map" ${cur('map')}>${I.map.replace(/17/g,24)}Map</a>`:''}`;
 }
 
 /* ---------- questions ---------- */
@@ -983,9 +1018,25 @@ function sheet(h){ $('#sheet').innerHTML=h; $('#scrim').classList.add('on'); }
 const closeSheet=()=>$('#scrim').classList.remove('on');
 $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
-function account(){ sheet(`<h3>${esc(ME?.client||'Account')}</h3><p>Signed in as ${esc(ME?.email||'')}.</p>
-  <div class="grp"><div class="tg"><div><b>Notifications</b><small>Coming soon: email and push when ${esc(OP().name.split(' ')[0])} asks something new.</small></div></div></div>
-  <button class="btn" style="width:100%;height:42px;justify-content:center" data-act="signout">Sign out</button>`); }
+let APPV=''; (window.caches?.keys?caches.keys().then(k=>k.map(x=>(x.match(/-v(\d+)$/)||[])[1]).filter(Boolean).sort((a,b)=>b-a)[0]):Promise.resolve(null)).then(v=>{ if(v) APPV=v; }).catch(()=>{});
+function account(){
+  let p=$('#accp'); if(p&&!p.hidden){ p.hidden=true; return; }
+  if(!p){ p=document.createElement('div'); p.id='accp'; p.className='accp'; p.setAttribute('role','menu'); document.body.appendChild(p); }
+  const o=OP();
+  p.innerHTML=`<div class="ach"><span class="pav big" aria-hidden="true">${esc(initials(ME?.client))}</span><div><b>${esc(ME?.client||'Account')}</b><small>${esc(ME?.email||'').replace('@','@<wbr>')}</small></div></div>
+    <div class="acc-t"><span class="acc-i">${themePref==='auto'?I.auto:themePref==='light'?I.sun:I.moon}</span><div class="acc-seg" role="radiogroup" aria-label="Appearance">${[['auto','Auto'],['light','Light'],['dark','Dark']].map(([t,l])=>`<button type="button" role="radio" aria-checked="${themePref===t}" data-th="${t}">${l}</button>`).join('')}</div></div>
+    <div class="acc-c"><span class="pav um" aria-hidden="true">${esc(initials(o.name))}</span><div><b>${esc(o.name)}</b><small>Your contact · ${esc(o.role)}</small></div></div>
+    <div class="acc-l"><button type="button" class="acc-out" data-act="signout">${I.out||''}Sign out</button></div>
+    <div class="acc-f">Race Hub${APPV?' v'+esc(APPV):''} · Client area</div>`;
+  p.hidden=false;
+}
+const closeAcc=()=>{ const p=$('#accp'); if(p) p.hidden=true; };
+document.addEventListener('pointerdown',e=>{ if(!e.target.closest('#accp,[data-act="account"]')) closeAcc(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAcc(); });
+addEventListener('hashchange',closeAcc);
+document.addEventListener('click',e=>{ const b=e.target.closest('#accp [data-th]'); if(!b) return;
+  themePref=b.dataset.th; try{ localStorage.setItem(THEME_KEY,themePref); }catch{} applyTheme(); rerender();
+  $('#accp').querySelectorAll('[data-th]').forEach(x=>x.setAttribute('aria-checked',x===b)); $('#accp .acc-i').innerHTML=themePref==='auto'?I.auto:themePref==='light'?I.sun:I.moon; });
 
 /* ---------- actions (delegated: ids never go into inline handlers) ---------- */
 document.addEventListener('input',e=>{
@@ -1153,7 +1204,7 @@ function render(){
   if(state==='loading'){ $('#app').innerHTML=vState('Loading…','Your events are on their way.'); return; }
   if(state==='owner'){ $('#app').innerHTML=vState('Client area','You are signed in with an account that is not a client of this area.',`<a class="btn primary" href="./" style="margin-top:14px">Open the app</a><button class="btn" data-act="signout" style="margin-top:8px">Sign out</button>`); return; }
   if(state==='error'){ $('#app').innerHTML=vState('Something went wrong',esc(loadErr),`<button class="btn primary" style="margin-top:14px" onclick="location.reload()">Try again</button>`); return; }
-  if(h==='map'){ chrome('home'); vMap(); return; }
+  if(h==='map'){ chrome('map'); vMap(); return; }
   if(PM){ PM.map.remove(); PM=null; } document.body.classList.remove('mapon');
   chrome(h.startsWith('e/')?'home':h);
   $('#app').innerHTML=h.startsWith('e/')?vEvent(h.slice(2)):h==='q'?vQuestions():h==='ic'?vIce():vHome();
