@@ -615,11 +615,14 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .hrsum div{flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
 .hrsum b{display:block;font-size:16px;font-weight:600;letter-spacing:-.01em}
 .hrsum span{font-size:11.5px;color:var(--ink-3)}
-.plrow{display:grid;grid-template-columns:20px minmax(0,1fr) 46px auto 90px 26px;gap:4px;align-items:center;min-height:32px}
+.tasks.plan .plhint{margin:-2px 4px 6px;font-size:12px;color:var(--ink-3)}
+.plrow{display:grid;grid-template-columns:20px minmax(0,1fr) 26px;gap:0 6px;align-items:center;padding-bottom:4px}
 .plrow .plic{color:var(--ink-3);display:flex;justify-content:center} .plrow .plic svg{width:14px;height:14px}
-.plrow .pln{text-align:right} .plrow .pll{font-size:12px;color:var(--ink-3);white-space:nowrap} .plrow .pld{font-size:12px;color:var(--ink-2);text-align:right;white-space:nowrap}
+.plrow .plwhen{grid-column:2/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-left:2px}
+.plrow .pln{width:40px;height:24px;text-align:right;padding:0 6px;background:var(--sunken)} .plrow .pll{font-size:12px;color:var(--ink-3);white-space:nowrap}
+.plrow .pld{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-2);margin-left:6px} .plrow .pld svg{width:12px;height:12px;color:var(--ink-3)}
 .plrow .del{opacity:0} .plrow:hover .del,.plrow .del:focus{opacity:1}
-@media (max-width:860px){ .plrow{grid-template-columns:20px minmax(0,1fr) 52px auto 40px;row-gap:0} .plrow .pld{grid-column:2/-2;grid-row:2;text-align:left;padding:0 0 6px 8px} .plrow .del{opacity:1;grid-column:5;grid-row:1} }
+@media (hover:none){ .plrow .del{opacity:1} .plrow .pln{height:32px} }
 .addrow{display:grid;grid-template-columns:118px 64px minmax(0,1fr) auto;gap:6px;margin-top:8px}
 .addrow .in{height:30px}
 .addrow .in.trig{padding:0 8px;gap:6px;font-size:12.5px}
@@ -5420,11 +5423,11 @@ function bindAgenda(D){
 }
 function planHTML(e){ const P=e.todoPlan||[];
   const when=p=>{ const n=num(p.before); if(!e.dateStart||!String(p.text||'').trim()) return ''; return dueTxt(addDays(e.dateStart,-(isFinite(n)?Math.round(n):0))); };
-  return `<div class="tasks plan"><div class="th">Planned to-dos<span class="hint" style="margin-left:auto">${e.dateStart?'in the Agenda, due before race day':'become Agenda to-dos once the event has a date'}</span></div>
+  return `<div class="tasks plan"><div class="th">Planned to-dos</div><p class="plhint">${e.dateStart?'In the Agenda, due before race day.':'They become Agenda to-dos once the event has a date.'}</p>
     ${P.map((p,i)=>`<div class="plrow"><span class="plic">${ic('clock',1.8)}</span><input class="cell" data-o="${ref(p)}" data-k="text" value="${esc(p.text)}" placeholder="To-do" aria-label="Planned to-do ${i+1}">
-      <input class="cell pln" type="text" inputmode="numeric" data-o="${ref(p)}" data-k="before" data-r="change" value="${esc(p.before)}" aria-label="Days before race day"><span class="pll">${num(p.before)===0?'on race day':num(p.before)<0?'days after':'days before'}</span>
-      <span class="pld">${esc(when(p))}</span><button class="btn icon sm ghost del" data-pldel="${i}" type="button" aria-label="Remove ${esc(p.text||'planned to-do')}">${ic('x')}</button></div>`).join('')}
-    <div class="task add"><span></span><span class="plus" aria-hidden="true">${ic('plus',2)}</span><input class="cell" id="pladd" placeholder="Add a planned to-do… (e.g. Upload Participant List)" aria-label="Add a planned to-do"></div></div>`;
+      <button class="btn icon sm ghost del" data-pldel="${i}" type="button" aria-label="Remove ${esc(p.text||'planned to-do')}">${ic('x')}</button>
+      <div class="plwhen"><input class="cell pln" type="text" inputmode="numeric" data-o="${ref(p)}" data-k="before" data-r="change" value="${esc(p.before)}" aria-label="Days before race day"><span class="pll">${num(p.before)===0?'= race day':num(p.before)<0?'days after race day':'days before race day'}</span>${when(p)?`<span class="pld">${ic('cal',1.8)}${esc(when(p))}</span>`:''}</div></div>`).join('')}
+    <div class="task add"><span></span><span class="plus" aria-hidden="true">${ic('plus',2)}</span><input class="cell" id="pladd" placeholder="Add a planned to-do…" aria-label="Add a planned to-do"></div></div>`;
 }
 /* to-dos linked to an event, shown in its checklist (tick in either place) */
 function linkedTodos(e){
@@ -5557,7 +5560,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='237'; let APPV=HV, UPD=false;
+const HV='238'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
