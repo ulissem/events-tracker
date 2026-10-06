@@ -504,7 +504,7 @@ a.btn{text-decoration:none}
   .tbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;font-size:10.5px;font-weight:600;color:var(--ink-3);position:relative}
   .tbar a[aria-current="page"]{color:var(--accent)}
   .tbar a .badge{position:absolute;top:0;left:calc(50% + 6px);height:16px;min-width:16px;font-size:10px}
-  .tbar svg{width:24px;height:24px}
+  .tbar svg{width:26px;height:26px}
 }
 
 /* ---------- your season: map (Oct 2026, mockup/portal-map.html) ---------- */
@@ -558,7 +558,7 @@ body.mapon{overflow:hidden}
 .pm-card .go{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:.5px solid var(--line-2);font-size:14px}
 .pm-card .go a{font-weight:600}
 .pm-card .go span{color:var(--ink-3);font-size:12.5px}
-.pm-strip{position:absolute;left:0;right:0;bottom:12px;z-index:500;display:flex;gap:8px;overflow-x:auto;padding:0 12px 4px;scrollbar-width:none;scroll-snap-type:x proximity}
+.pm-strip{position:absolute;left:0;right:0;bottom:8px;z-index:500;display:flex;gap:8px;overflow-x:auto;padding:4px 12px 6px;scrollbar-width:none;scroll-snap-type:x proximity}
 .pm-strip::-webkit-scrollbar{display:none}
 .pm-sc{flex:none;width:150px;border-radius:16px;padding:10px 12px;border:0;text-align:left;scroll-snap-align:start}
 .pm-sc.on{box-shadow:0 0 0 2px var(--accent),0 8px 24px -12px rgba(0,0,0,.4)}
@@ -598,6 +598,9 @@ body.mapon{overflow:hidden}
 .pav.big{width:42px;height:42px;font-size:15px;margin:0;cursor:default} .pav.big:hover{box-shadow:none}
 .pav.um{width:34px;height:34px;margin:0;background:linear-gradient(140deg,#5b5bf0,var(--accent));cursor:default} .pav.um:hover{box-shadow:none}
 .island{display:none}
+.pver{font-style:normal;font-size:10.5px;font-weight:600;color:var(--ink-3);margin-left:4px;vertical-align:2px;cursor:pointer;font-family:var(--round)}
+.pver:hover{color:var(--accent)} .pver.new{color:#fff;background:var(--accent);padding:1px 7px;border-radius:999px}
+.tbar svg path.f{fill:none} .tbar a[aria-current="page"] svg path.f{fill:currentColor;fill-opacity:.16}
 @media (min-width:641px){
   .top{background:var(--bg);border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none}
   .top::after{content:'';position:absolute;left:0;right:0;top:100%;height:14px;background:linear-gradient(var(--bg),transparent);pointer-events:none}
@@ -767,6 +770,11 @@ async function loadAll(){
 async function loadEvent(id){ const d=await rpc('portal_event',{p_id:id}); if(d) DET[id]=d; return d; }
 
 /* ---------- icons ---------- */
+const TB={ // bottom tab bar (phone): 1.7 stroke, 26 px; path.f is filled lightly when the tab is active
+  home:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="f" d="M4 10.4 12 4l8 6.4V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.2a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5.2H5.5A1.5 1.5 0 0 1 4 19z"/></svg>',
+  q:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="f" d="M12 4c4.4 0 8 3.1 8 7s-3.6 7-8 7c-1 0-2-.2-2.9-.5L5 19l1.1-3.4C4.8 14.3 4 12.7 4 11c0-3.9 3.6-7 8-7z"/><path d="M10 9.4a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.3M12 14.6v.01"/></svg>',
+  map:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="f" d="M9 5 4 7v12l5-2 6 2 5-2V5l-5 2z"/><path d="M9 5v12M15 7v12"/></svg>',
+  ic:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="f" d="M7.5 10.5a4.5 4.5 0 1 1 9 0z"/><path d="M7.5 10.5 12 21l4.5-10.5M9.8 15.4l3.6-2.5M10.9 18l2.2-1.5"/></svg>'};
 const I={
   out:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M9 16l-4-4 4-4M5 12h11"/></svg>',
   map:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
@@ -800,10 +808,10 @@ const animateRings=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>docum
 function chrome(route){
   const n=totalOpen(), cur=r=>route===r?'aria-current="page"':'', map=EVENTS.some(e=>e.geo);
   $('#top').innerHTML=`<div class="top-in">
-    <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>Race Hub</b><small>Client area</small></span></a>
-    <nav class="island" aria-label="Sections"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a><a href="#ic" ${cur('ic')}>Ice creams</a>${map?`<a href="#map" ${cur('map')}>Map</a>`:''}</nav>
+    <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>Race Hub <i class="pver ${PV_NEW?'new':''}" data-act="update" title="${PV_NEW?'A newer version is out · click to update':'Reload the client area'}">v${PV}${PV_NEW?' · Update':''}</i></b><small>Client area</small></span></a>
+    <nav class="island" aria-label="Sections"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a>${map?`<a href="#map" ${cur('map')}>Map</a>`:''}<a href="#ic" ${cur('ic')}>Ice creams</a></nav>
     <button class="pav" data-act="account" aria-label="Account and appearance" aria-haspopup="menu">${esc(initials(ME?.client))}</button></div>`;
-  $('#tbar').innerHTML=`<a href="#home" ${cur('home')}>${I.home.replace(/17/g,24)}Home</a><a href="#q" ${cur('q')}>${I.q.replace(/17/g,24)}Questions${n?`<span class="badge">${n}</span>`:''}</a><a href="#ic" ${cur('ic')}>${I.ic.replace(/17/g,24)}Ice creams</a>${map?`<a href="#map" ${cur('map')}>${I.map.replace(/17/g,24)}Map</a>`:''}`;
+  $('#tbar').innerHTML=`<a href="#home" ${cur('home')}>${TB.home}Home</a><a href="#q" ${cur('q')}>${TB.q}Questions${n?`<span class="badge">${n}</span>`:''}</a>${map?`<a href="#map" ${cur('map')}>${TB.map}Map</a>`:''}<a href="#ic" ${cur('ic')}>${TB.ic}Ice creams</a>`;
 }
 
 /* ---------- questions ---------- */
@@ -1018,7 +1026,12 @@ function sheet(h){ $('#sheet').innerHTML=h; $('#scrim').classList.add('on'); }
 const closeSheet=()=>$('#scrim').classList.remove('on');
 $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
-let APPV=''; (window.caches?.keys?caches.keys().then(k=>k.map(x=>(x.match(/-v(\d+)$/)||[])[1]).filter(Boolean).sort((a,b)=>b-a)[0]):Promise.resolve(null)).then(v=>{ if(v) APPV=v; }).catch(()=>{});
+/* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
+   A newer sw.js on the server = "Update" next to the name. */
+const PV='199'; let PV_NEW=false, APPV=PV;
+function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
+const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
+checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
 function account(){
   let p=$('#accp'); if(p&&!p.hidden){ p.hidden=true; return; }
   if(!p){ p=document.createElement('div'); p.id='accp'; p.className='accp'; p.setAttribute('role','menu'); document.body.appendChild(p); }
@@ -1050,6 +1063,7 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('button'); if(!b) return;
   const act=b.dataset.act;
   if(act==='account') return account();
+  if(act==='update'){ e.preventDefault(); e.stopPropagation(); location.reload(); return; }
   if(act==='theme') return cycleTheme();
   if(act==='arch'){ archOpen=!archOpen; return rerender(); }
   if(act==='towait') return document.getElementById('wait')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1174,7 +1188,7 @@ function pmUI(){
   const c=$('#pmcard'); if(c){ c.innerHTML=card(e); c.hidden=!e; }
   const st=$('#pmstrip'); if(st) st.innerHTML=[...up,...past].map(x=>`<button class="pm-sc pm-gl ${x.id===PMS.sel?'on':''} ${up.includes(x)?'':'past'}" data-pmsel="${esc(x.id)}"><div class="e"><span>${esc(cdS(x))}</span>${qc(x)}</div><b>${esc(x.name)}</b><small>${esc(x.loc||'')}</small></button>`).join('');
   const sd=$('#pmside'); if(sd){ const li=x=>`<button class="pm-li ${x.id===PMS.sel?'on':''} ${up.includes(x)?'':'past'}" data-pmsel="${esc(x.id)}">${pmDate(x)}<span class="tx"><b>${esc(x.name)}</b><small>${esc(x.loc||'')}</small></span><span class="rr">${esc(cdS(x))}${qc(x)}</span></button>`;
-    sd.innerHTML=`<a class="pm-back" href="#home">${I.chev} Home</a><div class="h"><b>Your season</b>${tog}</div>
+    sd.innerHTML=`<div class="h"><b>Your season</b>${tog}</div>
       <div class="pm-list">${up.map(li).join('')||'<div class="lede" style="padding:8px">No events with a place yet.</div>'}${past.length?`<div class="pm-lab">Past</div>${past.map(li).join('')}`:''}</div>
       ${e?`<div class="pm-sel"><div class="nm">${esc(e.name)}</div><div class="lc">${esc([e.loc,e.start?fmtD(e.start,{day:'numeric',month:'short',year:'numeric'}):''].filter(Boolean).join(' · '))}</div><div class="ch">${pmChips(e)}</div><div class="go"><span>${openN(e)&&upcoming().includes(e)?'Answer on the event page':'All set for now'}</span><a href="#e/${encodeURIComponent(e.id)}">Open event ›</a></div></div>`:''}`; }
   document.querySelectorAll('#pmap .pm-bar .pm-tog').forEach(t=>t.classList.toggle('on',PMS.past));
