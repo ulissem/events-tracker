@@ -283,6 +283,7 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 .fn small{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fx{border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;width:28px;height:28px;border-radius:50%;display:grid;place-items:center} .fx:hover{background:var(--sunken);color:var(--ink)}
 .fprog{font-size:12.5px;color:var(--accent);padding:8px 0 0}
+#files.over{box-shadow:0 0 0 2px var(--accent),var(--shadow-sm)}
 .addline span{display:flex;flex-direction:column;gap:1px} .addline span small{font-size:12px;color:var(--ink-3);font-weight:400}
 .kb{width:22px;height:22px;border-radius:7px;display:inline-grid;place-items:center;flex:none;color:#fff;background:var(--k)}
 .kb svg{width:13px;height:13px}
@@ -1037,11 +1038,11 @@ function vEvent(id){
       <div class="card"><div class="eye">Progress · step ${s+1} of 6</div>
         <div class="stepper">${STEPS.map((t,i)=>`<div class="st ${i<s?'d':i===s?'c':''}"><i>${i<s?I.check:''}</i><span><b>${t[0]}</b><small>${t[1]}</small></span></div>`).join('')}</div>${note}</div>
       <div class="card ${oq?'glow warn':''}" id="qs"><div class="eye ${oq?'':'mute'}">Questions & messages${d.questions.length?` · ${oq} open`:''}</div>${d.questions.map(q=>qItem(e,q)).join('')}${writeBlock(e)}</div>
-      ${filesCard(e,d)}
       <div class="card"><div class="eye">Races · ${d.races.length}</div>${d.races.map(raceBlock).join('')||'<div class="ic-sub" style="margin-top:8px">Not defined yet.</div>'}</div>
     </div>
     <div class="col">
       ${tpCard(d)}
+      ${filesCard(e,d)}
       ${noIce()||!eh.length?'':`<div class="card glow" style="--tint:#ff2d92"><div class="eye">${esc(UC())} · this event</div>
         ${KO.map(k=>{ const r=eh.filter(c=>c.kind===k); if(!r.length) return ''; const q=k==='hours'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' h':k==='travel'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' km':k==='hardware'?plural(r.reduce((s,c)=>s+(+c.qty||0)*(+c.days||1),0),'piece-day','piece-days'):k==='material'?ic(r.reduce((s,c)=>s+(+c.qty||0),0))+' pcs':k==='service'?r.map(c=>c.item).filter(Boolean).join(', '):plural(r.length,'expense','expenses');
           return `<div class="kh kev">${kb(k)}<span><b>${KN(k).n}</b><small>${q}</small></span><span>${ic(r.reduce((s,c)=>s+c.value,0))} ${U()}</span></div>`; }).join('')}
@@ -1063,13 +1064,13 @@ async function sto(path,opt={}){
 let fBusy='';
 function filesCard(e,d){
   const fs=d.files||[], who=f=>f.uploaderRole==='owner'?esc(OP().name.split(' ')[0]):f.mine?'You':esc(ME?.client||'Client');
-  return `<div class="card" id="files"><div class="eye ${fs.length?'':'mute'}">Files${fs.length?` · ${fs.length}`:''}</div>
+  return `<div class="card" id="files" data-ev="${esc(e.id)}"><div class="eye ${fs.length?'':'mute'}">Files${fs.length?` · ${fs.length}`:''}</div>
     ${fs.map(f=>`<div class="frow"><span class="fic" style="--ft:${fTint(f.name)}">${esc(fExt(f.name))}</span>
       <button type="button" class="fn" data-fopen="${esc(f.id)}"><b>${esc(f.name)}</b><small>${esc(fSize(+f.size||0))} · ${who(f)} · ${esc(when(f.createdAt))}</small></button>
       <button type="button" class="fx" data-fdl="${esc(f.id)}" aria-label="Download ${esc(f.name)}" title="Download"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/></svg></button>
       ${f.mine&&!PREVIEW?`<button type="button" class="fx" data-fdel="${esc(f.id)}" aria-label="Delete ${esc(f.name)}">×</button>`:'<span></span>'}</div>`).join('')}
     ${fBusy?`<div class="fprog">${esc(fBusy)}</div>`:''}
-    <button type="button" class="addline" data-act="fadd" data-ev="${esc(e.id)}"><i>+</i><span>${fs.length?'Add files':`Share a file with ${esc(OP().name.split(' ')[0])}`}<small>GPX, rules, start lists, logos · max 10 MB</small></span></button>
+    <button type="button" class="addline" data-act="fadd" data-ev="${esc(e.id)}"><i>+</i><span>${fs.length?'Add files':`Share a file with ${esc(OP().name.split(' ')[0])}`}<small>GPX, rules, start lists, logos · max 10 MB${matchMedia('(pointer:fine)').matches?' · or drop them here':''}</small></span></button>
     <input type="file" id="fpick" data-ev="${esc(e.id)}" multiple hidden></div>`; }
 async function uploadFiles(eid,files){
   if(PREVIEW){ toast('Preview: read only — nothing is sent'); return; }
@@ -1158,7 +1159,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='223'; let PV_NEW=false, APPV=PV;
+const PV='224'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
@@ -1227,6 +1228,10 @@ async function startDemo(b){
   if(b) b.disabled=true; const er=$('#lerr'); if(er) er.textContent='';
   try{ await demoSignIn(); linkError=''; state='loading'; render(); location.hash='home'; await loadAll(); }
   catch(err){ state='signin'; render(); const e2=$('#lerr'); if(e2) e2.textContent=err instanceof TypeError?'No connection — try again.':err.message; } }
+/* drag and drop files onto the Files card (desktop) */
+document.addEventListener('dragover',e=>{ const c=e.target.closest?.('#files'); if(!c||!e.dataTransfer?.types?.includes('Files')) return; e.preventDefault(); e.dataTransfer.dropEffect=PREVIEW?'none':'copy'; c.classList.add('over'); });
+document.addEventListener('dragleave',e=>{ const c=e.target.closest?.('#files'); if(c&&!c.contains(e.relatedTarget)) c.classList.remove('over'); });
+document.addEventListener('drop',e=>{ const c=e.target.closest?.('#files'); if(!c) return; e.preventDefault(); c.classList.remove('over'); if(e.dataTransfer?.files?.length) uploadFiles(c.dataset.ev,[...e.dataTransfer.files]); });
 document.addEventListener('change',e=>{ if(e.target.id==='fpick'&&e.target.files.length) uploadFiles(e.target.dataset.ev,[...e.target.files]); });
 document.addEventListener('submit',async e=>{
   if(e.target.id==='cf'){ e.preventDefault(); const c=$('#lcode').value.replace(/\D/g,''); if(!c) return;
