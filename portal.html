@@ -739,7 +739,7 @@ const THEME_KEY='racehub-portal-theme', darkMQ=matchMedia('(prefers-color-scheme
 let themePref=(()=>{ try{ return localStorage.getItem(THEME_KEY)||'auto'; }catch{ return 'auto'; } })();
 const isDark=()=>themePref==='dark'||themePref==='auto'&&darkMQ.matches;
 function applyTheme(){ const r=document.documentElement; if(themePref==='auto') delete r.dataset.theme; else r.dataset.theme=themePref;
-  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ const n=m.cloneNode(); n.content=themePref==='auto'?(m.media.includes('dark')?'#000000':'#f2f2f7'):isDark()?'#000000':'#f2f2f7'; m.replaceWith(n); }); // a new element: iOS repaints the status bar only for a new meta, not for a changed one }
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ const n=m.cloneNode(); n.content=themePref==='auto'?(m.media.includes('dark')?'#000000':'#f2f2f7'):isDark()?'#000000':'#f2f2f7'; m.replaceWith(n); }); } // a new element: iOS repaints the status bar only for a new meta, not for a changed one
 function cycleTheme(){ themePref=themePref==='auto'?'light':themePref==='light'?'dark':'auto'; try{ localStorage.setItem(THEME_KEY,themePref); }catch{}
   applyTheme(); rerender(); toast(`Appearance: ${themePref==='auto'?'Auto (like this device)':themePref==='light'?'Light':'Dark'}`); }
 applyTheme(); darkMQ.addEventListener('change',()=>{ if(themePref==='auto'&&state==='ok') rerender(); });
@@ -1030,7 +1030,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='201'; let PV_NEW=false, APPV=PV;
+const PV='202'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
