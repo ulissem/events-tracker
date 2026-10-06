@@ -2098,7 +2098,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
 .hm2-t:last-child{border-bottom:0}
 .hm2-t .tx{flex:1;min-width:0;font-size:13.5px;font-weight:500}
 .hm2-t .tx small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:400}
-.hm2 .agtd{min-width:0;height:20px;padding:0 8px 0 7px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:var(--sunken);color:var(--ink-2);box-shadow:none;flex:none}
+.hm2 .agtd{font:inherit;border:0;cursor:pointer;min-width:0;height:20px;padding:0 8px 0 7px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:var(--sunken);color:var(--ink-2);box-shadow:none;flex:none}
 .hm2 .agtd::before{content:'';width:7px;height:7px;border-radius:50%;box-sizing:border-box;border:1.5px solid currentColor}
 .hm2 .agtd.soon{background:var(--warn-soft);color:var(--warn)} .hm2 .agtd.late{background:var(--danger-soft);color:var(--danger)}
 .hm2-sub{margin:14px 2px 8px;color:var(--ink-3)}
@@ -3575,7 +3575,7 @@ function go(v,id){ const h=id?`#/${v}/${encodeURIComponent(id)}`:`#/${v}`; if(lo
 window.addEventListener('hashchange',()=>applyRoute());
 window.addEventListener('popstate',()=>applyRoute());
 /* links and buttons with data-go="e:<id>" / "c:<id>": one handler for the whole page */
-document.addEventListener('click',ev=>{ const g=ev.target.closest?.('[data-go]'); if(!g) return; ev.preventDefault(); const v=g.dataset.go, i=v.indexOf(':'); go(v.slice(0,i),v.slice(i+1)); });
+document.addEventListener('click',ev=>{ const g=ev.target.closest?.('[data-go]'); if(!g) return; ev.preventDefault(); const v=g.dataset.go, i=v.indexOf(':'); if(i<0) go(v); else go(v.slice(0,i),v.slice(i+1)); });
 const curEvent=()=>route.view==='e'&&S?S.events.find(x=>x.id===route.id):null;
 
 function render(){
@@ -3884,7 +3884,7 @@ function renderHome(D){
     ${qEv.length?qEv.slice(0,MAXQ).map(qTile).join('')+(qEv.length>MAXQ?`<div class="hm2-more">+ ${plural(qEv.length-MAXQ,'more event','more events')}</div>`:''):`<div class="ov-empty">${ic('check',2.2)} No open questions. Nice.</div>`}
     ${qTot?`<div class="hm2-ft"><button class="tbtn" type="button" id="hm-copyq">${ic('copy',2)} Copy all${cName?' for '+esc(cName):''}</button></div>`:''}</section>`;
   // 3. to-dos with the due pill (orange soon, red late)
-  const pill=t=>{ if(!t.due) return ''; const c=t.due<TODAY?'late':t.due<=addDays(TODAY,3)?'soon':''; return `<span class="agtd ${c}">${esc(dueTxt(t.due))}</span>`; };
+  const pill=t=>{ if(!t.due) return ''; const c=t.due<TODAY?'late':t.due<=addDays(TODAY,3)?'soon':''; return `<button type="button" class="agtd ${c}" data-hmdue="${esc(t.id)}" title="${esc(fmtLong(t.due))}" aria-label="Due ${esc(fmtLong(t.due))} · change">${esc(dueTxt(t.due))}</button>`; };
   const cardT=`<section class="ccard ov-c hm2"><div class="ov-ch"><div><div class="cc-eye">To-dos</div><h3>${tds.length?`${tds.length} open`:'Nothing to do'}</h3></div></div>
     ${tds.length?`<div class="hm2-tds">${tds.map(t=>{ const l=linkOf(t); return `<label class="hm2-t"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}${l?`<small>${esc(l.name)}</small>`:''}</span>${pill(t)}</label>`; }).join('')}</div>`:`<div class="ov-empty">Add one for the next event.</div>`}
     <div class="hm2-ft"><button class="tbtn" type="button" id="hm-addtd">${ic('plus',2.4)} To-do</button><button class="tbtn quiet" type="button" data-go="a">${ic('cal',2)} Open Agenda</button></div></section>`;
@@ -3904,8 +3904,9 @@ function renderHome(D){
   </div>`;
   bindDays(D);
   on(D,'[data-id]',b=>go('e',b.dataset.id));
-  on(D,'[data-go]',b=>go(b.dataset.go));
   D.querySelectorAll('[data-td]').forEach(c=>{ c.addEventListener('click',ev=>ev.stopPropagation()); c.addEventListener('change',()=>{ const t=S.agenda.todos.find(x=>x.id===c.dataset.td); if(!t) return; t.done=c.checked; touch('none'); renderList(); setTimeout(renderDetail,350); }); });
+  on(D,'[data-hmdue]',(b,ev)=>{ ev.preventDefault(); ev.stopPropagation(); const t=S.agenda.todos.find(x=>x.id===b.dataset.hmdue); if(!t) return;
+    openDate(b,{s:t.due,allowRange:false,onChange:s=>{ t.due=s||''; touch('none'); },onClose:()=>renderDetail(),clearable:true}); });
   $('#hm-addtd')?.addEventListener('click',()=>{ const t={...mkTask(''),id:uid('td'),due:'',link:''}; S.agenda.todos.push(t); touch('none'); openTodo(t); });
   $('#hm-unlock')?.addEventListener('click',togglePrivacy);
   $('#hm-copyq')?.addEventListener('click',()=>{
