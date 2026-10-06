@@ -2479,6 +2479,22 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .cc-ring.sm b.ok svg{width:14px;height:14px}
 .cc-ring.sm b{font-size:10.5px;letter-spacing:-.04em;display:flex;align-items:baseline;justify-content:center;width:100%;padding-left:1px}
 .cc-ring.sm b small{margin-left:0}
+
+/* phone: the bottom tab bar is a floating glass island (Oct 2026, as in the portal); --tb = the room it takes (island + gap) */
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
+  :root{--tbo:max(10px,calc(var(--sab) - 8px));--tb:calc(64px + var(--tbo))}
+  .tabbar{left:max(12px,var(--sal));right:max(12px,var(--sar));bottom:var(--tbo);height:58px;padding:5px;border:0;border-radius:999px;
+    background:color-mix(in srgb,var(--panel) 70%,transparent);backdrop-filter:saturate(1.8) blur(22px);-webkit-backdrop-filter:saturate(1.8) blur(22px);
+    box-shadow:0 0 0 .5px var(--line-2),0 12px 32px -12px rgba(0,0,0,.45)}
+  .tabbar button{border-radius:999px;color:var(--ink-2);transition:background-color .15s}
+  .tabbar button[aria-current="page"]{background:var(--sunken);color:var(--accent)}
+  .tabbar .tsave i{top:6px}
+  /* map: runs under the island, the events strip floats above it */
+  main.mapv #detail{height:calc(100vh - var(--hh))}
+  body:has(main.mapv){padding-bottom:0}
+  .mstrip{left:max(10px,var(--sal));right:max(10px,var(--sar));bottom:calc(var(--tb) - 2px);border-radius:22px;padding-bottom:8px}
+}
+@media (pointer:coarse) and (max-height:500px){ :root{--tb:calc(50px + var(--tbo))} .tabbar{height:44px;padding:3px} .tabbar .tsave i{top:5px} }
 </style>
 </head>
 <body>
@@ -5225,7 +5241,7 @@ function mapRefresh(fit){
 const MAPM=new Map();
 /* phone: height of the low strip = everything above the rows (header + days) */
 function mstripLow(){ const M=$('#mstrip'), r=$('#mrows'); if(M&&r&&r.offsetTop) M.style.setProperty('--mlow',r.offsetTop+'px'); }
-const mapBottomPad=()=>Math.round(($('#mstrip')?.offsetHeight||innerHeight*.42)+24);
+const mapBottomPad=()=>{ const tb=narrow.matches?$('#tabbar')?.getBoundingClientRect().top:0; return Math.round(($('#mstrip')?.offsetHeight||innerHeight*.42)+24+(tb?innerHeight-tb:0)); }; // phone: the map runs under the tab bar island
 function mapRefreshInner(fit){
   mstripLow();
   MAP.closePopup(); MAPL.clearLayers(); MAPM.clear(); const card=$('#mapcard'); if(card) card.hidden=true;
