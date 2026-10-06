@@ -2524,6 +2524,7 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .fn b{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .fn:hover b{color:var(--accent)}
 .fn small{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fprog{font-size:12px;color:var(--accent);padding:4px 16px 6px}
+.flist.hl{animation:qhl 2.6s ease-out}
 /* client page: one column + section bar (6 Oct 2026, mockup/client-page.html) */
 .cv3 .jump{margin-top:16px}
 .hero.cli .fact.prep{display:none}
@@ -3880,6 +3881,7 @@ function parseRoute(){
     clearTimeout(parseRoute.t); parseRoute.t=setTimeout(()=>document.body.classList.remove('viewswap','swap-fwd','swap-back'),800); } // entrance motion only on a view change
   route={view,id:view==='h'||view==='a'||view==='m'||!id?null:decodeURIComponent(id)};
   const fq=location.hash.split('/')[3]; route.focusQ=view==='e'&&/^q[\d,]+$/.test(fq||'')?fq.slice(1).split(',').map(Number):null; // #/e/<id>/q2,3 (from a push): show those questions
+  route.focusF=view==='e'&&fq==='files'; // #/e/<id>/files (a push 'New file'): the Files section
   if(route.view==='e'&&route.id) lastEvent=route.id;
   if(route.view==='c'&&route.id) lastClient=route.id;
   document.body.classList.toggle('showing-detail',!!route.id);
@@ -3892,7 +3894,10 @@ function applyRoute(force){
   if(from&&!route.id&&route.view==='e'&&narrow.matches) $('#list .row.last')?.scrollIntoView({block:'center'}); // back on the phone list: the event you came from is in view, one tap reopens it
 }
 /* opened from a push: scroll to the questions it names and light them up; the hash goes back to the plain event */
-function focusQs(){ const ns=route.focusQ; route.focusQ=null; if(!ns||!route.id) return;
+function focusQs(){ const ns=route.focusQ, ff=route.focusF; route.focusQ=null; route.focusF=false; if(!(ns||ff)||!route.id) return;
+  if(ff){ history.replaceState(null,'',`#/e/${encodeURIComponent(route.id)}`); routeKey=location.hash; const t=document.querySelector('#s-files'); if(!t) return;
+    const show=()=>{ t.scrollIntoView({block:'start',behavior:'smooth'}); spyPick('#s-files'); const c=()=>{ const k=t.querySelector('.flist'); if(!k) return setTimeout(c,250); k.classList.remove('hl'); void k.offsetWidth; k.classList.add('hl'); }; c(); };
+    if(t.closest('.evside')&&!sideOpen&&wide.matches){ toggleSide(); setTimeout(show,320); } else show(); return; }
   const els=ns.map(n=>document.querySelector(`#detail [data-qn="${n}"]`)).filter(Boolean);
   history.replaceState(null,'',`#/e/${encodeURIComponent(route.id)}`); routeKey=location.hash;
   const t=els[0]||document.querySelector('#s-questions'); if(!t) return;
@@ -3911,7 +3916,7 @@ function render(){ _cov=null;
   renderTop(); if(!S) return;
   $('#main').classList.toggle('full',route.view==='h'||route.view==='a'||(route.view==='m'&&narrow.matches)); $('#main').classList.toggle('agenda',route.view==='a'); $('#main').classList.toggle('mapv',route.view==='m'); $('#main').classList.toggle('nolist',!listOpen);
   renderList(); renderDetail();
-  if(route.focusQ) setTimeout(focusQs,300); // opened from a push (boot, or the hub already open)
+  if(route.focusQ||route.focusF) setTimeout(focusQs,300); // opened from a push (boot, or the hub already open)
 }
 
 /* =====================================================================
@@ -5355,7 +5360,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='224'; let APPV=HV, UPD=false;
+const HV='225'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
