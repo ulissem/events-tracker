@@ -758,7 +758,7 @@ dialog::backdrop{background:var(--scrim)}
    RESPONSIVE
    ===================================================================== */
 @media (max-width:1180px){ .cmdtrig{width:auto} .cmdtrig span{display:none} .cmdtrig kbd{display:none} }
-@media (max-width:1020px){ .brand b{display:none} .savestate span{display:none} }
+@media (max-width:1020px){ .brand b,.brand .ver{display:none} }
 @media (max-width:860px), (pointer:coarse) and (max-height:500px){
   .top{padding:var(--sat) max(8px,var(--sar)) 0 max(10px,calc(var(--sal) + 6px));gap:2px}
   .brand{margin-right:4px}
@@ -812,7 +812,8 @@ dialog::backdrop{background:var(--scrim)}
   :root{--tb:calc(58px + var(--sab));--jh:51px}
   body{padding-bottom:var(--tb)}
   .top{gap:4px}
-  .tabs,.savestate,#savebtn,#unitbtn,#themebtn,.vsep,#setbtn,#logoutbtn{display:none!important}
+  .tabs,.vsep,.isep,.acct,.savepill,.brand .ver{display:none!important}
+  .top .island{display:contents}
   #listbtn{width:40px;height:40px;margin-left:-6px}
   #listbtn.on{background:transparent;border-color:transparent;box-shadow:none;color:var(--ink-2)}
   .gbtns .btn.icon{width:38px}
@@ -834,7 +835,7 @@ dialog::backdrop{background:var(--scrim)}
   .brand{margin-right:4px}
   .top > .ptitle{display:block;flex:0 1 auto;min-width:0;font-weight:600;font-size:17px;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .morebtn{display:inline-flex}
-  .top > .spacer{display:none} .top > .cmdtrig{margin-left:auto}
+  .top > .spacer{display:none} .top .cmdtrig{margin-left:auto}
   .grid .mfull{grid-column:1/-1}
   table.t.tps{--c2:136px} table.t.splits{--c2:96px}
   table.t.tps col.c2{width:136px} table.t.splits col.s2{width:96px} table.t.tps{min-width:0} table.t.tps col.c7{width:88px}
@@ -1335,8 +1336,63 @@ kbd{border-color:var(--line-2);border-bottom-width:1px;background:transparent;bo
 .tabs button[aria-current="page"]{background:var(--seg-on);box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04);font-weight:600}
 .cmdtrig{border:0;background:var(--sunken);border-radius:9px}
 .cmdtrig:hover{background:var(--fill-2);color:var(--ink-2)}
-.savestate i{box-shadow:0 0 0 3px var(--ok-soft)}
 .vsep{display:none}
+/* top bar, Oct 2026 (mockup/topbar2.html, variant C · Island): no bar — the page colour, a floating island in the centre
+   (sections + Jump to), on the right + New and the avatar; the dot on the avatar is the save state */
+@media (min-width:861px){
+.top{background:var(--bg);border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none}
+.top::after{content:'';position:absolute;left:0;right:0;top:100%;height:14px;background:linear-gradient(var(--bg),transparent);pointer-events:none}
+.brand .ver{font-size:10.5px;font-weight:600;color:var(--ink-3);align-self:flex-start;margin:1px 0 0 -5px;font-variant-numeric:tabular-nums;letter-spacing:0}
+.island{position:absolute;left:50%;top:calc(var(--sat) + (var(--hh) - var(--sat))/2);transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;padding:4px;border-radius:999px;
+  background:var(--panel);box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -12px rgba(0,0,0,.28);transition:opacity .15s}
+.island .tabs{background:none;padding:0;gap:2px}
+.island .tabs button{height:30px;padding:0 15px;border-radius:999px;font-size:13.5px}
+.island .tabs button[aria-current="page"]{background:var(--ink);color:var(--panel);box-shadow:none}
+.island .isep{width:1px;height:18px;background:var(--line-2);margin:0 2px}
+.island .cmdtrig{width:auto;height:30px;margin:0;padding:0 10px 0 11px;gap:7px;border-radius:999px;background:none}
+.island .cmdtrig:hover{background:var(--hover)}
+.island .cmdtrig span{flex:none}
+body.cmdon .island{opacity:0}
+.top .newbtn{border-radius:999px;padding:0 13px 0 10px}
+}
+.acct{position:relative;width:32px;height:32px;margin-left:4px;padding:0;border:0;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:linear-gradient(140deg,#5b5bf0,var(--accent));color:#fff;font-size:12px;font-weight:700;letter-spacing:.02em}
+.acct:hover{box-shadow:0 0 0 3px var(--accent-soft)}
+.acct .adot{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2.5px var(--bg);transition:background-color .2s}
+.acct[data-st="saving"] .adot{background:var(--accent);animation:pulse 1s ease-in-out infinite}
+.acct[data-st="dirty"] .adot{background:var(--warn)} .acct[data-st="err"] .adot{background:var(--danger)} .acct[data-st="off"] .adot{background:var(--ink-3)}
+.savepill{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px 0 9px;margin-right:4px;border:0;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-size:12.5px;font-weight:600}
+.savepill svg{width:14px;height:14px} .savepill.err{background:var(--danger-soft);color:var(--danger)} .savepill[hidden]{display:none}
+/* account menu = Control Center */
+#menu.acctm{width:320px;padding:10px;border-radius:22px}
+#menu.acctm .cct2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#menu.acctm .cct{height:auto;display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:12px;border-radius:16px;background:var(--sunken);text-align:left}
+#menu.acctm button.cct:hover{background:var(--fill-2)}
+#menu.acctm .cct b{font-size:13px;font-weight:600;display:block;line-height:1.25} #menu.acctm .cct small{font-size:11.5px;color:var(--ink-2);display:block;line-height:1.3;margin-top:2px}
+#menu.acctm .cti{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--panel);font-size:15px;color:var(--ink-2)}
+#menu.acctm .cti svg{width:16px;height:16px}
+#menu.acctm .sv.saved .cti{background:var(--ok);color:#fff} #menu.acctm .sv.saving .cti{background:var(--accent);color:#fff}
+#menu.acctm .sv.dirty .cti{background:var(--warn);color:#fff} #menu.acctm .sv.err .cti{background:var(--danger);color:#fff}
+#menu.acctm .ice.on .cti{background:var(--ok-soft);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ok) 40%,transparent)}
+#menu.acctm .cct.wide{grid-column:1/-1;flex-direction:row;align-items:center;gap:12px;padding:8px 8px 8px 10px}
+#menu.acctm .ccseg{flex:1;display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--sunken)}
+#menu.acctm .ccseg button{flex:1;justify-content:center;height:28px;padding:0;border-radius:7px;font-size:12.5px;color:var(--ink-2)}
+#menu.acctm .ccseg button[aria-checked="true"]{background:var(--seg-on);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+#menu.acctm .ccl{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+#menu.acctm .cct2 + .ccl{border-top:0}
+#menu.acctm .ccl button{height:36px;gap:11px;padding:0 10px;border-radius:10px;font-size:13.5px}
+#menu.acctm .ccl button > svg{width:17px;height:17px}
+#menu.acctm .ccl .ml{flex:1} #menu.acctm .ccl kbd{font-size:10.5px}
+#menu.acctm .ccout,#menu.acctm .ccout > svg{color:var(--danger)}
+#menu.acctm .ccfoot{padding:8px 10px 2px;font-size:11.5px;color:var(--ink-3)}
+/* ⌘K: the palette opens where the island is and grows out of it */
+@media (min-width:861px){
+  #cmdk{padding-top:calc(var(--sat) + 4px);background:color-mix(in srgb,var(--scrim) 55%,transparent)}
+  #cmdk .palette{width:620px;border-radius:22px;border:0;box-shadow:0 0 0 .5px var(--line-2),var(--shadow-pop);animation:islgrow .24s cubic-bezier(.2,.8,.2,1)}
+  #cmdk .palette .pin2{height:44px;padding:0 10px 0 16px;border-bottom-color:var(--line)}
+  #cmdk .palette .pf{background:none}
+}
+@keyframes islgrow{from{clip-path:inset(0 calc((100% - var(--iw,420px))/2) calc(100% - 44px) round 22px);opacity:.7}to{clip-path:inset(0 0 0 0 round 22px);opacity:1}}
 
 /* buttons: borderless fills, 600 weight, accent primary */
 .btn{border:0;background:var(--sunken);box-shadow:none;border-radius:9px;font-weight:600;height:32px}
@@ -3481,8 +3537,8 @@ function saveInfo(){
 }
 function updSave(){
   const {off,st,txt,calm}=saveInfo();
-  const el=$('#savestate'); if(el){ el.className='savestate '+st; el.querySelector('span').textContent=txt; }
-  const b=$('#savebtn'); if(b){ b.className='btn icon ghost '+st; b.dataset.tip=calm?'Saved automatically':off?(dirty?'Offline — changes are kept on this device and pushed when you are back online':'Offline'):errMsg?`${errMsg} — click to retry`:saving?'Saving…':dirty?'Unsaved changes — save':'Saved'; b.dataset.kbd=`${MOD} S`; b.setAttribute('aria-label',b.dataset.tip); }
+  const a=$('#acctbtn'); if(a){ a.dataset.st=off?'off':st; a.dataset.tip=txt; a.setAttribute('aria-label','Account and settings · '+txt); }
+  const p=$('#savepill'); if(p){ const show=!off&&!calm&&(st==='err'||st==='dirty'); p.hidden=!show; p.className='savepill '+st; p.querySelector('span').textContent=st==='err'?'Retry':'Save'; p.dataset.tip=st==='err'?`${errMsg} — click to retry`:txt; p.dataset.kbd=`${MOD} S`; }
   const t=$('#tsave'); if(t){ t.className='tsave '+st; t.querySelector('span').textContent=calm?'Saved':off?'Offline':errMsg?'Retry':dirty?'Save':saving?'Saving…':'Saved'; }
 }
 setInterval(updSave,30e3);
@@ -3505,8 +3561,9 @@ const nextTheme=()=>themePref==='auto'?'light':themePref==='light'?'dark':'auto'
 function applyTheme(){ const r=document.documentElement; if(themePref==='auto') delete r.dataset.theme; else r.dataset.theme=themePref;
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.content=themePref==='auto'?(m.media.includes('dark')?'#000000':'#f2f2f7'):isDark()?'#000000':'#f2f2f7'); }
 applyTheme();
-function toggleTheme(){ themePref=nextTheme(); try{ themePref==='auto'?localStorage.removeItem(THEME_KEY):localStorage.setItem(THEME_KEY,themePref); }catch{}
-  applyTheme(); renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); toast(`Appearance: ${themePref==='auto'?'Auto (like this device)':themeName()}`,'','check'); }
+function setTheme(p,quiet=false){ themePref=p; try{ themePref==='auto'?localStorage.removeItem(THEME_KEY):localStorage.setItem(THEME_KEY,themePref); }catch{}
+  applyTheme(); renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); if(!quiet) toast(`Appearance: ${themePref==='auto'?'Auto (like this device)':themeName()}`,'','check'); }
+function toggleTheme(){ setTheme(nextTheme()); }
 function renderTop(){
   const vt={e:'Events',c:'Clients',a:'Agenda',h:'Hours',m:'Map'}[route.view];
   const tabOn=v=>route.view===v||(v==='e'&&route.view==='m');
@@ -3514,18 +3571,15 @@ function renderTop(){
   $('#top').innerHTML=`
     ${route.id&&(route.view==='e'||route.view==='c')?`<button id="topback" class="btn icon ghost topback" type="button" aria-label="Back to the list">${ic('back',2)}</button>`:''}
     ${route.view!=='h'&&route.view!=='a'&&route.view!=='m'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
-    <div class="brand"><span class="logo">${ic('flag',2.4)}</span><b>Race Hub</b></div><span class="ptitle">${vt}</span>
-    <nav class="tabs" aria-label="Sections">${[['e','Events'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav>
-    <button class="cmdtrig" id="cmdtrig" type="button" aria-label="Jump to" data-tip="Jump to an event, client or action" data-kbd="${MOD} K">${ic('search')}<span>Jump to…</span><kbd>${MOD==='⌘'?'⌘K':'Ctrl K'}</kbd></button>
+    <div class="brand"><span class="logo">${ic('flag',2.4)}</span><b>Race Hub</b><span class="ver" id="brandver">${APPV?'v'+esc(APPV):''}</span></div><span class="ptitle">${vt}</span>
+    <div class="island">
+      <nav class="tabs" aria-label="Sections">${[['e','Events'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav><span class="isep"></span>
+      <button class="cmdtrig" id="cmdtrig" type="button" aria-label="Jump to" data-tip="Jump to an event, client or action" data-kbd="${MOD} K">${ic('search')}<span>Jump to</span><kbd>${MOD==='⌘'?'⌘K':'Ctrl K'}</kbd></button>
+    </div>
     <span class="spacer"></span>
-    <span class="savestate" id="savestate" role="status"><i></i><span></span></span>
-    <button id="savebtn" class="btn icon ghost" type="button" aria-label="Save">${ic('save',1.9)}</button>
-    <button id="unitbtn" class="btn icon ghost ${priv()?'unl':''}" type="button" aria-pressed="${priv()}" data-tip="${priv()?'Unlocked — click to lock (auto-locks after 10 min idle)':'Unlock private data'}" data-kbd="L" aria-label="${priv()?'Lock private data':'Unlock private data'}">${esc(U().icon)}<span class="lk">${ic(priv()?'unlock':'lock',3)}</span></button>
-    <button id="themebtn" class="btn icon ghost" type="button" data-tip="Appearance: ${themeName()} · click for ${{auto:'Auto',light:'Light',dark:'Dark'}[nextTheme()]}" aria-label="Appearance">${ic(themeIcon(),1.9)}</button>
-    <span class="vsep"></span>
+    <button id="savepill" class="savepill" type="button" hidden>${ic('save',2)}<span>Save</span></button>
     <button id="newbtn" class="btn primary newbtn ${route.view==='a'?'onag':''}" type="button" data-tip="${route.view==='h'?'Log hours':'New '+nv}" data-kbd="N" aria-label="${route.view==='h'?'Log hours':'New '+nv}">${ic('plus',2.4)}<span>${route.view==='c'?'Client':route.view==='h'?'Hours':route.view==='a'?'Entry':'Event'}</span></button>
-    <button id="setbtn" class="btn icon ghost" type="button" data-tip="Settings" aria-label="Settings">${ic('gear',1.8)}</button>
-    <button id="logoutbtn" class="btn icon ghost" type="button" data-tip="Log out" aria-label="Log out">${ic('logout',1.9)}</button>
+    <button id="acctbtn" class="acct" type="button" aria-haspopup="menu">UM<i class="adot"></i></button>
     <button id="morebtn" class="btn icon ghost morebtn" type="button" aria-label="More">${ic('more',2)}</button>`;
   $('#tabbar').innerHTML=[['e','Events','flag'],['c','Clients','user'],['a','Agenda','cal'],...(priv()?[['h','Hours','hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join('')+`<button type="button" class="tsave" id="tsave">${ic('save',1.8)}<i></i><span>Saved</span></button>`;
   updSave();
@@ -3533,16 +3587,13 @@ function renderTop(){
   on($('#top'),'[data-view]',b=>tabGo(b.dataset.view));
   on($('#tabbar'),'[data-view]',b=>tabGo(b.dataset.view));
   const doSave=()=>{ document.activeElement?.blur?.(); save(); };
-  $('#tsave').onclick=doSave; $('#savebtn').onclick=doSave;
+  $('#tsave').onclick=doSave; $('#savepill').onclick=doSave;
   $('#listbtn')?.addEventListener('click',toggleList);
   $('#topback')?.addEventListener('click',()=>go(route.view));
   $('#morebtn').onclick=ev=>openMore(ev.currentTarget);
   $('#cmdtrig').onclick=openCmd;
-  $('#unitbtn').onclick=togglePrivacy;
-  $('#themebtn').onclick=toggleTheme;
   $('#newbtn').onclick=newItem;
-  $('#setbtn').onclick=()=>openSettings();
-  $('#logoutbtn').onclick=logout;
+  $('#acctbtn').onclick=ev=>openAcct(ev.currentTarget);
 }
 sysDark.addEventListener('change',()=>{ renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); });
 
@@ -4816,12 +4867,12 @@ function place(pop,anchor,align='left'){
 }
 let popAnchor=null;
 function closePops(){
-  $('#scrim').hidden=true; $('#menu').classList.remove('more');
+  $('#scrim').hidden=true; $('#menu').classList.remove('more','acctm');
   if(!$('#notepop').hidden){ $('#notepop').hidden=true; if(noteT){ noteT=null; renderDetail(); } }
   for(const id of ['dp','menu','pinpop','geopop','geoinfo']){ const p=document.getElementById(id); if(!p.hidden){ p.hidden=true; if(id==='dp'&&DP.onClose&&DP.changed){ const f=DP.onClose; DP.onClose=null; f(); } if(id==='pinpop'&&pinT){ pinT=null; renderDetail(); } } }
   popAnchor?.classList.remove('on'); popAnchor=null;
 }
-document.addEventListener('pointerdown',e=>{ if(!e.target.closest('#scrim,.pop,.dtrig,#statusbtn,#morebtn,#geobtn,#geohint,#nopos,[data-pos],[data-note],[data-tnote]')) closePops(); });
+document.addEventListener('pointerdown',e=>{ if(!e.target.closest('#scrim,.pop,.dtrig,#statusbtn,#morebtn,#acctbtn,#geobtn,#geohint,#nopos,[data-pos],[data-note],[data-tnote]')) closePops(); });
 window.addEventListener('resize',()=>{ if(!narrow.matches&&document.querySelector('.pop.bsheet:not([hidden])')) closePops(); });
 // iOS: after the keyboard closes WebKit can leave the visual viewport panned (or the layout viewport short),
 // so the sticky header slides off the top and the fixed tab bar floats mid-screen. Hide the bars while typing,
@@ -4866,7 +4917,32 @@ function openMore(btn){
     <div class="mgrp"><button type="button" data-mm="logout" class="mout">Log out</button></div>`;
   const setV=v=>{ const e=$('#mver'); if(e&&v) e.textContent='v'+v; };
   (window.caches?.keys?window.caches.keys().then(k=>k.map(x=>(x.match(/-v(\d+)$/)||[])[1]).filter(Boolean).sort((a,b)=>b-a)[0]):fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>(t.match(/events-tracker-v(\d+)/)||[])[1])).then(setV).catch(()=>{}); // the installed version, from the service worker cache name (window.caches: plain http has no Cache API, a bare `caches` throws)
-  on(m,'[data-mm]',b=>{ const k=b.dataset.mm; closePops(); if(k==='theme') toggleTheme(); else if(k==='values') togglePrivacy(); else if(k==='settings') openSettings(); else if(k==='keys') openKeys(); else if(k==='prompt') openPrompt(); else if(k==='refresh') refreshData(); else if(k==='save') doSave(); else if(k==='reload') reloadApp(); else if(k==='import') openImport(); else logout(); });
+  on(m,'[data-mm]',b=>{ const k=b.dataset.mm; closePops(); if(k==='theme') toggleTheme(); else if(k==='values') togglePrivacy(); else if(k==='settings') openSettings(); else if(k==='keys') openKeys(); else if(k==='prompt') openPrompt(); else if(k==='refresh') refreshData(); else if(k==='save'){ document.activeElement?.blur?.(); save(); } else if(k==='reload') reloadApp(); else if(k==='import') openImport(); else logout(); });
+  popAnchor=btn; place(m,btn,'right');
+}
+/* app version (from the service worker cache name), shown next to the name and in the account menu */
+let APPV='';
+function loadVer(){ (window.caches?.keys?window.caches.keys().then(k=>k.map(x=>(x.match(/-v(\d+)$/)||[])[1]).filter(Boolean).sort((a,b)=>b-a)[0]):Promise.resolve(null))
+  .then(v=>v||fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>(t.match(/events-tracker-v(\d+)/)||[])[1]))
+  .then(v=>{ if(!v) return; APPV=v; const e=$('#brandver'); if(e) e.textContent='v'+v; }).catch(()=>{}); }
+/* desktop: the avatar opens a Control-Center panel — save state, private data, appearance as tiles, then the rare things */
+function openAcct(btn){
+  if(!$('#menu').hidden&&popAnchor===btn){ closePops(); return; } closePops();
+  const m=$('#menu'), {st,txt,off}=saveInfo(), need=!off&&(st==='dirty'||st==='err');
+  const head=off?'Offline':st==='saving'?'Saving…':st==='err'?'Not saved':st==='dirty'?'Unsaved changes':'Up to date';
+  const sub=[txt!==head?txt:'',off?'':need?'tap to save':'tap to refresh'].filter(Boolean).join(' · ');
+  const row=(k,icon,label,end='')=>`<button type="button" data-am="${k}">${ic(icon,1.9)}<span class="ml">${label}</span>${end}</button>`;
+  m.classList.add('acctm');
+  m.innerHTML=`<div class="cct2">
+      <button type="button" class="cct sv ${off?'off':st}" data-am="${need?'save':'refresh'}"><span class="cti">${ic(st==='err'?'warn':need?'save':st==='saving'?'refresh':'check',2.4)}</span><b>${head}</b><small>${esc(sub)}</small></button>
+      <button type="button" class="cct ice ${priv()?'on':''}" data-am="ice"><span class="cti">${esc(U().icon)}</span><b>Private · ${priv()?'open':'locked'}</b><small>${priv()?'locks after 10 min · L':'tap to unlock · L'}</small></button>
+      <div class="cct wide"><span class="cti">${ic(themeIcon(),1.9)}</span><div class="ccseg" role="radiogroup" aria-label="Appearance">${[['auto','Auto'],['light','Light'],['dark','Dark']].map(([t,l])=>`<button type="button" role="radio" aria-checked="${themePref===t}" data-th="${t}">${l}</button>`).join('')}</div></div>
+    </div>
+    <div class="ccl">${row('settings','gear','Settings')}${row('keys','keyboard','Keyboard shortcuts','<kbd>?</kbd>')}${row('prompt','sparkle','Copy AI prompt')}${row('import','upload','Import from AI (JSON)')}${row('reload','refresh','Reload app')}</div>
+    <div class="ccl"><button type="button" data-am="logout" class="ccout">${ic('logout',1.9)}<span class="ml">Log out</span></button></div>
+    <div class="ccfoot">Race Hub${APPV?' v'+esc(APPV):''} · ${esc(where())}</div>`;
+  on(m,'[data-th]',b=>{ setTheme(b.dataset.th,true); m.querySelectorAll('[data-th]').forEach(x=>x.setAttribute('aria-checked',x===b)); m.querySelector('.wide .cti').innerHTML=ic(themeIcon(),1.9); popAnchor=$('#acctbtn'); });
+  on(m,'[data-am]',b=>{ const k=b.dataset.am; closePops(); if(k==='save') save(); else if(k==='refresh') refreshData(); else if(k==='ice') togglePrivacy(); else if(k==='settings') openSettings(); else if(k==='keys') openKeys(); else if(k==='prompt') openPrompt(); else if(k==='import') openImport(); else if(k==='reload') reloadApp(); else logout(); });
   popAnchor=btn; place(m,btn,'right');
 }
 function openStatusMenu(btn,e){
@@ -5182,8 +5258,8 @@ function commitDP(){ DP.changed=true; DP.onChange?.(DP.s,DP.e); }
    COMMAND PALETTE (⌘K)
    ===================================================================== */
 let cmdItems=[], cmdHl=0;
-function openCmd(){ if(!S) return; closePops(); $('#cmdk').hidden=false; const i=$('#cmdin'); i.value=''; cmdHl=0; renderCmd(); i.focus(); }
-function closeCmd(){ $('#cmdk').hidden=true; }
+function openCmd(){ if(!S) return; closePops(); const isl=$('#top .island'); if(isl) $('#cmdk').style.setProperty('--iw',isl.offsetWidth+'px'); document.body.classList.add('cmdon'); $('#cmdk').hidden=false; const i=$('#cmdin'); i.value=''; cmdHl=0; renderCmd(); i.focus(); }
+function closeCmd(){ $('#cmdk').hidden=true; document.body.classList.remove('cmdon'); }
 $('#cmdx').addEventListener('click',closeCmd); // phones: no Esc key
 function renderCmd(){
   const q=$('#cmdin').value.trim().toLowerCase();
@@ -6245,7 +6321,7 @@ const NEW_HOME='https://hub.ulissemariangeli.com/';
 function movedNotice(){ toast('This app moved to hub.ulissemariangeli.com','there: log in once, turn the app lock on again, add it to the Home Screen','bolt','warn',
   {label:'Open',run:async()=>{ if(await saveBeforeReload('Open the new address')) location.href=NEW_HOME+location.hash; else movedNotice(); }},true); }
 (async()=>{
-  parseRoute(); routeKey=location.hash; renderTop();
+  parseRoute(); routeKey=location.hash; renderTop(); loadVer();
   if(location.hostname==='ulissem.github.io'){ setTimeout(movedNotice,1200);
     // the login dialog is modal (the toast can't be clicked behind it): the link goes into the dialog too
     $('#s-title').insertAdjacentHTML('afterend',`<p class="msg" style="margin:0 0 10px">This app moved: <a href="${NEW_HOME}">hub.ulissemariangeli.com</a></p>`); }
