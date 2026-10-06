@@ -543,7 +543,13 @@ table.t tr.dragging > .stk{background:var(--accent-soft)}
 .tasks .th .bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .tasks .th .tc{font-weight:500;color:var(--ink-3);font-size:11.5px}
 .task{display:grid;grid-template-columns:14px 20px minmax(0,1fr) 26px 26px 26px;gap:4px;align-items:center;min-height:32px;border-radius:6px}
-.tasks.wurl .task{grid-template-columns:14px 20px minmax(0,1fr) minmax(0,1.2fr) 26px 26px 26px 26px}
+.tasks.wurl .task{grid-template-columns:14px 20px minmax(0,1fr) 26px 26px 26px 26px}
+.tasks.wurl .trow .task{grid-template-columns:14px 20px minmax(0,1fr) 26px 26px 0 26px} /* sub-items have no + */
+.task .linkbtn.set{opacity:1;color:var(--accent)}
+.tlinkr{display:flex;align-items:center;gap:7px;margin:-3px 0 5px 45px;padding:0 70px 0 0;font-size:12.5px;min-width:0}
+.tlinkr > svg,.tlinkr a svg{width:13px;height:13px;flex:none;color:var(--ink-3)}
+.tlinkr a{display:inline-flex;align-items:center;gap:7px;min-width:0;color:var(--accent);text-decoration:none} .tlinkr a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .tlinkr a:hover span{text-decoration:underline}
+.tlinkr.edit .cell{flex:1;height:28px;color:var(--accent)}
 .tnote{display:flex;gap:7px;align-items:flex-start;margin:-3px 0 5px 45px;padding:0 70px 0 0;color:var(--ink-2);font-size:12.5px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .tnote svg{width:13px;height:13px;flex:none;margin-top:2px;color:var(--ink-3)}
 .task.done + .tnote{color:var(--ink-3)}
@@ -802,7 +808,9 @@ dialog::backdrop{background:var(--scrim)}
   .jump{margin:12px -16px 0;padding:8px 16px}
   .two{grid-template-columns:1fr}
   .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
-  .task,.tasks.wurl .task{grid-template-columns:14px 20px minmax(0,1fr) 26px 26px 26px;grid-template-areas:"g c t m s x" ". . u u u o"}
+  .task{grid-template-columns:14px 20px minmax(0,1fr) 26px 26px 26px;grid-template-areas:"g c t m s x"}
+  .tasks.wurl .task{grid-template-columns:14px 20px minmax(0,1fr) 26px 26px 26px 26px;grid-template-areas:"g c t l m s x"} .tasks.wurl .trow .task{grid-template-columns:14px 20px minmax(0,1fr) 26px 26px 0 26px} .task > .linkbtn{grid-area:l}
+  .tlinkr{margin-left:48px;padding-right:8px}
   .task > .notebtn{grid-area:m}
   .tnote{margin-left:48px;padding-right:8px}
   .task > .grip{grid-area:g} .task > .ck{grid-area:c} .task > .tx{grid-area:t} .task > .tu{grid-area:u} .task > a.btn{grid-area:o}
@@ -900,7 +908,7 @@ dialog::backdrop{background:var(--scrim)}
   .jump a{height:34px;padding:0 12px;font-size:13.5px}
   .rh{padding:10px}
   .rh .chev{width:32px;height:32px}
-  .task,.tasks.wurl .task{grid-template-columns:14px 26px minmax(0,1fr) 40px 40px 40px;min-height:44px}
+  .task,.tasks.wurl .task{grid-template-columns:14px 26px minmax(0,1fr) 40px 40px 40px;min-height:44px} .tasks.wurl .task{grid-template-columns:14px 26px minmax(0,1fr) 36px 36px 36px 36px} .tasks.wurl .trow .task{grid-template-columns:14px 26px minmax(0,1fr) 36px 36px 0 36px}
   .kpanel{max-height:calc(100vh - 20px - var(--sat) - var(--sab))}
   .task.add{grid-template-columns:14px 26px minmax(0,1fr)!important}
   .check li label{padding:9px 4px;font-size:14px}
@@ -3067,7 +3075,7 @@ function syncPlan(e){ if(!e?.todoPlan?.length||!e.dateStart) return;
 function fixParents(e){ if(!e) return; for(const k of TASK_KEYS()) for(const t of e[k]||[]) if(t.children?.length) t.done=t.children.every(c=>c.done); }
 /* Event-level lists: [key, title, placeholder, has URL] */
 const SCORING_LISTS=[['rankings','Rankings','Add a ranking…',false],['teamScores','Team scores','Add a team score…',false]];
-const OUTPUT_LISTS=[['lists','Lists','Add a list…',false],['myrrTabs','my.rr tabs','Add a my.rr tab…',true],['participantViews','Participant views','Add a participant view…',true],['presenter','Presenter','Add a Presenter screen…',true]];
+const OUTPUT_LISTS=[['lists','Lists','Add a list…',false],['myrrTabs','my.rr','Add a my.rr tab…',true],['participantViews','Participant views','Add a participant view…',true],['presenter','Presenter','Add a Presenter screen…',true]];
 const REG_LISTS=[['onReg','Registration','Add a registration item…',true],['kiosk','Kiosk','Add a kiosk item…',true]];
 const EVENT_LISTS=[...SCORING_LISTS,...REG_LISTS,...OUTPUT_LISTS];
 const TIME_BASIS={gun:'Gun time',chip:'Chip time'};
@@ -3794,6 +3802,11 @@ function bind(root){
     el.addEventListener('change',()=>afterPress(()=>add(false)));
   });
   root.querySelectorAll('.tasks textarea.tx[data-lk]').forEach(el=>el.addEventListener('keydown',e=>taskKey(e,el)));
+  on(root,'[data-turl]',b=>{ const it=OBJ[+b.dataset.turl]; if(urlShut.it===it&&Date.now()-urlShut.t<500) return; urlEdit.has(it)?urlEdit.delete(it):urlEdit.add(it); renderDetail();
+    $('#detail').querySelectorAll('[data-turlin]').forEach(x=>{ if(OBJ[+x.dataset.o]===it){ x.focus(); x.select(); } }); });
+  root.querySelectorAll('[data-turlin]').forEach(el=>{ const it=OBJ[+el.dataset.o];
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key==='Escape'){ e.preventDefault(); el.blur(); } });
+    el.addEventListener('blur',()=>{ it.url=el.value.trim(); urlEdit.delete(it); urlShut={it,t:Date.now()}; touch(); afterPress(renderDetail); }); });
   on(root,'[data-tnote]',b=>{ const it=OBJ[+b.dataset.tnote]; openNote(b,it,'note',`Note · ${it.text||'item'}`); });
   on(root,'[data-addsub]',b=>{ const ch=OBJ[+b.dataset.addsub]; ch.push(mkTask()); const lk=`${b.dataset.lk}.${ch.length}`; touch(); renderDetail();
     root.querySelector(`[data-lk="${CSS.escape(lk)}"]`)?.focus(); });
@@ -3884,6 +3897,8 @@ function taskKey(e,el){
   e.preventDefault(); touch(); renderDetail();
   const n=$('#detail').querySelector(`[data-lk="${CSS.escape(key+':'+pos)}"]`); if(n){ n.focus(); n.setSelectionRange(caret,caret); }
 }
+let urlShut={}; // the field just closed by the press on 🔗: that click must not reopen it
+const urlEdit=new Set(); // list items whose link is being edited (the link line shows a field)
 /* auto-grow textareas: refit on input, on width change and when they become visible */
 const taRO=new ResizeObserver(es=>es.forEach(en=>fitTA(en.target)));
 function fitTA(t){ if(!t.offsetWidth) return; t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }
@@ -4699,15 +4714,20 @@ function raceCard(e,c,ci,tpOpts){
 function Tasks(o,k,label,ph,lk,withUrl){
   if(!Array.isArray(o[k])||o[k].some(x=>!x||typeof x!=='object'||!Array.isArray(x.children))) o[k]=toTasks(o[k]); // keep the same objects: the checklist ticks them too
   const arr=o[k], [tot,done]=countTasks(arr);
+  // my.rr: Participants / Live / Results get their page from the EventID when no link is set
+  const auto=it=>{ if(k!=='myrrTabs'||it.url||!myrrUrl(o)) return ''; const m=/^\s*(participants?|live|results?)\s*$/i.exec(it.text||''); return m?myrrUrl(o)+({p:'participants',l:'live',r:'results'})[m[1][0].toLowerCase()]:''; };
+  const linkLine=it=>{ if(urlEdit.has(it)) return `<div class="tlinkr edit">${ic('link',1.8)}<input class="cell" type="url" data-o="${ref(it)}" data-k="url" data-turlin value="${esc(it.url)}" placeholder="${esc(auto(it)||'https://…')}" aria-label="Link for ${esc(it.text||'item')}"></div>`;
+    const u=it.url||auto(it); if(!/^https?:\/\//.test(u)) return '';
+    return `<div class="tlinkr"><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${ic('ext',1.8)}<span>${esc(u.replace(/^https?:\/\//,'').replace(/\/$/,''))}</span></a>${it.url?'':'<span class="tag auto" title="From the EventID">auto</span>'}</div>`; };
   const row=(it,list,i,child,pos)=>`${child?`<div class="trow" data-si="${i}">`:''}<div class="task ${it.done?'done':''}">
       ${GRIP}
       <input type="checkbox" class="ck" data-o="${ref(it)}" data-k="done" data-r="detail" ${it.done?'checked':''} aria-label="Done: ${esc(it.text)}">
       <textarea class="cell tx auto" rows="1" data-o="${ref(it)}" data-k="text" data-lk="${esc(lk)}:${pos}" aria-label="${esc(label)} ${pos}" placeholder="${child?'Sub-item':'Item'}">${esc(it.text)}</textarea>
-      ${withUrl?`<input class="cell tu" type="url" data-o="${ref(it)}" data-k="url" data-r="change" value="${esc(it.url)}" placeholder="https://…" aria-label="URL ${esc(it.text)}">${linkBtn(it.url)}`:''}
+      ${withUrl?`<button class="btn icon sm ghost linkbtn ${it.url||auto(it)?'set':''}" data-turl="${ref(it)}" type="button" title="${it.url?'Edit link':'Add link'}" aria-label="${it.url?'Edit':'Add'} link for ${esc(it.text||'item')}">${ic('link',1.8)}</button>`:''}
       <button class="btn icon sm ghost notebtn ${it.note?'set':''}" data-tnote="${ref(it)}" type="button" title="${it.note?'Edit note':'Add note'}" aria-label="${it.note?'Edit':'Add'} note for ${esc(it.text||'item')}">${ic('note',1.8)}</button>
       ${child?'<span class="addsub"></span>':`<button class="btn icon sm ghost addsub" data-addsub="${ref(it.children)}" data-lk="${esc(lk)}:${pos}" type="button" title="Add sub-item" aria-label="Add sub-item to ${esc(it.text||'item')}">${ic('plus',2.2)}</button>`}
       <button class="btn icon sm ghost del" data-delitem="${ref(list)}:${i}" type="button" aria-label="Remove ${esc(it.text||'item')}">${ic('x')}</button>
-    </div>${it.note?`<div class="tnote">${ic('note',1.8)}<span>${esc(it.note)}</span></div>`:''}${child?'</div>':''}`;
+    </div>${it.note?`<div class="tnote">${ic('note',1.8)}<span>${esc(it.note)}</span></div>`:''}${withUrl?linkLine(it):''}${child?'</div>':''}`;
   return `<div class="tasks ${withUrl?'wurl':''}"><div class="th">${esc(label)}${tot?`<span class="tc">${done}/${tot}</span><span class="bar"><i style="width:${Math.round(done/tot*100)}%"></i></span>`:''}</div>
     <div data-sort="${ref(arr)}">${arr.map((it,i)=>`<div class="tgroup" data-si="${i}">${row(it,arr,i,false,`${i+1}`)}${it.children.length?`<div class="tkids" data-sort="${ref(it.children)}">${it.children.map((c,j)=>row(c,it.children,j,true,`${i+1}.${j+1}`)).join('')}</div>`:''}</div>`).join('')}</div>
     <div class="task add"><span></span><span class="plus" aria-hidden="true">${ic('plus',2)}</span><input class="cell" data-addto="${ref(arr)}" data-lk="${esc(lk)}" placeholder="${esc(ph)}" aria-label="Add to ${esc(label)}"></div>
@@ -5563,7 +5583,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='239'; let APPV=HV, UPD=false;
+const HV='240'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
