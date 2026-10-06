@@ -3740,6 +3740,7 @@ function bind(root){
       if(t==='num') v=num(v);
       o[k]=v; touch(k==='location'&&o===S?.events.find(x=>x.id===route.id)?'hold':undefined); // the location waits for its coordinates
       if(el.dataset.r==='detail') renderDetail();
+      if(el.dataset.r==='qres') qResolved(el);
     });
     if(el.dataset.r==='change') el.addEventListener('change',()=>afterPress(renderDetail)); // after Tab has moved the focus (renderDetail keeps it there), or after the click that left the field
   });
@@ -4282,7 +4283,7 @@ function renderEvent(D){
         <button type="button" class="fact st" data-statuspill><i class="sd" style="--c:${esc(statusColor(e.status))}"></i>${esc(e.status||'no status')}${ic('chevd',2.4)}</button>
         <a class="fact" href="#s-races" data-jump>${ic('flag',2)}<b>${e.contests.length}</b> ${e.contests.length===1?'race':'races'}</a>
         <a class="fact" href="#s-tps" data-jump>${ic('pin',2)}<b>${e.timingPoints.length}</b> timing ${e.timingPoints.length===1?'point':'points'}</a>
-        ${oq?`<a class="fact warn" href="#s-questions" data-jump>${ic('inbox',2)}<b>${oq}</b> open ${oq===1?'question':'questions'}</a>`:''}
+        ${oqFact(oq)}
         <span class="deskonly" style="display:contents">${metaLink(LK.res)}${metaLink(LK.rr)}</span>
       </div></div>
       <div class="hr"><a class="ringbox" href="#s-checklist" data-jump title="Checklist">${ring(p,84,7)}<span class="ringv">${pct}%<small>prepared</small></span></a><span class="hlab">${ckDone} of ${ckTot} checklist items</span></div>
@@ -4353,7 +4354,7 @@ function renderEvent(D){
     ${showH?`<button type="button" data-rail="s-hours" title="${esc(UC())}">${ic('hours',1.8)}${fmtN(sumV(evHours))}</button>`:''}
     <button type="button" data-rail="s-notes" title="Notes">${ic('doc',1.8)}</button>
   </div><div class="sidefull">
-  <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''}</h3><span class="sp"></span></div>
+  <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oqCount(e)}</h3><span class="sp"></span></div>
   ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>qThread(e,q,i)).join('')}
   <button type="button" class="addline ${e.questions.length?'':'empty1'}" id="addq">${ic('plus',2)}<span>Add a question${e.questions.length?'':'<small>Open questions go into the client summary, numbered Q1, Q2…</small>'}</span></button>${e.questions.length?'</div>':''}
   </section>
@@ -4891,7 +4892,24 @@ function qThread(e,q,i){
     :turn?`<div class="lr">${ta('answer',`Reply to ${esc(cn)}…`)}<button type="button" class="send" data-qsend aria-label="Send the reply">${ic('up',2.6)}</button></div>`
     :`<div class="lm"><span></span>${ta('answer','No answer yet — or write it yourself…','mute')}</div>`;
   return `<div class="lq ${turn?'turn':''} ${q.resolved?'res':''}" data-qn="${q.n}"><span class="num">Q${q.n}</span><div class="lb">${ask}${ans}
-    <div class="ltools"><label class="chk" title="Resolved"><input type="checkbox" class="ck" data-o="${R}" data-k="resolved" data-r="detail" ${q.resolved?'checked':''}> Resolved</label><button class="btn icon sm ghost del" data-delq="${i}" type="button" aria-label="Delete question Q${q.n}">${ic('x')}</button></div></div></div>`;
+    <div class="ltools"><label class="chk" title="Resolved"><input type="checkbox" class="ck" data-o="${R}" data-k="resolved" data-r="qres" ${q.resolved?'checked':''}> Resolved</label><button class="btn icon sm ghost del" data-delq="${i}" type="button" aria-label="Delete question Q${q.n}">${ic('x')}</button></div></div></div>`;
+}
+const oqFact=oq=>`<a class="fact warn" href="#s-questions" data-jump ${oq?'':'style="display:none"'}>${ic('inbox',2)}<b>${oq}</b> open ${oq===1?'question':'questions'}</a>`; // always there (hidden at 0): qResolved edits it in place
+const oqCount=e=>{ const oq=openQ(e).length; return oq?`<span class="count w">${oq} open</span>`:e.questions.length?'<span class="count">all answered</span>':''; };
+/* Resolved ticked: only that question and the open-question counts change — redrawing the whole event made it vanish and come back on the iPhone */
+function qResolved(el){
+  const D=$('#detail'), e=route.view==='e'&&S.events.find(x=>x.id===route.id), q=OBJ[+el.dataset.o], row=el.closest('.lq');
+  if(!e||!row||q.author==='client'&&!q.answer) return renderDetail(); // a client question still waiting: the reply box comes or goes
+  row.classList.toggle('res',!!q.resolved);
+  const oq=openQ(e).length, sec=D.querySelector('#s-questions');
+  const j=D.querySelector('#jump a[href="#s-questions"] em'); if(j){ j.textContent=oq||''; j.className=oq?'w':''; }
+  const r=D.querySelector('[data-rail="s-questions"]'); if(r){ r.className=oq?'rq':''; r.innerHTML=ic('inbox',1.8)+oq; }
+  const f=D.querySelector('.facts .fact.warn[href="#s-questions"]'); // the hero fact keeps its jump handler: edited, not rebuilt
+  if(f){ f.style.display=oq?'':'none'; f.querySelector('b').textContent=oq; f.lastChild.textContent=` open ${oq===1?'question':'questions'}`; }
+  if(!sec) return;
+  const eye=sec.querySelector('.sc-id .cc-eye'); // wide screens: side card with eyebrow
+  if(eye){ eye.className='cc-eye'+(oq?' w':''); eye.textContent=oq?plural(oq,'open question','open questions'):'all answered'; sec.classList.toggle('g-warn',!!oq); sec.classList.toggle('g-acc',!oq); }
+  else{ const h3=sec.querySelector('.sech h3'); h3.querySelector('.count')?.remove(); h3.insertAdjacentHTML('beforeend',oqCount(e)); }
 }
 /* "seen": the client opened the portal after your reply (portal_activity → seen of each contact) */
 const seenCache={};
@@ -5376,7 +5394,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='227'; let APPV=HV, UPD=false;
+const HV='228'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
