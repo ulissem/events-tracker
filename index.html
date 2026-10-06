@@ -1289,7 +1289,7 @@ main.mapv #detail{display:flex;flex-direction:column;height:calc(100vh - var(--h
 .mpill.now{background:var(--accent);color:var(--accent-ink)}
 .mpill.later{height:14px;min-width:14px;padding:0}
 .mpill.past{height:10px;min-width:10px;padding:0;border-color:var(--ink-3);opacity:.6}
-.leaflet-container{font:inherit;background:var(--sunken)}
+.leaflet-container.leaflet-container{font:inherit;background:var(--sunken)} /* doubled class: leaflet.css is loaded later (first Map use) and its background #ddd would win; with its plus-lighter tiles a light background shows as lines at the tile edges */
 .leaflet-container a{color:var(--accent)}
 .leaflet-control-attribution{font:10.5px Inter,system-ui,sans-serif!important;background:color-mix(in srgb,var(--panel) 80%,transparent)!important;color:var(--ink-3)!important}
 .leaflet-control-attribution a{color:var(--ink-2)!important}
@@ -1893,7 +1893,7 @@ body.viewswap .mstrip{animation:stripin .6s cubic-bezier(.2,.8,.2,1) .12s both}
 .mapwrap{background:var(--bg)}
 main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + strip z-indexes (600+) stay inside: bottom sheets and their scrim go above */
 .mapel{z-index:0}
-.leaflet-container{background:var(--bg)}
+.leaflet-container.leaflet-container{background:var(--bg)}
 .leaflet-top.leaflet-right{top:58px}
 .leaflet-bottom.leaflet-left{bottom:198px}
 .leaflet-bar{border:0!important;box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -14px rgba(0,0,0,.5)!important;border-radius:10px!important;background:color-mix(in srgb,var(--panel) 78%,transparent)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
