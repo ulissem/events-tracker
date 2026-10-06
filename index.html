@@ -6168,7 +6168,7 @@ setInterval(()=>{ if(lockOn()&&DK&&Date.now()-lastAct>Math.max(lockMs(),60e3)) l
 /* settings: turn on / off, lock after, change PIN */
 function lockInfo(){
   const on=lockOn();
-  $('#s-lkinfo').textContent=DEMO?'Not in demo mode.':!on?`off · ${BIO} + PIN, this device`:`on · ${LOCK.credId?BIO+(LOCK.mode==='gate'?' (unlock only)':'')+' + PIN':'PIN only'}`;
+  $('#s-lkinfo').innerHTML=DEMO?'Not in demo mode.':!on?`off · ${BIO} + PIN<br>this device`:`on · ${LOCK.credId?BIO+(LOCK.mode==='gate'?' (unlock only)':'')+' + PIN':'PIN only'}<br>this device`;
   $('#s-lkon').hidden=on||DEMO; $('#s-lkoff').hidden=!on; $('#s-lkpin-row').hidden=!on; $('#s-lkafter-row').hidden=!on;
   if(on) $('#s-lkafter').value=String(LOCK.after??5);
 }
@@ -6263,7 +6263,7 @@ function fitSettings(){ if(narrow.matches||!dlg.open||$('#s-prefs').hidden) retu
 function fillSettings(){
   const sb=isSB(), key=S.config.cartoKey||'';
   $('#s-accmail').innerHTML=DEMO?'Demo':esc(cfg.owner||'—').replace('@','@<wbr>'); // a long address breaks after the @, never inside a word
-  $('#s-accdev').textContent=DEMO?'demo files · nothing is saved':`${sb?'Supabase':'GitHub'} · ${lockOn()?'session encrypted on this device':'session kept here, not encrypted'}`;
+  $('#s-accdev').innerHTML=DEMO?'demo files<br>nothing is saved':`${sb?'Supabase':'GitHub'}<br>${lockOn()?'session encrypted on this device':'session kept here, not encrypted'}`;
   $('#s-signout').hidden=DEMO;
   $('#s-rr14user').value=S.config.rr14User||'';
   $('#s-carto').value=key; $('#s-cartorow').hidden=true; $('#s-cartoedit').textContent=key?'Change':'Add key';
