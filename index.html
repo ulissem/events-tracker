@@ -3652,7 +3652,7 @@ const isDark=()=>themePref==='dark'||themePref==='auto'&&sysDark.matches;
 const themeName=()=>themePref==='auto'?'Auto':themePref==='light'?'Light':'Dark', themeIcon=()=>themePref==='auto'?'auto':themePref==='light'?'sun':'moon';
 const nextTheme=()=>themePref==='auto'?'light':themePref==='light'?'dark':'auto';
 function applyTheme(){ const r=document.documentElement; if(themePref==='auto') delete r.dataset.theme; else r.dataset.theme=themePref;
-  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.content=themePref==='auto'?(m.media.includes('dark')?'#000000':'#f2f2f7'):isDark()?'#000000':'#f2f2f7'); }
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ const n=m.cloneNode(); n.content=themePref==='auto'?(m.media.includes('dark')?'#000000':'#f2f2f7'):isDark()?'#000000':'#f2f2f7'; m.replaceWith(n); }); // a new element: iOS repaints the status bar only for a new meta, not for a changed one }
 applyTheme();
 function setTheme(p,quiet=false){ themePref=p; try{ themePref==='auto'?localStorage.removeItem(THEME_KEY):localStorage.setItem(THEME_KEY,themePref); }catch{}
   applyTheme(); renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); if(!quiet) toast(`Appearance: ${themePref==='auto'?'Auto (like this device)':themeName()}`,'','check'); }

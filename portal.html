@@ -739,7 +739,7 @@ const THEME_KEY='racehub-portal-theme', darkMQ=matchMedia('(prefers-color-scheme
 let themePref=(()=>{ try{ return localStorage.getItem(THEME_KEY)||'auto'; }catch{ return 'auto'; } })();
 const isDark=()=>themePref==='dark'||themePref==='auto'&&darkMQ.matches;
 function applyTheme(){ const r=document.documentElement; if(themePref==='auto') delete r.dataset.theme; else r.dataset.theme=themePref;
-  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.content=themePref==='auto'?(m.media.includes('dark')?'#000000':'#f2f2f7'):isDark()?'#000000':'#f2f2f7'); }
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ const n=m.cloneNode(); n.content=themePref==='auto'?(m.media.includes('dark')?'#000000':'#f2f2f7'):isDark()?'#000000':'#f2f2f7'; m.replaceWith(n); }); // a new element: iOS repaints the status bar only for a new meta, not for a changed one }
 function cycleTheme(){ themePref=themePref==='auto'?'light':themePref==='light'?'dark':'auto'; try{ localStorage.setItem(THEME_KEY,themePref); }catch{}
   applyTheme(); rerender(); toast(`Appearance: ${themePref==='auto'?'Auto (like this device)':themePref==='light'?'Light':'Dark'}`); }
 applyTheme(); darkMQ.addEventListener('change',()=>{ if(themePref==='auto'&&state==='ok') rerender(); });
@@ -862,8 +862,7 @@ function vHome(){
   <p class="lede" style="margin-bottom:10px">${up.length?`${plural(up.length,'event','events')} coming up with ${esc(OP().name.split(' ')[0])}.`:`No events coming up yet — ${esc(OP().name.split(' ')[0])} adds them here.`}</p>
   <div class="statusrow">${nr?`<button class="status blue" data-go="#q"><i>${nr}</i>${nr===1?'New reply':'New replies'} from ${esc(OP().name.split(' ')[0])}<span class="arr">→</span></button>`:''}
   ${qn?`<button class="status warn" data-act="towait"><i>${qn}</i>${plural(qn,'question','questions')} waiting for your answer<span class="arr">↓</span></button>`
-      :`<button class="status ok" data-go="#q"><i>${I.check}</i>All answered — nothing waiting for you</button>`}
-  ${geoUp().length||geoPast().length?`<button class="status map" data-go="#map">${I.map} Map</button>`:''}</div>
+      :`<button class="status ok" data-go="#q"><i>${I.check}</i>All answered — nothing waiting for you</button>`}</div>
   ${today?raceDay(today):next?nextCard(next):''}
   ${waitBlock(up)}
   ${seasonCard()}
@@ -1031,7 +1030,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='200'; let PV_NEW=false, APPV=PV;
+const PV='201'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
@@ -1066,7 +1065,7 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('button'); if(!b) return;
   const act=b.dataset.act;
   if(act==='account') return account();
-  if(act==='update'){ e.preventDefault(); e.stopPropagation(); location.reload(); return; }
+  if(act==='update'){ e.preventDefault(); e.stopPropagation(); location.replace(location.pathname+'?v='+Date.now()+location.hash); return; } // a new URL: the Home Screen app can't serve it from its cache
   if(act==='theme') return cycleTheme();
   if(act==='arch'){ archOpen=!archOpen; return rerender(); }
   if(act==='towait') return document.getElementById('wait')?.scrollIntoView({behavior:'smooth',block:'start'});
