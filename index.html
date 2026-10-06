@@ -998,6 +998,15 @@ a.sro:hover{background:var(--hover);text-decoration:none}
   dialog#settings.fromacct[open]{animation:setgrow .36s cubic-bezier(.2,.8,.2,1)}
   dialog#settings.fromacct[open] .dlg{animation:setin .28s .08s both}
 }
+@media (max-width:860px), (pointer:coarse) and (max-height:500px){
+  /* phone top bar: search, + and the avatar are three equal circles; "Update" only when a newer version is out */
+  .top .cmdtrig{width:36px;height:36px;border-radius:50%;background:var(--sunken)}
+  .top .btn.newbtn{width:36px;height:36px;border-radius:50%;padding:0;background:var(--accent-soft);color:var(--accent);border:0;box-shadow:none}
+  .top .btn.newbtn svg{width:18px;height:18px}
+  .top .acct{width:36px;height:36px}
+  .updpill{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px 0 9px;border:0;border-radius:999px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:600;flex:none}
+  .updpill svg{width:13px;height:13px} .updpill[hidden]{display:none}
+}
 @keyframes setgrow{from{height:var(--h0,450px)}}
 @keyframes setin{from{opacity:0;transform:translateX(24px)}}
 .rlist{padding:6px 14px 12px}
@@ -1425,6 +1434,8 @@ kbd{border-color:var(--line-2);border-bottom-width:1px;background:transparent;bo
 .top{background:var(--bg);border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none}
 .top::after{content:'';position:absolute;left:0;right:0;top:100%;height:14px;background:linear-gradient(var(--bg),transparent);pointer-events:none}
 .top .brand{cursor:pointer} .top .brand:hover .ver{color:var(--accent)}
+  .top .brand .ver.new{color:#fff;background:var(--accent);padding:1px 7px;border-radius:999px;margin-left:-2px}
+  .updpill{display:none!important}
 .brand .ver{font-size:10.5px;font-weight:600;color:var(--ink-3);align-self:flex-start;margin:1px 0 0 -5px;font-variant-numeric:tabular-nums;letter-spacing:0}
 .island{position:absolute;left:50%;top:calc(var(--sat) + (var(--hh) - var(--sat))/2);transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;padding:4px;border-radius:999px;
   background:var(--panel);box-shadow:0 0 0 .5px var(--line-2),0 8px 24px -12px rgba(0,0,0,.28);transition:opacity .15s}
@@ -3683,7 +3694,7 @@ function renderTop(){
   $('#top').innerHTML=`
     ${route.id&&(route.view==='e'||route.view==='c')?`<button id="topback" class="btn icon ghost topback" type="button" aria-label="Back to the list">${ic('back',2)}</button>`:''}
     ${route.view!=='h'&&route.view!=='a'&&route.view!=='m'?`<button id="listbtn" class="btn icon ghost ${listOpen?'on':''}" type="button" data-tip="${listOpen?'Hide':'Show'} list" data-kbd="[" aria-label="Toggle list">${ic('sideL',1.9)}</button>`:''}
-    <div class="brand" id="brand" data-tip="Reload app · gets the newest version (saves first)"><span class="logo">${ic('flag',2.4)}</span><b>Race Hub</b><span class="ver" id="brandver">${APPV?'v'+esc(APPV):''}</span></div><span class="ptitle">${vt}</span>
+    <div class="brand" id="brand" data-tip="Reload app · gets the newest version (saves first)"><span class="logo">${ic('flag',2.4)}</span><b>Race Hub</b><span class="ver ${UPD?'new':''}" id="brandver">v${esc(HV)}${UPD?' · Update':''}</span></div><span class="ptitle">${vt}</span>
     <div class="island">
       <nav class="tabs" aria-label="Sections">${[['e','Events'],['m','Map'],['c','Clients'],['a','Agenda'],...(priv()?[['h','Hours']]:[])].map(([v,l])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${l}</button>`).join('')}</nav><span class="isep"></span>
       <button class="cmdtrig" id="cmdtrig" type="button" aria-label="Jump to" data-tip="Jump to an event, client or action" data-kbd="${MOD} K">${ic('search')}<span>Jump to</span><kbd>${MOD==='⌘'?'⌘K':'Ctrl K'}</kbd></button>
@@ -3691,6 +3702,7 @@ function renderTop(){
     <span class="spacer"></span>
     <button id="savepill" class="savepill" type="button" hidden>${ic('save',2)}<span>Save</span></button>
     <button id="newbtn" class="btn primary newbtn ${route.view==='a'?'onag':''}" type="button" data-tip="${route.view==='h'?'Log hours':'New '+nv}" data-kbd="N" aria-label="${route.view==='h'?'Log hours':'New '+nv}">${ic('plus',2.4)}<span>${route.view==='c'?'Client':route.view==='h'?'Hours':route.view==='a'?'Entry':'Event'}</span></button>
+    <button id="updpill" class="updpill" type="button" ${UPD?'':'hidden'} aria-label="Update to the newest version">${ic('refresh',2.2)}Update</button>
     <button id="acctbtn" class="acct" type="button" aria-haspopup="menu">UM<i class="adot"></i></button>
 `;
   $('#tabbar').innerHTML=[['e','Events','flag'],['m','Map','map'],['c','Clients','user'],['a','Agenda','cal'],...(priv()?[['h','Hours','hours']]:[])].map(([v,l,i])=>`<button type="button" data-view="${v}" ${tabOn(v)?'aria-current="page"':''}>${ic(i,1.8)}<span>${l}</span></button>`).join(''); // save state = the dot on the avatar (top bar)
@@ -3705,6 +3717,7 @@ function renderTop(){
   $('#cmdtrig').onclick=openCmd;
   $('#newbtn').onclick=newItem;
   $('#acctbtn').onclick=ev=>openAcct(ev.currentTarget);
+  $('#updpill').onclick=()=>forceUpdate();
   $('#brand').onclick=()=>{ if(!narrow.matches) forceUpdate(); }; // desktop: Race Hub vNNN = reload with the newest version
 }
 sysDark.addEventListener('change',()=>{ renderTop(); if(route.view==='m'||route.view==='e') renderDetail(); });
@@ -5034,10 +5047,11 @@ function openMore(btn){
   popAnchor=btn; place(m,btn,'right');
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
-let APPV='';
-function loadVer(){ (window.caches?.keys?window.caches.keys().then(k=>k.map(x=>(x.match(/-v(\d+)$/)||[])[1]).filter(Boolean).sort((a,b)=>b-a)[0]):Promise.resolve(null))
-  .then(v=>v||fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>(t.match(/events-tracker-v(\d+)/)||[])[1]))
-  .then(v=>{ if(!v) return; APPV=v; const e=$('#brandver'); if(e) e.textContent='v'+v; }).catch(()=>{}); }
+/* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
+const HV='209'; let APPV=HV, UPD=false;
+function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
+function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
 /* desktop: the avatar opens a Control-Center panel — save state, private data, appearance as tiles, then the rare things */
 function openAcct(btn){
   if(!$('#menu').hidden&&popAnchor===btn){ closePops(); return; } closePops();
@@ -6408,7 +6422,7 @@ async function refreshData(){
 }
 /* service worker: check for a new version on load, when the app comes back, and every 30 min while visible */
 let swReg=null, swReloading=false, swNotified=false;
-function notifyUpdate(reg){ if(swNotified) return; swNotified=true;
+function notifyUpdate(reg){ setUpd(); if(swNotified) return; swNotified=true;
   // on the sign-in page with nothing typed in the password: nothing to lose, so the new version is applied without asking
   if(!S&&!DEMO&&!$('#signin').hidden&&!$('#s-token').value){ swReloading=true; if(reg.waiting) reg.waiting.postMessage({type:'skipWaiting'}); else location.reload(); setTimeout(()=>location.reload(),4000); return; }
   toast('New version available','reload to use it','bolt','',{label:'Reload',run:async()=>{
