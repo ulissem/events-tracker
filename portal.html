@@ -455,6 +455,12 @@ main.bare{padding:0;max-width:none}
 .lcard input.code{text-align:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:20px;letter-spacing:.2em;margin-top:16px}
 .lcard input.code::placeholder{font-family:-apple-system,system-ui,sans-serif;font-size:15px;letter-spacing:0}
 .lcard .fine a{color:var(--ink-2);text-decoration:underline}
+.ldemo{display:flex;align-items:center;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.ldemo span{font-size:13px;color:var(--ink-3);white-space:nowrap}
+.lcard .ldemo .btn{flex:1;height:40px;font-size:14px}
+.demonote{display:flex;gap:10px;align-items:baseline;margin:0 0 14px;padding:10px 14px;border-radius:14px;background:var(--sunken);font-size:13px;color:var(--ink-2)}
+.demonote b{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);flex:none}
+.acc-demo{font-size:12px;color:var(--ink-3);line-height:1.4;padding:10px 4px 0}
 .wa-note{display:flex;align-items:center;gap:7px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--sunken);font-size:13px;font-weight:600;color:var(--ink-2)}
 a.btn{text-decoration:none}
 
@@ -653,6 +659,7 @@ const SB={url:'https://vpnkzlnpuozytpjlvgwy.supabase.co',key:'sb_publishable_bVE
 const SKEY='hub-portal-session';
 const OP_DEFAULT={name:'Ulisse Mariangeli',role:'Race support'}; // no phone number in this page: it is public (bots)
 const HOME=location.origin+'/portal';
+const DEMO={email:'demo@hub.ulissemariangeli.com',password:'racehub-demo'}; // shared demo client (supabase/011_demo.sql): public on purpose, data rebuilt every night
 const STEPS=[['Brief','Your event details'],['Questions','Ulisse needs answers'],['Timing setup','Races, splits, points'],['Test','Dry run with test data'],['Ready','All set for race day'],['Results','Published online']];
 const TINTS=[[/vertical|hill/i,'#a855f7','#6d28d9'],[/tri|aqua/i,'#30b0c7','#0e7490'],[/multi|relay/i,'#7a5af5','#4c35b5'],[/cycl|bike|gravel/i,'#ff9500','#c2410c'],[/trail/i,'#2fb36d','#0b7a4a'],[/road|run/i,'#0a7aff','#0050b3']];
 const HWIMG={'Decoder':'decoder','Loop Box':'loop-box','Track Box Active':'trackbox-active','Track Box Passive':'trackbox-passive','Management Box':'mbox'};
@@ -686,6 +693,8 @@ async function authCall(grant,body){
   const j=await r.json().catch(()=>({}));
   if(!r.ok){ sess=null; saveSess(); throw Object.assign(new Error('signed-out'),{signedOut:true}); }
   sess={access:j.access_token,refresh:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000}; saveSess(); }
+async function demoSignIn(){ // "Try the demo": no email, the shared demo account
+  try{ await authCall('password',DEMO); }catch{ throw new Error('The demo is not available right now — try again later.'); } }
 async function token(force=false){
   if(!sess) throw Object.assign(new Error('signed-out'),{signedOut:true});
   if(!force&&Date.now()<sess.exp-60e3) return sess.access;
@@ -816,7 +825,7 @@ const animateRings=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>docum
 function chrome(route){
   const n=totalOpen(), cur=r=>route===r?'aria-current="page"':'', map=EVENTS.some(e=>e.geo);
   $('#top').innerHTML=`<div class="top-in">
-    <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>Race Hub</b><small>Client area</small></span></a><button type="button" class="pver ${PV_NEW?'new':''}" data-act="update" title="${PV_NEW?'A newer version is out · tap to update':'Reload the client area'}">v${PV}${PV_NEW?' · Update':''}</button>
+    <a class="brand" href="#home"><span class="logo">${logo}</span><span><b>Race Hub</b><small>${ME?.demo?'Demo':'Client area'}</small></span></a><button type="button" class="pver ${PV_NEW?'new':''}" data-act="update" title="${PV_NEW?'A newer version is out · tap to update':'Reload the client area'}">v${PV}${PV_NEW?' · Update':''}</button>
     <nav class="island" aria-label="Sections"><a href="#home" ${cur('home')}>Home</a><a href="#q" ${cur('q')}>Questions ${n?`<span class="badge">${n}</span>`:''}</a>${map?`<a href="#map" ${cur('map')}>Map</a>`:''}<a href="#ic" ${cur('ic')}>Ice creams</a></nav>
     <button class="pav" data-act="account" aria-label="Account and appearance" aria-haspopup="menu">${esc(initials(ME?.client))}</button></div>`;
   $('#tbar').innerHTML=`<a href="#home" ${cur('home')}>${TB.home}Home</a><a href="#q" ${cur('q')}>${TB.q}Questions${n?`<span class="badge">${n}</span>`:''}</a>${map?`<a href="#map" ${cur('map')}>${TB.map}Map</a>`:''}<a href="#ic" ${cur('ic')}>${TB.ic}Ice creams</a>`;
@@ -865,6 +874,7 @@ function vHome(){
   <div class="eyebrow">${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}</div>
   <h1>${greet()}, ${esc(ME.client||'')}</h1>
   <p class="lede" style="margin-bottom:10px">${up.length?`${plural(up.length,'event','events')} coming up with ${esc(OP().name.split(' ')[0])}.`:`No events coming up yet — ${esc(OP().name.split(' ')[0])} adds them here.`}</p>
+  ${ME.demo?`<div class="demonote"><b>Demo</b><span>A made-up client with past and upcoming events. Try answering a question — it all resets every night.</span></div>`:''}
   <div class="statusrow">${nr?`<button class="status blue" data-go="#q"><i>${nr}</i>${nr===1?'New reply':'New replies'} from ${esc(OP().name.split(' ')[0])}<span class="arr">→</span></button>`:''}
   ${qn?`<button class="status warn" data-act="towait"><i>${qn}</i>${plural(qn,'question','questions')} waiting for your answer<span class="arr">↓</span></button>`
       :`<button class="status ok" data-go="#q"><i>${I.check}</i>All answered — nothing waiting for you</button>`}</div>
@@ -907,7 +917,7 @@ function nextCard(e){
 function waitBlock(up){
   const w=up.filter(e=>openQs(e).length); if(!w.length) return '';
   const tot=w.reduce((n,e)=>n+openQs(e).length,0);
-  return `<div class="h2" id="wait">Waiting for you <span>answer here · ${esc(OP().name.split(' ')[0])} gets it at once</span></div>
+  return `<div class="h2" id="wait">Waiting for you <span>${ME?.demo?'answer here · try it, it is a demo':`answer here · ${esc(OP().name.split(' ')[0])} gets it at once`}</span></div>
   <div class="qlist">${w.map(e=>`<div class="card glow qcard" style="${tstyle(e)}">
     <div class="qhead"><span class="qdot"></span><div class="qhm"><div class="eye">${e.start?fmtD(e.start,{weekday:'short',day:'numeric',month:'short'})+' · ':''}${cd(days(e))}</div><b>${esc(e.name)}</b></div>
       <span class="chip warn">${plural(openQs(e).length,'question','questions')}</span><a class="qopen" href="#e/${encodeURIComponent(e.id)}">Open event ›</a></div>
@@ -997,7 +1007,7 @@ function vQuestions(){
   const head=(e,n)=>`<div class="qhead"><span class="qdot"></span><div class="qhm"><div class="eye">${e.start?fmtD(e.start,{weekday:'short',day:'numeric',month:'short'})+' · ':''}${cd(days(e))}</div><b>${esc(e.name)}</b></div>
     ${n?`<span class="chip warn">${plural(n,'to answer','to answer')}</span>`:''}<a class="qopen" href="#e/${encodeURIComponent(e.id)}">Open event ›</a></div>`;
   return `<div class="rise"><div class="eyebrow">Questions</div><h1>${qn?`${plural(qn,'question','questions')} for you`:'All answered'}</h1>
-  <p class="lede">${qn?`Answer here — ${first} gets it at once. Or ask him something yourself.`:`Thank you! Ask ${first} something yourself, or look back at the answers below.`}</p>
+  <p class="lede">${qn?(ME?.demo?`Answer here, or ask ${first} something yourself — it is a demo, nothing is sent.`:`Answer here — ${first} gets it at once. Or ask him something yourself.`):`Thank you! Ask ${first} something yourself, or look back at the answers below.`}</p>
   ${live.length?`<div class="qlist">${live.map(e=>`<div class="card glow qcard" style="${tstyle(e)}">${head(e,openN(e))}
     ${qsOf(e).filter(isLive).map(q=>qItem(e,q)).join('')}${writeBlock(e)}</div>`).join('')}</div>`:''}
   ${other.length?`<div class="h2">Ask about ${live.length?'another event':'an event'}</div>
@@ -1023,7 +1033,8 @@ function vLogin(){
     <button class="btn ghost" data-act="again" style="margin-top:10px">Use another email</button>`
   :`<p class="ic-sub" style="font-size:14px">Answer questions, follow the preparation, see your ice creams.</p>
   <form id="lf"><input class="field" id="lmail" type="email" inputmode="email" autocomplete="email" required placeholder="you@email.com"><button class="btn primary" type="submit" id="lgo">Email me a sign-in link</button></form>
-  <div class="lerr" id="lerr">${esc(linkError)}</div>`}
+  <div class="lerr" id="lerr">${esc(linkError)}</div>
+  <div class="ldemo"><span>Just looking?</span><button class="btn" type="button" data-act="demo" id="ldemo">Try the demo</button></div>`}
   <div class="fine">No password. The link works once, for 1 hour.<br>Questions? WhatsApp me</div></div></div>`;
 }
 function vState(title,text,btn=''){ return `<div class="login"><div class="card lcard rise"><span class="logo">${logo.replace(/16/g,24)}</span><h1 style="font-size:24px">${title}</h1><p class="ic-sub" style="font-size:14px">${text}</p>${btn}</div></div>`; }
@@ -1035,7 +1046,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='210'; let PV_NEW=false, APPV=PV;
+const PV='211'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
@@ -1047,7 +1058,8 @@ function account(){
     <div class="acc-t"><span class="acc-i">${themePref==='auto'?I.auto:themePref==='light'?I.sun:I.moon}</span><div class="acc-seg" role="radiogroup" aria-label="Appearance">${[['auto','Auto'],['light','Light'],['dark','Dark']].map(([t,l])=>`<button type="button" role="radio" aria-checked="${themePref===t}" data-th="${t}">${l}</button>`).join('')}</div></div>
     <div class="acc-c"><span class="pav um" aria-hidden="true">${esc(initials(o.name))}</span><div><b>${esc(o.name)}</b><small>Your contact · ${esc(o.role)}</small></div></div>
     <div class="acc-l"><button type="button" class="acc-out" data-act="signout">${I.out||''}Sign out</button></div>
-    <div class="acc-f">Race Hub${APPV?' v'+esc(APPV):''} · Client area</div>`;
+    ${ME?.demo?'<div class="acc-demo">This is a demo client. Look around, answer, ask: everything goes back to the start every night, and nothing reaches Ulisse.</div>':''}
+    <div class="acc-f">Race Hub${APPV?' v'+esc(APPV):''} · ${ME?.demo?'Demo':'Client area'}</div>`;
   p.hidden=false;
 }
 const closeAcc=()=>{ const p=$('#accp'); if(p) p.hidden=true; };
@@ -1076,22 +1088,27 @@ document.addEventListener('click',async e=>{
   if(act==='towait') return document.getElementById('wait')?.scrollIntoView({behavior:'smooth',block:'start'});
   if(act==='signout'){ closeSheet(); return signOut(); }
   if(act==='again'){ linkSent=''; render(); return; }
+  if(act==='demo') return startDemo(b);
   if(act==='compose'){ composing[b.dataset.id]=true; rerender(); document.querySelector(`[data-c="${CSS.escape(b.dataset.id)}"]`)?.focus(); return; }
   if(act==='uncompose'){ delete composing[b.dataset.id]; rerender(); return; }
   if(b.dataset.send){ // answer a question
     const id=b.dataset.send, text=(drafts[id]||'').trim(); if(!text) return; b.disabled=true;
     try{ await rpc('answer_question',{p_id:id,p_text:text}); delete drafts[id];
       const e2=EVENTS.find(x=>DET[x.id]?.questions.some(q=>q.id===id)); if(e2) await loadEvent(e2.id);
-      toast(`Answer sent to ${OP().name.split(' ')[0]}`); rerender(); }
+      toast(ME?.demo?'Answer saved (demo)':`Answer sent to ${OP().name.split(' ')[0]}`); rerender(); }
     catch(err){ b.disabled=false; toast(err.message||'Not sent — try again'); }
     return; }
   if(b.dataset.csend){ // ask Ulisse
     const id=b.dataset.csend, text=(drafts['c:'+id]||'').trim(); if(!text) return; b.disabled=true;
     try{ await rpc('ask_question',{p_event:id,p_text:text}); delete drafts['c:'+id]; delete composing[id]; await loadEvent(id);
-      toast(`Sent to ${OP().name.split(' ')[0]}`); rerender(); }
+      toast(ME?.demo?'Question saved (demo)':`Sent to ${OP().name.split(' ')[0]}`); rerender(); }
     catch(err){ b.disabled=false; toast(err.message||'Not sent — try again'); }
     return; }
 });
+async function startDemo(b){
+  if(b) b.disabled=true; const er=$('#lerr'); if(er) er.textContent='';
+  try{ await demoSignIn(); linkError=''; state='loading'; render(); location.hash='home'; await loadAll(); }
+  catch(err){ state='signin'; render(); const e2=$('#lerr'); if(e2) e2.textContent=err instanceof TypeError?'No connection — try again.':err.message; } }
 document.addEventListener('submit',async e=>{
   if(e.target.id==='cf'){ e.preventDefault(); const c=$('#lcode').value.replace(/\D/g,''); if(!c) return;
     $('#cgo').disabled=true; $('#lerr').textContent='';
@@ -1239,7 +1256,7 @@ addEventListener('hashchange',()=>{
   if(location.hash==='#qs'){ history.replaceState(null,'',lastHash); document.getElementById('qs')?.scrollIntoView({behavior:'smooth',block:'start'}); return; }
   render(); if(location.hash!==lastHash) scrollTo(0,0); lastHash=location.hash; });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&state==='ok') loadAll(); }); // fresh data when the client comes back
-if(sess) loadAll(); else { state='signin'; render(); }
+if(sess) loadAll(); else if(new URLSearchParams(location.search).has('demo')){ history.replaceState(null,'',location.pathname+location.hash); startDemo(); } else { state='signin'; render(); } // /portal?demo = a shareable link straight into the demo
 </script>
 </body>
 </html>
