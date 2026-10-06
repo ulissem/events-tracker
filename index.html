@@ -3041,7 +3041,11 @@ const DEFAULT_CONFIG={version:2,unit:{label:'ice creams',icon:'🍦'},
 const LEGACY={'da preparare':'to prepare','in corso':'in progress','in test':'testing','pronto':'ready','chiuso':'closed','in linea':'mass','a onde':'wave','individuale':'individual'};
 const mkTask=(text='')=>({text,done:false,note:'',url:'',children:[]});
 const toTasks=a=>(a||[]).map(x=>{ const t=typeof x==='string'?mkTask(x):{...mkTask(),...x}; t.children=(t.children||[]).map(c=>{ const k={...mkTask(),...c}; delete k.children; return k; }); return t; });
-const countTasks=a=>a.reduce((n,t)=>[n[0]+1+t.children.length,n[1]+(t.done?1:0)+t.children.filter(c=>c.done).length],[0,0]);
+const countTasks=a=>a.reduce((n,t)=>t.children.length?[n[0]+t.children.length,n[1]+t.children.filter(c=>c.done).length]:[n[0]+1,n[1]+(t.done?1:0)],[0,0]); // a main item with sub-items = a group title: only the sub-items count
+/* ticks between a main item and its sub-items: ticking the main one ticks them all, the main one is ticked when all its
+   sub-items are (fixParents runs on every change of the open event, after the tick has gone down) */
+const TASK_KEYS=()=>[...EVENT_LISTS.map(([k])=>k),'checklistExtra'];
+function fixParents(e){ if(!e) return; for(const k of TASK_KEYS()) for(const t of e[k]||[]) if(t.children?.length) t.done=t.children.every(c=>c.done); }
 /* Event-level lists: [key, title, placeholder, has URL] */
 const SCORING_LISTS=[['rankings','Rankings','Add a ranking…',false],['teamScores','Team scores','Add a team score…',false]];
 const OUTPUT_LISTS=[['lists','Lists','Add a list…',false],['myrrTabs','my.rr tabs','Add a my.rr tab…',true],['participantViews','Participant views','Add a participant view…',true],['presenter','Presenter','Add a Presenter screen…',true]];
@@ -3253,7 +3257,7 @@ function commitMessage(file){
 }
 
 let dirty=false,saving=false,stateMsg=null,errMsg=null,lastSaved=null;
-function touch(what){ _cov=null; dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); if(what!=='hold') autoSave(); }
+function touch(what){ if(S&&route.view==='e') fixParents(S.events.find(x=>x.id===route.id)); _cov=null; dirty=true; if(errMsg!=='Offline') errMsg=null; updSave(); schedulePersist(); recheckDirty(); if(what!=='none') renderList(); if(what!=='hold') autoSave(); }
 /* Supabase: every change is saved by itself 1.5 s after the last one (only changed rows are written; GitHub stays manual: one commit per save).
    'hold' = not yet (the location text: it is saved with its coordinates after the pin lookup, or with the next change) */
 var autoT=null, autoPending=false, saveT0=0; // var: updSave may read them before this line runs
@@ -3612,13 +3616,13 @@ function checklistItems(e){
   // items ticked in Registration / Kiosk, Scoring and Outputs: listed here too, ticking works in both places
   for(const [g,lists] of [['Registration',REG_LISTS],['Scoring',SCORING_LISTS],['Outputs',OUTPUT_LISTS]])
     for(const [k,l] of lists) for(const t of e[k]){ if(!t.text) continue;
-      it.push({key:'',label:t.text,done:!!t.done,task:t,group:g,sub:l});
+      it.push({key:'',label:t.text,done:!!t.done,task:t,group:g,sub:l,header:t.children.some(c=>c.text)});
       for(const c of t.children) if(c.text) it.push({key:'',label:c.text,done:!!c.done,task:c,group:g,sub:l,child:true}); }
   if(e.questions.length) A('auto:questions','All client questions answered',!openQ(e).length,G3);
   for(const k of S.config.checklistTemplate) if(k!=='RR14 file created') M(k,k,G3);
   return it;
 }
-const progress=e=>{ const it=checklistItems(e), [xt,xd]=countTasks(e.checklistExtra||[]); const tot=it.length+xt; return tot?(it.filter(x=>x.done).length+xd)/tot:0; };
+const progress=e=>{ const it=checklistItems(e).filter(x=>!x.header), [xt,xd]=countTasks(e.checklistExtra||[]); const tot=it.length+xt; return tot?(it.filter(x=>x.done).length+xd)/tot:0; };
 /* Template items that are now computed from the event itself */
 const AUTO_NOW=['EventID noted','Contests defined','Splits / timing points','Rankings','Lists (speaker, results, statistics)','Presenter','my.raceresult.com page'];
 const DROPPED=['Hardware and equipment ready','Wrap-up: results published, export sent']; // removed from the standard checklist (Oct 2026)
@@ -3752,7 +3756,8 @@ function bind(root){
       const o=OBJ[+el.dataset.o], k=el.dataset.k, t=el.dataset.t;
       let v=el.type==='checkbox'?el.checked:el.value;
       if(t==='num') v=num(v);
-      o[k]=v; touch(k==='location'&&o===S?.events.find(x=>x.id===route.id)?'hold':undefined); // the location waits for its coordinates
+      o[k]=v; if(k==='done'&&Array.isArray(o.children)) for(const c of o.children) c.done=v; // a main item ticks its sub-items
+      touch(k==='location'&&o===S?.events.find(x=>x.id===route.id)?'hold':undefined); // the location waits for its coordinates
       if(el.dataset.r==='detail') renderDetail();
       if(el.dataset.r==='qres') qResolved(el);
     });
@@ -3772,6 +3777,7 @@ function bind(root){
   on(root,'[data-delitem]',b=>{ const [a,i]=b.dataset.delitem.split(':').map(Number); OBJ[a].splice(i,1); touch(); renderDetail(); });
   root.querySelectorAll('textarea.auto').forEach(autosize);
 }
+const focusTask=(t,at)=>{ const n=[...$('#detail').querySelectorAll('.tasks textarea.tx')].find(x=>OBJ[+x.dataset.o]===t); if(n){ n.focus(); n.setSelectionRange(at,at); } };
 /* List items: drag in two directions. Up / down = the place, sideways = the level: about 28 px to the right makes it a
    sub-item of the row above, to the left a main item again (a moved main item takes its sub-items along; indented,
    they become sub-items of the same row; a main item dropped between sub-items takes the ones below it).
@@ -3825,13 +3831,23 @@ function dragTask(g,ev,item){
   const drop=()=>end(true), cancel=()=>end(false), esc=e=>{ if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); cancel(); } };
   g.addEventListener('pointermove',move); g.addEventListener('pointerup',drop); g.addEventListener('pointercancel',cancel); addEventListener('keydown',esc,true);
 }
-/* List items (rankings, registration, outputs…): Enter = done with this one, on to the next (or to "Add…" after the last);
+/* List items (rankings, registration, outputs…): Enter = a new item right below at the same level (the text after the caret
+   moves into it; at the very start: a new empty item above), Enter on an empty item = remove it and move on;
    ⌘/Ctrl+Enter or Shift+Enter = a new line in the text; Tab = make it a sub-item of the row above, Shift+Tab = back to the main level. */
 function taskKey(e,el){
   if(e.isComposing) return;
   if(e.key==='Enter'){ e.preventDefault();
     if(e.metaKey||e.ctrlKey||e.shiftKey){ el.setRangeText('\n',el.selectionStart,el.selectionEnd,'end'); el.dispatchEvent(new Event('input',{bubbles:true})); return; }
-    const f=[...el.closest('.tasks').querySelectorAll('textarea.tx,[data-addto]')]; const n=f[f.indexOf(el)+1]; if(n){ n.focus(); if(n.setSelectionRange) n.setSelectionRange(n.value.length,n.value.length); } return; }
+    const it=OBJ[+el.dataset.o], [li,ix]=el.closest('.task').querySelector('[data-delitem]').dataset.delitem.split(':').map(Number), list=OBJ[li];
+    const f=[...el.closest('.tasks').querySelectorAll('textarea.tx,[data-addto]')], lk=f[f.indexOf(el)+1]?.dataset.lk;
+    if(!el.value.trim()){ // an empty item: Enter removes it and moves on (the way out of a list)
+      const kids=it.children||[]; for(const c of kids) c.children=[]; list.splice(ix,1,...kids); touch(); renderDetail(); // its sub-items (if any) take its place
+      const n=lk&&$('#detail').querySelector(`[data-lk="${CSS.escape(lk)}"]`); if(n){ n.focus(); n.setSelectionRange?.(n.value.length,n.value.length); } return; }
+    const a=el.selectionStart, b=el.selectionEnd, v=el.value, nt=mkTask('');
+    if(a===0&&b===0){ list.splice(ix,0,nt); touch(); renderDetail(); focusTask(it,0); return; } // at the start: a new empty item above
+    it.text=v.slice(0,a).replace(/\s+$/,''); nt.text=v.slice(b).replace(/^\s+/,''); // split at the caret
+    if(it.children?.length) it.children.unshift(nt); else list.splice(ix+1,0,nt); // under a main item with sub-items: the first sub-item
+    touch(); renderDetail(); focusTask(nt,0); return; }
   if(e.key!=='Tab'||e.altKey||e.metaKey||e.ctrlKey) return;
   const g=el.closest('.tgroup'), top=OBJ[+g?.parentElement?.dataset.sort], p=+g?.dataset.si, tr=el.closest('.trow'), it=OBJ[+el.dataset.o];
   if(!top||!it) return;
@@ -4082,7 +4098,7 @@ function nextUpCard(home){
 }
 /* one event (several = Home shows one card each; then only its own to-dos, no trips) */
 function nuCard(e,several){
-  const cd=countdown(e), live=cd.c==='now', d=diff(TODAY,e.dateStart), p=progress(e), ck=checklistItems(e), ex=countTasks(e.checklistExtra), ckOpen=ck.filter(x=>!x.done).length+ex[0]-ex[1], oq=openQ(e).length;
+  const cd=countdown(e), live=cd.c==='now', d=diff(TODAY,e.dateStart), p=progress(e), ck=checklistItems(e).filter(x=>!x.header), ex=countTasks(e.checklistExtra), ckOpen=ck.filter(x=>!x.done).length+ex[0]-ex[1], oq=openQ(e).length;
   const tds=S.agenda.todos.filter(t=>!t.done&&(t.link==='e:'+e.id||(!several&&t.due&&t.due<=e.dateStart))).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
   const trips=several?[]:agEntries().filter(i=>i.o.type==='travel'&&i.s<=e.dateStart&&i.e>=TODAY);
   const items=[...tds.slice(0,3).map(t=>`<label class="td"><input type="checkbox" class="ck" data-td="${esc(t.id)}" aria-label="Done: ${esc(t.text)}"><span class="tx">${esc(t.text||'To-do')}</span>${t.due?`<span class="when ${t.due<=TODAY?'now':''}">${esc(dueTxt(t.due))}</span>`:''}</label>`),
@@ -4374,7 +4390,7 @@ function renderEvent(D){
   const showH=priv(), evHours=showH?entriesOf(h=>h.eventId===e.id).sort((a,b)=>a.date.localeCompare(b.date)):[];
   const oq=openQ(e).length, p=progress(e), pct=Math.round(p*100), dups=duplicates(e), ck=checklistItems(e), cd=countdown(e), rt=rangeText(e.dateStart,e.dateEnd);
   const LK=evLinks(e);
-  const ckDone=ck.filter(x=>x.done).length+countTasks(e.checklistExtra)[1], ckTot=ck.length+countTasks(e.checklistExtra)[0];
+  const ckReal=ck.filter(x=>!x.header), ckDone=ckReal.filter(x=>x.done).length+countTasks(e.checklistExtra)[1], ckTot=ckReal.length+countTasks(e.checklistExtra)[0];
   const grpStat=g=>{ const a=ck.filter(x=>x.group===g); return [a.filter(x=>x.done).length,a.length]; };
   const scoreN=countTasks(e.rankings)[0]+countTasks(e.teamScores)[0], outN=OUTPUT_LISTS.reduce((a,[k])=>a+countTasks(e[k])[0],0), regN=REG_LISTS.reduce((a,[k])=>a+countTasks(e[k])[0],0);
   const tpc=tpCols(e);
@@ -5511,7 +5527,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='234'; let APPV=HV, UPD=false;
+const HV='235'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
