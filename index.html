@@ -5160,10 +5160,12 @@ async function portalInvite(action,c,email){
   const r=await fetch(`${SupabaseStore.base()}/functions/v1/invite`,{method:'POST',headers:{apikey:SupabaseStore.key(),Authorization:`Bearer ${await SupabaseStore.token()}`,'Content-Type':'application/json'},body:JSON.stringify({action,clientId:c.id,email})});
   const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||`Error ${r.status}`); return j;
 }
-/* last activity of a portal contact: last sign-in, last answer, last question asked (the newest of the two) */
+/* last activity of a portal contact: last seen = newest of sign-in, portal opened (members.prefs.seen, set by mark_seen on every
+   visible load — a session that only refreshes never changes last_sign_in_at), answer, question; then last answer / question asked */
 function pcAct(a){ if(!a) return '';
   const last=[a.lastAnswer&&{...a.lastAnswer,v:'answered'},a.lastAsk&&{...a.lastAsk,v:'asked'}].filter(Boolean).sort((x,y)=>String(y.at).localeCompare(String(x.at)))[0];
-  const bits=[a.lastSignIn?`Last seen ${whenTs(a.lastSignIn)}`:'Never signed in', last?`${last.v==='answered'?'Answered':'Asked'} Q${last.n} · ${last.event} · ${whenTs(last.at)}`:''].filter(Boolean);
+  const seen=[a.lastSignIn,a.seen,a.lastAnswer?.at,a.lastAsk?.at].filter(Boolean).map(t=>new Date(t)).filter(d=>!isNaN(d)).sort((x,y)=>y-x)[0];
+  const bits=[seen?`Last seen ${whenTs(seen.toISOString())}`:'Never signed in', last?`${last.v==='answered'?'Answered':'Asked'} Q${last.n} · ${last.event} · ${whenTs(last.at)}`:''].filter(Boolean);
   return `<small class="pc-act">${bits.map(esc).join('<br>')}</small>`; }
 async function loadPortalContacts(c){
   const box=$('#cportal'); if(!box) return; let rows;
@@ -5583,7 +5585,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='240'; let APPV=HV, UPD=false;
+const HV='241'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
