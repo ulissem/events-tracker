@@ -172,6 +172,13 @@ input[type=checkbox].ck:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)
 .hidenote:hover{color:var(--ink-2)} .hidenote.on{color:var(--accent)} .hidenote:disabled{display:none}
 .pc-list{padding:4px 12px;margin-bottom:10px}
 .pc-row{display:flex;align-items:center;gap:8px;padding:8px 0} .pc-row+.pc-row{border-top:1px solid var(--line)}
+.pc-mh{display:flex;align-items:baseline;gap:8px;margin:18px 2px 8px;font-size:13px;font-weight:600;color:var(--ink-2)} .pc-mh span{font-weight:400;font-size:12px;color:var(--ink-3)}
+.pc-mail{display:flex;align-items:center;gap:10px;width:100%;padding:9px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer} .pc-mail+.pc-mail{border-top:1px solid var(--line)}
+.pc-mail>svg{width:17px;height:17px;flex:none;color:var(--ink-3)} .pc-mail em{font-style:normal;font-size:12px;color:var(--ink-3)} .pc-mail em.err,#ml-meta .err{color:var(--danger,#e5484d)}
+.pv-seen{display:block;margin-top:6px;font-size:12px;color:var(--ink-3);white-space:pre-line;line-height:1.45}
+dialog#maildlg .mldlg{width:620px} .mlhd{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px} .mlhd>div{flex:1;min-width:0} .mlhd p{margin:0;overflow-wrap:anywhere}
+.ml-frame{display:block;width:100%;height:min(70vh,760px);border:0;border-radius:12px;background:#f2f2f7}
+@media (max-width:860px){ dialog#maildlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0;max-height:calc(100vh - 16px - var(--sat));overflow:auto} dialog#maildlg .mldlg{width:100%;padding:16px 14px calc(16px + var(--sab))} }
 .pc-m{flex:1;min-width:0} .pc-act{display:block;margin-top:3px;color:var(--ink-2)!important;line-height:1.4} .pc-m b{display:block;font-weight:600;overflow-wrap:break-word;line-height:1.3} .pc-m small{color:var(--ink-3);font-size:12px}
 .pc-add{display:flex;gap:8px;margin-bottom:8px} .pc-add .in{flex:1;min-width:0}
 #loginform[data-backend="github"] .s-sb,#loginform[data-backend="supabase"] .s-gh{display:none}
@@ -2789,6 +2796,9 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
     <div class="acts"><button class="btn dangerous" type="button" id="tf-del">Delete</button><span class="spacer"></span><button class="btn" type="button" id="tf-cancel">Cancel</button><button class="btn primary" type="submit">Save</button></div>
   </form>
 </dialog>
+<dialog id="maildlg" aria-label="Email">
+  <div class="dlg mldlg"><div class="mlhd"><div><h2 id="ml-head">Email</h2><p id="ml-meta"></p></div><button class="btn icon sm ghost" type="button" id="ml-close" aria-label="Close"></button></div><div id="ml-body"></div></div>
+</dialog>
 <dialog id="sumdlg" aria-label="Client summary">
   <div class="sumbar"><label class="chk"><input type="checkbox" class="ck" id="sum-res"> include resolved questions</label><span class="hint" id="sum-save" role="status"></span><button class="btn" type="button" id="sum-copy">Copy PNG</button><button class="btn" type="button" id="sum-png">Download PNG</button><button class="btn" type="button" id="sum-pdf">Print / PDF</button><button class="btn primary" type="button" id="sum-close">Close</button></div>
   <div class="sumwrap"><div id="sumsheet"></div></div>
@@ -4473,7 +4483,7 @@ function renderEvent(D){
     ${locationField(e)}
     ${F(e,'type','Type',{list:'dl-types',ph:'Trail, cycling…'})}
     <div class="fld"><label class="lab" for="f-tz">Time zone <span class="lh">· ${e.tz?'set by hand':autoTz(e)?'from the map':'default'}</span></label><select class="in" id="f-tz" data-o="${ref(e)}" data-k="tz" data-r="detail"><option value="">Auto · ${esc(autoTz(e)||S.config.defaultTz||DEFAULT_TZ)}</option>${(Intl.supportedValuesOf?.('timeZone')||[]).map(z=>`<option ${e.tz===z?'selected':''}>${esc(z)}</option>`).join('')}</select></div>
-    ${isSB()?`<div class="fld"><span class="lab">Client portal</span><label class="switch pv"><input type="checkbox" id="f-portal" ${e.portalVisible!==false?'checked':''}> <span class="swl">${e.portalVisible!==false?'Visible to the client':'Hidden from the client'}</span></label></div>`:''}
+    ${isSB()?`<div class="fld"><span class="lab">Client portal</span><label class="switch pv"><input type="checkbox" id="f-portal" ${e.portalVisible!==false?'checked':''}> <span class="swl">${e.portalVisible!==false?'Visible to the client':'Hidden from the client'}</span></label><small class="pv-seen" id="f-pvseen"></small></div>`:''}
     <div class="fld span2"><label class="lab" for="f-web">Event website</label><div class="in group">${ic('globe',1.8)}<input class="bare" id="f-web" type="url" data-o="${ref(e)}" data-k="website" data-r="change" value="${esc(e.website)}" placeholder="https://…">${e.website?linkBtn(e.website):''}</div></div>
   </div>
   <datalist id="dl-types">${S.config.eventTypes.map(t=>`<option value="${esc(t)}">`).join('')}</datalist>
@@ -4560,6 +4570,7 @@ function renderEvent(D){
   $('#cpid').onclick=()=>{ if(!e.rr14EventId) return; navigator.clipboard?.writeText(e.rr14EventId).then(()=>toast('EventID copied',e.rr14EventId,'copy'),()=>toast('Could not copy','','warn','warn')); };
   on(D,'[data-tech]',b=>{ e.technology=e.technology===b.dataset.tech?'':b.dataset.tech; touch(); renderDetail(); });
   $('#statusbtn').onclick=ev=>openStatusMenu(ev.currentTarget,e);
+  if($('#f-pvseen')) loadEventViews(e);
   $('#f-portal')?.addEventListener('change',ev=>{ if(ev.target.checked) delete e.portalVisible; else e.portalVisible=false; touch('none'); ev.target.nextElementSibling.textContent=ev.target.checked?'Visible to the client':'Hidden from the client'; });
   on(D,'[data-statuspill]',b=>openStatusMenu(b,e));
   on(D,'[data-todo]',b=>{ const t=S.agenda.todos.find(x=>x.id===b.dataset.todo); if(t) openTodo(t); });
@@ -5160,24 +5171,44 @@ async function portalInvite(action,c,email){
   const r=await fetch(`${SupabaseStore.base()}/functions/v1/invite`,{method:'POST',headers:{apikey:SupabaseStore.key(),Authorization:`Bearer ${await SupabaseStore.token()}`,'Content-Type':'application/json'},body:JSON.stringify({action,clientId:c.id,email})});
   const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||`Error ${r.status}`); return j;
 }
+/* event page, under "Client portal": who of the client opened the event in the portal and when (event_views, supabase/015) */
+async function loadEventViews(e){
+  let l; try{ l=await SupabaseStore.rest('rpc/event_activity',{method:'POST',body:{p_event:e.id}}); }catch{ return; }
+  const box=$('#f-pvseen'); if(!box||!l?.length) return;
+  box.textContent=l.map(v=>`Opened by ${v.name||v.email.split('@')[0]} · ${whenTs(v.last)}${v.opens>1?` · ${v.opens}×`:''}`).join('\n'); }
+/* one email of email_log: the digest as the client saw it (html in a sandboxed frame, no scripts); invite / link emails
+   come from Supabase Auth templates, only the fact is stored */
+const MAILK={digest:'Digest',invite:'Invitation',link:'Sign-in link'};
+async function openMail(id){
+  const d=$('#maildlg'), body=$('#ml-body'); $('#ml-head').textContent='Loading…'; $('#ml-meta').textContent=''; body.innerHTML=''; d.showModal();
+  let m; try{ [m]=await SupabaseStore.rest(`email_log?select=*&id=eq.${id}`); }catch(err){ $('#ml-head').textContent=isNetErr(err)?'Offline':err.message; return; }
+  if(!m){ $('#ml-head').textContent='Not found'; return; }
+  $('#ml-head').textContent=m.subject||MAILK[m.kind]||'Email';
+  $('#ml-meta').innerHTML=`To <b>${esc(m.email)}</b> · ${esc(whenTs(m.created_at))} · ${esc(MAILK[m.kind]||m.kind)} · ${m.ok?'sent':`<span class="err">failed — ${esc(m.error||'')}</span>`}`;
+  if(m.html){ const f=document.createElement('iframe'); f.className='ml-frame'; f.setAttribute('sandbox','allow-popups allow-popups-to-escape-sandbox'); f.title='Email as sent'; f.srcdoc=m.html.replace('<head>','<head><base target="_blank">'); body.append(f); }
+  else body.innerHTML=`<p class="hint">${m.kind==='invite'?'The invitation email of Supabase Auth (template in the dashboard) with the sign-in link to the client area.':m.kind==='link'?'The sign-in email of Supabase Auth (template in the dashboard) with a one-time link to the client area.':'No copy of this email was kept.'}</p>`;
+}
 /* last activity of a portal contact: last seen = newest of sign-in, portal opened (members.prefs.seen, set by mark_seen on every
    visible load — a session that only refreshes never changes last_sign_in_at), answer, question; then last answer / question asked */
 function pcAct(a){ if(!a) return '';
   const last=[a.lastAnswer&&{...a.lastAnswer,v:'answered'},a.lastAsk&&{...a.lastAsk,v:'asked'}].filter(Boolean).sort((x,y)=>String(y.at).localeCompare(String(x.at)))[0];
   const seen=[a.lastSignIn,a.seen,a.lastAnswer?.at,a.lastAsk?.at].filter(Boolean).map(t=>new Date(t)).filter(d=>!isNaN(d)).sort((x,y)=>y-x)[0];
-  const bits=[seen?`Last seen ${whenTs(seen.toISOString())}`:'Never signed in', last?`${last.v==='answered'?'Answered':'Asked'} Q${last.n} · ${last.event} · ${whenTs(last.at)}`:''].filter(Boolean);
+  const bits=[seen?`Last seen ${whenTs(seen.toISOString())}`:'Never signed in', a.lastView?`Opened ${a.lastView.event} · ${whenTs(a.lastView.at)}`:'', last?`${last.v==='answered'?'Answered':'Asked'} Q${last.n} · ${last.event} · ${whenTs(last.at)}`:''].filter(Boolean);
   return `<small class="pc-act">${bits.map(esc).join('<br>')}</small>`; }
 async function loadPortalContacts(c){
   const box=$('#cportal'); if(!box) return; let rows;
-  let act=[];
-  try{ const o=await SupabaseStore.orgId(); [rows,act]=await Promise.all([SupabaseStore.rest(`client_contacts?select=email,name,user_id,invited_at&org_id=eq.${o}&client_id=eq.${encodeURIComponent(c.id)}&order=email`),
-      SupabaseStore.rest('rpc/portal_activity',{method:'POST',body:{p_client:c.id}}).catch(()=>[])]); }
+  let act=[], mails=[];
+  try{ const o=await SupabaseStore.orgId(); [rows,act,mails]=await Promise.all([SupabaseStore.rest(`client_contacts?select=email,name,user_id,invited_at&org_id=eq.${o}&client_id=eq.${encodeURIComponent(c.id)}&order=email`),
+      SupabaseStore.rest('rpc/portal_activity',{method:'POST',body:{p_client:c.id}}).catch(()=>[]),
+      SupabaseStore.rest(`email_log?select=id,created_at,kind,email,subject,ok,error&org_id=eq.${o}&client_id=eq.${encodeURIComponent(c.id)}&order=created_at.desc&limit=30`).catch(()=>[])]); }
   catch(err){ box.innerHTML=`<p class="hint">${esc(isNetErr(err)?'Offline: portal contacts need a connection.':err.message)}</p>`; return; }
   if($('#cportal')!==box) return; // another page meanwhile
   box.innerHTML=`${rows.length?`<div class="ccard pc-list">${rows.map(r=>`<div class="pc-row"><span class="pc-m"><b>${r.name?esc(r.name):esc(r.email).replace('@','<wbr>@')}</b><small>${r.name?esc(r.email)+' · ':''}${r.invited_at?'invited '+esc(fmtDay(r.invited_at.slice(0,10))):'added'}</small>${pcAct((act||[]).find(a=>a.email===r.email))}</span>
       <button class="btn sm ghost" data-pcre="${esc(r.email)}" type="button" title="Send a new sign-in link">Send link</button><button class="btn icon sm ghost del" data-pcdel="${esc(r.email)}" type="button" aria-label="Remove ${esc(r.email)} from the portal">${ic('x')}</button></div>`).join('')}</div>`:''}
     <form class="pc-add" id="pc-add" autocomplete="off"><input class="in" type="email" id="pc-mail" placeholder="client@email.com" required data-bwignore="true" data-1p-ignore data-lpignore="true"><button class="btn primary" type="submit">Invite</button></form>
-    <p class="hint">${rows.length?'Each person signs in with a link by email, no password.':`Invite ${esc(c.name||'this client')}: an email with a sign-in link to <b>hub.ulissemariangeli.com/portal</b> — visible events, questions to answer, ${esc(U().icon)}.`}</p>`;
+    <p class="hint">${rows.length?'Each person signs in with a link by email, no password.':`Invite ${esc(c.name||'this client')}: an email with a sign-in link to <b>hub.ulissemariangeli.com/portal</b> — visible events, questions to answer, ${esc(U().icon)}.`}</p>
+    ${mails?.length?`<div class="pc-mh">Emails sent <span>last ${mails.length===30?'30':plural(mails.length,'email','emails')} · kept 12 months</span></div><div class="ccard pc-list pc-mails">${mails.map(m=>`<button type="button" class="pc-mail" data-mail="${m.id}">${ic('mail',1.8)}<span class="pc-m"><b>${esc(m.subject||MAILK[m.kind]||'Email')}</b><small>${esc(m.email)} · ${esc(whenTs(m.created_at))}</small></span><em class="${m.ok?'':'err'}">${m.ok?(m.kind==='digest'?'Sent':MAILK[m.kind]):'Failed'}</em></button>`).join('')}</div>`:''}`;
+  on(box,'[data-mail]',b=>openMail(+b.dataset.mail));
   const run=async(btn,action,email,ok)=>{ btn.disabled=true; try{ const j=await portalInvite(action,c,email); toast(ok(j),email,action==='remove'?'x':'check'); loadPortalContacts(c); }catch(err){ btn.disabled=false; toast(isNetErr(err)?'Offline':err.message,'not sent','warn','err'); } };
   $('#pc-add').onsubmit=ev=>{ ev.preventDefault(); const m=$('#pc-mail').value.trim().toLowerCase(); if(m) run(ev.submitter||$('#pc-add button'),'invite',m,j=>j.status==='invited'?'Invitation sent':'Sign-in link sent'); };
   on(box,'[data-pcre]',b=>run(b,'invite',b.dataset.pcre,()=>'Sign-in link sent'));
@@ -5499,6 +5530,8 @@ function tfDueTxt(){ const d=$('#tf-due').value; $('#tf-duebtn').querySelector('
 $('#tf-duebtn').onclick=()=>openDate($('#tf-duebtn'),{s:$('#tf-due').value,allowRange:false,clearable:true,onChange:d=>{ $('#tf-due').value=d||''; tfDueTxt(); }});
 $('#tf-nodate').onclick=()=>{ $('#tf-due').value=''; tfDueTxt(); };
 $('#tf-cancel').onclick=()=>$('#tododlg').close();
+$('#ml-close').innerHTML=ic('x'); $('#ml-close').onclick=()=>$('#maildlg').close();
+$('#maildlg').addEventListener('click',ev=>{ if(ev.target.id==='maildlg') ev.target.close(); });
 $('#tf-del').onclick=()=>{ if(!tdCur) return; S.agenda.todos=S.agenda.todos.filter(x=>x!==tdCur); touch('none'); $('#tododlg').close(); renderDetail(); };
 $('#tdform').addEventListener('submit',ev=>{ ev.preventDefault(); if(!tdCur) return;
   Object.assign(tdCur,{text:$('#tf-text').value.trim()||tdCur.text,due:$('#tf-due').value||'',link:$('#tf-link').value,note:$('#tf-note').value.trim()});
@@ -5585,7 +5618,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='241'; let APPV=HV, UPD=false;
+const HV='242'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });

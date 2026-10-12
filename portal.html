@@ -715,7 +715,7 @@ let PREVIEW=null;
   else{ try{ PREVIEW=JSON.parse(sessionStorage.getItem('hub-portal-preview')||'null'); }catch{} } }
 if(PREVIEW){ let exp=Date.now()+30*60e3; try{ exp=JSON.parse(atob(PREVIEW.token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp*1000; }catch{} sess={access:PREVIEW.token,refresh:null,exp}; }
 const saveSess=()=>{ if(PREVIEW) return; try{ sess?localStorage.setItem(SKEY,JSON.stringify(sess)):localStorage.removeItem(SKEY); }catch{} };
-const PV_READ=['portal_me','portal_events','portal_event','portal_charges'], PV_WRITE=['answer_question','ask_question','mark_seen','save_prefs','register_file','delete_my_file'];
+const PV_READ=['portal_me','portal_events','portal_event','portal_charges'], PV_WRITE=['answer_question','ask_question','mark_seen','mark_event_seen','save_prefs','register_file','delete_my_file'];
 let refreshing=null, linkError='';
 // back from the email link: #access_token=…&refresh_token=… (or #error=… when the link is old or used)
 { const h=new URLSearchParams(location.hash.slice(1));
@@ -734,7 +734,7 @@ async function token(force=false){
   if(!refreshing) refreshing=authCall('refresh_token',{refresh_token:sess.refresh}).finally(()=>{ refreshing=null; });
   await refreshing; return sess.access; }
 async function rpc(fn,args={},retry=true){
-  if(PREVIEW&&PV_WRITE.includes(fn)){ if(fn==='mark_seen'||fn==='save_prefs') return null; throw new Error('Preview: read only — nothing is sent'); }
+  if(PREVIEW&&PV_WRITE.includes(fn)){ if(fn==='mark_seen'||fn==='mark_event_seen'||fn==='save_prefs') return null; throw new Error('Preview: read only — nothing is sent'); }
   if(PREVIEW&&PV_READ.includes(fn)) args={...args,p_as:PREVIEW.as};
   const r=await fetch(`${SB.url}/rest/v1/rpc/${fn}`,{method:'POST',cache:'no-store',headers:{apikey:SB.key,Authorization:`Bearer ${await token()}`,'Content-Type':'application/json'},body:JSON.stringify(args)});
   if(r.status===401&&retry&&!PREVIEW){ await token(true); return rpc(fn,args,false); }
@@ -1159,7 +1159,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='241'; let PV_NEW=false, APPV=PV;
+const PV='242'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
@@ -1372,11 +1372,15 @@ function render(){
   if(PM){ PM.map.remove(); PM=null; } document.body.classList.remove('mapon');
   chrome(h.startsWith('e/')?'home':h);
   const [eid,esub]=h.startsWith('e/')?h.slice(2).split('/'):[]; if(esub==='q'){ goQ=eid; history.replaceState(null,'','#e/'+encodeURIComponent(eid)); lastHash=location.hash; }
+  if(h.startsWith('e/')) markView(eid);
   $('#app').innerHTML=h.startsWith('e/')?vEvent(eid):h==='q'?vQuestions():h==='ic'&&!noIce()?vIce():vHome();
   animateRings();
   if(goQ&&$('#qs')){ const id=goQ; goQ=null; setTimeout(()=>{ const t=$('#qs .lq.turn')||$('#qs'); t.scrollIntoView({behavior:'smooth',block:'center'}); t.querySelector?.('textarea')?.focus({preventScroll:true}); },60); } // #e/<id>/q: straight to the open question
 }
 let goQ=null;
+/* the client looks at an event page: Ulisse sees "Opened by …" (event_views, supabase/015); at most once a minute per event */
+const viewed={};
+function markView(id){ if(!id||ME?.demo||document.visibilityState!=='visible'||Date.now()-(viewed[id]||0)<60000) return; viewed[id]=Date.now(); rpc('mark_event_seen',{p_id:id}).catch(()=>{}); }
 let lastHash=location.hash;
 addEventListener('hashchange',()=>{
   if(location.hash==='#qs'){ history.replaceState(null,'',lastHash); document.getElementById('qs')?.scrollIntoView({behavior:'smooth',block:'start'}); return; }
