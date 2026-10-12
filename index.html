@@ -168,8 +168,10 @@ input[type=checkbox].ck:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)
 /* client portal bits in the app */
 .qfrom{display:block;font-size:11px;font-weight:600;color:var(--accent);margin:0 0 2px}
 .qwhen{display:block;font-size:11px;color:var(--ink-3);margin:4px 2px 0} .qwhen.cl{color:var(--ok);font-weight:600}
-.hidenote{display:block;border:0;background:none;padding:2px 0 0;font-size:11.5px;color:var(--ink-3);cursor:pointer;text-align:left}
-.hidenote:hover{color:var(--ink-2)} .hidenote.on{color:var(--accent)} .hidenote:disabled{display:none}
+.hidenote{flex:none;display:grid;place-items:center;width:26px;height:26px;border:0;background:none;padding:0;border-radius:8px;color:var(--ink-3);cursor:pointer;opacity:0;transition:opacity .12s}
+.hidenote svg{width:15px;height:15px} .hidenote:hover{color:var(--ink);background:var(--hover)} .hidenote.on{opacity:1;color:var(--accent)}
+.hr2:hover .hidenote,.hidenote:focus-visible{opacity:1} .hidenote:disabled{cursor:default;background:none}
+@media (hover:none){ .hidenote{opacity:.55} .hidenote.on{opacity:1} }
 .pc-list{padding:4px 12px;margin-bottom:10px}
 .pc-row{display:flex;align-items:center;gap:8px;padding:8px 0} .pc-row+.pc-row{border-top:1px solid var(--line)}
 .pc-mh{display:flex;align-items:baseline;gap:8px;margin:18px 2px 8px;font-size:13px;font-weight:600;color:var(--ink-2)} .pc-mh span{font-weight:400;font-size:12px;color:var(--ink-3)}
@@ -2496,25 +2498,30 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .hr2-log .hoursadd{margin:8px 0}
 .hr2-g{margin:0 0 12px;padding:8px 10px}
 .hr2-gh{display:flex;align-items:baseline;justify-content:space-between;padding:6px 8px 6px}
-.hr2{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 80px 62px 30px;align-items:center;gap:0 10px;padding:7px 8px;border-top:1px solid var(--line)}
+.hr2{display:grid;grid-template-columns:44px minmax(0,1fr) auto 62px 30px;align-items:center;gap:0 12px;padding:9px 8px;border-top:1px solid var(--line)}
 .hr2 .rd{display:flex;flex-direction:column;align-items:center}
 .hr2 .rd b,.hr2-d b{font-size:17px;font-weight:700;line-height:1.1}
 .hr2 .rd small,.hr2-d small{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
 .hr2-d{border:0;background:none;color:inherit;font:inherit;display:flex;flex-direction:column;align-items:center;cursor:pointer;border-radius:10px;padding:2px 6px}
 .hr2-d:hover{background:var(--hover)}
 .hr2-m{min-width:0;display:flex;flex-direction:column}
-.hr2-m small{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:8px}
-.hr2-m small a{color:var(--ink-2)}
-.hr2-m .cell{font-size:13.5px;font-weight:500}
-.hr2-n{font-size:13.5px;padding:4px 8px;color:var(--ink-2)}
-.hr2-h{display:flex;align-items:baseline;gap:3px;justify-content:flex-end}
-.hr2-h .cell{text-align:right;font-weight:700;width:52px}
-.hr2-h b{font-weight:700} .hr2-h small{color:var(--ink-3);font-size:11px}
-.hr2-v{text-align:right;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+.hr2-t{display:block;padding:0 8px;font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hr2-t a{color:var(--ink)} .hr2-t a:hover{color:var(--accent)} .hr2-cl1{font-weight:400;color:var(--ink-3)}
+.hr2-nl{display:flex;align-items:center;gap:2px;min-width:0}
+.hr2-nl .cell{flex:0 1 auto;width:auto;field-sizing:content;min-width:80px;max-width:100%;font-size:13.5px;font-weight:400;color:var(--ink-2)}
+@supports not (field-sizing:content){ .hr2-nl .cell{flex:1} }
+.hr2.nohead .hr2-nl .cell,.hr2.nohead .hr2-n{font-size:14.5px;font-weight:500;color:var(--ink)}
+.hr2-n{flex:1;min-width:0;font-size:13.5px;padding:4px 8px;color:var(--ink-2)}
+.hr2-v{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;min-width:96px}
+.hr2-v>b{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.hr2-v small{display:flex;align-items:baseline;gap:3px;font-size:12px;color:var(--ink-3)}
+.hr2-v small i{font-style:normal} .hr2-v small b{color:var(--ink-2);font-weight:600}
+.hr2-v .cell.qcell{width:34px;min-width:34px;height:22px;padding:1px 4px;text-align:right;font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .hr2.closed{opacity:.6}
 @media (max-width:860px), (pointer:coarse) and (max-height:500px){
-  .hr2{grid-template-columns:40px minmax(0,1fr) 68px 26px;grid-template-areas:"d m h x" "d m v s"}
-  .hr2 .rd{grid-area:d} .hr2-m{grid-area:m} .hr2-h{grid-area:h} .hr2-v{grid-area:v;font-size:11.5px} .hr2-s{grid-area:s} .hr2-x{grid-area:x}
+  .hr2{grid-template-columns:40px minmax(0,1fr) auto 26px;grid-template-areas:"d m v x" "d m v s";gap:0 8px}
+  .hr2 .rd{grid-area:d} .hr2-m{grid-area:m} .hr2-v{grid-area:v;min-width:0} .hr2-v>b{font-size:16px} .hr2-s{grid-area:s} .hr2-x{grid-area:x}
+  .hr2-t{font-size:14px}
   .hr2-s .tag{font-size:10px}
   .hr2-log .hoursadd{grid-template-columns:1fr 1fr}
   .cf-f{grid-template-columns:1fr 1fr} .cf-f .grow{grid-column:1/-1} .cf-f .in{height:40px}
@@ -2526,7 +2533,7 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 /* ice creams v2: kinds of charges (mockup/charges.html) */
 .kbg{width:20px;height:20px;border-radius:6px;display:inline-grid;place-items:center;flex:none;color:#fff;background:var(--k);vertical-align:-5px;margin-right:6px}
 .kbg svg{width:12px;height:12px}
-.hr2-m small .kbg{width:15px;height:15px;border-radius:5px;margin-right:4px;vertical-align:-3px} .hr2-m small .kbg svg{width:9px;height:9px}
+.hr2-t .kbg{width:17px;height:17px;border-radius:5px;margin-right:6px;vertical-align:-3px} .hr2-t .kbg svg{width:10px;height:10px}
 .kgrp + .kgrp{margin-top:4px}
 .kgh{display:flex;align-items:center;gap:2px;padding:10px 8px 6px;font-size:13.5px}
 .kgh b{font-weight:700}
@@ -2535,7 +2542,6 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .kbar i{display:block;height:100%} .kbar i + i{box-shadow:inset 2px 0 0 var(--panel)}
 .klegend{display:flex;flex-wrap:wrap;gap:4px 12px;padding:0 8px 4px;font-size:12px;color:var(--ink-2)}
 .klegend span{display:inline-flex;align-items:center;gap:5px} .klegend i{width:7px;height:7px;border-radius:50%} .klegend b{color:var(--ink);font-weight:600}
-.hr2-v small{display:block;font-size:10.5px;color:var(--ink-3)}
 .hr2-it{color:var(--ink);font-weight:500;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .hr2-it .cell.dcell{display:inline-block;flex:none;width:38px;min-width:38px;text-align:right;padding:2px 4px;font-weight:700}
 .tag.part{background:var(--warn-soft,rgba(255,149,0,.14));color:var(--warn)}
@@ -2611,8 +2617,8 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
 .hr2-add .in{height:32px}
 
 @media (min-width:1720px){ /* the narrow side column */
-  .evside .hr2{grid-template-columns:40px minmax(0,1fr) 60px 26px;grid-template-areas:"d m h x" "d m v s"}
-  .evside .hr2 .rd{grid-area:d} .evside .hr2-m{grid-area:m} .evside .hr2-h{grid-area:h} .evside .hr2-v{grid-area:v;font-size:11.5px} .evside .hr2-s{grid-area:s} .evside .hr2-x{grid-area:x}
+  .evside .hr2{grid-template-columns:40px minmax(0,1fr) auto 26px;grid-template-areas:"d m v x" "d m v s"}
+  .evside .hr2 .rd{grid-area:d} .evside .hr2-m{grid-area:m} .evside .hr2-v{grid-area:v;min-width:0} .evside .hr2-v>b{font-size:16px} .evside .hr2-s{grid-area:s} .evside .hr2-x{grid-area:x}
   .evside .hr2-add{grid-template-columns:1fr 70px;} .evside .hr2-add .grow,.evside .hr2-add .btn{grid-column:1/-1}
 }
 /* "your time" hint next to start times when this device is in another time zone */
@@ -3747,6 +3753,7 @@ const P={
   sparkle:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
   download:'<path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>',
   upload:'<path d="M12 15V4M7 9l5-5 5 5"/><path d="M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>',
+  eyeoff:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/>',
   eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   refresh:'<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 21v-5h-5"/>',
 };
@@ -4846,7 +4853,8 @@ function raceDaySugg(e){
 }
 function bindHoursTable(D){
   on(D,'[data-hideh]',b=>{ const h=S.hours.entries.find(x=>x.id===b.dataset.hideh); if(!h) return; if(h.noteHidden) delete h.noteHidden; else h.noteHidden=true; touch('none');
-    b.classList.toggle('on',!!h.noteHidden); b.textContent=h.noteHidden?'Note hidden from the client · shows “Timing work”':'Hide note from the client'; });
+    b.classList.toggle('on',!!h.noteHidden); b.innerHTML=ic(h.noteHidden?'eyeoff':'eye',2); b.title=h.noteHidden?'Note hidden from the client: the portal shows “Timing work” · click to show it':'Hide this note from the client';
+    toast(h.noteHidden?'Note hidden from the client':'Note shown to the client',h.noteHidden?'the portal shows “Timing work”':'',h.noteHidden?'eyeoff':'eye'); });
   on(D,'[data-delh]',b=>{ if(!confirm('Delete this charge?')) return; S.hours.entries=S.hours.entries.filter(h=>h.id!==b.dataset.delh); touch(); renderDetail(); });
   on(D,'[data-hdate]',b=>{ const h=OBJ[+b.dataset.hdate]; openDate(b,{s:h.date,allowRange:false,onChange:s=>{ if(!s) return; h.date=s; touch('none'); b.textContent=fmtDay(s); },onClose:()=>renderDetail()}); });
 }
@@ -5279,18 +5287,22 @@ async function loadPortalContacts(c){
    ===================================================================== */
 const hf={client:'',state:'open',month:''};
 /* Hours (Oct 2026): totals, open by client, filters as chips + month ‹ ›, log card, entries as rows grouped by month */
-/* one charge as a row: date · what (kind, item, note) · quantity · value (× rate) · open / part / closed · delete */
+/* one charge as a row (12 Oct 2026: what it is for first, the value big):
+   date · [kind icon] event (· client) / note or item · value big + "7 h × 75" (quantity editable) · open / part / closed · delete.
+   Without event / client (event page) the note is the first line. The eye hides the note from the client (hover; always shown when on) */
 const hRow=(h,{showClient=true,showEvent=true,showKind=false}={})=>{ const K=KIND(kindOf(h)), c=clientOf(h.clientId), ev=S.events.find(x=>x.id===h.eventId), d=h.date?parse(h.date):null;
     const v=hValOf(h), cv=covOf(h), shut=!isOpen(h), part=!shut&&cv>1e-9, r=hRate(h);
-    const meta=[showClient?esc(c?.name||'—'):'',showEvent?(ev?`<a href="#/e/${encodeURIComponent(ev.id)}" data-go="e:${esc(ev.id)}">${esc(ev.name||'untitled')}</a>`:'general'):''].filter(Boolean);
+    const head=showEvent?(ev?`<a href="#/e/${encodeURIComponent(ev.id)}" data-go="e:${esc(ev.id)}">${esc(ev.name||'untitled')}</a>`:'General'):showClient?esc(c?.name||'—'):'';
+    const sub=showEvent&&showClient?`<span class="hr2-cl1"> · ${esc(c?.name||'—')}</span>`:'';
     const what=K.items?`<span class="hr2-n hr2-it">${esc(h.item||'—')}${K.days?` · ${shut?`<b>${fmtN(num(h.days||1))}</b>`:cell(h,'days',{label:'Days',t:'num',r:'change',cls:'dcell'})} ${num(h.days||1)===1?'day':'days'}`:''}</span>`
       :shut?`<span class="hr2-n">${esc(h.note)||'—'}</span>`:cell(h,'note',{ph:K.ph,label:'Note'});
-    return `<div class="hr2 ${shut?'closed':''}">
+    const eye=isSB()&&!K.items&&!(shut&&!h.noteHidden)?`<button type="button" class="hidenote ${h.noteHidden?'on':''}" data-hideh="${esc(h.id)}" ${shut?'disabled':''} title="${h.noteHidden?'Note hidden from the client: the portal shows “Timing work” · click to show it':'Hide this note from the client'}" aria-label="${h.noteHidden?'Show the note to the client':'Hide the note from the client'}">${ic(h.noteHidden?'eyeoff':'eye',2)}</button>`:'';
+    const qty=shut?`<b>${esc(fmtN(qtyOf(h)))}</b>`:cell(h,K.id==='hours'?'hours':'qty',{label:K.q,t:'num',r:'change',cls:'qcell'});
+    return `<div class="hr2 ${shut?'closed':''} ${head||showKind?'':'nohead'}">
       <span class="rd">${shut||!d?`<b>${d?d.getDate():'–'}</b><small>${d?DOW[d.getDay()]:''}</small>`:`<button type="button" class="hr2-d" data-hdate="${ref(h)}" aria-label="Date ${esc(h.date)}"><b>${d.getDate()}</b><small>${DOW[d.getDay()]}</small></button>`}</span>
-      <span class="hr2-m">${showKind||meta.length?`<small>${showKind?`${kBadge(K)}${K.name}${meta.length?' · ':''}`:''}${meta.join(' · ')}</small>`:''}
-        ${what}${isSB()&&!K.items?`<button type="button" class="hidenote ${h.noteHidden?'on':''}" data-hideh="${esc(h.id)}" ${shut?'disabled':''}>${h.noteHidden?'Note hidden from the client · shows “Timing work”':'Hide note from the client'}</button>`:''}</span>
-      <span class="hr2-h">${shut?`<b>${esc(fmtN(qtyOf(h)))}</b>`:cell(h,K.id==='hours'?'hours':'qty',{label:K.q,t:'num',r:'change',style:'text-align:right'})}<small>${K.unit||esc(U().icon)}</small></span>
-      <span class="hr2-v">${val(v)}${r!=null?`<small>× ${fmtN(r)}${h.rate!=null&&h.rate!==''?' own':''}</small>`:''}</span>
+      <span class="hr2-m">${head||showKind?`<span class="hr2-t">${showKind||head?kBadge(K):''}${head||esc(K.name)}${sub}</span>`:''}
+        <span class="hr2-nl">${what}${eye}</span></span>
+      <span class="hr2-v"><b>${val(v)}</b><small>${qty}<i>${K.unit||esc(U().icon)}</i>${r!=null?` × ${fmtN(r)}${h.rate!=null&&h.rate!==''?' own':''}`:''}</small></span>
       <span class="hr2-s">${shut?'<span class="tag">closed</span>':part?`<span class="tag part" title="${esc(fmtN(cv))} of ${esc(fmtN(v))} covered">part</span>`:'<span class="tag open">open</span>'}</span>
       <span class="hr2-x">${shut||part?'':`<button class="btn icon sm ghost del" data-delh="${esc(h.id)}" type="button" aria-label="Delete">${ic('x')}</button>`}</span></div>`; };
 /* the charges of a list grouped by kind: header (badge, name, sum), rows; a bar by kind when there are several */
@@ -5680,7 +5692,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='244'; let APPV=HV, UPD=false;
+const HV='245'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
