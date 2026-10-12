@@ -5252,6 +5252,7 @@ async function openMail(id){
   $('#ml-head').textContent=m.subject||MAILK[m.kind]||'Email';
   $('#ml-meta').innerHTML=`To <b>${esc(m.email)}</b> · ${esc(whenTs(m.created_at))} · ${esc(MAILK[m.kind]||m.kind)} · ${m.ok?'sent':`<span class="err">failed — ${esc(m.error||'')}</span>`}`;
   if(m.html){ const f=document.createElement('iframe'); f.className='ml-frame'; f.setAttribute('sandbox','allow-popups allow-popups-to-escape-sandbox'); f.title='Email as sent'; f.srcdoc=m.html.replace('<head>','<head><base target="_blank">'); body.append(f); }
+  else if(m.body) body.innerHTML=`<p class="hint" style="white-space:pre-line">${esc(m.body)}</p>${(m.items||[]).length?`<div class="pc-mh">Questions in it</div><p class="hint">${m.items.map(i=>`Q${esc(i.n)} · ${esc(i.text||'')}`).map(x=>x).join('<br>')}</p>`:''}`;
   else body.innerHTML=`<p class="hint">${m.kind==='invite'?'The invitation email of Supabase Auth (template in the dashboard) with the sign-in link to the client area.':m.kind==='link'?'The sign-in email of Supabase Auth (template in the dashboard) with a one-time link to the client area.':'No copy of this email was kept.'}</p>`;
 }
 /* last activity of a portal contact: last seen = newest of sign-in, portal opened (members.prefs.seen, set by mark_seen on every
@@ -5692,7 +5693,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='245'; let APPV=HV, UPD=false;
+const HV='246'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
