@@ -184,6 +184,7 @@ dialog#histdlg .hsdlg{width:600px} .hs-seg{margin:0 0 6px}
 .hs-old{display:block;color:var(--ink-3);font-size:12px} .hs-r{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:12px;color:var(--ink-3)}
 .hs-p{font-style:normal;font-size:11px;display:inline-flex;align-items:center;gap:3px} .hs-p svg{width:11px;height:11px} .hs-p.ok{color:var(--ok,#30a46c)} .hs-p.err{color:var(--danger)}
 @media (max-width:860px){ dialog#histdlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0;max-height:calc(100vh - 16px - var(--sat))} dialog#histdlg .hsdlg{width:100%;padding:16px 14px calc(16px + var(--sab))} #hs-body{max-height:calc(100vh - 200px - var(--sat))} }
+.q-reach{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--warn-soft);color:var(--ink-2);font-size:13px;line-height:1.4} .q-reach>svg{width:16px;height:16px;flex:none;color:var(--warn)} .q-reach span{flex:1} .q-reach .tbtn{height:26px}
 .pv-seen{display:block;margin-top:6px;font-size:12px;color:var(--ink-3);white-space:pre-line;line-height:1.45}
 dialog#maildlg .mldlg{width:620px} .mlhd{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px} .mlhd>div{flex:1;min-width:0} .mlhd p{margin:0;overflow-wrap:anywhere}
 .ml-frame{display:block;width:100%;height:min(70vh,760px);border:0;border-radius:12px;background:#f2f2f7}
@@ -4548,6 +4549,7 @@ function renderEvent(D){
     <button type="button" data-rail="s-notes" title="Notes">${ic('doc',1.8)}</button>
   </div><div class="sidefull">
   <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oqCount(e)}</h3><span class="sp"></span>${isSB()?`<button type="button" class="tbtn" data-qhist="${esc(e.id)}">${ic('clock',2)} History</button>`:''}</div>
+  ${isSB()?'<div id="q-reach"></div>':''}
   ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>qThread(e,q,i)).join('')}
   <button type="button" class="addline ${e.questions.length?'':'empty1'}" id="addq">${ic('plus',2)}<span>Add a question${e.questions.length?'':'<small>Open questions go into the client summary, numbered Q1, Q2…</small>'}</span></button>${e.questions.length?'</div>':''}
   </section>
@@ -4585,7 +4587,8 @@ function renderEvent(D){
   on(D,'[data-tech]',b=>{ e.technology=e.technology===b.dataset.tech?'':b.dataset.tech; touch(); renderDetail(); });
   $('#statusbtn').onclick=ev=>openStatusMenu(ev.currentTarget,e);
   if($('#f-pvseen')) loadEventViews(e);
-  $('#f-portal')?.addEventListener('change',ev=>{ if(ev.target.checked) delete e.portalVisible; else e.portalVisible=false; touch('none'); ev.target.nextElementSibling.textContent=ev.target.checked?'Visible to the client':'Hidden from the client'; });
+  if($('#q-reach')) qReach(e);
+  $('#f-portal')?.addEventListener('change',ev=>{ if(ev.target.checked) delete e.portalVisible; else e.portalVisible=false; touch('none'); ev.target.nextElementSibling.textContent=ev.target.checked?'Visible to the client':'Hidden from the client'; qReach(e); });
   on(D,'[data-statuspill]',b=>openStatusMenu(b,e));
   on(D,'[data-todo]',b=>{ const t=S.agenda.todos.find(x=>x.id===b.dataset.todo); if(t) openTodo(t); });
   { const a=$('#pladd'); if(a){ const add=re=>{ const v=a.value.trim(); if(!v) return; (e.todoPlan=e.todoPlan||[]).push({id:uid('pl'),text:v,before:3,todo:''}); touch(); renderDetail(); if(re) $('#pladd')?.focus(); };
@@ -5185,6 +5188,19 @@ async function portalInvite(action,c,email){
   const r=await fetch(`${SupabaseStore.base()}/functions/v1/invite`,{method:'POST',headers:{apikey:SupabaseStore.key(),Authorization:`Bearer ${await SupabaseStore.token()}`,'Content-Type':'application/json'},body:JSON.stringify({action,clientId:c.id,email})});
   const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||`Error ${r.status}`); return j;
 }
+/* Questions section: why the client would not get an email — no client, the event hidden, or nobody of the client in the portal
+   (emails go only to portal contacts; an invited contact gets them even before the first sign-in). PCC = contacts per client */
+let PCC=null;
+async function qReach(e){
+  const box=$('#q-reach'); if(!box) return; let msg='', act='';
+  if(!e.clientId) msg='No client: questions are not emailed to anybody.';
+  else if(e.portalVisible===false) msg='Hidden from the client: questions are emailed when you make the event visible (General → Client portal).';
+  else { if(!PCC){ try{ const o=await SupabaseStore.orgId(), l=await SupabaseStore.rest(`client_contacts?select=client_id&org_id=eq.${o}&user_id=not.is.null`); PCC=new Map(); for(const r of l) PCC.set(r.client_id,(PCC.get(r.client_id)||0)+1); }catch{ return; } }
+    if(!PCC.get(e.clientId)){ msg=`${clientName(e.clientId)||'This client'} has no portal contact: questions are not emailed.`; act=`<button type="button" class="tbtn" data-qinvite="${esc(e.clientId)}">${ic('mail',2)} Invite</button>`; } }
+  if($('#q-reach')!==box) return;
+  box.className=msg?'q-reach':''; box.innerHTML=msg?`${ic('info',2)}<span>${esc(msg)}</span>${act}`:''; }
+document.addEventListener('click',ev=>{ const b=ev.target.closest('[data-qinvite]'); if(!b) return; go('c',b.dataset.qinvite);
+  setTimeout(()=>{ document.getElementById('s-cportal')?.scrollIntoView({behavior:'smooth',block:'start'}); setTimeout(()=>$('#pc-mail')?.focus({preventScroll:true}),400); },300); });
 /* event page, under "Client portal": who of the client opened the event in the portal and when (event_views, supabase/015) */
 async function loadEventViews(e){
   let l; try{ l=await SupabaseStore.rest('rpc/event_activity',{method:'POST',body:{p_event:e.id}}); }catch{ return; }
@@ -5244,6 +5260,7 @@ async function loadPortalContacts(c){
       SupabaseStore.rest('rpc/portal_activity',{method:'POST',body:{p_client:c.id}}).catch(()=>[]),
       SupabaseStore.rest(`email_log?select=id,created_at,kind,email,subject,ok,error&org_id=eq.${o}&client_id=eq.${encodeURIComponent(c.id)}&order=created_at.desc&limit=30`).catch(()=>[])]); }
   catch(err){ box.innerHTML=`<p class="hint">${esc(isNetErr(err)?'Offline: portal contacts need a connection.':err.message)}</p>`; return; }
+  if(PCC) PCC.set(c.id,rows.filter(r=>r.user_id).length);
   if($('#cportal')!==box) return; // another page meanwhile
   box.innerHTML=`${rows.length?`<div class="ccard pc-list">${rows.map(r=>`<div class="pc-row"><span class="pc-m"><b>${r.name?esc(r.name):esc(r.email).replace('@','<wbr>@')}</b><small>${r.name?esc(r.email)+' · ':''}${r.invited_at?'invited '+esc(fmtDay(r.invited_at.slice(0,10))):'added'}</small>${pcAct((act||[]).find(a=>a.email===r.email))}</span>
       <button class="btn sm ghost" data-pcre="${esc(r.email)}" type="button" title="Send a new sign-in link">Send link</button><button class="btn icon sm ghost del" data-pcdel="${esc(r.email)}" type="button" aria-label="Remove ${esc(r.email)} from the portal">${ic('x')}</button></div>`).join('')}</div>`:''}
@@ -5663,7 +5680,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='243'; let APPV=HV, UPD=false;
+const HV='244'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
