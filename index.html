@@ -175,6 +175,15 @@ input[type=checkbox].ck:focus-visible{outline:0;box-shadow:0 0 0 3px var(--ring)
 .pc-mh{display:flex;align-items:baseline;gap:8px;margin:18px 2px 8px;font-size:13px;font-weight:600;color:var(--ink-2)} .pc-mh span{font-weight:400;font-size:12px;color:var(--ink-3)}
 .pc-mail{display:flex;align-items:center;gap:10px;width:100%;padding:9px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer} .pc-mail+.pc-mail{border-top:1px solid var(--line)}
 .pc-mail>svg{width:17px;height:17px;flex:none;color:var(--ink-3)} .pc-mail em{font-style:normal;font-size:12px;color:var(--ink-3)} .pc-mail em.err,#ml-meta .err{color:var(--danger,#e5484d)}
+dialog#histdlg .hsdlg{width:600px} .hs-seg{margin:0 0 6px}
+#hs-body{max-height:min(66vh,720px);overflow:auto;margin:0 -6px;padding:0 6px}
+.hs-day{position:sticky;top:0;z-index:1;background:var(--panel);font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);padding:12px 2px 4px}
+.hs-row{display:flex;gap:10px;align-items:flex-start;width:100%;padding:8px 2px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:10px} .hs-row:hover{background:var(--sunken)}
+.hs-row .av{flex:none;margin-top:2px} .hs-m{flex:1;min-width:0} .hs-m b{display:block;font-weight:600;font-size:14px} .hs-m small{display:block;color:var(--ink-3);font-size:12px}
+.hs-q{display:block;margin-top:2px;font-size:13px;color:var(--ink-2);white-space:pre-line;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.hs-old{display:block;color:var(--ink-3);font-size:12px} .hs-r{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:12px;color:var(--ink-3)}
+.hs-p{font-style:normal;font-size:11px;display:inline-flex;align-items:center;gap:3px} .hs-p svg{width:11px;height:11px} .hs-p.ok{color:var(--ok,#30a46c)} .hs-p.err{color:var(--danger)}
+@media (max-width:860px){ dialog#histdlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0;max-height:calc(100vh - 16px - var(--sat))} dialog#histdlg .hsdlg{width:100%;padding:16px 14px calc(16px + var(--sab))} #hs-body{max-height:calc(100vh - 200px - var(--sat))} }
 .pv-seen{display:block;margin-top:6px;font-size:12px;color:var(--ink-3);white-space:pre-line;line-height:1.45}
 dialog#maildlg .mldlg{width:620px} .mlhd{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px} .mlhd>div{flex:1;min-width:0} .mlhd p{margin:0;overflow-wrap:anywhere}
 .ml-frame{display:block;width:100%;height:min(70vh,760px);border:0;border-radius:12px;background:#f2f2f7}
@@ -2796,6 +2805,11 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
     <div class="acts"><button class="btn dangerous" type="button" id="tf-del">Delete</button><span class="spacer"></span><button class="btn" type="button" id="tf-cancel">Cancel</button><button class="btn primary" type="submit">Save</button></div>
   </form>
 </dialog>
+<dialog id="histdlg" aria-label="Question history">
+  <div class="dlg hsdlg"><div class="mlhd"><div><h2 id="hs-head">Question history</h2><p id="hs-meta"></p></div><button class="btn icon sm ghost" type="button" id="hs-close" aria-label="Close"></button></div>
+    <div class="seg hs-seg" role="radiogroup" aria-label="Show"><button type="button" role="radio" data-hsf="client">From the client</button><button type="button" role="radio" data-hsf="all">Everything</button></div>
+    <div id="hs-body"></div></div>
+</dialog>
 <dialog id="maildlg" aria-label="Email">
   <div class="dlg mldlg"><div class="mlhd"><div><h2 id="ml-head">Email</h2><p id="ml-meta"></p></div><button class="btn icon sm ghost" type="button" id="ml-close" aria-label="Close"></button></div><div id="ml-body"></div></div>
 </dialog>
@@ -4399,7 +4413,7 @@ function renderHome(D){
       <span class="agt-r"><span class="cd ${cd.c}">${cd.t}</span><span class="cc-ring sm">${ring(p,36,3.5)}${ringV(p)}</span></span></a>`; };
   const cardQ=`<section class="ccard ov-c hm2 ${qTot?'warn':''}"><div class="ov-ch"><div><div class="cc-eye">Open questions</div><h3>${qTot?`${qTot} at ${plural(qEv.length,'event','events')}`:'All answered'}</h3></div></div>
     ${qEv.length?qEv.slice(0,MAXQ).map(qTile).join('')+(qEv.length>MAXQ?`<div class="hm2-more">+ ${plural(qEv.length-MAXQ,'more event','more events')}</div>`:''):`<div class="ov-empty">${ic('check',2.2)} No open questions. Nice.</div>`}
-    ${qTot?`<div class="hm2-ft"><button class="tbtn" type="button" id="hm-copyq">${ic('copy',2)} Copy all${cName?' for '+esc(cName):''}</button></div>`:''}</section>`;
+    ${qTot||isSB()?`<div class="hm2-ft">${qTot?`<button class="tbtn" type="button" id="hm-copyq">${ic('copy',2)} Copy all${cName?' for '+esc(cName):''}</button>`:''}${isSB()?`<button class="tbtn quiet" type="button" data-qhist="">${ic('clock',2)} History</button>`:''}</div>`:''}</section>`;
   // 3. to-dos with the due pill (orange soon, red late)
   const pill=t=>{ if(!t.due) return ''; const c=t.due<TODAY?'late':t.due<=addDays(TODAY,3)?'soon':''; return `<button type="button" class="agtd ${c}" data-hmdue="${esc(t.id)}" title="${esc(fmtLong(t.due))}" aria-label="Due ${esc(fmtLong(t.due))} · change">${esc(dueTxt(t.due))}</button>`; };
   const cardT=`<section class="ccard ov-c hm2"><div class="ov-ch"><div><div class="cc-eye">To-dos</div><h3>${tds.length?`${tds.length} open`:'Nothing to do'}</h3></div></div>
@@ -4533,7 +4547,7 @@ function renderEvent(D){
     ${showH?`<button type="button" data-rail="s-hours" title="${esc(UC())}">${ic('hours',1.8)}${fmtN(sumV(evHours))}</button>`:''}
     <button type="button" data-rail="s-notes" title="Notes">${ic('doc',1.8)}</button>
   </div><div class="sidefull">
-  <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oqCount(e)}</h3><span class="sp"></span></div>
+  <section class="sec" id="s-questions"><div class="sech" style="--sc:${SECC.questions}"><h3>${secBadge('questions')}Questions for the client ${oqCount(e)}</h3><span class="sp"></span>${isSB()?`<button type="button" class="tbtn" data-qhist="${esc(e.id)}">${ic('clock',2)} History</button>`:''}</div>
   ${e.questions.length?'<div class="qbox">':''}${e.questions.map((q,i)=>qThread(e,q,i)).join('')}
   <button type="button" class="addline ${e.questions.length?'':'empty1'}" id="addq">${ic('plus',2)}<span>Add a question${e.questions.length?'':'<small>Open questions go into the client summary, numbered Q1, Q2…</small>'}</span></button>${e.questions.length?'</div>':''}
   </section>
@@ -5176,6 +5190,34 @@ async function loadEventViews(e){
   let l; try{ l=await SupabaseStore.rest('rpc/event_activity',{method:'POST',body:{p_event:e.id}}); }catch{ return; }
   const box=$('#f-pvseen'); if(!box||!l?.length) return;
   box.textContent=l.map(v=>`Opened by ${v.name||v.email.split('@')[0]} · ${whenTs(v.last)}${v.opens>1?` · ${v.opens}×`:''}`).join('\n'); }
+/* question history (question_log, supabase/016): who asked / answered / changed / resolved / reopened / deleted and when;
+   for the client's own asks and answers also whether the push to me went out — the check when a notification never came.
+   From Home: all events, 30 days, "From the client" first; from an event: that event, everything. */
+const HSA={asked:'asked',edited:'edited',answered:'answered',answer_changed:'changed the answer to',answer_cleared:'cleared the answer to',resolved:'resolved',reopened:'reopened',deleted:'deleted'};
+let HS={ev:null,f:'client',rows:[]};
+async function openHistory(evId){
+  HS={ev:evId,f:evId?'all':'client',rows:[]}; const d=$('#histdlg');
+  $('#hs-head').textContent=evId?`History · ${S.events.find(x=>x.id===evId)?.name||'event'}`:'Question history';
+  $('#hs-meta').textContent='Loading…'; $('#hs-body').innerHTML=''; drawHistory(); if(!d.open) d.showModal();
+  try{ HS.rows=await SupabaseStore.rest('rpc/question_history',{method:'POST',body:{p_event:evId,p_days:evId?400:30}})||[]; }
+  catch(err){ $('#hs-meta').textContent=isNetErr(err)?'Offline: the history needs a connection.':err.message; return; }
+  drawHistory();
+}
+function drawHistory(){
+  document.querySelectorAll('[data-hsf]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.hsf===HS.f)));
+  const l=HS.rows.filter(r=>HS.f==='all'||r.role==='client'), body=$('#hs-body'); if(!body) return;
+  if(HS.rows.length||$('#hs-meta').textContent!=='Loading…') $('#hs-meta').textContent=HS.ev?'All changes since the log started (12 Oct 2026; asks and answers from before too).':'Last 30 days, every event.';
+  const push=r=>{ if(!r.push&&r.role!=='client') return ''; if(!r.push) return `<em class="hs-p">no push</em>`;
+    return r.push.error?`<em class="hs-p err" title="${esc(r.push.error)}">push failed</em>`:r.push.sent?`<em class="hs-p ok" title="${esc(whenTs(r.push.sent))}">${ic('check',2.4)} push</em>`:`<em class="hs-p">push pending</em>`; };
+  let day='';
+  body.innerHTML=l.length?l.map(r=>{ const d=isoOf(new Date(r.at)), head=d!==day?`<div class="hs-day">${esc(fmtLong(d))}</div>`:''; day=d;
+      const who=r.role==='owner'?'You':r.who||(r.role==='client'?'Client':'System'), av=r.role==='owner'?'<span class="av um" aria-hidden="true">UM</span>':`<span class="av cl" aria-hidden="true">${esc(initials(r.who||r.client||'?'))}</span>`;
+      const quote=r.action==='resolved'||r.action==='reopened'?'':r.action==='answer_cleared'?`<s>${esc(r.old||'')}</s>`:`${esc(r.text||'')}${r.old&&r.action!=='deleted'?`<span class="hs-old">was: ${esc(r.old)}</span>`:''}`;
+      return `${head}<button type="button" class="hs-row" data-hsgo="${esc(r.eventId)}">${av}<span class="hs-m"><b>${esc(who)} ${esc(HSA[r.action]||r.action)} Q${r.n??'?'}</b>${HS.ev?'':`<small>${esc(r.event||'')}${r.client?' · '+esc(r.client):''}</small>`}${quote?`<span class="hs-q">${quote}</span>`:''}</span><span class="hs-r"><time>${esc(new Date(r.at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}))}</time>${push(r)}</span></button>`; }).join('')
+    :`<p class="hint" style="margin:14px 2px">${HS.rows.length?'Nothing from the client in this period.':$('#hs-meta').textContent==='Loading…'?'':'No changes in this period.'}</p>`;
+}
+document.addEventListener('click',ev=>{ const f=ev.target.closest('[data-hsf]'); if(f){ HS.f=f.dataset.hsf; drawHistory(); return; }
+  const g=ev.target.closest('[data-hsgo]'); if(g){ $('#histdlg').close(); go('e',g.dataset.hsgo); } });
 /* one email of email_log: the digest as the client saw it (html in a sandboxed frame, no scripts); invite / link emails
    come from Supabase Auth templates, only the fact is stored */
 const MAILK={digest:'Digest',invite:'Invitation',link:'Sign-in link'};
@@ -5530,6 +5572,9 @@ function tfDueTxt(){ const d=$('#tf-due').value; $('#tf-duebtn').querySelector('
 $('#tf-duebtn').onclick=()=>openDate($('#tf-duebtn'),{s:$('#tf-due').value,allowRange:false,clearable:true,onChange:d=>{ $('#tf-due').value=d||''; tfDueTxt(); }});
 $('#tf-nodate').onclick=()=>{ $('#tf-due').value=''; tfDueTxt(); };
 $('#tf-cancel').onclick=()=>$('#tododlg').close();
+$('#hs-close').innerHTML=ic('x'); $('#hs-close').onclick=()=>$('#histdlg').close();
+$('#histdlg').addEventListener('click',ev=>{ if(ev.target.id==='histdlg') ev.target.close(); });
+document.addEventListener('click',ev=>{ const b=ev.target.closest('[data-qhist]'); if(b){ ev.preventDefault(); openHistory(b.dataset.qhist||null); } });
 $('#ml-close').innerHTML=ic('x'); $('#ml-close').onclick=()=>$('#maildlg').close();
 $('#maildlg').addEventListener('click',ev=>{ if(ev.target.id==='maildlg') ev.target.close(); });
 $('#tf-del').onclick=()=>{ if(!tdCur) return; S.agenda.todos=S.agenda.todos.filter(x=>x!==tdCur); touch('none'); $('#tododlg').close(); renderDetail(); };
@@ -5618,7 +5663,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='242'; let APPV=HV, UPD=false;
+const HV='243'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
