@@ -4221,7 +4221,7 @@ function nuDay(grp,day,wide){
   const races=grp.reduce((a,e)=>a+e.contests.length,0), oq=grp.reduce((a,e)=>a+openQ(e).length,0);
   const big=live?`<span class="live"><i></i>Race day</span>`:d===1?'Tomorrow':`In ${d} days`;
   return `<div class="nextup multi" style="${tintStyle(grp[0])}">
-    <div class="nuhead"><span class="big">${big}</span><span class="date">${esc(DOWL[parse(day).getDay()])} ${esc(fmtShort(day).slice(4))}</span><span class="sum"><b>${races}</b> ${races===1?'race':'races'} · ${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
+    <div class="nuhead"><span class="big">${big}</span><span class="date">${esc(DOWL[parse(day).getDay()])} ${esc(fmtShort(day).slice(4))}</span><span class="sum">${grp.length>1?`<b>${grp.length}</b> events${races?' · ':''}`:''}${races||grp.length===1?`<b>${races}</b> ${races===1?'race':'races'}`:''} · ${oq?`<b>${oq}</b> open ${oq===1?'question':'questions'}`:'no open questions'}</span></div>
     <div class="nus">${grp.map(e=>`<button type="button" class="nur" data-id="${esc(e.id)}" aria-label="Open ${esc(e.name)}"><span class="t"><b>${esc(e.name)||'untitled'}</b><small>${esc([clientName(e.clientId),e.location].filter(Boolean).join(' · '))}</small>${wide?`<small>${plural(e.contests.length,'race','races')}${km(e)?' · '+fmtN(km(e))+' km':''} · ${plural(e.timingPoints.length,'timing point','timing points')}${openQ(e).length?' · '+plural(openQ(e).length,'open question','open questions'):''}</small>`:''}</span><span class="rpc" title="${Math.round(progress(e)*100)}% prepared">${ring(progress(e),wide?48:38,wide?3.5:3)}<b>${progress(e)>=1?ic('check',3):`${Math.round(progress(e)*100)}<small>%</small>`}</b></span></button>`).join('')}</div>
     ${items.length?`<div class="due">${items.join('')}</div>`:''}
   </div>`;
@@ -5733,7 +5733,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='248'; let APPV=HV, UPD=false;
+const HV='249'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
