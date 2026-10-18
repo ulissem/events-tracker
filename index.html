@@ -3518,6 +3518,31 @@ async function autoPull(){
   try{ const y=scrollY; if(await syncFromRemote()){ parseRoute(); render(); scrollTo(0,y); } }catch(err){ if(isNetErr(err)){ errMsg='Offline'; updSave(); } }
 }
 /* re-render without reloading images: map tile blocks and pictures that did not change get their old, already painted nodes back (a new <img> paints empty for a frame in Safari = flash) */
+/* lay a new rendering onto the page in place: compare the previous and the new HTML, apply only what differs (classes,
+   attributes, texts, ticks) to the live elements. Live-only changes (JS classes, textarea heights, lists loaded later) stay.
+   false = the structure differs somewhere: nothing is touched, the caller redraws as before. */
+function morph(L,oldH,newH){
+  const a=document.createElement('template'), b=document.createElement('template'); a.innerHTML=oldH; b.innerHTML=newH;
+  const ops=[], focused=x=>document.activeElement===x;
+  const kids=(o,n,l)=>{ const oc=o.childNodes, nc=n.childNodes, lc=l.childNodes; if(oc.length!==nc.length||lc.length!==oc.length) return false;
+    for(let i=0;i<oc.length;i++) if(!walk(oc[i],nc[i],lc[i])) return false; return true; };
+  const walk=(o,n,l)=>{
+    if(o.isEqualNode(n)) return true;
+    if(!l||o.nodeType!==n.nodeType||l.nodeType!==o.nodeType) return false;
+    if(o.nodeType===3||o.nodeType===8){ ops.push(()=>{ l.data=n.data; }); return true; }
+    if(o.nodeType!==1||o.tagName!==n.tagName||l.tagName!==o.tagName) return false;
+    for(const k of new Set([...o.getAttributeNames(),...n.getAttributeNames()])){ const ov=o.getAttribute(k), nv=n.getAttribute(k); if(ov===nv) continue;
+      if(k==='class'){ const os=new Set(o.classList), ns=new Set(n.classList); ops.push(()=>{ os.forEach(c=>ns.has(c)||l.classList.remove(c)); ns.forEach(c=>os.has(c)||l.classList.add(c)); }); continue; }
+      ops.push(()=>{ nv===null?l.removeAttribute(k):l.setAttribute(k,nv);
+        if(l.tagName==='INPUT'&&k==='checked') l.checked=nv!==null;
+        if(l.tagName==='INPUT'&&k==='value'&&!focused(l)) l.value=nv??''; });
+    }
+    if(o.tagName==='TEXTAREA'){ if(o.textContent!==n.textContent) ops.push(()=>{ if(!focused(l)) l.value=n.textContent; }); return true; }
+    return kids(o,n,l);
+  };
+  if(!oldH||!kids(a.content,b.content,L)) return false;
+  ops.forEach(f=>f()); return true;
+}
 function keepImgs(fn){
   const old=new Map(); for(const n of document.querySelectorAll('.htiles,.tiles,.hpin,img')){ if(n.tagName==='IMG'&&n.closest('.htiles,.tiles')) continue; const k=n.outerHTML; (old.get(k)||old.set(k,[]).get(k)).push(n); }
   fn();
@@ -3821,7 +3846,7 @@ function bind(root){
       if(t==='num') v=num(v);
       o[k]=v; if(k==='done'&&Array.isArray(o.children)) for(const c of o.children) c.done=v; // a main item ticks its sub-items
       touch(k==='location'&&o===S?.events.find(x=>x.id===route.id)?'hold':undefined); // the location waits for its coordinates
-      if(el.dataset.r==='detail') renderDetail();
+      if(el.dataset.r==='detail') renderDetail(el.type==='checkbox');
       if(el.dataset.r==='qres') qResolved(el);
     });
     if(el.dataset.r==='change') el.addEventListener('change',()=>afterPress(renderDetail)); // after Tab has moved the focus (renderDetail keeps it there), or after the click that left the field
@@ -4373,10 +4398,19 @@ let ancGen=0; for(const t of ['touchstart','wheel']) addEventListener(t,()=>{ an
 function keepAnchor(a){ const g=ancGen, fix=()=>{ if(spyHold||g!==ancGen) return; const el=document.getElementById(a.id); if(!el) return; const d=el.getBoundingClientRect().top-a.top; if(Math.abs(d)>1) window.scrollBy(0,d); };
   fix(); requestAnimationFrame(fix); setTimeout(fix,250); }
 /* every redraw of the detail keeps the pictures and map tiles that did not change (no flash on add / delete / refresh) */
-function renderDetail(){ _cov=null; keepImgs(renderDetail0); }
-function renderDetail0(){
+function renderDetail(quiet){ _cov=null; keepImgs(()=>renderDetail0(quiet===true)); }
+/* quiet = a tick on the event page: the page is computed again but laid onto the elements already there (morph), so nothing
+   is rebuilt — on the iPhone the full redraw repainted the whole page and it looked like a refresh with a jump.
+   Anything that changes the structure (rows added, removed, moved) falls back to the full redraw. */
+let QUIET=false;
+function renderDetail0(quiet){
   if(!S) return;
   const D=$('#detail'), key=route.view+':'+(route.id||''), same=D.dataset.k===key;
+  if(quiet&&same&&route.view==='e'&&D._h&&curEvent()){
+    const f1=fid; fid=D._fid0; OBJ=[]; QUIET=true; let r; try{ r=renderEvent(D); } finally{ QUIET=false; fid=Math.max(fid,f1); }
+    if(r==='kept'){ spy(); return; }
+  }
+  D._fid0=fid; // the same field ids on a quiet redraw (fewer differences)
   if(!same) ghostPane(D);
   const SCR=['.evside','.jump','.tpwrap','.hsc']; // each kind on its own: opening a race adds tables (.hsc) before the side panel, a shared index gave the panel a table's scroll (back to the top)
   const keep=same?SCR.map(c=>[...D.querySelectorAll(c)].map(x=>[x.scrollTop,x.scrollLeft])):null, fk=same?focusKey(D):null;
@@ -4465,7 +4499,7 @@ function renderEvent(D){
   const scoreN=countTasks(e.rankings)[0]+countTasks(e.teamScores)[0], outN=OUTPUT_LISTS.reduce((a,[k])=>a+countTasks(e[k])[0],0), regN=REG_LISTS.reduce((a,[k])=>a+countTasks(e[k])[0],0);
   const tpc=tpCols(e);
   const tpTools=`<button class="btn sm ghost" type="button" data-tpcolors>Auto colours</button><button class="btn sm ghost" type="button" data-tpexport title="Timing Points.lvs for RR14">${ic('file',1.8)} Export .lvs</button>`;
-  D.innerHTML=`
+  const H=`
   <div class="hero ${e.geo?.lat?'hasmap':''}" id="s-top" style="${tintStyle(e)}">
     ${heroTiles(e)}<div class="hscrim"></div>
     ${backBtn}
@@ -4583,6 +4617,8 @@ function renderEvent(D){
   </section>
   </div></aside></div>
   <div class="foot"><span class="mono">id: ${esc(e.id)}</span><button class="btn sm ghost del dangerous" type="button" id="delev">Delete event</button></div>`;
+  if(QUIET) return morph(D,D._h,H)?(D._h=H,'kept'):'fail'; // a tick: same page, only classes / texts / ticks change
+  D._h=H; D.innerHTML=H;
 
   /* actions */
   $('#sidebtn').onclick=toggleSide;
@@ -4638,7 +4674,7 @@ function renderEvent(D){
   D.querySelectorAll('.lr').forEach(r=>{ const t=r.querySelector('textarea'), b=r.querySelector('.send'), upd=()=>b.classList.toggle('on',!!t.value.trim()); t.addEventListener('input',upd); upd();
     b.onclick=async()=>{ if(!t.value.trim()) return; b.disabled=true; await save(); renderDetail(); }; });
   markSeen(D,e);
-  D.querySelectorAll('[data-ck]').forEach(c=>c.onchange=()=>{ e.checklist[c.dataset.ck]=c.checked; touch(); renderDetail(); });
+  D.querySelectorAll('[data-ck]').forEach(c=>c.onchange=()=>{ e.checklist[c.dataset.ck]=c.checked; touch(); renderDetail(true); });
   if(showH){
     bindChargeForm('h',()=>({clientId:e.clientId,eventId:e.id,event:e}));
     bindHoursTable(D);
@@ -5693,7 +5729,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='246'; let APPV=HV, UPD=false;
+const HV='247'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
