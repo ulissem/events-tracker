@@ -3517,36 +3517,63 @@ async function autoPull(){
   lastPull=Date.now();
   try{ const y=scrollY; if(await syncFromRemote()){ parseRoute(); render(); scrollTo(0,y); } }catch(err){ if(isNetErr(err)){ errMsg='Offline'; updSave(); } }
 }
-/* re-render without reloading images: map tile blocks and pictures that did not change get their old, already painted nodes back (a new <img> paints empty for a frame in Safari = flash) */
-/* lay a new rendering onto the page in place: compare the previous and the new HTML, apply only what differs (classes,
-   attributes, texts, ticks) to the live elements. Live-only changes (JS classes, textarea heights, lists loaded later) stay.
-   false = the structure differs somewhere: nothing is touched, the caller redraws as before. */
+/* Redraws lay the new page onto the elements already on screen (morph) instead of rebuilding it: on the iPhone a rebuilt page
+   was repainted from scratch, it looked like a refresh and the page jumped (ticks, deleting a question…).
+   3-way: what changed between the previous HTML and the new one is applied to the live elements (attributes, classes, texts,
+   ticks, values; nodes added / removed / replaced); what did not change is left alone, so states made by JS stay (textarea
+   heights, lists loaded later). Kept elements lose their old listeners before the wiring runs again (unwire), so they are
+   wired exactly like fresh ones. el._remake = always replaced (sideCards rewrites its sections). */
 function morph(L,oldH,newH){
   const a=document.createElement('template'), b=document.createElement('template'); a.innerHTML=oldH; b.innerHTML=newH;
-  const ops=[], focused=x=>document.activeElement===x;
-  const kids=(o,n,l)=>{ const oc=o.childNodes, nc=n.childNodes, lc=l.childNodes; if(oc.length!==nc.length||lc.length!==oc.length) return false;
-    for(let i=0;i<oc.length;i++) if(!walk(oc[i],nc[i],lc[i])) return false; return true; };
-  const walk=(o,n,l)=>{
-    if(o.isEqualNode(n)) return true;
-    if(!l||o.nodeType!==n.nodeType||l.nodeType!==o.nodeType) return false;
-    if(o.nodeType===3||o.nodeType===8){ ops.push(()=>{ l.data=n.data; }); return true; }
-    if(o.nodeType!==1||o.tagName!==n.tagName||l.tagName!==o.tagName) return false;
+  const focused=x=>document.activeElement===x, clone=n=>document.importNode(n,true);
+  const node=(o,n,l)=>{
+    if(!l._remake&&o.isEqualNode(n)) return;
+    const kind=x=>x.nodeType===1?x.tagName+'.'+(x.classList[0]||''):x.nodeType; // another kind of element (a table that became a field…): a new one, not a reshaped one
+    if(l._remake||kind(o)!==kind(n)||l.nodeType!==n.nodeType||n.nodeType===1&&l.tagName!==n.tagName){ l.replaceWith(clone(n)); return; }
+    if(n.nodeType!==1){ if(l.data!==n.data) l.data=n.data; return; }
     for(const k of new Set([...o.getAttributeNames(),...n.getAttributeNames()])){ const ov=o.getAttribute(k), nv=n.getAttribute(k); if(ov===nv) continue;
-      if(k==='class'){ const os=new Set(o.classList), ns=new Set(n.classList); ops.push(()=>{ os.forEach(c=>ns.has(c)||l.classList.remove(c)); ns.forEach(c=>os.has(c)||l.classList.add(c)); }); continue; }
-      ops.push(()=>{ nv===null?l.removeAttribute(k):l.setAttribute(k,nv);
-        if(l.tagName==='INPUT'&&k==='checked') l.checked=nv!==null;
-        if(l.tagName==='INPUT'&&k==='value'&&!focused(l)) l.value=nv??''; });
+      if(k==='class'){ const os=new Set(o.classList), ns=new Set(n.classList); os.forEach(c=>ns.has(c)||l.classList.remove(c)); ns.forEach(c=>os.has(c)||l.classList.add(c)); continue; }
+      nv===null?l.removeAttribute(k):l.setAttribute(k,nv);
+      if(l.tagName==='INPUT'&&k==='checked') l.checked=nv!==null;
+      if(l.tagName==='INPUT'&&k==='value'&&!focused(l)) l.value=nv??'';
     }
-    if(o.tagName==='TEXTAREA'){ if(o.textContent!==n.textContent) ops.push(()=>{ if(!focused(l)) l.value=n.textContent; }); return true; }
-    return kids(o,n,l);
+    if(n.tagName==='TEXTAREA'){ if(o.textContent!==n.textContent){ l.textContent=n.textContent; if(!focused(l)) l.value=n.textContent; } return; }
+    kids(o,n,l);
+    if(n.tagName==='SELECT'){ const so=[...n.options].find(x=>x.hasAttribute('selected'))||n.options[0]; if(so&&l.value!==so.value) l.value=so.value; }
   };
-  if(!oldH||!kids(a.content,b.content,L)) return false;
-  ops.forEach(f=>f()); return true;
+  const kids=(o,n,l)=>{
+    const oc=[...o.childNodes], nc=[...n.childNodes], lc=[...l.childNodes];
+    if(lc.length!==oc.length){ l.replaceChildren(...nc.map(clone)); return; } // this part was changed by JS: take the new one whole
+    const m=Math.min(oc.length,nc.length); let s=0; while(s<m&&!lc[s]._remake&&oc[s].isEqualNode(nc[s])) s++;
+    let eo=oc.length, en=nc.length; while(eo>s&&en>s&&!lc[eo-1]._remake&&oc[eo-1].isEqualNode(nc[en-1])){ eo--; en--; }
+    const k=Math.min(eo-s,en-s), ref=lc[eo]||null;
+    for(let i=0;i<k;i++) node(oc[s+i],nc[s+i],lc[s+i]);
+    for(let i=s+k;i<en;i++) l.insertBefore(clone(nc[i]),ref);
+    for(let i=s+k;i<eo;i++) lc[i].remove();
+  };
+  kids(a.content,b.content,L);
 }
+/* every listener put on an element is noted, so a redraw that keeps the element can take them off before wiring it again
+   (this?. : a bare addEventListener(…) in this strict script has this = undefined — v250 died on it, white page) */
+const LSN=new WeakMap();
+{ const add=EventTarget.prototype.addEventListener;
+  EventTarget.prototype.addEventListener=function(t,f,o){ if(f&&this?.nodeType===1){ let a=LSN.get(this); if(!a) LSN.set(this,a=[]); a.push([t,f,o]); } return add.call(this,t,f,o); }; }
+const ONP=['onclick','onchange','oninput','onkeydown','onkeyup','onblur','onfocus','onpointerdown','onsubmit','onscroll','onload','onerror'];
+function unwire(root){ for(const el of root.querySelectorAll('*')){ const a=LSN.get(el); if(a){ for(const [t,f,o] of a) el.removeEventListener(t,f,o); LSN.delete(el); } for(const p of ONP) if(el[p]) el[p]=null; } }
+/* run a render of el: el.innerHTML= becomes a morph when el already shows a rendering of the same page (same) */
+const HTMLP=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+function inPlace(el,same,fn){
+  Object.defineProperty(el,'innerHTML',{configurable:true,get(){ return HTMLP.get.call(el); },
+    set(h){ if(same&&el._h!=null&&el._first===el.firstChild){ morph(el,el._h,h); unwire(el); } else HTMLP.set.call(el,h); el._h=h; el._first=el.firstChild; }}); // _first: el was not redrawn some other way since
+  try{ fn(); } finally{ delete el.innerHTML; }
+}
+/* re-render without reloading images: map tile blocks and pictures that did not change get their old, already painted nodes back (a new <img> paints empty for a frame in Safari = flash) */
 function keepImgs(fn){
   const old=new Map(); for(const n of document.querySelectorAll('.htiles,.tiles,.hpin,img')){ if(n.tagName==='IMG'&&n.closest('.htiles,.tiles')) continue; const k=n.outerHTML; (old.get(k)||old.set(k,[]).get(k)).push(n); }
   fn();
-  for(const n of [...document.querySelectorAll('.htiles,.tiles,.hpin,img')]){ if(!n.isConnected||n.tagName==='IMG'&&n.closest('.htiles,.tiles')) continue; const o=old.get(n.outerHTML)?.shift(); if(o&&o!==n) n.replaceWith(o); }
+  for(const n of [...document.querySelectorAll('.htiles,.tiles,.hpin,img')]){ if(!n.isConnected||n.tagName==='IMG'&&n.closest('.htiles,.tiles')) continue;
+    const l=old.get(n.outerHTML); if(!l||l.includes(n)) continue; // still on the page (kept by the morph)
+    const i=l.findIndex(x=>!x.isConnected); if(i>=0) n.replaceWith(l.splice(i,1)[0]); }
 }
 setInterval(autoPull,60e3);
 /* Live (Supabase Realtime, private broadcast): the database pings "rh:<org>" (owner) or "rh:<org>:<client>" on each change;
@@ -3846,7 +3873,7 @@ function bind(root){
       if(t==='num') v=num(v);
       o[k]=v; if(k==='done'&&Array.isArray(o.children)) for(const c of o.children) c.done=v; // a main item ticks its sub-items
       touch(k==='location'&&o===S?.events.find(x=>x.id===route.id)?'hold':undefined); // the location waits for its coordinates
-      if(el.dataset.r==='detail') renderDetail(el.type==='checkbox');
+      if(el.dataset.r==='detail') renderDetail();
       if(el.dataset.r==='qres') qResolved(el);
     });
     if(el.dataset.r==='change') el.addEventListener('change',()=>afterPress(renderDetail)); // after Tab has moved the focus (renderDetail keeps it there), or after the click that left the field
@@ -4152,7 +4179,8 @@ function render(){ _cov=null;
 /* =====================================================================
    LEFT LIST
    ===================================================================== */
-function renderList(){ if(!S) return; const L=$('#list'); if(route.view==='e'||(route.view==='m'&&!narrow.matches)) renderEventList(L); else if(route.view==='c') renderClientList(L); else L.innerHTML=''; }
+function renderList(){ if(!S) return; const L=$('#list'), k=route.view==='e'||(route.view==='m'&&!narrow.matches)?'e':route.view==='c'?'c':'', same=L._k===k; L._k=k;
+  keepImgs(()=>inPlace(L,same,()=>{ if(k==='e') renderEventList(L); else if(k==='c') renderClientList(L); else L.innerHTML=''; })); }
 let mapFocusId=null; // map mode on the desktop: the event the list points at on the map
 let selDay=null;      // a day picked in the film strip: its events stay lit, the others dim (list, map, strip)
 const onSelDay=e=>!selDay||(e.dateStart&&selDay>=e.dateStart&&selDay<=(e.dateEnd||e.dateStart));
@@ -4355,7 +4383,7 @@ function renderClientList(L){
       ${cs.length?'':'<div class="lempty">No clients found.</div>'}</div>
     <div class="listfoot"><span>${plural(S.clients.length,'client','clients')}</span></div>`;
   L.querySelectorAll('.ccard').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('.cc-next')) return; go('c',el.dataset.id); }));
-  const qi=L.querySelector('#cl-q'); qi.oninput=e=>{ cliQ=e.target.value; const p=qi.selectionStart; renderClientList(L); const n=L.querySelector('#cl-q'); n.focus(); n.setSelectionRange(p,p); };}
+  const qi=L.querySelector('#cl-q'); qi.oninput=e=>{ cliQ=e.target.value; const p=qi.selectionStart; renderList(); const n=L.querySelector('#cl-q'); n.focus(); n.setSelectionRange(p,p); };}
 /* =====================================================================
    DETAIL
    ===================================================================== */
@@ -4398,19 +4426,10 @@ let ancGen=0; for(const t of ['touchstart','wheel']) addEventListener(t,()=>{ an
 function keepAnchor(a){ const g=ancGen, fix=()=>{ if(spyHold||g!==ancGen) return; const el=document.getElementById(a.id); if(!el) return; const d=el.getBoundingClientRect().top-a.top; if(Math.abs(d)>1) window.scrollBy(0,d); };
   fix(); requestAnimationFrame(fix); setTimeout(fix,250); }
 /* every redraw of the detail keeps the pictures and map tiles that did not change (no flash on add / delete / refresh) */
-function renderDetail(quiet){ _cov=null; keepImgs(()=>renderDetail0(quiet===true)); }
-/* quiet = a tick on the event page: the page is computed again but laid onto the elements already there (morph), so nothing
-   is rebuilt — on the iPhone the full redraw repainted the whole page and it looked like a refresh with a jump.
-   Anything that changes the structure (rows added, removed, moved) falls back to the full redraw. */
-let QUIET=false;
-function renderDetail0(quiet){
+function renderDetail(){ _cov=null; keepImgs(renderDetail0); }
+function renderDetail0(){
   if(!S) return;
   const D=$('#detail'), key=route.view+':'+(route.id||''), same=D.dataset.k===key;
-  if(quiet&&same&&route.view==='e'&&D._h&&curEvent()){
-    const f1=fid; fid=D._fid0; OBJ=[]; QUIET=true; let r; try{ r=renderEvent(D); } finally{ QUIET=false; fid=Math.max(fid,f1); }
-    if(r==='kept'){ spy(); return; }
-  }
-  D._fid0=fid; // the same field ids on a quiet redraw (fewer differences)
   if(!same) ghostPane(D);
   const SCR=['.evside','.jump','.tpwrap','.hsc']; // each kind on its own: opening a race adds tables (.hsc) before the side panel, a shared index gave the panel a table's scroll (back to the top)
   const keep=same?SCR.map(c=>[...D.querySelectorAll(c)].map(x=>[x.scrollTop,x.scrollLeft])):null, fk=same?focusKey(D):null;
@@ -4418,7 +4437,7 @@ function renderDetail0(quiet){
   const anc=same?pageAnchor(D):null;
   OBJ=[]; taRO.disconnect(); hsRO.disconnect();
   if(MAP&&route.view!=='m'){ MAP.remove(); MAP=null; MAPL=null; }
-  if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else if(route.view==='a') renderAgenda(D); else if(route.view==='m') renderMap(D); else renderHours(D);
+  inPlace(D,same&&route.view!=='m',()=>{ if(route.view==='e') renderEvent(D); else if(route.view==='c') renderClient(D); else if(route.view==='a') renderAgenda(D); else if(route.view==='m') renderMap(D); else renderHours(D); }); // same page: laid onto what is there (the map view keeps its Leaflet path)
   D.dataset.k=key;
   if(curJ) D.querySelector(`#jump a[href="${curJ}"]`)?.classList.add('cur');
   bind(D);
@@ -4617,8 +4636,7 @@ function renderEvent(D){
   </section>
   </div></aside></div>
   <div class="foot"><span class="mono">id: ${esc(e.id)}</span><button class="btn sm ghost del dangerous" type="button" id="delev">Delete event</button></div>`;
-  if(QUIET) return morph(D,D._h,H)?(D._h=H,'kept'):'fail'; // a tick: same page, only classes / texts / ticks change
-  D._h=H; D.innerHTML=H;
+  D.innerHTML=H;
 
   /* actions */
   $('#sidebtn').onclick=toggleSide;
@@ -4674,7 +4692,7 @@ function renderEvent(D){
   D.querySelectorAll('.lr').forEach(r=>{ const t=r.querySelector('textarea'), b=r.querySelector('.send'), upd=()=>b.classList.toggle('on',!!t.value.trim()); t.addEventListener('input',upd); upd();
     b.onclick=async()=>{ if(!t.value.trim()) return; b.disabled=true; await save(); renderDetail(); }; });
   markSeen(D,e);
-  D.querySelectorAll('[data-ck]').forEach(c=>c.onchange=()=>{ e.checklist[c.dataset.ck]=c.checked; touch(); renderDetail(true); });
+  D.querySelectorAll('[data-ck]').forEach(c=>c.onchange=()=>{ e.checklist[c.dataset.ck]=c.checked; touch(); renderDetail(); });
   if(showH){
     bindChargeForm('h',()=>({clientId:e.clientId,eventId:e.id,event:e}));
     bindHoursTable(D);
@@ -4700,7 +4718,7 @@ function sideCards(D,e){
     else if(sec.id==='s-files'){ const n=EF.ev===e.id?EF.list.length:null; eye=`<div class="cc-eye">${n==null?'files':n?plural(n,'file','files'):'no files yet'}</div>`; h3.querySelector('.count')?.remove(); }
     else { const c=h3.querySelector('.count'); eye=`<div class="cc-eye">${esc(c?.textContent||sec.id.replace('s-',''))}</div>`; c?.remove(); }
     const sech=sec.querySelector('.sech'); sech.classList.add('sc-h'); sech.insertAdjacentHTML('afterbegin',`<div class="sc-id">${eye}</div>`); sech.querySelector('.sc-id').appendChild(h3);
-    sec.classList.add('scard', sec.id==='s-questions'?(openQ(e).length?'g-warn':'g-acc'):sec.id==='s-checklist'?(progress(e)>=1?'g-ok':'g-acc'):'g-soft');
+    sec._remake=true; sec.classList.add('scard', sec.id==='s-questions'?(openQ(e).length?'g-warn':'g-acc'):sec.id==='s-checklist'?(progress(e)>=1?'g-ok':'g-acc'):'g-soft');
   });
 }
 
@@ -5095,8 +5113,8 @@ function renderClient(D){
   <div class="foot"><span class="mono">id: ${esc(c.id)}</span><button class="btn sm ghost del dangerous" id="delcl" type="button">Delete client</button></div></div>`;
   if(showH){
     bindHoursTable(D);
-    $('#cl-toggle')?.addEventListener('click',()=>{ cliClose=!cliClose; const y=scrollY; renderClient(D); scrollTo(0,y); if(cliClose) $('#cl-amt')?.focus(); });
-    $('#cl-all')?.addEventListener('click',()=>{ cliAllCl=!cliAllCl; const y=scrollY; renderClient(D); scrollTo(0,y); });
+    $('#cl-toggle')?.addEventListener('click',()=>{ cliClose=!cliClose; renderDetail(); if(cliClose) $('#cl-amt')?.focus(); });
+    $('#cl-all')?.addEventListener('click',()=>{ cliAllCl=!cliAllCl; renderDetail(); });
     if($('#cl-amt')){
       const preview=()=>{ let left=num($('#cl-amt').value)||0; const amt=left; let full=0, part=null;
         for(const h of open.slice().sort(hOrder)){ const o=openOf(h); if(left<=1e-9) break; if(left>=o-1e-9){ full++; left-=o; } else { part={h,t:left,o}; left=0; } }
@@ -5112,9 +5130,9 @@ function renderClient(D){
     on(D,'[data-reopen]',b=>{ const x=S.hours.closures.find(y=>y.id===b.dataset.reopen); if(!x||!confirm(`Delete the closure of ${fmtN(num(x.amount))} ${U().icon} (${fmtDay(x.date)})?\n\nWhat it covered is open again.`)) return;
       S.hours.closures=S.hours.closures.filter(y=>y!==x); touch(); renderDetail(); });
     bindRates(D,c);
-    $('#rt-old')?.addEventListener('click',()=>{ rtOld=!rtOld; const y=scrollY; renderClient(D); scrollTo(0,y); });
+    $('#rt-old')?.addEventListener('click',()=>{ rtOld=!rtOld; renderDetail(); });
   }
-  D.querySelector('#cpast')?.addEventListener('click',()=>{ cliPast=!cliPast; const y=scrollY; renderClient(D); scrollTo(0,y); });
+  D.querySelector('#cpast')?.addEventListener('click',()=>{ cliPast=!cliPast; renderDetail(); });
   on(D,'[data-jump]',(a,ev)=>{ if(ev.button===0) ev.preventDefault(); },'mousedown');
   on(D,'[data-jump]',(a,e)=>{ e.preventDefault(); const t=document.querySelector(a.getAttribute('href')); if(!t) return; spyPick(a.getAttribute('href')); t.id==='s-top'?window.scrollTo({top:0,behavior:'smooth'}):t.scrollIntoView({behavior:'smooth',block:'start'}); });
   D.querySelector('#closebtn')?.addEventListener('click',()=>go('c')); // back to the overview (Esc too)
@@ -5733,7 +5751,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='251'; let APPV=HV, UPD=false;
+const HV='252'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
