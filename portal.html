@@ -248,6 +248,12 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin
 .course .pt span{font-size:10.5px;font-weight:600;line-height:1.15;text-align:center;color:var(--ink-2)}
 .course .pt span em{display:block;font-style:normal;font-family:var(--round);color:var(--ink);font-size:11px}
 .course .pt span{margin-top:calc(var(--lane,0)*30px)}
+.course .pt span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .course .pt span em{overflow:hidden;text-overflow:ellipsis}
+.course .ln.leg{right:auto}
+.course .ln.leg.l0{background:linear-gradient(90deg,#7cc4e8,#3b8fd9)} .course .ln.leg.l1{background:linear-gradient(90deg,#f2b36d,#e07b2c)} .course .ln.leg.l2{background:linear-gradient(90deg,#8fd6a4,#2f9e5b)}
+.course.multi .pt.l0 i{box-shadow:inset 0 0 0 3px #3b8fd9} .course.multi .pt.l1 i{box-shadow:inset 0 0 0 3px #e07b2c} .course.multi .pt.l2 i{box-shadow:inset 0 0 0 3px #2f9e5b}
+.course.multi .pt.e.l0 i{background:#3b8fd9} .course.multi .pt.e.l1 i{background:#e07b2c} .course.multi .pt.e.l2 i{background:#2f9e5b}
+.course .legh{display:none}
 .rnote{font-size:12.5px;color:var(--ink-3);margin-top:6px}
 
 /* timing points */
@@ -530,6 +536,10 @@ a.btn{text-decoration:none}
   .course .pt,.course .pt.lo{position:relative;left:auto!important;top:auto;transform:none;flex-direction:row;width:auto;gap:12px;padding:5px 0}
   .course .pt span,.course .pt.lo span{margin:0;text-align:left;display:flex;gap:8px;font-size:12.5px;align-items:baseline}
   .course .pt span em{order:-1;min-width:44px}
+  .course .pt span{white-space:normal}
+  .course.multi .ln{display:none}
+  .course.multi .legh{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);padding:8px 0 2px}
+  .course.multi .legh:first-of-type{padding-top:0}
   .ichero{grid-template-columns:1fr;padding:20px}
   .ichero .ic-big b{font-size:52px}
   /* bottom tab bar = a floating glass island (Oct 2026, like the iOS apps): the page runs under it */
@@ -1100,11 +1110,29 @@ function tpCard(d){
     ${tps.map(t=>`<div class="tpr">${t.hardware?img(t.hardware):'<span style="width:24px"></span>'}<b>${esc(t.name)}</b><span class="ty ${t.hardware?'':'warn'}">${esc(t.hardware||'To be defined')}</span></div>`).join('')}</div>`;
 }
 function raceBlock(r){
+  /* like the hub (legInfo): an intermediate split at km 0 starts a new leg (multisport), km restart there.
+     One coloured stretch per leg; on the line a leg gets half its share by km, half by number of points. */
   const km=s=>s.role==='start'?0:String(s.km??'').trim()!==''?+s.km:s.role==='finish'&&String(r.distance||'').trim()!==''?+r.distance:NaN;
-  const sp=(r.special?[]:r.splits||[]).map(s=>({...s,k:km(s)})).filter(s=>isFinite(s.k)), max=Math.max(0,...sp.map(s=>s.k));
+  const isZero=s=>s.role==='split'&&String(s.km??'').trim()!==''&&+s.km===0;
+  const all=r.special?[]:r.splits||[], multi=all.some(isZero);
+  let seg=0, off=0, last=0; const sp=[];
+  for(const s of all){
+    if(isZero(s)){ seg++; off+=last; last=0; sp.push({...s,k:0,seg}); continue; }
+    let k=km(s); if(multi&&s.role==='finish'&&String(s.km??'').trim()==='') k=String(r.distance||'').trim()!==''?+r.distance-off:NaN;
+    if(!isFinite(k)) continue; if(s.role!=='start') last=Math.max(last,k); sp.push({...s,k,seg});
+  }
+  const legs=seg+1, len=[...Array(legs)].map((_,g)=>Math.max(0,...sp.filter(p=>p.seg===g).map(p=>p.k))), tot=len.reduce((a,b)=>a+b,0);
   let course='';
-  const ends=[]; sp.forEach(s=>{ const x=s.k/max*100; let l=ends.findIndex(e=>x-e>=14); if(l<0) l=ends.length<3?ends.length:ends.indexOf(Math.min(...ends)); ends[l]=x; s.lane=l; }); // labels ~14% wide: up to 3 lanes
-  if(sp.length>=2&&max>0) course=`<div class="course" style="--lanes:${ends.length}"><span class="ln"></span>${sp.map((s,i)=>`<span class="pt ${i===0||i===sp.length-1?'e':''}" style="left:${s.k/max*100}%;--lane:${s.lane}"><i></i><span><em>${ic(s.k)} km</em>${esc(s.label||s.tp||(s.role==='start'?'Start':s.role==='finish'?'Finish':''))}</span></span>`).join('')}</div>`;
+  if(sp.length>=2&&tot>0){
+    const cnt=len.map((_,g)=>sp.filter(p=>p.seg===g).length);
+    const w=len.map((v,g)=>multi?.5*v/tot+.5*cnt[g]/sp.length:v||1), gap=multi?.06:0;
+    const W=w.reduce((a,b)=>a+b,0)+gap*(w.length-1), x0=w.map((_,g)=>w.slice(0,g).reduce((a,b)=>a+b,0)+gap*g);
+    for(const p of sp) p.x=Math.max(0,Math.min(100,(x0[p.seg]+(len[p.seg]?p.k/len[p.seg]:0)*w[p.seg])/W*100));
+    const ends=[]; sp.forEach(s=>{ let l=ends.findIndex(e=>s.x-e>=14); if(l<0) l=ends.length<3?ends.length:ends.indexOf(Math.min(...ends)); ends[l]=s.x; s.lane=l; }); // labels ~14% wide: up to 3 lanes
+    const lines=multi?w.map((v,g)=>`<span class="ln leg l${g%3}" style="left:${x0[g]/W*100}%;width:${v/W*100}%"></span>`).join(''):'<span class="ln"></span>';
+    course=`<div class="course ${multi?'multi':''}" style="--lanes:${ends.length}">${lines}${sp.map((s,i)=>{ const nm=s.label||s.tp||(s.role==='start'?'Start':s.role==='finish'?'Finish':'');
+      return `${multi&&(i===0||s.seg!==sp[i-1].seg)?`<span class="legh">Leg ${s.seg+1}${len[s.seg]?` · ${ic(len[s.seg])} km`:''}</span>`:''}<span class="pt ${i===0||i===sp.length-1?'e':''} l${s.seg%3}" style="left:${s.x}%;--lane:${s.lane}" title="${esc(nm)}"><i></i><span><em>${ic(s.k)} km</em>${esc(nm)}</span></span>`; }).join('')}</div>`;
+  }
   const meta=[r.date&&fmtD(r.date,{weekday:'short',day:'numeric',month:'short'}),r.distance&&`${r.distance} km`,r.elevation&&`${r.elevation} m D+`].filter(Boolean).join(' · ');
   return `<div class="race"><div class="race-h">${r.startTime?`<span class="tm">${esc(r.startTime)}</span>`:''}<b>${esc(r.name||'Race')}</b>${meta?`<small>${esc(meta)}</small>`:''}${r.special?'<small>Special results</small>':''}</div>${course}${r.notes?`<div class="rnote">${esc(r.notes)}</div>`:''}</div>`;
 }
@@ -1159,7 +1187,7 @@ $('#scrim').onclick=e=>{ if(e.target.id==='scrim') closeSheet(); };
 function toast(t){ const el=$('#toast'); el.innerHTML=`<i>${I.check}</i>${esc(t)}`; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),2600); }
 /* version of this page (= the site's sw.js version, bumped together); the portal has no service worker, so a reload is the update.
    A newer sw.js on the server = "Update" next to the name. */
-const PV='253'; let PV_NEW=false, APPV=PV;
+const PV='254'; let PV_NEW=false, APPV=PV;
 function checkVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+PV&&!PV_NEW){ PV_NEW=true; if(state==='ok') chrome(curRoute()); } }).catch(()=>{}); }
 const curRoute=()=>{ const h=decodeURIComponent(location.hash.slice(1))||'home'; return h.startsWith('e/')?'home':h; };
 checkVer(); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkVer(); });
