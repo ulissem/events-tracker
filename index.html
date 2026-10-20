@@ -875,8 +875,8 @@ dialog::backdrop{background:var(--scrim)}
   body.drawer-out #list{animation:drawerout .2s ease-in forwards}
   body.drawer #list .lscroll{overflow-y:auto}
   body.drawer #list .mh{top:0}
-  dialog#settings,dialog#unlock,dialog#impdlg,dialog#aidlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0}
-  dialog#impdlg .imp,dialog#aidlg .imp{width:100%;padding:16px 14px calc(16px + var(--sab))}
+  dialog#settings,dialog#unlock,dialog#impdlg,dialog#aidlg,dialog#rrdlg{margin:auto 0 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0}
+  dialog#impdlg .imp,dialog#aidlg .imp,dialog#rrdlg .imp{width:100%;padding:16px 14px calc(16px + var(--sab))}
   /* client summary: full screen, buttons below the notch / status bar, sheet clear of the home bar */
   dialog#sumdlg{margin:0;width:100%;max-width:100%;height:100%;max-height:100%;border:0;border-radius:0}
   dialog#sumdlg .sumbar{padding:calc(10px + var(--sat)) max(14px,var(--sar)) 10px max(14px,var(--sal))}
@@ -1122,9 +1122,9 @@ table.t.cltab{min-width:520px}
 #printarea{display:none}
 
 /* ---------- import from AI / AI prompt ---------- */
-dialog#impdlg,dialog#aidlg{max-height:calc(100vh - 16px - var(--sat));overflow:auto}
+dialog#impdlg,dialog#aidlg,dialog#rrdlg{max-height:calc(100vh - 16px - var(--sat));overflow:auto}
 @media (min-width:861px) and (min-height:501px), (min-width:861px) and (pointer:fine){ main{padding-left:var(--sal);padding-right:var(--sar)} #toasts{bottom:calc(22px + var(--sab))} }
-#impdlg{width:840px} #aidlg{width:720px}
+#impdlg{width:840px} #aidlg{width:720px} #rrdlg{width:760px}
 .imp{padding:20px 22px;max-width:100%}
 .imp h2{margin:0 0 4px;font-size:16px;letter-spacing:-.01em}
 .imp > p,.imp .ihd p{margin:0 0 12px;color:var(--ink-2);font-size:13px}
@@ -2170,7 +2170,7 @@ main.mapv #detail{padding:0;position:relative;isolation:isolate} /* Leaflet + st
   .mstrip{left:var(--sal);right:var(--sar)}
   /* bottom sheets and sheet dialogs: centred, 600 px wide, clear of the notch (full width they ran under it) */
   #dp.bsheet,#menu.bsheet,#pinpop.bsheet,#notepop.bsheet,#geopop.bsheet,#geoinfo.bsheet{left:max(0px,calc(50% - 300px))!important;right:max(0px,calc(50% - 300px))}
-  dialog#settings,dialog#unlock,dialog#impdlg,dialog#aidlg,dialog#tododlg,dialog#entrydlg,dialog#lockdlg{margin:auto auto 0;max-width:600px}
+  dialog#settings,dialog#unlock,dialog#impdlg,dialog#aidlg,dialog#rrdlg,dialog#tododlg,dialog#entrydlg,dialog#lockdlg{margin:auto auto 0;max-width:600px}
   .agfab{right:max(16px,calc(var(--sar) + 8px));bottom:calc(var(--tb) + 12px)}
   .mstrip:not(.tall){max-height:52px} .mstrip:not(.tall) > .film{opacity:0}
   .mstrip .msh{cursor:pointer}
@@ -2832,6 +2832,16 @@ textarea.lt.mute{font-size:13px} textarea.lt.mute::placeholder{color:var(--ink-3
     <div class="impfile"><button class="btn sm" type="button" id="imp-choose">Choose .json file…</button><input type="file" id="imp-file" accept=".json,application/json,text/plain" hidden><span>or drop it on the box</span></div>
     <div id="imp-out"></div>
     <div class="acts"><span class="hint" id="imp-sum"></span><button class="btn" type="button" id="imp-cancel">Cancel</button><button class="btn primary" type="button" id="imp-apply" disabled>Import</button></div>
+  </div>
+</dialog>
+<dialog id="rrdlg" aria-label="Update from RR14">
+  <div class="imp">
+    <div class="ihd"><div><h2>Update from RR14 · <span id="rr-ev"></span></h2><p>Races, splits and timing points read from RR14 (Simple API, read only). Nothing changes until you press Apply; notes, hardware and race days stay, nothing is deleted.</p></div></div>
+    <label class="lab" for="rr-links">Simple API links · Contests, Splits, Timing points (any order, one per line)</label>
+    <textarea class="in impta" id="rr-links" style="min-height:76px" spellcheck="false" autocomplete="off" placeholder="https://api.raceresult.com/123456/…"></textarea>
+    <div class="impfile"><button class="btn sm" type="button" id="rr-fetch">Read from RR14</button><span>Custom Simple APIs: contests/get, splits/get, timingpoints/get. Kept for this event, only in your settings.</span></div>
+    <div id="rr-out"></div>
+    <div class="acts"><span class="hint" id="rr-sum"></span><button class="btn" type="button" id="rr-cancel">Cancel</button><button class="btn primary" type="button" id="rr-apply" disabled>Apply</button></div>
   </div>
 </dialog>
 <dialog id="aidlg" aria-label="AI prompt">
@@ -4583,7 +4593,7 @@ function renderEvent(D){
   <button type="button" class="addline ${e.timingPoints.length?'':'empty1'}" id="addtp">${ic('plus',2)}<span>Add a timing point${e.timingPoints.length?'':'<small>The hardware on the course: start, finish, intermediate points. Races use them in their splits.</small>'}</span></button>
   </section>
 
-  <section class="sec" id="s-races"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Races <span class="count">${e.contests.length}</span></h3><span class="sp"></span>${e.contests.length>1?`<button class="btn sm ghost" id="ctall" type="button">${e.contests.every(c=>openRaces.has(c.id))?'Collapse all':'Expand all'}</button>`:''}</div>
+  <section class="sec" id="s-races"><div class="sech" style="--sc:${SECC.races}"><h3>${secBadge('races')}Races <span class="count">${e.contests.length}</span></h3><span class="sp"></span><button class="btn sm ghost" id="rrsync" type="button" title="Races, splits and timing points from RR14">${ic('refresh',1.8)} <span class="deskonly">Update from&nbsp;</span>RR14</button>${e.contests.length>1?`<button class="btn sm ghost" id="ctall" type="button">${e.contests.every(c=>openRaces.has(c.id))?'Collapse all':'Expand all'}</button>`:''}</div>
   ${e.contests.map((c,ci)=>raceCard(e,c,ci,tpOpts)).join('')}
   <button type="button" class="addline ${e.contests.length?'':'empty1'}" id="addct">${ic('plus',2)}<span>Add a race${e.contests.length?'':'<small>Distance, start time and the splits along the course.</small>'}</span></button>
   </section>
@@ -4678,6 +4688,7 @@ function renderEvent(D){
   on(D,'[data-note]',b=>openNote(b,OBJ[+b.dataset.note]));
   $('#addct').onclick=()=>{ const c={id:uid('c'),name:'',date:'',startTime:'',distance:'',elevation:'',startType:'mass',timeBasis:'',eligibility:'',startSplit:false,splits:[{id:uid('s'),role:'finish',label:'',tp:'',km:''}],relay:'',notes:''};
     e.contests.push(c); openRaces.add(c.id); saveOpen(); touch(); renderDetail(); D.querySelector(`[data-racename="${CSS.escape(c.id)}"]`)?.focus(); };
+  $('#rrsync')?.addEventListener('click',()=>openRR(e));
   $('#ctall')?.addEventListener('click',()=>{ const all=e.contests.every(c=>openRaces.has(c.id)); for(const c of e.contests) all?openRaces.delete(c.id):openRaces.add(c.id); saveOpen(); renderDetail(); });
   on(D,'[data-toggle]',(b,ev)=>{ if(ev.target.closest('.ract')) return; const id=b.dataset.toggle; openRaces.has(id)?openRaces.delete(id):openRaces.add(id); saveOpen(); renderDetail(); });
   on(D,'[data-delct]',b=>{ const c=e.contests[+b.dataset.delct]; if(confirm(`Delete the race «${c.name||'untitled'}»?`)){ e.contests.splice(+b.dataset.delct,1); touch(); renderDetail(); } });
@@ -5751,7 +5762,7 @@ function openMore(btn){
 }
 /* app version (from the service worker cache name), shown next to the name and in the account menu */
 /* version of this page (= sw.js CACHE number, bumped together, like PV in portal.html); UPD = a newer one is waiting / on the server */
-const HV='252'; let APPV=HV, UPD=false;
+const HV='253'; let APPV=HV, UPD=false;
 function setUpd(){ if(UPD) return; UPD=true; renderTop(); }
 function loadVer(){ fetch('sw.js',{cache:'no-store'}).then(r=>r.text()).then(t=>{ const v=(t.match(/events-tracker-v(\d+)/)||[])[1]; if(v&&+v>+HV) setUpd(); }).catch(()=>{}); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadVer(); });
@@ -6645,6 +6656,163 @@ $('#imp-file').onchange=e=>{ readImportFile(e.target.files[0]); e.target.value='
   d.addEventListener('dragleave',()=>d.classList.remove('over'));
   d.addEventListener('drop',e=>{ d.classList.remove('over'); const f=e.dataTransfer?.files?.[0]; if(f){ e.preventDefault(); readImportFile(f); } }); }
 
+/* =====================================================================
+   UPDATE FROM RR14 (Simple API, read only). Each event has up to three Simple API links (Contests, Splits,
+   Timing points: https://api.raceresult.com/<EventID>/<key>), kept in config.rrApi[eventId] (owner only, never
+   on the event, so never in the portal). The answers are told apart by their shape. RR14 is the source for
+   race names, start times, eligibility, splits and the timing point names; notes, hardware, race day,
+   special results stay as they are, nothing is deleted. Same row preview as the AI import, Undo included.
+   ===================================================================== */
+const RR_LINK=/^https:\/\/api\.raceresult\.com\/(\d+)\/[A-Za-z0-9_-]+\/?$/;
+const rrLinksOf=e=>(S.config.rrApi?.[e.id]||[]).slice();
+function rrSetLinks(e,links){ const now=rrLinksOf(e).join('\n'), next=links.join('\n'); if(now===next) return;
+  S.config.rrApi={...(S.config.rrApi||{})}; if(links.length) S.config.rrApi[e.id]=links; else delete S.config.rrApi[e.id];
+  if(!Object.keys(S.config.rrApi).length) delete S.config.rrApi; touch('none'); }
+const rrKind=a=>{ const x=Array.isArray(a)?a.find(o=>o&&typeof o==='object'):null; if(!x) return '';
+  return 'TimingPoint' in x&&'Contest' in x?'splits':'DDT' in x||('Type' in x&&!('ID' in x))?'tps':'AgeStart' in x||'StartTime' in x?'contests':''; };
+const RR_KIND={contests:'Contests',splits:'Splits',tps:'Timing points'};
+/* RR14 seconds after midnight → HH:MM ('' for 0 = not set) */
+const rrTime=s=>{ s=Math.round(+s||0)%86400; return s>0?`${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}`:''; };
+const rrKmF=u=>({m:.001,km:1,mi:1.609344,miles:1.609344,yd:.0009144})[String(u||'km').toLowerCase()]??1;
+/* AgeStart / AgeEnd are birth date limits; 1900-01-01 = open */
+function rrElig(r){
+  const ok=d=>/^\d{4}-\d{2}-\d{2}$/.test(d||'')&&!d.startsWith('0'), a=ok(r.AgeStart)&&+r.AgeStart.slice(0,4)>1900?r.AgeStart:'', b=ok(r.AgeEnd)&&+r.AgeEnd.slice(0,4)<2100?r.AgeEnd:'';
+  const whole=a&&b&&a.endsWith('-01-01')&&b.endsWith('-12-31'), y=d=>d.slice(0,4);
+  const born=a&&b?(whole?(y(a)===y(b)?`Born ${y(a)}`:`Born ${y(a)}–${y(b)}`):`Born ${a} – ${b}`):a?`Born ${a.endsWith('-01-01')?y(a):a} or later`:b?`Born ${b.endsWith('-12-31')?y(b):b} or earlier`:'';
+  const sex={m:'Men only',f:'Women only'}[String(r.Sex||'').toLowerCase()]||'';
+  return [born,sex].filter(Boolean).join(' · ');
+}
+/* One RR14 contest's splits → app splits (timing points by name). DistanceFrom: 0 = from the start,
+   -1 = from the previous split, an ID = from that split, which therefore starts a new leg (km 0 in the app). */
+function rrSplits(list){
+  const sp=list.filter(s=>!(+s.SplitType)).sort((a,b)=>(a.OrderPos||0)-(b.OrderPos||0));
+  const cum=new Map(), refs=new Set(sp.map(s=>+s.DistanceFrom).filter(n=>n>0)), warn=[];
+  sp.forEach((s,i)=>{ const f=+s.DistanceFrom||0, d=(+s.Distance||0)*rrKmF(s.DistanceUnit);
+    let base=0; if(f===-1) base=i?cum.get(sp[i-1].ID):0; else if(f>0){ if(cum.has(f)) base=cum.get(f); else warn.push(`${s.Name}: measured from split ${f}, not found before it — taken from the start`); }
+    cum.set(s.ID,base+d); });
+  let leg=0; const out=[];
+  sp.forEach((s,i)=>{ const last=i===sp.length-1, c=cum.get(s.ID);
+    const role=last?'finish':i===0&&(/^start/i.test(s.Name)||(c===0&&!refs.has(s.ID)))?'start':'split';
+    const legStart=role==='split'&&refs.has(s.ID);
+    let km=''; if(role==='start') km='0'; else if(legStart){ km='0'; leg=c; } else if(c-leg>0) km=fmtKm(c-leg);
+    if(role==='start'&&refs.has(s.ID)) leg=c;
+    out.push({role,label:String(s.Label||'').trim()||(AUTO_SPLIT_NAME.test(String(s.Name||'').trim())?'':String(s.Name||'').trim()),timingPoint:String(s.TimingPoint||'').trim(),km}); });
+  return {splits:out,startSplit:out[0]?.role==='start',warn};
+}
+const rrSeq=(startSplit,sp)=>seqText({startSplit,splits:sp});
+const appSeq=(e,c)=>{ const n=id=>(e.timingPoints.find(t=>t.id===id)||{}).name||''; return rrSeq(c.startSplit,c.splits.map(x=>({role:x.role,label:x.label,timingPoint:n(x.tp),km:x.role==='start'?'0':String(x.km??'').trim()}))); };
+const spSig=(startSplit,sp)=>JSON.stringify([!!startSplit,sp.filter(s=>startSplit||s.role!=='start').map(s=>[s.role,s.label,rrName(s.timingPoint),s.km===''?'':String(num(s.km))])]);
+/* same Start / Split / Finish layout: only what changed per split, e.g. "Split1 km 3 → 2"; otherwise '' (whole sequence shown) */
+function spDiff(e,ex,x){
+  const cur=ex.splits.filter(s=>ex.startSplit||s.role!=='start'), nx=x.splits.filter(s=>x.startSplit||s.role!=='start');
+  if(ex.startSplit!==x.startSplit||cur.length!==nx.length||cur.some((s,i)=>s.role!==nx[i].role)) return '';
+  const tn=id=>(e.timingPoints.find(t=>t.id===id)||{}).name||'', k=v=>String(v??'').trim()===''?'—':String(num(v));
+  return cur.map((s,i)=>{ const n=nx[i], ch=[];
+    if(rrName(tn(s.tp))!==rrName(n.timingPoint)) ch.push(`${tn(s.tp)||'—'} → ${n.timingPoint||'—'}`);
+    if(s.role!=='start'&&k(s.km)!==k(n.km)) ch.push(`km ${k(s.km)} → ${k(n.km)}`);
+    if(String(s.label||'')!==n.label) ch.push(`label «${s.label||'—'}» → «${n.label||'—'}»`);
+    return ch.length?`${splitName(ex,s)}: ${ch.join(', ')}`:''; }).filter(Boolean).join(' · ');
+}
+function rrRows(e,D,eid){
+  const rows=[], warn=[], post=[];
+  const fmt=v=>{ const s=String(v??''); return !s?'—':s.length>80?s.slice(0,80)+'…':s; };
+  const field=(sec,label,obj,k,v,{auto=false}={})=>{ if(v===''||v==null) return; const cur=obj[k]; if(String(cur??'')===String(v)) return;
+    const empty=String(cur??'').trim()===''; rows.push({sec,label,from:empty?'':fmt(cur),to:fmt(v),checked:empty||auto,ow:!empty,fn:()=>{ obj[k]=v; }}); };
+  if(!rrEventId(e)&&eid) rows.push({sec:'Event',label:'EventID',to:eid,checked:true,fn:ev=>{ ev.rr14EventId=eid; }});
+  const active=(D.contests||[]).filter(r=>!r.Inactive).sort((a,b)=>(a.OrderPos||0)-(b.OrderPos||0));
+  if(D.contests) for(const r of D.contests) if(r.Inactive) warn.push(`«${r.Name}» is inactive in RR14 — left out`);
+  const conv=new Map(); if(D.splits) for(const r of (D.contests?active:[])){ const x=rrSplits(D.splits.filter(s=>+s.Contest===+r.ID)); conv.set(r.ID,x); for(const w of x.warn) warn.push(`«${r.Name}» · ${w}`); }
+  // timing points: RR14's list plus every point a split uses
+  const tps=new Map(); for(const t of D.tps||[]){ const n=String(t.Name||'').trim(); if(n) tps.set(rrName(n),{name:n,color:/^#[0-9a-f]{6}$/i.test(t.Color||'')?t.Color.toLowerCase():'',position:String(t.Position||'').trim()}); }
+  for(const x of conv.values()) for(const s of x.splits) if(s.timingPoint&&!tps.has(rrName(s.timingPoint))) tps.set(rrName(s.timingPoint),{name:s.timingPoint,color:'',position:''});
+  for(const t of tps.values()){ const ex=e.timingPoints.find(x=>rrName(x.name)===rrName(t.name));
+    if(!ex){ rows.push({sec:'Timing points',label:'Add timing point',to:[t.name,t.position].filter(Boolean).join(' · ')+' · hardware to choose',checked:true,fn:ev=>{ if(!ev.timingPoints.some(x=>rrName(x.name)===rrName(t.name))) ev.timingPoints.push({id:uid('tp'),name:t.name,hardware:'',ch:'',loop:'',mode:'',position:t.position,notes:'',color:t.color||nextColor(ev)}); }}); continue; }
+    field('Timing points',`«${ex.name}» · position`,ex,'position',t.position);
+    if(t.color&&String(ex.color||'').toLowerCase()!==t.color) rows.push({sec:'Timing points',label:`«${ex.name}» · colour`,from:ex.color||'—',to:t.color,checked:false,ow:true,fn:()=>{ ex.color=t.color; }}); }
+  const only=(what,l)=>{ if(l.length) warn.push(`Only in the hub, kept: ${plural(l.length,what[0],what[1])} — ${l.slice(0,6).join(', ')}${l.length>6?` and ${l.length-6} more`:''}`); };
+  if(D.tps) only(['timing point','timing points'],e.timingPoints.filter(t=>!HW[t.hardware]?.notTP&&!tps.has(rrName(t.name))).map(t=>t.name));
+  // races
+  const ord=new Map(active.map((r,i)=>[r.ID,i])), used=new Set();
+  const tpOf=(ev,n)=>tpIdByName(ev,n);
+  const mkSplits=(ev,x,old=[])=>x.splits.map((s,i)=>({id:old[i]?.role===s.role?old[i].id:uid('s'),role:s.role,label:s.label,tp:tpOf(ev,s.timingPoint),km:s.km}));
+  for(const r of active){ const name=String(r.Name||'').trim()||`Contest ${r.ID}`, x=conv.get(r.ID);
+    const ex=e.contests.find(c=>c.rrId===r.ID&&!used.has(c))||e.contests.find(c=>!c.rrId&&!used.has(c)&&normTxt(c.name)===normTxt(name));
+    const start=rrTime(r.StartTime), dist=+r.Length>0?fmtKm(+r.Length*rrKmF(r.LengthUnit)):'', elig=rrElig(r);
+    if(!ex){ rows.push({sec:'Races',label:'Add race',to:[name,dist&&`${dist} km`,start,x&&rrSeq(x.startSplit,x.splits)].filter(Boolean).join(' · '),checked:true,fn:ev=>{
+        const c={id:uid('c'),rrId:r.ID,name,date:'',startTime:start,distance:dist,elevation:'',startType:'mass',timeBasis:'',eligibility:elig,startSplit:x?x.startSplit:false,splits:x?mkSplits(ev,x):[{id:uid('s'),role:'finish',label:'',tp:'',km:''}],relay:'',notes:''};
+        let at=-1; ev.contests.forEach((y,i)=>{ if(ord.has(y.rrId)&&ord.get(y.rrId)<ord.get(r.ID)) at=i; });
+        if(at<0){ const nx=ev.contests.findIndex(y=>ord.has(y.rrId)); at=nx<0?ev.contests.length:nx; } else at++;
+        ev.contests.splice(at,0,c); }}); continue; }
+    used.add(ex); if(ex.rrId!==r.ID) post.push(()=>{ ex.rrId=r.ID; });
+    field('Races',`«${ex.name}» · name`,ex,'name',name,{auto:true});
+    field('Races',`«${ex.name}» · start time`,ex,'startTime',start,{auto:true});
+    field('Races',`«${ex.name}» · distance (km)`,ex,'distance',dist,{auto:true});
+    field('Races',`«${ex.name}» · eligibility`,ex,'eligibility',elig);
+    if(x&&spSig(x.startSplit,x.splits)!==spSig(ex.startSplit,ex.splits.map(s=>({...s,timingPoint:(e.timingPoints.find(t=>t.id===s.tp)||{}).name||''})))){
+      const d=spDiff(e,ex,x);
+      rows.push({sec:'Races',label:`«${ex.name}» · splits`,from:d?'':appSeq(e,ex),to:d||rrSeq(x.startSplit,x.splits),checked:true,ow:ex.splits.some(s=>s.role==='split'),fn:ev=>{ ex.startSplit=x.startSplit; ex.splits=mkSplits(ev,x,ex.splits); }});
+      if(ex.results==='special') warn.push(`«${ex.name}» shows Special results — splits updated but still hidden`); } }
+  if(D.contests) only(['race','races'],e.contests.filter(c=>!used.has(c)).map(c=>c.name||'untitled'));
+  return {rows,warn,post};
+}
+let RRS=null;
+function openRR(e){
+  if(!S||!e) return; closePops(); closeCmd();
+  RRS={e,rows:[],warn:[],post:[],got:[]};
+  $('#rr-links').value=rrLinksOf(e).join('\n'); $('#rr-ev').textContent=e.name||'untitled';
+  renderRR(); if(!$('#rrdlg').open) $('#rrdlg').showModal();
+  if(rrLinksOf(e).length) rrFetch(); else setTimeout(()=>$('#rr-links').focus(),30);
+}
+async function rrFetch(){
+  const e=RRS?.e; if(!e) return;
+  const raw=$('#rr-links').value.split(/[\s,]+/).map(s=>s.trim()).filter(Boolean), links=[...new Set(raw)], bad=links.filter(u=>!RR_LINK.test(u));
+  RRS.err=[]; RRS.rows=[]; RRS.warn=[]; RRS.post=[]; RRS.got=[];
+  if(!links.length){ RRS.err.push('Paste the Simple API links (Contests, Splits, Timing points), one per line.'); renderRR(); return; }
+  if(bad.length){ RRS.err.push(...bad.map(u=>`Not a Simple API link (https://api.raceresult.com/<EventID>/<key>): ${u.length>60?u.slice(0,60)+'…':u}`)); renderRR(); return; }
+  const ids=[...new Set(links.map(u=>u.match(RR_LINK)[1]))], eid=rrEventId(e);
+  if(ids.length>1){ RRS.err.push(`The links point to different events: ${ids.join(', ')}`); renderRR(); return; }
+  if(eid&&ids[0]!==eid){ RRS.err.push(`The links are for EventID ${ids[0]}, this event has ${eid}`); renderRR(); return; }
+  rrSetLinks(e,links); RRS.busy=true; renderRR();
+  const D={}, err=[];
+  await Promise.all(links.map(async(u,i)=>{ const n=`Link ${i+1}`;
+    try{ const r=await fetch(u,{cache:'no-store'}); const t=await r.text();
+      if(!r.ok){ let m=t; try{ const j=JSON.parse(t); m=j.error??t; }catch{} err.push(`${n}: RR14 answered ${r.status}${r.status===406?' (too many calls — wait a second)':''}${m?' · '+String(m).slice(0,80):''}`); return; }
+      let j; try{ j=JSON.parse(t); }catch{ err.push(`${n}: the answer is not JSON — is it a Simple API of type Custom (contests/get, splits/get, timingpoints/get)?`); return; }
+      const k=rrKind(j); if(!k){ err.push(`${n}: ${Array.isArray(j)&&!j.length?'empty list':'not contests, splits or timing points'}`); return; }
+      if(D[k]) err.push(`${n}: a second ${RR_KIND[k]} link — ignored`); else { D[k]=j; RRS.got.push(`${RR_KIND[k]} ${j.length}`); }
+    }catch{ err.push(`${n}: could not reach RR14 (offline, or blocked by a VPN / content filter)`); } }));
+  RRS.busy=false; RRS.err=err;
+  if(Object.keys(D).length){ const b=rrRows(e,D,ids[0]); Object.assign(RRS,b);
+    if(!D.contests) RRS.warn.unshift('No Contests link: races are matched by name only, new races cannot be added');
+    if(!D.splits) RRS.warn.unshift('No Splits link: splits are not updated'); }
+  renderRR();
+}
+function renderRR(){
+  const R=RRS, out=$('#rr-out'); if(!R){ out.innerHTML=''; return; }
+  const sum=R.got.length?`<div class="isum">${R.got.map(g=>`<span class="tag">${esc(g)}</span>`).join('')}</div>`:'';
+  out.innerHTML=(R.busy?'<div class="hint" style="padding:8px 0">Reading RR14…</div>':'')+msgBox('err','Could not read',R.err||[])+sum+msgBox('warn','Notes',R.warn)
+    +(R.rows.length?`<div class="icard" style="margin-top:10px"><div class="ibody">${R.rows.map((r,ri)=>`<label class="irow"><input type="checkbox" class="ck" data-rrrow="${ri}" ${r.checked?'checked':''}><span><span class="ilab"><b>${esc(r.sec)}</b> · ${esc(r.label)}${r.ow?'<span class="tag open">overwrite</span>':''}</span><span class="ival">${r.from?`<span class="ifr">${esc(r.from)}</span> → `:''}<span class="ito">${esc(r.to)}</span></span></span></label>`).join('')}</div></div>`
+      :R.got.length&&!R.busy?`<div class="impmsg ok">Already up to date with RR14.</div>`:'');
+  on(out,'[data-rrrow]',x=>{ R.rows[+x.dataset.rrrow].checked=x.checked; updRR(); },'change');
+  updRR();
+}
+function updRR(){ const n=RRS?RRS.rows.filter(r=>r.checked).length:0; $('#rr-apply').disabled=!n&&!(RRS?.post?.length); $('#rr-fetch').disabled=!!RRS?.busy;
+  $('#rr-sum').textContent=n?plural(n,'change','changes'):''; $('#rr-apply').textContent=n?`Apply ${n}`:'Apply'; }
+function applyRR(){
+  const R=RRS; if(!R) return; const e=S.events.find(x=>x.id===R.e.id);
+  if(e!==R.e){ toast('The event changed meanwhile','read from RR14 again','warn','warn'); return; }
+  const rows=R.rows.filter(r=>r.checked);
+  importUndo={before:new Map([[e.id,JSON.stringify(e)]]),added:new Set(),clients:new Set(),hours:[]};
+  // timing points first, so splits find the new ones
+  for(const r of rows.filter(r=>r.sec!=='Races')) r.fn(e); for(const r of rows.filter(r=>r.sec==='Races')) r.fn(e); for(const f of R.post) f();
+  normalize(); touch(); $('#rrdlg').close(); RRS=null; renderDetail();
+  toast('Updated from RR14',rows.length?plural(rows.length,'change','changes'):'races linked to RR14','check','',{label:'Undo',run:undoImport});
+}
+$('#rr-fetch').onclick=rrFetch;
+$('#rr-cancel').onclick=()=>$('#rrdlg').close();
+$('#rr-apply').onclick=applyRR;
+$('#rrdlg').addEventListener('close',()=>{ if(!$('#rrdlg').open) RRS=null; });
+
 /* ---- keyboard shortcut cheat sheet (?) ---- */
 function openKeys(){
   closePops(); closeCmd();
@@ -6990,7 +7158,7 @@ function eventStructure(src,keepPlace){
   const tpId=new Map();
   x.timingPoints=(x.timingPoints||[]).map(t=>{ const n={...t,id:uid('tp')}; tpId.set(t.id,n.id); return n; });
   x.todoPlan=(x.todoPlan||[]).map(p=>({...p,id:uid('pl'),todo:''})); // the plan, not the source's to-dos
-  x.contests=(x.contests||[]).map(c=>({...c,id:uid('c'),date:'',splits:(c.splits||[]).map(s=>({...s,id:uid('s'),tp:tpId.get(s.tp)||''}))}));
+  x.contests=(x.contests||[]).map(c=>({...c,id:uid('c'),rrId:undefined,date:'',splits:(c.splits||[]).map(s=>({...s,id:uid('s'),tp:tpId.get(s.tp)||''}))}));
   // my questions only (not the client's), unanswered, renumbered
   x.questions=(x.questions||[]).filter(q=>q.author!=='client'&&String(q.text||'').trim()).map((q,i)=>({id:'',n:i+1,text:q.text,answer:'',resolved:false}));
   return x;
